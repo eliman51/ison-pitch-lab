@@ -56,6 +56,11 @@ button.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .status{font-size:.9rem;color:var(--muted)}
+textarea{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:8px 10px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box;resize:vertical}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.duo div{border-top:1px solid var(--line);padding-top:6px;min-width:0}
+.duo b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.9rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.duo small{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);margin-left:6px}
 .level{height:6px;border-radius:3px;background:var(--grid);overflow:hidden}
 .level div{height:100%;width:0%;background:var(--muted);transition:width .06s linear}
 .help{border-left:3px solid var(--gold);padding:8px 12px;background:var(--bg);border-radius:4px;font-size:.92rem}
@@ -108,6 +113,48 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
   </section>
 
+  <section class="panel" aria-labelledby="t-sing">
+    <h2 id="t-sing">Sing-along</h2>
+    <div class="grid2">
+      <div class="field"><label class="label" for="guideSrc">Guide melody</label>
+        <select id="guideSrc">
+          <option value="ex-major">Warm-up: major scale on reference note</option>
+          <option value="ex-minor">Warm-up: minor scale on reference note</option>
+          <option value="ex-hold">Warm-up: long holds and a fifth</option>
+          <option value="typed">My typed melody</option>
+          <option value="rec">From a recording</option>
+        </select></div>
+      <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
+        <input type="range" id="speed" min="0.25" max="1" step="0.05" value="1">
+        <div class="ticks"><span>¼</span><span>½</span><span>¾</span><span>full</span></div></div>
+    </div>
+    <div class="field" id="typedBox" hidden>
+      <label class="label" for="typed">Notes (name and octave, then beats)</label>
+      <textarea id="typed" rows="4" spellcheck="false"></textarea>
+      <div class="row">
+        <label class="label" for="bpm">Tempo</label><input type="number" id="bpm" min="20" max="240" value="60" style="width:6em">
+        <button id="typedLoad">Load melody</button>
+      </div>
+      <span class="status">Example: D4:1 E4:1 F4:2 R:1 G4:0.5 F#4:0.5. R is a rest. Sharps use #, flats use b.</span>
+    </div>
+    <div class="field" id="recBox" hidden>
+      <label class="label" for="guideFile">Recording of the chant</label>
+      <input class="file" type="file" id="guideFile" accept="audio/*">
+      <label class="check"><input type="checkbox" id="guideSound" checked> Play the recording's sound (use headphones)</label>
+    </div>
+    <audio id="guideAudio" preload="auto" playsinline></audio>
+    <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch"></canvas>
+    <div class="duo">
+      <div><span class="label">Sing this</span><b id="tgt">--</b></div>
+      <div><span class="label">You</span><b id="you">--</b></div>
+    </div>
+    <div class="row">
+      <button class="primary" id="singPlay">Start</button>
+      <button id="singRestart">Restart</button>
+      <span class="status" id="singStatus">Bars are the notes to hit. Your line draws over them.</span>
+    </div>
+  </section>
+
   <section class="panel" aria-labelledby="t-ref">
     <h2 id="t-ref">Reference tone</h2>
     <div class="grid2">
@@ -155,6 +202,8 @@ const NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
 const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
+/* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
+const G={notes:[],dur:0,src:'ex-major',useAudio:false,playing:false,pos:-2,speed:1,trace:[],last:0,youM:null,ready:false};
 
 const f2m=f=>69+12*Math.log2(f/S.a4);
 const m2f=m=>S.a4*Math.pow(2,(m-69)/12);
@@ -165,10 +214,11 @@ function colors(){const cs=getComputedStyle(document.documentElement);const g=n=
   return{good:g('--good'),warn:g('--warn'),bad:g('--bad'),grid:g('--grid'),gridC:g('--gridC'),muted:g('--muted'),ink:g('--ink'),accent:g('--accent'),lane:g('--lane'),gold:g('--gold'),bg:g('--bg')}}
 
 /* YIN pitch detector */
+const FMIN=38,FMAX=2100;
 function yin(buf,sr,len){
   const W=Math.floor(len/2);
-  const tauMin=Math.max(2,Math.floor(sr/1200));
-  const tauMax=Math.min(Math.floor(sr/60),len-W-2);
+  const tauMin=Math.max(2,Math.floor(sr/2000));
+  const tauMax=Math.min(Math.floor(sr/40),len-W-2);
   const d=new Float32Array(tauMax+2);
   for(let tau=1;tau<=tauMax+1;tau++){let s=0;for(let i=0;i<W;i++){const x=buf[i]-buf[i+tau];s+=x*x}d[tau]=s}
   let run=0;d[0]=1;
@@ -217,7 +267,7 @@ function showReadout(m){
 function updateZone(){const z=$('zone');z.style.left=(50-S.thr)+'%';z.style.width=(2*S.thr)+'%'}
 
 /* Live mode */
-let ctx=null,analyser=null,stream=null,live=false,buf=null,hist=[],lastM=null,t0=0,center=62,rec=null,chunks=[];
+let ctx=null,analyser=null,stream=null,live=false,buf=null,half=null,hist=[],lastM=null,t0=0,center=62,rec=null,chunks=[];
 function ensureCtx(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx}
 let liveCtx=null;
 function resumeLive(){if(liveCtx&&liveCtx.state!=='running')liveCtx.resume().catch(()=>{})}
@@ -233,10 +283,10 @@ async function startLive(){
   liveCtx=new(window.AudioContext||window.webkitAudioContext)();
   try{await liveCtx.resume()}catch(e){}
   liveCtx.onstatechange=()=>{if(live&&liveCtx.state!=='running')$('status').textContent='Audio paused. Tap anywhere to resume.'};
-  const src=liveCtx.createMediaStreamSource(stream);analyser=liveCtx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=0;
+  const src=liveCtx.createMediaStreamSource(stream);analyser=liveCtx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;
   /* iOS fix 2: WebKit only feeds the analyser when it is wired to the output, so route it through a silent gain */
   const mute=liveCtx.createGain();mute.gain.value=0;src.connect(analyser);analyser.connect(mute);mute.connect(liveCtx.destination);
-  buf=new Float32Array(analyser.fftSize);live=true;hist=[];t0=performance.now();
+  buf=new Float32Array(analyser.fftSize);half=new Float32Array(analyser.fftSize/2);live=true;hist=[];t0=performance.now();
   $('startBtn').textContent='Stop listening';$('status').textContent='Listening';
   $('recBtn').disabled=typeof MediaRecorder==='undefined';
   requestAnimationFrame(loop);
@@ -251,9 +301,13 @@ function loop(){
   const db=lvl>0?20*Math.log10(lvl):-100;$('levelBar').style.width=Math.max(0,Math.min(100,(db+60)/60*100))+'%';
   $('levelBar').style.background=lvl>S.gate?'var(--good)':'var(--muted)';
   if(liveCtx.state==='running')$('status').textContent=lvl>S.gate?'Hearing you':'Listening (sing louder or raise sensitivity)';
-  if(lvl>S.gate){const p=yin(buf,liveCtx.sampleRate,buf.length);if(p&&p.clarity>0.6&&p.f>55&&p.f<1250)m=f2m(p.f)}
+  if(lvl>S.gate){
+    /* halve the sample rate: same speed as before, but a window long enough for bass notes down to about E1 */
+    for(let i=0;i<half.length;i++)half[i]=(buf[2*i]+buf[2*i+1])*0.5;
+    const p=yin(half,liveCtx.sampleRate/2,half.length);if(p&&p.clarity>0.5&&p.f>FMIN&&p.f<FMAX)m=f2m(p.f)}
   if(m!=null){if(lastM!=null&&Math.abs(m-lastM)<1)m=lastM*S.smooth+m*(1-S.smooth);lastM=m}else lastM=null;
   const t=(performance.now()-t0)/1000;hist.push({t,m});while(hist.length&&hist[0].t<t-12)hist.shift();
+  if(G.playing&&G.pos>=0)G.trace.push({t:G.pos,m});G.youM=m;
   showReadout(m);drawLive(t);requestAnimationFrame(loop);
 }
 function drawLive(now){
@@ -280,7 +334,7 @@ $('recBtn').onclick=()=>{
 
 /* Drone */
 let drone=null;
-function refSelect(){const s=$('refNote');for(let m=36;m<=84;m++){const o=document.createElement('option');o.value=m;o.textContent=nameOf(m)+'  ('+m2f(m).toFixed(1)+' Hz)';s.appendChild(o)}s.value=S.ref}
+function refSelect(){const s=$('refNote');for(let m=24;m<=96;m++){const o=document.createElement('option');o.value=m;o.textContent=nameOf(m)+'  ('+m2f(m).toFixed(1)+' Hz)';s.appendChild(o)}s.value=S.ref}
 function refreshRefLabels(){[...$('refNote').options].forEach(o=>{const m=+o.value;o.textContent=nameOf(m)+'  ('+m2f(m).toFixed(1)+' Hz)'})}
 $('droneBtn').onclick=()=>{
   ensureCtx();
@@ -294,7 +348,7 @@ function retuneDrone(){if(drone){const f=m2f(S.ref);drone.o1.frequency.setTarget
 
 /* Take analysis */
 let take=null;const audio=$('audio');
-async function analyze(ab){
+async function analyze(ab,statusEl){
   const sr0=ab.sampleRate,ch=ab.numberOfChannels,n=ab.length,data=[];for(let i=0;i<ch;i++)data.push(ab.getChannelData(i));
   const fac=Math.max(1,Math.round(sr0/16000)),sr=sr0/fac,len=Math.floor(n/fac),x=new Float32Array(len);
   for(let i=0;i<len;i++){let s=0;for(let k=0;k<fac;k++)for(let c=0;c<ch;c++)s+=data[c][i*fac+k]||0;x[i]=s/(fac*ch)}
@@ -303,9 +357,9 @@ async function analyze(ab){
   const sorted=Array.from(lv).sort((a,b)=>a-b),p95=sorted[Math.floor(sorted.length*0.95)]||0,gate=Math.max(0.003,p95*0.1);
   const pts=[];
   for(let f=0;f<frames;f++){
-    let m=null;if(lv[f]>gate){const p=yin(x.subarray(f*hop,f*hop+frame),sr,frame);if(p&&p.clarity>0.55&&p.f>55&&p.f<1250)m=f2m(p.f)}
+    let m=null;if(lv[f]>gate){const p=yin(x.subarray(f*hop,f*hop+frame),sr,frame);if(p&&p.clarity>0.5&&p.f>FMIN&&p.f<FMAX)m=f2m(p.f)}
     pts.push({t:(f*hop+frame/2)/sr,m});
-    if(f%300===0){$('takeStatus').textContent='Analyzing '+Math.round(f/frames*100)+'%';await new Promise(r=>setTimeout(r,0))}
+    if(f%300===0){(statusEl||$('takeStatus')).textContent='Analyzing '+Math.round(f/frames*100)+'%';await new Promise(r=>setTimeout(r,0))}
   }
   for(let i=1;i<pts.length-1;i++){const a=pts[i-1].m,b=pts[i].m,c=pts[i+1].m;
     if(b!=null&&((a==null||Math.abs(b-a)>5)&&(c==null||Math.abs(b-c)>5)))pts[i].m=null}
@@ -375,6 +429,115 @@ function exampleTake(){
   loadAudioBuffer(ab,'Example take (synthetic voice)',URL.createObjectURL(new Blob([wav],{type:'audio/wav'})));
 }
 
+/* Sing-along */
+const gAudio=$('guideAudio');
+function setPitchKeep(a){a.preservesPitch=true;a.mozPreservesPitch=true;a.webkitPreservesPitch=true}
+setPitchKeep(gAudio);
+const LETTERS={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
+function parseNote(s){const r=/^([A-Ga-g])([#b♯♭]*)(-?\d)$/.exec(s);if(!r)return null;
+  let n=LETTERS[r[1].toUpperCase()];for(const ch of r[2])n+=(ch==='#'||ch==='♯')?1:-1;return(+r[3]+1)*12+n}
+function parseTyped(text,bpm){
+  const beat=60/bpm,notes=[];let t=0;
+  const toks=text.replace(/,/g,' ').split(/\s+/).filter(Boolean);
+  for(const tok of toks){const [nm,b]=tok.split(':');const beats=b===undefined?1:parseFloat(b);
+    if(!(beats>0))return{error:'Could not read the length in "'+tok+'". Use a number after the colon, like D4:2.'};
+    if(/^r$/i.test(nm)){t+=beats*beat;continue}
+    const m=parseNote(nm);if(m==null)return{error:'Could not read the note "'+nm+'". Write it like D4, F#3 or Bb4.'};
+    notes.push({t0:t,t1:t+beats*beat*0.97,m});t+=beats*beat}
+  if(!notes.length)return{error:'Type at least one note, like D4:1.'};
+  return{notes,dur:t};
+}
+function exercise(kind){
+  const r=S.ref,beat=0.9,seq=[];
+  if(kind==='ex-hold'){[[0,4],[null,1],[7,4],[null,1],[0,2],[2,2],[4,2],[2,2],[0,4]].forEach(x=>seq.push(x))}
+  else{const steps=kind==='ex-minor'?[0,2,3,5,7,8,10,12]:[0,2,4,5,7,9,11,12];
+    steps.forEach((s,i)=>seq.push([s,i===steps.length-1?2:1]));steps.slice(0,-1).reverse().forEach((s,i,a)=>seq.push([s,i===a.length-1?3:1]))}
+  const notes=[];let t=0;for(const [s,b] of seq){if(s!=null)notes.push({t0:t,t1:t+b*beat*0.95,m:r+s});t+=b*beat}
+  return{notes,dur:t};
+}
+function notesFromPts(pts){
+  const raw=[];let cur=null;
+  const flush=()=>{if(cur&&cur.t1-cur.t0>=0.12){const ms=cur.ms.sort((a,b)=>a-b);raw.push({t0:cur.t0,t1:cur.t1,m:ms[Math.floor(ms.length/2)]})}cur=null};
+  for(const p of pts){const r=p.m==null?null:Math.round(p.m);
+    if(cur&&r===cur.r){cur.t1=p.t;cur.ms.push(p.m);cur.gap=0;continue}
+    if(cur&&r==null&&cur.gap<3){cur.gap++;continue}
+    flush();if(r!=null)cur={r,t0:p.t,t1:p.t,ms:[p.m],gap:0}}
+  flush();
+  const out=[];for(const n of raw){const l=out[out.length-1];
+    if(l&&Math.abs(l.m-n.m)<0.5&&n.t0-l.t1<0.12){l.t1=n.t1}else out.push(n)}
+  return out;
+}
+function setGuide(g,useAudio){G.notes=g.notes;G.dur=g.dur;G.useAudio=!!useAudio;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
+  stopSing(true);drawSing();$('singStatus').textContent=G.ready?G.notes.length+' notes loaded. Tap Start.':'No notes found in that guide.'}
+function loadSource(){
+  G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';
+  if(G.src.startsWith('ex-'))setGuide(exercise(G.src));
+  else if(G.src==='typed')loadTyped();
+  else if(G.src==='rec'){if(G.recGuide)setGuide(G.recGuide,true);else{G.ready=false;G.notes=[];drawSing();$('singStatus').textContent='Choose a recording of a cantor singing the chant.'}}
+}
+function loadTyped(){const res=parseTyped($('typed').value,Math.max(20,Math.min(240,+$('bpm').value||60)));
+  try{localStorage.setItem('ison-typed',$('typed').value)}catch(e){}
+  if(res.error){G.ready=false;G.notes=[];drawSing();$('singStatus').textContent=res.error;return}setGuide(res)}
+function targetAt(t){for(const n of G.notes){if(t>=n.t0&&t<n.t1)return n;if(n.t0>t)break}return null}
+async function startSing(){
+  if(!G.ready)return;
+  if(G.pos>=G.dur){G.pos=G.useAudio?0:-2;G.trace=[]}
+  if(G.useAudio){gAudio.muted=!$('guideSound').checked;gAudio.playbackRate=G.speed;setPitchKeep(gAudio);
+    try{gAudio.currentTime=Math.max(0,G.pos)}catch(e){}
+    try{await gAudio.play()}catch(e){$('singStatus').textContent='Tap Start again to begin playback.';return}}
+  G.playing=true;G.last=performance.now();$('singPlay').textContent='Pause';
+  $('singStatus').textContent=G.useAudio?'Sing with the recording':'Get ready...';
+  if(!live)startLive();
+  requestAnimationFrame(singFrame);
+}
+function stopSing(silent){G.playing=false;if(!gAudio.paused)gAudio.pause();$('singPlay').textContent='Start';if(!silent)drawSing()}
+function finishSing(){stopSing();const pts=G.trace.filter(p=>p.m!=null);let on=0,tot=0;
+  for(const p of pts){const n=targetAt(p.t);if(!n)continue;tot++;if(Math.abs(p.m-n.m)*100<=S.thr)on++}
+  $('singStatus').textContent=tot?'Done. '+Math.round(on/tot*100)+'% of your singing was within ±'+S.thr+'¢ of the guide.':'Done. No singing was heard during the notes.'}
+function singFrame(ts){
+  if(!G.playing)return;const dt=Math.min(0.1,(ts-G.last)/1000);G.last=ts;
+  if(G.useAudio){G.pos=gAudio.currentTime;if(gAudio.ended){finishSing();return}}
+  else{const was=G.pos;G.pos+=dt*(G.pos<0?1:G.speed);if(was<0&&G.pos>=0)$('singStatus').textContent='Sing';}
+  if(G.pos>G.dur+0.6){if(G.useAudio)gAudio.pause();finishSing();return}
+  drawSing();requestAnimationFrame(singFrame);
+}
+function drawSing(){
+  const cv=$('sing'),w=cv.clientWidth||cv.parentElement.clientWidth,h=260,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);
+  let lo=S.ref-4,hi=S.ref+8;if(G.notes.length){lo=Math.min(...G.notes.map(n=>n.m));hi=Math.max(...G.notes.map(n=>n.m))}
+  lo-=2;hi+=2;if(hi-lo<10){const mid=(hi+lo)/2;lo=mid-5;hi=mid+5}
+  const yOf=m=>h-(m-lo)/(hi-lo)*h,nowX=w*0.3,pxs=w/6,xOf=t=>nowX+(t-G.pos)*pxs;
+  const saveLane=S.lane;S.lane=false;drawGrid(g,w,h,lo,hi,yOf,c,[6]);S.lane=saveLane;
+  const cur=targetAt(G.pos),bh=Math.max(8,(h/(hi-lo))*S.thr/100*2);
+  g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--f-mono');
+  for(const n of G.notes){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);
+    g.fillStyle=n===cur?c.gold:c.accent;g.globalAlpha=n===cur?0.9:(n.t1<G.pos?0.3:0.6);
+    g.fillRect(x0,y-bh/2,Math.max(2,x1-x0),bh);g.globalAlpha=1;
+    if(x1-x0>34&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(nameOf(n.m),x0+4,y-bh/2-4)}}
+  g.lineWidth=3;g.lineCap='round';
+  for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;
+    const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);
+    g.strokeStyle=!n?c.muted:Math.abs(p.m-n.m)*100<=S.thr?c.good:Math.abs(p.m-n.m)*100<=Math.max(S.thr*2.5,25)?c.warn:c.bad;
+    g.beginPath();g.moveTo(xOf(q.t),yOf(q.m));g.lineTo(x,yOf(p.m));g.stroke()}
+  if(G.playing&&G.youM!=null){g.fillStyle=c.ink;g.beginPath();g.arc(nowX,yOf(G.youM),5,0,7);g.fill()}
+  g.strokeStyle=c.gold;g.lineWidth=2;g.beginPath();g.moveTo(nowX,0);g.lineTo(nowX,h);g.stroke();
+  if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
+  if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
+  $('tgt').textContent=cur?nameOf(cur.m):(G.playing?'rest':'--');
+  if(G.youM!=null&&G.playing){const cv2=cur?Math.round((G.youM-cur.m)*100):null;
+    $('you').innerHTML=nameOf(G.youM)+(cv2!=null?'<small>'+(cv2>=0?'+':'')+cv2+'¢</small>':'')}else $('you').textContent='--';
+}
+$('guideSrc').onchange=loadSource;
+$('typedLoad').onclick=loadTyped;
+$('singPlay').onclick=()=>G.playing?stopSing():startSing();
+$('singRestart').onclick=()=>{stopSing(true);G.trace=[];G.pos=G.useAudio?0:-2;try{gAudio.currentTime=0}catch(e){}drawSing();$('singStatus').textContent='Ready. Tap Start.'};
+$('speed').oninput=()=>{G.speed=+$('speed').value;$('speedTxt').textContent=(+G.speed.toFixed(2))+'×';gAudio.playbackRate=G.speed;if(!G.playing)drawSing()};
+$('guideSound').onchange=()=>{gAudio.muted=!$('guideSound').checked};
+$('guideFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;ensureCtx();$('singStatus').textContent='Reading the recording';
+  try{const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
+    const an=await analyze(ab,$('singStatus'));G.recGuide={notes:notesFromPts(an.pts),dur:an.dur};gAudio.src=URL.createObjectURL(f);setGuide(G.recGuide,true)}
+  catch(err){$('singStatus').textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
+try{$('typed').value=localStorage.getItem('ison-typed')||'D3:1 E3:1 F3:1 G3:1 A3:2 G3:1 F3:1 E3:1 D3:3'}catch(e){$('typed').value='D3:1 E3:1 F3:1 G3:1 A3:2 G3:1 F3:1 E3:1 D3:3'}
+
 /* Settings wiring */
 function smoothLabel(){$('smoothTxt').textContent=S.smooth<0.25?'Fast':S.smooth<0.65?'Balanced':'Smooth'}
 $('a4').value=S.a4;$('thr').value=String(S.thr);$('smooth').value=S.smooth;$('gate').value=S.gate;$('lane').checked=S.lane;
@@ -384,12 +547,12 @@ $('a4').onchange=()=>{const v=parseFloat($('a4').value);if(v>=400&&v<=480){S.a4=
 $('thr').onchange=()=>{S.thr=+$('thr').value;redraw()};
 $('smooth').oninput=()=>{S.smooth=+$('smooth').value;smoothLabel();save()};
 $('gate').oninput=()=>{S.gate=+$('gate').value;save()};
-$('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw()};
+$('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw();if(G.src.startsWith('ex-')&&!G.playing)loadSource()};
 $('lane').onchange=()=>{S.lane=$('lane').checked;redraw()};
-window.addEventListener('resize',()=>{drawTake(audio.paused?null:audio.currentTime);if(!live)drawLive(0)});
+window.addEventListener('resize',()=>{drawTake(audio.paused?null:audio.currentTime);if(!live)drawLive(0);if(!G.playing)drawSing()});
 if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{drawTake(null);if(!live)drawLive(0)});
 
-drawLive(0);exampleTake();
+drawLive(0);loadSource();exampleTake();
 })();
 </script>
 
