@@ -56,6 +56,8 @@ button.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .status{font-size:.9rem;color:var(--muted)}
+.level{height:6px;border-radius:3px;background:var(--grid);overflow:hidden}
+.level div{height:100%;width:0%;background:var(--muted);transition:width .06s linear}
 .help{border-left:3px solid var(--gold);padding:8px 12px;background:var(--bg);border-radius:4px;font-size:.92rem}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -100,6 +102,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button class="rec" id="recBtn" disabled>Record take</button>
       <span class="status" id="status">Microphone off</span>
     </div>
+    <div class="level" aria-label="Microphone input level"><div id="levelBar"></div></div>
     <div class="help" id="micHelp" hidden>
       The microphone is blocked in this view. Open the Ison Pitch Lab file in Safari or Chrome to use live mode, or upload a voice memo in Take analysis below.
     </div>
@@ -122,7 +125,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="field"><label class="label" for="thr">Tolerance</label>
         <select id="thr"><option value="25">±25 cents</option><option value="10" selected>±10 cents</option><option value="5">±5 cents</option><option value="2">±2 cents</option><option value="1">±1 cent</option></select></div>
       <div class="field"><label class="label" for="smooth">Response speed</label><input type="range" id="smooth" min="0" max="0.9" step="0.05" value="0.5"><span class="status" id="smoothTxt">Balanced</span></div>
-      <div class="field"><label class="label" for="gate">Mic sensitivity</label><input type="range" id="gate" min="0.002" max="0.05" step="0.001" value="0.012"><span class="status">Raise it in a noisy shop</span></div>
+      <div class="field"><label class="label" for="gate">Mic sensitivity</label><input type="range" id="gate" min="0.001" max="0.05" step="0.001" value="0.005"><span class="status">Slide right to ignore shop noise, left if it misses quiet singing</span></div>
     </div>
   </section>
 
@@ -149,9 +152,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const S={a4:440,thr:10,smooth:0.5,gate:0.012,ref:50,lane:false};
-try{const s=JSON.parse(localStorage.getItem('ison-settings')||'{}');Object.assign(S,s)}catch(e){}
-function save(){try{localStorage.setItem('ison-settings',JSON.stringify(S))}catch(e){}}
+const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false};
+try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
+function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 
 const f2m=f=>69+12*Math.log2(f/S.a4);
 const m2f=m=>S.a4*Math.pow(2,(m-69)/12);
@@ -216,13 +219,23 @@ function updateZone(){const z=$('zone');z.style.left=(50-S.thr)+'%';z.style.widt
 /* Live mode */
 let ctx=null,analyser=null,stream=null,live=false,buf=null,hist=[],lastM=null,t0=0,center=62,rec=null,chunks=[];
 function ensureCtx(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx}
+let liveCtx=null;
+function resumeLive(){if(liveCtx&&liveCtx.state!=='running')liveCtx.resume().catch(()=>{})}
+document.addEventListener('touchend',resumeLive,{passive:true});document.addEventListener('click',resumeLive);
 async function startLive(){
   ensureCtx();
   try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('none');
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
   catch(e){$('micHelp').hidden=false;$('status').textContent='Microphone unavailable here';return}
   $('micHelp').hidden=true;
-  const src=ctx.createMediaStreamSource(stream);analyser=ctx.createAnalyser();analyser.fftSize=2048;src.connect(analyser);
+  /* iOS fix 1: build the live audio engine after the mic is on, so its sample rate matches the mic */
+  try{if(liveCtx)liveCtx.close()}catch(e){}
+  liveCtx=new(window.AudioContext||window.webkitAudioContext)();
+  try{await liveCtx.resume()}catch(e){}
+  liveCtx.onstatechange=()=>{if(live&&liveCtx.state!=='running')$('status').textContent='Audio paused. Tap anywhere to resume.'};
+  const src=liveCtx.createMediaStreamSource(stream);analyser=liveCtx.createAnalyser();analyser.fftSize=2048;analyser.smoothingTimeConstant=0;
+  /* iOS fix 2: WebKit only feeds the analyser when it is wired to the output, so route it through a silent gain */
+  const mute=liveCtx.createGain();mute.gain.value=0;src.connect(analyser);analyser.connect(mute);mute.connect(liveCtx.destination);
   buf=new Float32Array(analyser.fftSize);live=true;hist=[];t0=performance.now();
   $('startBtn').textContent='Stop listening';$('status').textContent='Listening';
   $('recBtn').disabled=typeof MediaRecorder==='undefined';
@@ -230,11 +243,15 @@ async function startLive(){
 }
 function stopLive(){live=false;if(rec&&rec.state==='recording')rec.stop();
   if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
+  try{if(liveCtx)liveCtx.close()}catch(e){}liveCtx=null;$('levelBar').style.width='0%';
   $('startBtn').textContent='Start listening';$('status').textContent='Microphone off';$('recBtn').disabled=true;showReadout(null)}
 function loop(){
   if(!live)return;
-  analyser.getFloatTimeDomainData(buf);let m=null;
-  if(rms(buf,0,buf.length)>S.gate){const p=yin(buf,ctx.sampleRate,buf.length);if(p&&p.clarity>0.6&&p.f>55&&p.f<1250)m=f2m(p.f)}
+  analyser.getFloatTimeDomainData(buf);let m=null;const lvl=rms(buf,0,buf.length);
+  const db=lvl>0?20*Math.log10(lvl):-100;$('levelBar').style.width=Math.max(0,Math.min(100,(db+60)/60*100))+'%';
+  $('levelBar').style.background=lvl>S.gate?'var(--good)':'var(--muted)';
+  if(liveCtx.state==='running')$('status').textContent=lvl>S.gate?'Hearing you':'Listening (sing louder or raise sensitivity)';
+  if(lvl>S.gate){const p=yin(buf,liveCtx.sampleRate,buf.length);if(p&&p.clarity>0.6&&p.f>55&&p.f<1250)m=f2m(p.f)}
   if(m!=null){if(lastM!=null&&Math.abs(m-lastM)<1)m=lastM*S.smooth+m*(1-S.smooth);lastM=m}else lastM=null;
   const t=(performance.now()-t0)/1000;hist.push({t,m});while(hist.length&&hist[0].t<t-12)hist.shift();
   showReadout(m);drawLive(t);requestAnimationFrame(loop);
@@ -248,7 +265,7 @@ function drawLive(now){
   const span=14,lo=center-span/2,hi=center+span/2,yOf=m=>h/2-(m-center)*(h/span),win=8,xOf=t=>w-(now-t)/win*w;
   drawGrid(g,w,h,lo,hi,yOf,c,[6]);
   drawPath(g,hist,xOf,yOf,c,now-win-1,now);
-  if(!hist.length||!live){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';
+  if(!live||!hist.some(p=>p.m!=null&&p.t>now-win)){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';
     g.fillText(live?'Sing a note':'Tap Start listening and sing a note',w/2,h/2+5);g.textAlign='left'}
 }
 $('startBtn').onclick=()=>live?stopLive():startLive();
