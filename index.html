@@ -53,7 +53,7 @@ canvas{display:block;width:100%;border-radius:8px;background:var(--bg)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
 button{font:inherit;font-weight:600;border-radius:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 14px;cursor:pointer}
 button.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-button.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
+#capBtn.on,button.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
 button:disabled{opacity:.45;cursor:not-allowed}
 button:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .status{font-size:.9rem;color:var(--muted)}
@@ -67,7 +67,7 @@ textarea{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:8px 10p
 .help{border-left:3px solid var(--gold);padding:8px 12px;background:var(--bg);border-radius:4px;font-size:.92rem}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-select,input[type=number]{font:inherit;font-family:var(--f-mono);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+select,input[type=number],input[type=text]{font:inherit;font-family:var(--f-mono);padding:7px 9px;border-radius:7px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
 input[type=range]{width:100%;accent-color:var(--accent)}
 .check{display:flex;gap:8px;align-items:center}
 .scroll{overflow-x:auto;border-radius:8px;-webkit-overflow-scrolling:touch}
@@ -122,13 +122,19 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <optgroup label="Chants">
             <option value="song-trisagion">Trisagion: Holy God (Byzantine Tone 3)</option>
             <option value="song-trisagion3">Trisagion: Holy God, three times</option>
+            <option value="song-risen">Christ Is Risen (Paschal troparion, Tone 5)</option>
+            <option value="song-meet">It Is Truly Meet (Hymn to the Theotokos)</option>
+            <option value="song-cross">Before Thy Cross</option>
+            <option value="song-praise">Praise the Lord from the Heavens</option>
+            <option value="song-blessed">Blessed Be the Name of the Lord</option>
           </optgroup>
+          <optgroup label="My songs" id="mySongs"></optgroup>
           <optgroup label="Practice">
           <option value="ex-major">Warm-up: major scale on reference note</option>
           <option value="ex-minor">Warm-up: minor scale on reference note</option>
           <option value="ex-hold">Warm-up: long holds and a fifth</option>
           <option value="typed">My typed melody</option>
-          <option value="rec">From a recording</option>
+          <option value="rec">Learn a song from a recording</option>
           </optgroup>
         </select></div>
       <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
@@ -155,9 +161,36 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <span class="status">Example: D4:1 E4:1 F4:2 R:1 G4:0.5 F#4:0.5. R is a rest. Sharps use #, flats use b.</span>
     </div>
     <div class="field" id="recBox" hidden>
-      <label class="label" for="guideFile">Recording of the chant</label>
-      <input class="file" type="file" id="guideFile" accept="audio/*">
+      <label class="label" for="guideFile">Song or chant recording (m4a, mp3, wav, or a video)</label>
+      <input class="file" type="file" id="guideFile" accept="audio/*,video/*">
+      <div class="row">
+        <button id="capBtn">Capture by listening</button>
+        <span class="status" id="capStatus">Or play the song from another device (laptop, TV, second phone) and let this phone listen.</span>
+      </div>
+      <div class="grid2">
+        <div class="field"><label class="label" for="detail">Note detail <span id="detailTxt">Normal</span></label>
+          <input type="range" id="detail" min="0.06" max="0.4" step="0.02" value="0.14">
+          <span class="status">Left keeps quick ornaments, right keeps only held notes</span></div>
+        <div class="field"><label class="label" for="floorNote">Ignore notes below</label>
+          <select id="floorNote"></select>
+          <span class="status">Use this to skip a low drone or bass line</span></div>
+      </div>
       <label class="check"><input type="checkbox" id="guideSound" checked> Play the recording's sound (use headphones)</label>
+      <div class="row">
+        <input type="text" id="saveName" placeholder="Name this song" aria-label="Song name" style="flex:1;min-width:10em">
+        <button id="saveSong" disabled>Save to My songs</button>
+      </div>
+    </div>
+    <div class="row" id="myRow" hidden>
+      <button id="delSong">Delete this saved song</button>
+      <span class="status" id="myStatus"></span>
+    </div>
+    <div class="row">
+      <label class="check"><input type="checkbox" id="loopOn"> Practice a section</label>
+      <label class="label" for="loopA">from</label><input type="number" id="loopA" min="0" step="0.5" value="0" style="width:5.5em">
+      <label class="label" for="loopB">to</label><input type="number" id="loopB" min="0" step="0.5" value="10" style="width:5.5em">
+      <span class="status">seconds, repeating</span>
+      <button id="setA">Start here</button><button id="setB">End here</button>
     </div>
     <audio id="guideAudio" preload="auto" playsinline></audio>
     <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch"></canvas>
@@ -168,6 +201,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="row">
       <button class="primary" id="singPlay">Start</button>
       <button id="singRestart">Restart</button>
+      <button id="toText">Edit notes as text</button>
       <span class="status" id="singStatus">Bars are the notes to hit. Your line draws over them.</span>
     </div>
     <p class="status" style="margin:0">With guide tones on, wear headphones so the mic hears only you.</p>
@@ -217,7 +251,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
-const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,tones:false,vol:0.9,toneUp:false};
+const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
@@ -496,11 +530,45 @@ const TRISAGION='A4:1:Ho- G4:1 F4:0.5 E4:0.5 D4:0.5 C4:0.5 D4:1 E4:1:ly F4:2:God
   'Bb4:0.5:mor- A4:0.5 G4:0.5 Bb4:0.5 A4:2:tal, '+
   'Bb4:1:have G4:1 A4:0.5:mer- Bb4:0.5 A4:0.5 G4:0.5 '+
   'F4:0.5:cy E4:0.5 D4:0.5:on E4:0.5 F4:2:us.';
+/* Christ Is Risen: Paschal troparion, Tone 5, "Standard Version" as published by St. Elias Antiochian
+   Orthodox Church (La Crosse, WI). Single melody line, F major signature, ends on G. */
+const RISEN='G4:1:Christ A4:1 A4:2:is C5:1:ris- Bb4:1 A4:1:en G4:1 G4:1:from F4:1 G4:1:the A4:1 A4:3:dead, '+
+  'A4:1:tram- G4:1:pling F4:1:down E4:1 D4:2:death G4:1:by A4:1 A4:2:death, A4:1:and G4:1:up- A4:1:on Bb4:1 '+
+  'C5:1:those D5:1 C5:1:in Bb4:1:the A4:3:tombs A4:1:be- Bb4:1:stow- A4:1 G4:1 F#4:1:ing G4:4:life.';
+/* Before Thy Cross: Antiochian Archdiocese 10-D, traditional Russian melody. G major signature. */
+const CROSS='F#4:1:Be- G4:2:fore F#4:2:thy G4:2:Cross A4:1:we B4:1:bow C5:1:down B4:1 C5:1 A4:1:in '+
+  'B4:2:wor- A4:1:ship, A4:1:O G4:2:Mas- A4:2:ter, B4:1:and B4:1:thy A4:2:ho- G4:2:ly '+
+  'F#4:1:Re- G4:1:sur- A4:1.5:rec- B4:0.5 A4:1 G4:1 F#4:3:tion F#4:1:we G4:2:glo- F#4:2:ri- G4:4:fy.';
+/* It Is Truly Meet: Antiochian Archdiocese 17-A, Hymn to the Theotokos, Bortniansky, adapted by
+   Michael Gelsinger. Soprano line, F major. Numbers mark each phrase (the adapted English text is
+   in the parish music and the service book). */
+const MEET='A4:1:① A4:1 A4:3 G4:1 G4:2 R:2 '+
+  'F4:1:② F4:1 G4:1 G4:1 A4:1.5 A4:0.5 A4:1 A4:1 G4:3 A4:1 Bb4:2 Bb4:1 Bb4:1 A4:3 A4:1 A4:1.5 G4:0.5 G4:1 R:1 '+
+  'F4:1:③ F4:1 F4:1 F4:1 F4:1.5 E4:0.5 E4:1 E4:1 F4:1 F4:1 G4:1 G4:0.5 G4:0.5 A4:1.5 A4:0.5 A4:1 C5:0.5 C5:0.5 '+
+  'D5:1 E5:1 F5:2 E5:2 E5:1 D5:1 C5:1 R:1 '+
+  'G4:1:④ G4:0.5 G4:0.5 Bb4:1.5 Bb4:0.5 A4:1 G4:1 F4:1 G4:1 A4:1 C5:0.5 C5:0.5 '+
+  'C5:2 C5:1 C5:1 C5:1 C5:2 C5:1 D5:1 C5:1 C5:1 C5:0.5 C5:0.5 C5:1 G4:1 G4:1 R:1 '+
+  'F4:1:⑤ F4:1 F4:1 F4:1 F4:1.5 E4:0.5 E4:1 R:1 '+
+  'F4:1:⑥ F4:1 G4:1 G4:1 A4:1.5 A4:0.5 A4:2 R:1 '+
+  'A4:0.5:⑦ A4:0.5 Bb4:1.5 Bb4:0.5 Bb4:1 Bb4:1 Bb4:1.5 A4:0.5 A4:2 R:1 '+
+  'A4:1:⑧ G4:2 G4:1 G4:1 G4:2 A4:1 Bb4:1 C5:1 A4:1 D5:1 C5:1 Bb4:1 A4:1 G4:1 A4:1 '+
+  'Bb4:2 A4:1 G4:1 F4:4 E4:1 F4:1 G4:4 F4:1 E4:1 F4:4';
+/* Praise the Lord from the Heavens: Sunday communion hymn, Antiochian Archdiocese 22-D (Farrow). */
+const PRAISE='F4:1:Praise G4:1 A4:1 G4:1 F4:1:the E4:1 F4:2:Lord A4:1:from Bb4:1:the C5:1:heav- D5:1 Bb4:1 C5:1 C5:2:ens, '+
+  'D5:4:praise C5:2:Him A4:1:in Bb4:1:the A4:2:high- G4:2 A4:4:est. R:1 '+
+  'F4:1:Al- G4:1 A4:1:le- G4:1 F4:1:lu- E4:1 F4:2:ia.';
+/* Blessed Be the Name of the Lord: Antiochian Archdiocese, setting #2. */
+const BLESSED='F4:1:Bless- G4:1:ed A4:1:be A4:1:the A4:1:name A4:1:of G4:1:the A4:2:Lord, '+
+  'A4:1:hence- A4:1:forth A4:1:and Bb4:1:for- A4:2:ev- G4:2:er- F4:4:more.';
 const SONGS={
-  'song-trisagion':{text:TRISAGION,bpm:100},
-  'song-trisagion3':{text:[TRISAGION,TRISAGION,TRISAGION].join(' R:2 '),bpm:100}
+  'song-trisagion':{text:TRISAGION,bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow). Written in F major, starting on A.'},
+  'song-trisagion3':{text:[TRISAGION,TRISAGION,TRISAGION].join(' R:2 '),bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow), sung three times as in the Liturgy.'},
+  'song-risen':{text:RISEN,bpm:92,credit:'Paschal troparion, Tone 5, standard version as sung at St. Elias Antiochian Orthodox Church. Starts on G, ends on G.'},
+  'song-meet':{text:MEET,bpm:84,credit:'Hymn to the Theotokos, Antiochian Archdiocese 17-A (Bortniansky, adapted by Michael Gelsinger). Soprano melody. Circled numbers mark the phrases; follow the words in your service book.'},
+  'song-cross':{text:CROSS,bpm:84,credit:'Antiochian Archdiocese 10-D, traditional Russian melody. Melody line in G.'},
+  'song-praise':{text:PRAISE,bpm:92,credit:'Sunday communion hymn, Antiochian Archdiocese 22-D (Michael G. Farrow), with one Alleluia. Melody line in F.'},
+  'song-blessed':{text:BLESSED,bpm:96,credit:'Antiochian Archdiocese setting #2, sung three times near the end of the Liturgy. Melody line in F.'}
 };
-const SONG_CREDIT='Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow). Written in F major, starting on A.';
 function exercise(kind){
   const r=S.ref,beat=0.9,seq=[];
   if(kind==='ex-hold'){[[0,4],[null,1],[7,4],[null,1],[0,2],[2,2],[4,2],[2,2],[0,4]].forEach(x=>seq.push(x))}
@@ -509,9 +577,9 @@ function exercise(kind){
   const notes=[];let t=0;for(const [s,b] of seq){if(s!=null)notes.push({t0:t,t1:t+b*beat*0.95,m:r+s});t+=b*beat}
   return{notes,dur:t};
 }
-function notesFromPts(pts){
-  const raw=[];let cur=null;
-  const flush=()=>{if(cur&&cur.t1-cur.t0>=0.12){const ms=cur.ms.sort((a,b)=>a-b);raw.push({t0:cur.t0,t1:cur.t1,m:ms[Math.floor(ms.length/2)]})}cur=null};
+function notesFromPts(pts,minLen){
+  minLen=minLen||0.12;const raw=[];let cur=null;
+  const flush=()=>{if(cur&&cur.t1-cur.t0>=minLen){const ms=cur.ms.sort((a,b)=>a-b);raw.push({t0:cur.t0,t1:cur.t1,m:ms[Math.floor(ms.length/2)]})}cur=null};
   for(const p of pts){const r=p.m==null?null:Math.round(p.m);
     if(cur&&r===cur.r){cur.t1=p.t;cur.ms.push(p.m);cur.gap=0;continue}
     if(cur&&r==null&&cur.gap<3){cur.gap++;continue}
@@ -521,20 +589,104 @@ function notesFromPts(pts){
     if(l&&Math.abs(l.m-n.m)<0.5&&n.t0-l.t1<0.12){l.t1=n.t1}else out.push(n)}
   return out;
 }
-function setGuide(g,useAudio){G.notes=g.notes;G.dur=g.dur;G.useAudio=!!useAudio;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
+function setGuide(g,useAudio,shift){G.notes=g.notes;G.dur=g.dur;G.useAudio=!!useAudio;G.shiftApplied=shift||0;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
   stopSing(true);drawSing();$('singStatus').textContent=G.ready?G.notes.length+' notes loaded. Tap Start.':'No notes found in that guide.'}
+/* Recordings keep their own key setting (default: as sung), separate from the chants (default: men's octave). */
+const isRecLike=src=>src==='rec'||src.startsWith('my-');
+function curShift(){return isRecLike(G.src)?S.recShift:S.shift}
+function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,w:n.w})),dur:raw.dur}}
 function loadSource(){
-  G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';
-  $('transpose').disabled=!(G.src.startsWith('song-')||G.src==='typed');
-  $('songCredit').hidden=!G.src.startsWith('song-');$('songCredit').textContent=SONG_CREDIT;
-  if(G.src.startsWith('song-')){const s=SONGS[G.src];setGuide(parseTyped(s.text,s.bpm,S.shift))}
-  else if(G.src.startsWith('ex-'))setGuide(exercise(G.src));
+  G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
+  $('transpose').disabled=G.src.startsWith('ex-');$('transpose').value=String(curShift());
+  $('songCredit').hidden=!G.src.startsWith('song-');if(SONGS[G.src])$('songCredit').textContent=SONGS[G.src].credit;
+  if(G.src.startsWith('song-')){const s=SONGS[G.src];setGuide(parseTyped(s.text,s.bpm,S.shift),false,S.shift)}
+  else if(G.src.startsWith('ex-'))setGuide(exercise(G.src),false,0);
   else if(G.src==='typed')loadTyped();
-  else if(G.src==='rec'){if(G.recGuide)setGuide(G.recGuide,true);else{G.ready=false;G.notes=[];drawSing();$('singStatus').textContent='Choose a recording of a cantor singing the chant.'}}
+  else if(G.src==='rec'){if(G.recPts){segmentRec();}else{G.ready=false;G.notes=[];drawSing();$('singStatus').textContent='Choose a recording. The app finds the melody and turns it into notes.'}}
+  else if(G.src.startsWith('my-'))loadMySong(+G.src.slice(3));
 }
+/* Turn a pitch track into notes using the current detail and floor settings, then apply the key. */
+function segmentRec(){
+  const floor=+$('floorNote').value||0,minLen=+$('detail').value;
+  const pts=G.recPts.map(p=>({t:p.t,m:p.m!=null&&p.m>=floor-0.5?p.m:null}));
+  G.recRaw={notes:notesFromPts(pts,minLen),dur:G.recDur};
+  setGuide(shifted(G.recRaw,S.recShift),true,S.recShift);$('saveSong').disabled=!G.recRaw.notes.length;
+  if(G.recRaw.notes.length){const ms=G.recRaw.notes.map(n=>n.m);
+    $('singStatus').textContent=G.recRaw.notes.length+' notes found, '+nameOf(Math.min(...ms))+' to '+nameOf(Math.max(...ms))+(S.recShift?' (shown '+describeShift(S.recShift)+')':'')+'. Tap Start.'}
+}
+function describeShift(k){return k===-12?'an octave lower':k===12?'an octave higher':(k>0?'up ':'down ')+Math.abs(k)+' half steps'}
 function loadTyped(){const res=parseTyped($('typed').value,Math.max(20,Math.min(240,+$('bpm').value||60)),S.shift);
   try{localStorage.setItem('ison-typed',$('typed').value)}catch(e){}
-  if(res.error){G.ready=false;G.notes=[];drawSing();$('singStatus').textContent=res.error;return}setGuide(res)}
+  if(res.error){G.ready=false;G.notes=[];drawSing();$('singStatus').textContent=res.error;return}setGuide(res,false,S.shift)}
+
+/* Melody extraction for full songs: band-limit to the singing range and resample in one offline pass,
+   track pitch with YIN, fix octave slips against the local median, then smooth. */
+function fft(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t}}
+  for(let len=2;len<=n;len<<=1){const a=-2*Math.PI/len,wr=Math.cos(a),wi=Math.sin(a);for(let i=0;i<n;i+=len){let cr=1,ci=0;
+    for(let k=0;k<len/2;k++){const ur=re[i+k],ui=im[i+k],vr=re[i+k+len/2]*cr-im[i+k+len/2]*ci,vi=re[i+k+len/2]*ci+im[i+k+len/2]*cr;
+      re[i+k]=ur+vr;im[i+k]=ui+vi;re[i+k+len/2]=ur-vr;im[i+k+len/2]=ui-vi;const t=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=t}}}}
+/* Lead-melody finder for full recordings:
+   1. resample to 11 kHz, short-time spectrum every 23 ms;
+   2. subtract each frequency's running median over about 8 s, which removes anything held steady
+      (an ison drone, organ pads, sustained chords) and keeps the moving voice;
+   3. score every pitch from 65 to 1000 Hz by the weighted sum of its harmonics (subharmonic summation)
+      and keep the strongest; 4. drop weak frames, fix octave slips, smooth. */
+async function analyzeSong(ab,statusEl){
+  const SR=11025,len=Math.ceil(ab.duration*SR);
+  const oc=new OfflineAudioContext(1,len,SR),src=oc.createBufferSource();src.buffer=ab;
+  const hp=oc.createBiquadFilter();hp.type='highpass';hp.frequency.value=55;hp.Q.value=0.7;
+  src.connect(hp);hp.connect(oc.destination);src.start();
+  statusEl.textContent='Preparing audio';const x=(await oc.startRendering()).getChannelData(0);
+  const N=2048,hop=256,B=N/2,frames=Math.max(0,Math.floor((x.length-N)/hop)),win=new Float32Array(N);
+  for(let i=0;i<N;i++)win[i]=0.5-0.5*Math.cos(2*Math.PI*i/(N-1));
+  const spec=new Array(frames),lv=new Float32Array(frames),re=new Float32Array(N),im=new Float32Array(N);
+  for(let f=0;f<frames;f++){const o=f*hop;let e=0;for(let i=0;i<N;i++){const v=x[o+i];e+=v*v;re[i]=v*win[i];im[i]=0}lv[f]=Math.sqrt(e/N);
+    fft(re,im);const s=new Uint8Array(B);for(let k=0;k<B;k++)s[k]=Math.min(255,25*Math.log1p(60*Math.hypot(re[k],im[k])));spec[f]=s;
+    if(f%300===0){statusEl.textContent='Listening to the recording '+Math.round(f/frames*50)+'%';await new Promise(r=>setTimeout(r,0))}}
+  // running median per bin, computed on blocks of 2 s from samples spaced 4 frames apart over +-4 s
+  const blk=Math.round(2*SR/hop),half=Math.round(4*SR/hop),nb=Math.ceil(frames/blk)||1,meds=[];
+  for(let b=0;b<nb;b++){const c=b*blk+blk/2,a0=Math.max(0,Math.round(c-half)),a1=Math.min(frames-1,Math.round(c+half));const m=new Float32Array(B),buf=[];
+    for(let k=0;k<B;k++){buf.length=0;for(let f=a0;f<=a1;f+=4)buf.push(spec[f][k]);buf.sort((p,q)=>p-q);m[k]=buf[buf.length>>1]||0}meds.push(m);
+    if(b%5===0){statusEl.textContent='Removing drones and pads '+Math.round(50+b/nb*15)+'%';await new Promise(r=>setTimeout(r,0))}}
+  const cand=[];for(let c=f2m(65);c<=f2m(1000);c+=0.2)cand.push(c);
+  const bin=fr=>fr*N/SR;const raw=new Array(frames).fill(null),peak=new Float32Array(frames);
+  const sortedLv=Array.from(lv).sort((a,b)=>a-b),gate=Math.max(0.002,(sortedLv[Math.floor(sortedLv.length*0.9)]||0)*0.1);
+  for(let f=0;f<frames;f++){const s=spec[f],md=meds[Math.min(nb-1,Math.floor(f/blk))];
+    if(lv[f]>gate){let best=-1,bm=0;const r=new Float32Array(B);for(let k=0;k<B;k++){const v=s[k]-md[k];r[k]=v>0?v:0}
+      for(const c of cand){const f0=m2f(c);let sum=0,w=1;for(let h=1;h<=10;h++){const k=Math.round(bin(f0*h));if(k>=B-1)break;sum+=w*Math.max(r[k],r[k-1]*0.7,r[k+1]*0.7);w*=0.84}
+        if(sum>best){best=sum;bm=c}}
+      peak[f]=best;raw[f]=bm}
+    if(f%300===0){statusEl.textContent='Finding the melody '+Math.round(65+f/frames*35)+'%';await new Promise(r=>setTimeout(r,0))}}
+  const pk=Array.from(peak).filter(v=>v>0).sort((a,b)=>a-b),thr=(pk[Math.floor(pk.length*0.6)]||0)*0.45;
+  for(let f=0;f<frames;f++)if(raw[f]!=null&&peak[f]<thr)raw[f]=null;
+  // m2f/f2m use the current A4 setting, so the candidate grid is already in the user's tuning
+  const med=(arr,i,r)=>{const v=[];for(let k=Math.max(0,i-r);k<=Math.min(arr.length-1,i+r);k++)if(arr[k]!=null)v.push(arr[k]);if(v.length<3)return null;v.sort((a,b)=>a-b);return v[v.length>>1]};
+  const fixed=raw.map((m,i)=>{if(m==null)return null;const md=med(raw,i,20);if(md==null)return m;const d=m-md;if(Math.abs(d-12)<1.2)return m-12;if(Math.abs(d+12)<1.2)return m+12;return m});
+  const pts=fixed.map((m,i)=>({t:(i*hop+N/2)/SR,m:m==null?null:med(fixed,i,2)}));
+  for(let i=1;i<pts.length-1;i++){const a=pts[i-1].m,b=pts[i].m,c=pts[i+1].m;if(b!=null&&a==null&&c==null)pts[i].m=null}
+  return{pts,dur:ab.duration};
+}
+/* Saved songs live in this browser's storage (IndexedDB), with the audio when it fits. */
+const MyDB={
+  open(){return new Promise((res,rej)=>{let r;try{r=indexedDB.open('ison-pitch-lab',1)}catch(e){rej(e);return}
+    r.onupgradeneeded=()=>r.result.createObjectStore('songs',{keyPath:'id',autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+  async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('songs',mode),st=t.objectStore('songs');const out=fn(st);
+    t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error)})},
+  all(){return this.tx('readonly',st=>st.getAll())},put(rec){return this.tx('readwrite',st=>st.put(rec))},del(id){return this.tx('readwrite',st=>st.delete(id))},get(id){return this.tx('readonly',st=>st.get(id))}
+};
+async function refreshMySongs(select){
+  const grp=$('mySongs');let list=[];try{list=await MyDB.all()}catch(e){}
+  grp.innerHTML='';for(const s of list){const o=document.createElement('option');o.value='my-'+s.id;o.textContent=s.name;grp.appendChild(o)}
+  grp.hidden=!list.length;if(select){$('guideSrc').value=select;loadSource()}
+}
+async function loadMySong(id){
+  let s=null;try{s=await MyDB.get(id)}catch(e){}
+  if(!s){$('singStatus').textContent='That saved song could not be opened.';return}
+  G.recRaw={notes:s.notes,dur:s.dur};G.myId=id;
+  if(s.audio){gAudio.src=URL.createObjectURL(s.audio)}
+  setGuide(shifted(G.recRaw,S.recShift),!!s.audio,S.recShift);
+  $('myStatus').textContent=s.audio?'Saved with its audio.':'Saved notes only. Turn on guide tones to hear them.';
+}
 function targetAt(t){for(const n of G.notes){if(t>=n.t0&&t<n.t1)return n;if(n.t0>t)break}return null}
 /* Guide tones: one soft voice per note, started and released as the playhead crosses each bar,
    so note lengths follow the speed slider automatically. */
@@ -554,6 +706,7 @@ function updateTone(){
 async function startSing(){
   if(!G.ready)return;ensureCtx();
   if(G.pos>=G.dur){G.pos=G.useAudio?0:-2;G.trace=[]}
+  const L0=loopVals();if(L0.on&&(G.pos<L0.a-2.5||G.pos>=L0.b)){G.pos=G.useAudio?L0.a:L0.a-2;G.trace=G.trace.filter(p=>p.t<L0.a||p.t>=L0.b)}
   if(G.useAudio){gAudio.muted=!$('guideSound').checked;gAudio.playbackRate=G.speed;setPitchKeep(gAudio);
     try{gAudio.currentTime=Math.max(0,G.pos)}catch(e){}
     try{await gAudio.play()}catch(e){$('singStatus').textContent='Tap Start again to begin playback.';return}}
@@ -570,6 +723,9 @@ function singFrame(ts){
   if(!G.playing)return;const dt=Math.min(0.1,(ts-G.last)/1000);G.last=ts;
   if(G.useAudio){G.pos=gAudio.currentTime;if(gAudio.ended){finishSing();return}}
   else{const was=G.pos;G.pos+=dt*(G.pos<0?1:G.speed);if(was<0&&G.pos>=0)$('singStatus').textContent='Sing';}
+  const L1=loopVals();
+  if(L1.on&&G.pos>=L1.b){G.trace=G.trace.filter(p=>p.t<L1.a||p.t>=L1.b);
+    if(G.useAudio){try{gAudio.currentTime=L1.a}catch(e){}G.pos=L1.a}else G.pos=L1.a-1;}
   if(G.pos>G.dur+0.6){if(G.useAudio)gAudio.pause();finishSing();return}
   updateTone();drawSing();requestAnimationFrame(singFrame);
 }
@@ -606,7 +762,9 @@ $('guideSrc').onchange=loadSource;
 (function(){const t=$('transpose');for(let k=12;k>=-24;k--){const o=document.createElement('option');o.value=k;
   o.textContent=k===0?'As written':k===-12?'One octave lower (men)':k===-24?'Two octaves lower':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');t.appendChild(o)}
   t.value=String(S.shift)})();
-$('transpose').onchange=()=>{S.shift=+$('transpose').value;save();if(!G.playing)loadSource()};
+$('transpose').onchange=()=>{const k=+$('transpose').value;if(isRecLike(G.src))S.recShift=k;else S.shift=k;save();
+  if(G.playing)return;if(G.src==='rec'&&G.recPts)segmentRec();else if(G.src.startsWith('my-')&&G.recRaw)setGuide(shifted(G.recRaw,k),G.useAudio,k);else loadSource();
+  if(isRecLike(G.src)&&k!==0&&G.useAudio)$('singStatus').textContent+=' The recording still plays in its own key, so turn its sound off and use guide tones to hear your key.'};
 $('toneVol').value=S.vol;$('volTxt').textContent=Math.round(S.vol*100)+'%';
 $('toneVol').oninput=()=>{S.vol=+$('toneVol').value;$('volTxt').textContent=Math.round(S.vol*100)+'%';if(outBus)outBus.gain.setTargetAtTime(S.vol,ctx.currentTime,0.02);save()};
 $('toneUp').checked=!!S.toneUp;
@@ -618,10 +776,58 @@ $('singPlay').onclick=()=>G.playing?stopSing():startSing();
 $('singRestart').onclick=()=>{stopSing(true);G.trace=[];G.pos=G.useAudio?0:-2;try{gAudio.currentTime=0}catch(e){}drawSing();$('singStatus').textContent='Ready. Tap Start.'};
 $('speed').oninput=()=>{G.speed=+$('speed').value;$('speedTxt').textContent=(+G.speed.toFixed(2))+'×';gAudio.playbackRate=G.speed;if(!G.playing)drawSing()};
 $('guideSound').onchange=()=>{gAudio.muted=!$('guideSound').checked};
-$('guideFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;ensureCtx();$('singStatus').textContent='Reading the recording';
-  try{const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
-    const an=await analyze(ab,$('singStatus'));G.recGuide={notes:notesFromPts(an.pts),dur:an.dur};gAudio.src=URL.createObjectURL(f);setGuide(G.recGuide,true)}
-  catch(err){$('singStatus').textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
+$('guideFile').onchange=e=>{const f=e.target.files[0];if(f)useAudioBlob(f,f.name.replace(/\.[^.]+$/,''))};
+/* Capture by listening: record the room through the mic, then map the melody from that recording. */
+let cap=null;
+async function useAudioBlob(blob,name){
+  ensureCtx();$('singStatus').textContent='Reading the recording';
+  try{const arr=await blob.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
+    const an=await analyzeSong(ab,$('singStatus'));G.recPts=an.pts;G.recDur=an.dur;G.recFile=blob;gAudio.src=URL.createObjectURL(blob);
+    $('saveName').value=name;segmentRec()}
+  catch(err){$('singStatus').textContent='That recording could not be read. Try again, a little closer to the speaker.'}
+}
+$('capBtn').onclick=async()=>{
+  if(cap){cap.rec.stop();return}
+  if(live)stopLive();
+  let st;try{st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
+  catch(e){$('capStatus').textContent='The microphone is blocked here. Open the app in Safari or Chrome.';return}
+  let rec;try{rec=new MediaRecorder(st)}catch(e){st.getTracks().forEach(t=>t.stop());$('capStatus').textContent='This browser cannot record. Upload a file instead.';return}
+  const chunks=[],t0=Date.now();rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+  rec.onstop=()=>{st.getTracks().forEach(t=>t.stop());clearInterval(cap.timer);cap=null;$('capBtn').classList.remove('on');$('capBtn').textContent='Capture by listening';
+    $('capStatus').textContent='Captured. Mapping the melody...';const b=new Blob(chunks,{type:rec.mimeType||'audio/mp4'});
+    useAudioBlob(b,'Captured '+new Date().toLocaleDateString()).then(()=>{$('capStatus').textContent='Done. Check the bars below, then save it.'})};
+  rec.start(1000);cap={rec,timer:setInterval(()=>{const s=Math.round((Date.now()-t0)/1000);$('capStatus').textContent='Listening... '+Math.floor(s/60)+':'+String(s%60).padStart(2,'0')+'. Play the song now, then tap Stop.'},500)};
+  $('capBtn').classList.add('on');$('capBtn').textContent='Stop and map the melody';
+};
+(function(){const s=$('floorNote');const o0=document.createElement('option');o0.value='0';o0.textContent='Keep everything';s.appendChild(o0);
+  for(let m=36;m<=60;m++){const o=document.createElement('option');o.value=m;o.textContent=nameOf(m);s.appendChild(o)}})();
+function detailLabel(){const v=+$('detail').value;$('detailTxt').textContent=v<0.1?'Fine':v<0.22?'Normal':'Simple'}
+$('detail').oninput=()=>{detailLabel();if(G.recPts&&G.src==='rec'&&!G.playing)segmentRec()};
+$('floorNote').onchange=()=>{if(G.recPts&&G.src==='rec'&&!G.playing)segmentRec()};
+$('saveSong').onclick=async()=>{
+  if(!G.recRaw||!G.recRaw.notes.length)return;const name=$('saveName').value.trim()||'My song';
+  const rec={name,notes:G.recRaw.notes,dur:G.recRaw.dur,audio:G.recFile||null,created:Date.now()};
+  try{const id=await MyDB.put(rec);await refreshMySongs('my-'+id);$('singStatus').textContent='Saved "'+name+'" to My songs on this device.'}
+  catch(err){try{rec.audio=null;const id=await MyDB.put(rec);await refreshMySongs('my-'+id);$('singStatus').textContent='Saved the notes. The audio was too large to keep, so use guide tones.'}
+    catch(e2){$('singStatus').textContent='This browser would not save the song. Private browsing blocks saving.'}}};
+$('delSong').onclick=async()=>{
+  if($('delSong').dataset.confirm!=='1'){$('delSong').dataset.confirm='1';$('delSong').textContent='Tap again to delete';setTimeout(()=>{$('delSong').dataset.confirm='';$('delSong').textContent='Delete this saved song'},3000);return}
+  $('delSong').dataset.confirm='';$('delSong').textContent='Delete this saved song';
+  try{await MyDB.del(G.myId)}catch(e){}await refreshMySongs('song-trisagion')};
+/* Practice a section: loop between two times. */
+function loopVals(){const a=Math.max(0,+$('loopA').value||0),b=+$('loopB').value||0;return{on:$('loopOn').checked&&b>a+0.5,a,b}}
+$('setA').onclick=()=>{$('loopA').value=Math.max(0,G.pos).toFixed(1)};
+$('setB').onclick=()=>{$('loopB').value=Math.max(0,G.pos).toFixed(1);$('loopOn').checked=true};
+/* Convert the loaded guide into editable text (tempo 60, so one beat is one second). */
+$('toText').onclick=()=>{
+  if(!G.notes.length)return;const k=G.shiftApplied||0;let t=0;const toks=[];
+  const nm=m=>{const r=Math.round(m),n=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'][((r%12)+12)%12];return n+(Math.floor(r/12)-1)};
+  for(const n of G.notes){const gap=n.t0-t;if(gap>0.08)toks.push('R:'+(+gap.toFixed(2)));const d=Math.max(0.05,n.t1-n.t0);
+    toks.push(nm(n.m-k)+':'+(+d.toFixed(2))+(n.w?':'+n.w:''));t=n.t1}
+  $('typed').value=toks.join(' ');$('bpm').value=60;$('guideSrc').value='typed';
+  try{localStorage.setItem('ison-typed',$('typed').value)}catch(e){}
+  loadSource();$('singStatus').textContent='Notes copied into My typed melody. Fix any note, then tap Load melody.'};
+refreshMySongs();detailLabel();
 try{$('typed').value=localStorage.getItem('ison-typed')||'D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}catch(e){$('typed').value='D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}
 
 /* Settings wiring */
