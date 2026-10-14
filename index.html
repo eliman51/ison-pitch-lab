@@ -166,7 +166,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
   <div class="view" id="v-practice">
   <div class="seg" role="tablist" aria-label="Practice plan">
-    <button role="tab" id="mode-found" aria-selected="true">Foundations · 6 months</button>
+    <button role="tab" id="mode-found" aria-selected="true">Foundations · 12 months</button>
     <button role="tab" id="mode-song" aria-selected="false">Song course</button>
   </div>
 
@@ -190,9 +190,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 
   <section class="panel" id="songSetup" hidden aria-labelledby="t-songsetup">
     <h2 id="t-songsetup">Build a course from a song</h2>
-    <p class="status" style="margin:0">Pick a song you saved, or load a recording. The app finds the song's home note, its notes, its phrases and its signature turns, then builds a course that ends with you singing the whole song at full speed.</p>
+    <p class="status" style="margin:0">Pick one of your saved recordings or a built-in chant, or load a new recording. The app works out the song's home note, its notes, its phrases, its most common moves and turns and its hardest spots, then builds a full course (about a dozen units, well over 100 lessons) ending with the whole song at full speed. Any recording you add gets its own course automatically.</p>
     <div class="grid2">
-      <div class="field"><label class="label" for="courseSong">Saved song</label><select id="courseSong"></select></div>
+      <div class="field"><label class="label" for="courseSong">Song</label><select id="courseSong"></select></div>
       <div class="field"><label class="label" for="courseFile">Or load a recording</label><input class="file" type="file" id="courseFile" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/aac,video/mp4,video/quicktime"></div>
     </div>
     <p class="status" id="courseStatus" style="margin:0"></p>
@@ -230,7 +230,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <button class="big" id="startTest">Take the unit test</button>
     <button class="big" id="resumeSession" hidden>Resume saved session</button>
     <label class="check"><input type="checkbox" id="lessonTones"> Also play the notes while I sing (wear headphones)</label>
-    <p class="status" style="margin:0">A session works through lessons in order from the one you pick, starting with a short review. A lesson is complete at 70 or better. Each unit ends with a test of its hardest parts: score 90 to master the unit. Everything stays open, so you can go back or jump ahead.</p>
+    <p class="status" style="margin:0">A session works through lessons in order from the one you pick. Sessions of 10 minutes or more open with a gentle straw or lip-trill warm-up, and 15 minutes or more end with a cool-down. Older lessons come back as review, weakest first. If the unit runs out before your time does, you get extra practice on its weakest lessons. A lesson is complete at 70 or better. Each unit ends with a test that touches every lesson's hardest exercise: score 90 to master the unit. Exercises with an ison or a second voice work best with headphones. Everything stays open, so you can go back or jump ahead.</p>
   </section>
 
   <section class="panel player" id="player" hidden aria-labelledby="exTitle">
@@ -459,6 +459,8 @@ window.__ison=G;
 const f2m=f=>69+12*Math.log2(f/S.a4);
 const m2f=m=>S.a4*Math.pow(2,(m-69)/12);
 const nameOf=m=>{const r=Math.round(m);return NAMES[((r%12)+12)%12]+(Math.floor(r/12)-1)};
+/* note name with its offset from piano tuning, for chant-tuned notes: "E3 −33" */
+const nameC=m=>{const c=Math.round((m-Math.round(m))*100);return nameOf(m)+(Math.abs(c)>=8?(c>0?' +':' −')+Math.abs(c):'')};
 function devCents(m){return S.lane?(m-S.ref)*100:(m-Math.round(m))*100}
 function colorFor(m,c){const d=Math.abs(devCents(m));return d<=S.thr?c.good:d<=Math.max(S.thr*2.5,25)?c.warn:c.bad}
 function colors(){const cs=getComputedStyle(document.documentElement);const g=n=>cs.getPropertyValue(n).trim();
@@ -956,7 +958,14 @@ function updateTone(){
     else if(tg&&((tg.listen&&!singerOn)||(!tg.listen&&singTones)))want=tg;
   }
   if(want!==G.toneNote){toneOff();G.toneNote=want;if(want)toneOn(want.m,level)}
+  layer(0,G.lesson?G.ison:null,0.5);layer(1,G.lesson?G.acc:null,G.accLevel||0.7);
 }
+/* Extra lesson voices: an ison (drone) and an accompanying melody, each switched as the playhead moves. */
+const LAY=[{v:null,n:null},{v:null,n:null}];
+function layer(i,arr,level){const l=LAY[i];let want=null;
+  if(G.playing&&arr&&G.pos>=0)for(const n of arr){if(G.pos>=n.t0&&G.pos<n.t1){want=n;break}}
+  if(want===l.n)return;if(l.v){voiceOff(l.v,0.08);l.v=null}l.n=want;if(want)l.v=voiceOn(m2f(want.m+(S.toneUp?12:0)),level)}
+function layersOff(){LAY.forEach(l=>{if(l.v)voiceOff(l.v,0.08);l.v=null;l.n=null})}
 async function startSing(){
   if(!G.ready)return;ensureCtx();
   if(G.pos>=G.dur){G.pos=G.useAudio?0:-2;G.trace=[]}
@@ -969,7 +978,7 @@ async function startSing(){
   if(!live)startLive();
   requestAnimationFrame(singFrame);
 }
-function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
+function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
   const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
   if(D.pass==null){$('singStatus').textContent=r?'Done. Score '+sc+' '+starStr(sc)+'. '+praise(r)+'.':'Done. No singing was heard during the notes.';return}
@@ -991,16 +1000,22 @@ function singFrame(ts){
 }
 function drawSing(){
   const cv=$(G.ui.cv),w=cv.clientWidth||cv.parentElement.clientWidth,h=G.ui.h,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);
-  let lo=S.ref-4,hi=S.ref+8;if(G.notes.length){lo=Math.min(...G.notes.map(n=>n.m));hi=Math.max(...G.notes.map(n=>n.m))}
+  let lo=S.ref-4,hi=S.ref+8;if(G.notes.length){const all=G.notes.concat(G.lesson&&G.acc?G.acc:[],G.lesson&&G.ison?G.ison:[]);lo=Math.min(...all.map(n=>n.m));hi=Math.max(...all.map(n=>n.m))}
   lo-=2;hi+=2;if(hi-lo<10){const mid=(hi+lo)/2;lo=mid-5;hi=mid+5}
   const yOf=m=>h-(m-lo)/(hi-lo)*h,nowX=w*0.3,pxs=w/6,xOf=t=>nowX+(t-G.pos)*pxs;
   const saveLane=S.lane;S.lane=false;drawGrid(g,w,h,lo,hi,yOf,c,[6]);S.lane=saveLane;
   const cur=targetAt(G.pos),bh=Math.max(8,(h/(hi-lo))*(G.lesson?G.tolA:S.thr)/100*2);
+  const hideT=G.lesson&&G.blind&&G.playing&&G.pos>=G.singFrom-0.6,hid=n=>hideT&&!n.listen;
   g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--f-mono');
-  for(const n of G.notes){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);
+  if(G.lesson&&G.ison){g.strokeStyle=c.lapis;g.lineWidth=2;g.globalAlpha=0.55;g.setLineDash([6,5]);
+    for(const n of G.ison){const x0=Math.max(0,xOf(n.t0)),x1=Math.min(w,xOf(n.t1));if(x1<=x0)continue;const y=yOf(n.m);g.beginPath();g.moveTo(x0,y);g.lineTo(x1,y);g.stroke();g.fillStyle=c.lapis;g.fillText('ison',x0+4,y+14)}
+    g.setLineDash([]);g.globalAlpha=1}
+  if(G.lesson&&G.acc&&!hideT){g.strokeStyle=c.lapis;g.lineWidth=1.5;g.globalAlpha=0.7;
+    for(const n of G.acc){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);g.strokeRect(x0,y-bh/4,Math.max(2,x1-x0),bh/2)}g.globalAlpha=1}
+  for(const n of G.notes){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);if(hid(n))continue;
     g.fillStyle=n.listen?c.lapis:n===cur?c.gold:c.accent;g.globalAlpha=n===cur?0.95:(n.t1<G.pos?0.3:(n.listen?0.45:0.7));
     g.fillRect(x0,y-bh/2,Math.max(2,x1-x0),bh);g.globalAlpha=1;
-    if(x1-x0>26&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(nameOf(n.m),x0+3,y-bh/2-4)}
+    if(x1-x0>26&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(G.lesson&&G.micro?nameC(n.m):nameOf(n.m),x0+3,y-bh/2-4)}
     if(n.w){g.fillStyle=n===cur?c.gold:c.muted;g.font='600 14px '+getComputedStyle(document.body).fontFamily;
       g.fillText(n.w,x0,Math.min(h-4,y+bh/2+16));g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--f-mono')}}
   if(G.contour&&S.showLine){g.strokeStyle=c.gold;g.globalAlpha=0.6;g.lineWidth=1.6;g.beginPath();let pen=false,pm=null;
@@ -1008,20 +1023,23 @@ function drawSing(){
     for(const p of G.contour){if(p.t<tA)continue;if(p.t>tB)break;if(p.m==null){pen=false;pm=null;continue}if(pm!=null&&Math.abs(p.m-pm)>2)pen=false;
       const x=xOf(p.t),y=yOf(p.m);if(pen)g.lineTo(x,y);else{g.moveTo(x,y);pen=true}pm=p.m}g.stroke();g.globalAlpha=1}
   g.lineWidth=3;g.lineCap='round';
-  for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;
+  for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;if(hideT&&p.t>=G.singFrom-0.6)continue;
     const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);
     const dv=n?Math.abs(devTo(p.m,n.m)):0,tA=G.lesson?G.tolA:S.thr,tB=G.lesson?G.tolB:Math.max(S.thr*2.5,25);
     g.strokeStyle=!n||n.listen?c.muted:dv<=tA?c.good:dv<=tB?c.warn:c.bad;
     g.beginPath();g.moveTo(xOf(q.t),yOf(q.m));g.lineTo(x,yOf(p.m));g.stroke()}
-  if(G.playing&&G.youM!=null){g.fillStyle=c.ink;g.beginPath();g.arc(nowX,yOf(G.youM),5,0,7);g.fill()}
+  if(G.playing&&G.youM!=null&&!hideT){g.fillStyle=c.ink;g.beginPath();g.arc(nowX,yOf(G.youM),5,0,7);g.fill()}
+  if(hideT){g.fillStyle=c.muted;g.font='600 16px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('From memory',w*0.64,h/2-6);g.font='13px '+getComputedStyle(document.body).fontFamily;g.fillText('the guide returns when you finish',w*0.64,h/2+14);g.textAlign='left'}
   g.strokeStyle=c.gold;g.lineWidth=2;g.beginPath();g.moveTo(nowX,0);g.lineTo(nowX,h);g.stroke();
   if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
   if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
   let syl='';if(cur){for(const n of G.notes){if(n.t0>cur.t0)break;if(n.w)syl=n.w}}
   const T=$(G.ui.tgt),Y=$(G.ui.you);
-  if(cur){T.innerHTML='';T.append(nameOf(cur.m));if(syl){const s=document.createElement('small');s.textContent=syl.replace(/-$/,'');T.append(s)}}
+  if(cur&&hid(cur)){T.textContent='?'}
+  else if(cur){T.innerHTML='';T.append(G.lesson&&G.micro?nameC(cur.m):nameOf(cur.m));if(syl){const s=document.createElement('small');s.textContent=syl.replace(/-$/,'');T.append(s)}}
   else T.textContent=G.playing?'rest':'--';
-  if(G.youM!=null&&G.playing){const cv2=cur?Math.round(devTo(G.youM,cur.m)):null;
+  if(hideT&&G.playing)Y.textContent='hidden';
+  else if(G.youM!=null&&G.playing){const cv2=cur?Math.round(devTo(G.youM,cur.m)):null;
     Y.innerHTML=nameOf(G.youM)+(cv2!=null?'<small>'+(cv2>=0?'+':'')+cv2+'¢</small>':'')}else Y.textContent='--';
 }
 $('guideSrc').onchange=loadSource;
@@ -1112,92 +1130,356 @@ function showTab(k){
 TABS.forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
 
 /* ================= Practice plans =================
-   Foundations follows how voice teachers start adults: match one pitch, sustain it, move by step,
-   scales, glides, leaps, the full octave, minor and chant scales, rhythm, ornaments, long phrases,
-   and finally real melodies. 14 units of 8 small lessons, about two weeks per unit at 10 to 15
-   minutes a day, is six months. */
-const LV=[{name:'Learn',bpm:0.85,tol:1,listen:'full'},{name:'Practice',bpm:1,tol:0.85,listen:'mixed'},{name:'Master',bpm:1.12,tol:0.72,listen:'cue'}];
-function listenMode(lv,base,r){if(base==='cue')return'cue';return lv===0?'full':lv===1?(r%2?'cue':'full'):'cue'}
-/* An exercise item: a listen pass (whole pattern, or the first note as a cue), a one-beat breath,
-   then the sung pass that is scored. */
-function mkItem(o){
-  const beat=60/o.bpm,notes=[];let t=0;const P=o.pat;
-  if(o.listen==='full'){P.forEach((p,i)=>{notes.push({t0:t,t1:t+o.beats[i]*beat*0.92,m:o.base+p,listen:true});t+=o.beats[i]*beat});t+=beat}
-  else{notes.push({t0:t,t1:t+1.6*beat,m:o.base+P[0],listen:true});t+=2*beat}
-  P.forEach((p,i)=>{notes.push({t0:t,t1:t+o.beats[i]*beat*0.94,m:o.base+p,w:o.words?o.words[i]:''});t+=o.beats[i]*beat});
-  return{title:o.title,how:o.how,notes,dur:t+0.4,tolA:o.tolA,tolB:o.tolB}
-}
-const KEYS={near:[0,1,-1,2,-2,0,3,-3,1],climb:[-3,-2,-1,0,1,2,3,4,3,2,1,0,-1,-2]};
-/* pattern library: each returns {title,how,pat,beats,bpm,listen?,key?,words?} for repetition r */
-const PAT={
-  hum:r=>({title:'Hum your home note',how:'Lips gently closed, easy hum. Find the gold bar and stay on it.',pat:[0],beats:[4],bpm:60,key:KEYS.near[r%9]%2}),
-  neighbor:r=>({title:'Next-door notes',how:'Hum the note, step up to its neighbor, come home.',pat:[0,2,0],beats:[3,3,3],bpm:70,key:[0,-2,1,-1][r%4]}),
-  match:r=>({title:'Match a note',how:'Listen, then sing it back. Think the note first, then sing it; don\'t slide in.',pat:[[0],[4],[-3],[2],[5],[-2],[7],[-4],[1]][r%9],beats:[3],bpm:60,key:0}),
-  echo2:r=>({title:'Echo two notes',how:'Two notes, then your turn. Keep each one clean.',pat:[[0,4],[0,-3],[2,0],[4,2],[-2,0]][r%5],beats:[2,2],bpm:60,key:[0,-2,2,-1,1][r%5]}),
-  hold:r=>({title:'Hold it steady',how:'Breathe low into your belly, then hold. Keep the line flat to the end.',pat:[0],beats:[6],bpm:60,key:[0,2,-2,4,-3,1,3][r%7],listen:'cue'}),
-  holdStep:r=>({title:'Hold, step, hold',how:'Long note, step up, long note. No wobble when you move.',pat:[0,2,0],beats:[4,4,4],bpm:70,key:[0,-2,2,-1][r%4]}),
-  step3:r=>({title:'Step up and back',how:'One, two, one. Tidy steps, no sliding between them.',pat:[0,2,0],beats:[1,1,2],bpm:72,key:KEYS.climb[r%14]}),
-  step5:r=>({title:'Three-note steps',how:'One, two, three, two, one. Even and connected.',pat:[0,2,4,2,0],beats:[1,1,1,1,2],bpm:76,key:KEYS.climb[r%14]}),
-  scale5:r=>({title:'Five-note scale',how:'Do re mi fa sol fa mi re do, on "ah". It rises a half step each round.',pat:[0,2,4,5,7,5,4,2,0],beats:[1,1,1,1,1,1,1,1,2],bpm:84,key:KEYS.climb[r%14]}),
-  scale5b:r=>({title:'Scale, held top',how:'Climb to the fifth note and hold it before coming down.',pat:[0,2,4,5,7,5,4,2,0],beats:[1,1,1,1,3,1,1,1,2],bpm:80,key:KEYS.climb[(r+5)%14]}),
-  slide:r=>({title:'Slide and land',how:'Start on the first note and glide smoothly up to the second, then land and hold. Only the landings are scored.',pat:[0,[4,5,7,3][r%4],0],beats:[2,2,2],bpm:60,key:KEYS.near[r%9]}),
-  siren:r=>({title:'Gentle siren',how:'Glide from low to high and back like a slow siren, landing on each gold bar.',pat:[0,5,9,5,0],beats:[1.5,1.5,2,1.5,2],bpm:66,key:KEYS.near[(r+2)%9]}),
-  thirds:r=>({title:'Chord leaps',how:'One, three, five, three, one. Aim straight at each note.',pat:[0,4,7,4,0],beats:[1,1,2,1,2],bpm:76,key:KEYS.climb[r%14]}),
-  minor3:r=>({title:'Small leaps',how:'Up a minor third and back. Smaller than it looks: aim carefully.',pat:[0,3,0,3,5,3,0],beats:[1,1,1,1,1,1,2],bpm:72,key:KEYS.climb[(r+3)%14]}),
-  fourth:r=>({title:'Jump a fourth',how:'Low, high, low. Picture the top note before you jump.',pat:[0,5,0,5,4,2,0],beats:[2,2,1,1,1,1,2],bpm:72,key:KEYS.climb[(r+1)%14]}),
-  fifth:r=>({title:'Jump a fifth',how:'The fifth is the ison\'s favorite partner. Jump cleanly, no scoop.',pat:[0,7,0,4,7,0],beats:[2,2,1,1,2,2],bpm:72,key:KEYS.climb[(r+4)%14]}),
-  octave:r=>({title:'Full scale',how:'All eight notes up and back. Keep the top light and the bottom full.',pat:[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0],beats:[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],bpm:88,key:KEYS.near[r%9]-3}),
-  octave9:r=>({title:'Scale of nine',how:'Up to the ninth note and down. A real stretch, so breathe before you start.',pat:[0,2,4,5,7,9,11,12,14,12,11,9,7,5,4,2,0],beats:[1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2],bpm:96,key:KEYS.near[r%9]-5}),
-  minor:r=>({title:'Minor five',how:'Do re me fa sol: the darker scale behind much of the chant.',pat:[0,2,3,5,7,5,3,2,0],beats:[1,1,1,1,1,1,1,1,2],bpm:80,key:KEYS.climb[r%14]}),
-  chantScale:r=>({title:'Chant tetrachord',how:'Ni pa vou ga and back: the four-note cell that chant melodies are built from.',pat:[0,2,3,5,3,2,0,-2,0],beats:[1,1,1,2,1,1,1,1,2],bpm:72,key:KEYS.near[r%9]}),
-  rhythm:r=>({title:'Short and long',how:'Notes of different lengths. Clap the rhythm once in your head, then sing it.',pat:[[0,2,4,2,0],[0,0,2,4,2],[4,2,0,2,0],[0,4,2,0,0]][r%4],beats:[[0.5,0.5,1,0.5,1.5],[1,0.5,0.5,1,1],[1.5,0.5,1,0.5,0.5],[0.75,0.25,1,1,2]][r%4],bpm:76,key:KEYS.near[r%9]}),
-  dotted:r=>({title:'Dotted rhythm',how:'Long-short, long-short: a lilting step that chant uses all the time.',pat:[0,2,4,5,4,2,0],beats:[1.5,0.5,1.5,0.5,1.5,0.5,2],bpm:72,key:KEYS.climb[(r+6)%14]}),
-  turn:r=>({title:'Quick turn',how:'A fast ornament around the note: up, back, down, back. Small and light.',pat:[0,2,0,-1,0],beats:[1,0.5,0.5,0.5,1.5],bpm:66,key:KEYS.near[r%9]}),
-  flick:r=>({title:'Flick and hold',how:'A tiny flick up before settling on the note, the way cantors decorate a long note.',pat:[0,2,0,4,5,4],beats:[1.5,0.5,1.5,1,0.5,2],bpm:66,key:KEYS.near[(r+4)%9]}),
-  longline:r=>({title:'One-breath phrase',how:'A long phrase on one breath. Breathe low before you start, and save air for the end.',pat:[0,2,4,5,7,5,4,2,0,2,4,2,0],beats:[1,1,1,1,2,1,1,1,1,1,1,1,3],bpm:66,key:KEYS.near[r%9]-2}),
-  longhold:r=>({title:'Long hold, soft end',how:'Ten slow beats. Keep the pitch from sagging as the breath runs out.',pat:[0,2,0],beats:[4,2,5],bpm:56,key:KEYS.near[(r+2)%9]}),
-  melody:r=>[
-    {title:'Trisagion: Holy God',how:'The opening phrase of the Trisagion, Byzantine Tone 3.',pat:[4,2,0,-1,-3,-5,-3,-1,0],beats:[1,1,0.5,0.5,0.5,0.5,1,1,2],bpm:84,key:-5,words:['Ho-','','','','','','','ly','God']},
-    {title:'Christ Is Risen',how:'The opening of the Paschal troparion, Tone 5.',pat:[0,2,2,5,3,2,0,0,-2,0,2,2],beats:[1,1,2,1,1,1,1,1,1,1,1,3],bpm:88,key:-5,words:['Christ','','is','ris-','','en','','from','','the','','dead']},
-    {title:'Blessed Be the Name',how:'Sung three times at the end of the Liturgy.',pat:[0,2,4,4,4,4,2,4,4,4,4,5,4,2,0],beats:[1,1,1,1,1,1,1,2,1,1,1,1,2,2,4],bpm:96,key:-4,words:['Bless-','ed','be','the','name','of','the','Lord,','hence-','forth','and','for-','ev-','er-','more.']},
-    {title:'Before Thy Cross',how:'Lenten hymn, traditional Russian melody.',pat:[-1,0,-1,0,2,4,5,4,5,2],beats:[1,2,2,2,1,1,1,1,1,1],bpm:84,key:-2,words:['Be-','fore','thy','Cross','we','bow','down','','','in']}][r%4]
-};
-const FOUND=[
-  {mo:1,name:'Find your voice',desc:'Hum one easy note and land on it. Nothing to read, no range to stretch, just matching.',tol:[35,90],ex:['hum','neighbor']},
-  {mo:1,name:'Match a note',desc:'Single notes a little above and below your home note. Hear it, then sing it back.',tol:[30,80],ex:['match','echo2']},
-  {mo:1,name:'Hold it steady',desc:'Long notes on one breath. Keep the line flat: no wobble, no sagging at the end.',tol:[25,70],ex:['hold','holdStep']},
-  {mo:2,name:'Step by step',desc:'Move to the next note and back. Every melody and chant is built from these steps.',tol:[25,70],ex:['step3','step5']},
-  {mo:2,name:'Five-note scale',desc:'The classic warm-up, do re mi fa sol and back, rising a half step each round.',tol:[22,65],ex:['scale5','scale5b']},
-  {mo:2,name:'Slides and glides',desc:'Glide between notes and land cleanly. Chant is full of these connections.',tol:[25,70],ex:['slide','siren']},
-  {mo:3,name:'Thirds',desc:'Your first leaps: the outline of a chord, and the smaller minor third.',tol:[22,65],ex:['thirds','minor3']},
-  {mo:3,name:'Fourths and fifths',desc:'Wider jumps. The fifth is the most important interval against the ison.',tol:[22,65],ex:['fourth','fifth']},
-  {mo:3,name:'Full scale',desc:'All eight notes and beyond. Builds range and a smooth path through it.',tol:[22,65],ex:['octave','octave9']},
-  {mo:4,name:'Minor and chant scales',desc:'The darker scales underneath much of Byzantine and Antiochian chant.',tol:[20,60],ex:['minor','chantScale']},
-  {mo:4,name:'Rhythm',desc:'Notes of different lengths, so melodies stop feeling like a metronome.',tol:[20,60],ex:['rhythm','dotted']},
-  {mo:5,name:'Ornaments',desc:'Quick turns and flicks: the decoration cantors put on long notes.',tol:[28,75],ex:['turn','flick']},
-  {mo:5,name:'Long phrases',desc:'Breath and stamina: phrases that last 10 seconds or more on one breath.',tol:[20,60],ex:['longline','longhold']},
-  {mo:6,name:'First melodies',desc:'Real phrases from the Trisagion, Christ Is Risen, Blessed Be the Name and Before Thy Cross.',tol:[20,60],ex:['melody','melody']}
-];
-/* ================= Units, lessons and tests =================
-   Built like a language course: units made of many short lessons, each a small step above the last,
-   and a unit test at the end that samples the unit's hardest material. The ordering follows common
-   voice-teaching practice and pitch research: see your pitch while you sing (real-time visual
-   feedback helps inaccurate singers), single sustained notes before movement, steps before leaps,
-   slow before fast, short pieces before whole phrases, a little review of older work each session,
-   and mastery before moving on (lesson complete at 70, unit test passed at 90). */
+   Course design, from voice-teaching practice and research:
+   - See your pitch while you sing. Real-time visual feedback with a score is what helps inaccurate
+     singers improve; listening alone does not (Pfordresher lab; Blanco et al. 2021). But feedback that
+     is always on can become a crutch, so later lessons hide the guide while you sing and reveal it after.
+   - Single sustained pitches before movement, steps before leaps, slow before fast, short before long.
+   - Train across a wide range, not just a few comfortable notes (Pfordresher & Greenspon 2024).
+   - Gentle semi-occluded warm-ups (straw, lip trill, hum) before work (Titze).
+   - Interleave and space: each lesson reviews the one before, sessions open with older material.
+   - Mastery before moving on: a lesson is done at 70, a unit test is passed at 90.
+   - Inner hearing (audiation): hear it, hold it silently, then sing it, and finally sing from memory.
+   - For Orthodox chant: singing over an ison, holding the ison, singing in unison with a cantor,
+     parallage (chant note names), psalm recitation, chant rhythm and ornament signs, and the eight
+     tones in both piano tuning and chant tuning (72-moria system as commonly taught today). */
 const LESSON_PASS=70,UNIT_PASS=90;
 function ramp(j,n){const t=n>1?j/(n-1):1;return{t,bpm:0.8+0.32*t,tol:1.15-0.38*t,listen:t<0.45?'full':t<0.8?'mixed':'cue'}}
 const lm=(mode,i)=>mode==='mixed'?(i%2?'cue':'full'):mode;
-const STEPNAMES=['First look','Slow and sure','Settle in','A little quicker','Wider range','Less help','Up to speed','Polish'];
-/* Foundations: 14 units x 8 lessons, five exercises per lesson. Within a unit the tempo rises, the pitch
-   window narrows, the key range widens and the help fades from "played first" to "starting note only". */
-function foundItem(st,patKey,r,R,span){const o=PAT[patKey](r);const key=Math.max(-span,Math.min(span,o.key||0));
-  return mkItem({...o,base:S.home+key,bpm:o.bpm*R.bpm,listen:o.listen==='cue'?'cue':lm(R.listen,r),tolA:st.tol[0]*R.tol,tolB:st.tol[1]*R.tol})}
-const foundTrack={id:'found2',name:'Foundations',unit:'Unit',
-  units:FOUND.map((st,u)=>({name:st.name,desc:st.desc,mo:st.mo,
-    lessons:STEPNAMES.map((nm,j)=>{const R=ramp(j,8),span=1+Math.round(R.t*5);return{name:nm,
-      items:()=>[0,1,2,3,4].map(i=>foundItem(st,st.ex[(j+i)%st.ex.length],j*5+i,R,span))}}),
-    test:()=>{const R={bpm:1.1,tol:0.8,listen:'cue'};return[0,1,2,3,4,5,6,7].map(i=>foundItem(st,st.ex[i%st.ex.length],40+i*3,R,6))}}))};
+/* An exercise: a listen pass (whole pattern, or just the first note as a cue), a breath, an optional
+   silent "think it" gap, then the sung pass that is scored. Optional layers: an ison (drone) held by
+   the app, an accompanying melody (for holding the ison under it, or a voice singing in unison with
+   you), and "from memory" (the guide is hidden while you sing, then revealed). null in a pattern is a rest. */
+function mkItem(o){
+  const beat=60/o.bpm,notes=[],P=o.pat,B=Array.isArray(o.beats)?o.beats:P.map(()=>o.beats);let t=0;const W=o.words||[];
+  const first=P.find(p=>p!=null);
+  if(o.listen==='full'){P.forEach((p,i)=>{if(p!=null)notes.push({t0:t,t1:t+B[i]*beat*0.92,m:o.base+p,listen:true,w:W[i]||''});t+=B[i]*beat});t+=beat}
+  else{notes.push({t0:t,t1:t+1.6*beat,m:o.base+first,listen:true});t+=2*beat}
+  if(o.think)t+=o.think*beat;
+  const singFrom=t;
+  P.forEach((p,i)=>{if(p!=null)notes.push({t0:t,t1:t+B[i]*beat*0.94,m:o.base+p,w:W[i]||''});t+=B[i]*beat});
+  const dur=t+0.4,it={title:o.title,how:o.how,notes,dur,tolA:o.tolA,tolB:o.tolB,singFrom,blind:!!o.blind,micro:!!o.micro};
+  if(o.ison!=null)it.ison=[{t0:0,t1:dur,m:o.base+o.ison}];
+  if(o.think)it.think=o.think*beat;
+  if(o.acc==='double'){it.acc=notes.filter(n=>!n.listen).map(n=>({t0:n.t0,t1:n.t1,m:n.m}));it.accDouble=true;it.accLevel=0.55}
+  else if(o.acc){const ab=Array.isArray(o.acc.b)?o.acc.b:o.acc.p.map(()=>o.acc.b);let ta=singFrom+(o.acc.at||0)*beat;it.acc=[];
+    o.acc.p.forEach((p,i)=>{if(p!=null)it.acc.push({t0:ta,t1:ta+ab[i]*beat*0.94,m:o.base+p});ta+=ab[i]*beat})}
+  return it;
+}
+const KEYS={near:[0,1,-1,2,-2,0,3,-3,1,-1],climb:[-3,-2,-1,0,1,2,3,4,3,2,1,0,-1,-2]};
+/* One exercise spec -> item. sp: t title, h how, p pattern (or v: list of variants), b beats, bpm,
+   k key movement ('near', 'climb', 'none'), key base offset from home, w words, l forced listen mode,
+   ison, acc, think, blind, micro. */
+function specItem(sp,r,R,tol,listen){
+  const pat=sp.v?sp.v[r%sp.v.length]:sp.p,ks=sp.k==='none'?[0]:sp.k==='climb'?KEYS.climb:KEYS.near;
+  const key=(sp.key||0)+(sp.k==='none'?0:Math.max(-R.span,Math.min(R.span,ks[r%ks.length])));
+  return mkItem({title:sp.t,how:sp.h,pat,beats:sp.b,bpm:(sp.bpm||72)*R.bpm,base:S.home+key,listen:sp.l||listen,
+    tolA:(sp.tol||tol)[0]*R.tol,tolB:(sp.tol||tol)[1]*R.tol,words:sp.wv?sp.wv[r%sp.wv.length]:sp.w,ison:sp.ison,acc:sp.acc,think:sp.think,blind:sp.blind,micro:sp.micro});
+}
+/* A unit: lessons in order, each a small step above the last. A lesson is five to eight exercises (about two minutes)
+   from its own material plus one review of the lesson before. Over the unit the tempo rises, the pitch window
+   narrows, the key moves further from home, and the played help fades. */
+function buildUnit(U,mo,part){
+  const n=U.L.length;
+  const lessons=U.L.map((les,j)=>{const R0=ramp(j,n),R={...R0,span:1+Math.round(R0.t*4)};return{name:les.n,
+    items:()=>{const out=[];let total=0,i=0;const specs=les.x;
+      while(out.length<8&&(out.length<5||total<140)){const sp=specs[i%specs.length];
+        const lis=R.t<0.3?'full':R.t<0.7?(i<2?'full':'cue'):(i<1?'full':'cue');
+        const it=specItem(sp,i+j,R,U.tol,lis);out.push(it);total+=it.dur;i++;if(i>=10)break}
+      if(j>0){const prev=U.L[j-1].x,sp=prev[prev.length-1],it=specItem(sp,j+3,R,U.tol,'cue');it.title='Review: '+it.title;out.push(it)}
+      return out}}});
+  return{name:U.name,desc:U.desc,why:U.why,mo,part,lessons,
+    test:()=>{const R={t:1,bpm:1.06,tol:0.85,span:4},pick=U.L.length>10?U.L.slice(-10):U.L;
+      return pick.map((les,j)=>specItem(les.x[les.x.length-1],j+5,R,U.tol,'cue'))}};
+}
+const sq=(n,v)=>Array.from({length:n},()=>v);
+const PART=['First steps','Musicianship','Chant skills','The eight tones'];
+const F1=[
+{name:'Breath and first sounds',tol:[35,90],desc:'Low breath, an easy hum, and clean starts on one comfortable note.',
+ why:'Every vocal method starts with relaxed breath and an easy onset on a single comfortable pitch. Straw and lip-trill sounds are the gentlest way to start (semi-occluded vocal tract exercises).',L:[
+ {n:'Hum your home note',x:[{t:'Hum home',h:'Lips closed, teeth apart, an easy "mm". Find the gold bar and stay on it.',p:[0],b:4,bpm:60,k:'none'}]},
+ {n:'Hum a little longer',x:[{t:'Longer hum',h:'Breathe in low so your belly moves, not your shoulders. Then hum to the end of the bar.',p:[0],b:6,bpm:60,k:'none'}]},
+ {n:'Straw or lip trill',x:[{t:'Straw hum',h:'Hum through a drinking straw, or buzz your lips like a motorboat. This is the gentlest warm-up there is, and the pitch still shows.',p:[0],b:5,bpm:60,k:'none',w:['brrr']}]},
+ {n:'From hum to "ah"',x:[{t:'Hm, then ah',h:'A tiny hum, then open to "ah" on the same note. No push, no click at the start.',p:[0,0],b:[2,3],bpm:60,k:'none',w:['hm','ah']}]},
+ {n:'Clean starts',x:[{t:'Three starts',h:'Three separate starts on one note. Land in the bar from the first instant, no slide up into it.',p:[0,null,0,null,0],b:[1.5,0.5,1.5,0.5,2],bpm:60,k:'none',w:['ah','','ah','','ah']}]},
+ {n:'Home from silence',x:[{t:'Find home',h:'Only a short cue. Find the note yourself.',p:[0],b:4,bpm:60,k:'none',l:'cue'}]},
+ {n:'Home moves a little',x:[{t:'Home, moved',h:'The note moves a half step or two each time. Same easy hum.',p:[0],b:4,bpm:60}]},
+ {n:'Eight-beat breath',x:[{t:'Eight beats',h:'Breathe low, then hold the whole bar. If you run out, breathe sooner and use less air.',p:[0],b:8,bpm:66}]}]},
+{name:'Match a note',tol:[32,85],desc:'Hear a note, then sing it back. Near notes first, then a whole octave.',
+ why:'Pitch matching is the core skill. Training across a wide range improved single-note matching where narrow-range training did not (Pfordresher and Greenspon).',L:[
+ {n:'One step away',x:[{t:'Match',h:'Listen, then sing it back. Think the note before you sing it.',v:[[2],[-2],[1],[-1]],b:3,bpm:60,k:'none'}]},
+ {n:'A little further',x:[{t:'Match',h:'Three or four half steps away from home.',v:[[3],[-3],[4],[-4]],b:3,bpm:60,k:'none'}]},
+ {n:'Up to a fifth',x:[{t:'Match',h:'Bigger distances. Aim, don\'t slide.',v:[[5],[-5],[7],[-7]],b:3,bpm:60,k:'none'}]},
+ {n:'Low notes',x:[{t:'Match low',h:'Lower notes: relax your jaw and let the sound fall. Don\'t press down.',v:[[-4],[-6],[-5],[-7]],b:3,bpm:60,k:'none'}]},
+ {n:'High notes',x:[{t:'Match high',h:'Higher notes: lighter and softer, never louder.',v:[[7],[9],[8],[10]],b:3,bpm:60,k:'none'}]},
+ {n:'Across the octave',x:[{t:'Match',h:'Anywhere in an octave. Wide-range practice builds the inner map.',v:[[12],[-5],[9],[-7],[11],[2]],b:3,bpm:60,k:'none'}]},
+ {n:'Two notes',x:[{t:'Echo two',h:'Two notes, then your turn.',v:[[0,4],[0,-3],[2,0],[5,0],[0,7]],b:[2,2],bpm:60,k:'none'}]},
+ {n:'Hold it in your head',x:[{t:'Hear, wait, sing',h:'The note plays, then two beats of silence. Keep hearing it inside, then sing.',v:[[4],[-3],[7],[-5],[9]],b:3,bpm:60,k:'none',think:2,l:'full'}]}]},
+{name:'Hold it steady',tol:[28,75],desc:'Long notes on different vowels and volumes without wobble or sag.',
+ why:'Sustained, stable pitch is the base of chant, which is full of long held notes over the ison. Vowels and loudness both pull pitch, so they are trained separately.',L:[
+ {n:'Four beats on "ah"',x:[{t:'Hold ah',h:'Open "ah", steady breath, flat line.',p:[0],b:4,bpm:60,w:['ah']}]},
+ {n:'Six beats on "oo"',x:[{t:'Hold oo',h:'Round lips, same steady line.',p:[0],b:6,bpm:60,w:['oo']}]},
+ {n:'Six beats on "ee"',x:[{t:'Hold ee',h:'Bright vowels like "ee" tend to creep sharp. Keep it from rising.',p:[0],b:6,bpm:60,w:['ee']}]},
+ {n:'Change vowels, not pitch',x:[{t:'Vowel walk',h:'The vowel changes, the pitch must not.',p:[0,0,0,0,0],b:2,bpm:72,w:['oo','oh','ah','eh','ee']}]},
+ {n:'Swell and fade',x:[{t:'Swell and fade',h:'Start soft, grow, then soften again (messa di voce). Keep the line flat while the volume moves.',p:[0],b:8,bpm:60,w:['ah']}]},
+ {n:'Hold, step, hold',x:[{t:'Hold, step, hold',h:'Long note, step up, long note. No wobble when you move.',p:[0,2,0],b:[4,4,4],bpm:72}]},
+ {n:'Ten beats',x:[{t:'Ten beats',h:'A long breath. Keep the end as steady as the start.',p:[0],b:10,bpm:66}]},
+ {n:'A light high hold',x:[{t:'High hold',h:'Higher, lighter, steady.',p:[0],b:6,bpm:60,key:5}]}]},
+{name:'Next-door notes',tol:[26,70],desc:'Whole steps and half steps, up and down, then three in a row.',
+ why:'Melodies, and chant above all, move mostly by step. Steps come before leaps in every sequence of vocal exercises.',L:[
+ {n:'Whole step up',x:[{t:'Step up and back',h:'One note up and back. Tidy, no slide.',p:[0,2,0],b:[2,2,3],bpm:66}]},
+ {n:'Whole step down',x:[{t:'Step down and back',h:'Down one and back home.',p:[0,-2,0],b:[2,2,3],bpm:66}]},
+ {n:'Half step',x:[{t:'Half step',h:'The smallest step. It is easy to overshoot.',p:[0,1,0],b:[2,2,3],bpm:66}]},
+ {n:'Half or whole',x:[{t:'Half or whole',h:'Hear the difference between the two step sizes.',v:[[0,1,0,2,0],[0,2,0,1,0]],b:[1,1,1,1,2],bpm:66}]},
+ {n:'Three going up',x:[{t:'Three up',h:'One, two, three.',p:[0,2,4],b:[1,1,3],bpm:70,k:'climb'}]},
+ {n:'Three coming down',x:[{t:'Three down',h:'Three, two, one. Don\'t let it sag.',p:[4,2,0],b:[1,1,3],bpm:70,k:'climb'}]},
+ {n:'Up and back',x:[{t:'Three-note steps',h:'One, two, three, two, one. Even and connected.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:76,k:'climb'}]},
+ {n:'Whole then half',x:[{t:'Whole, then half',h:'A whole step then a half step: the shape of many chant phrases.',p:[0,2,3,2,0],b:[1,1,1,1,2],bpm:72,k:'climb'}]},
+ {n:'Quicker steps',x:[{t:'Quicker steps',h:'Two notes to a beat.',p:[0,2,4,2,0,2,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:72,k:'climb'}]}]},
+{name:'Five-note scale',tol:[24,66],desc:'Do re mi fa sol in pieces, then whole, then in rising keys.',
+ why:'The five-note scale is the classic voice-teacher warm-up. Solfege syllables tie each note to its place in the scale.',L:[
+ {n:'Do re mi',x:[{t:'Do re mi',h:'Sing the syllables.',p:[0,2,4,2,0],b:[1,1,2,1,2],bpm:72,w:['do','re','mi','re','do']}]},
+ {n:'Up to fa',x:[{t:'Do to fa',h:'Mi to fa is a half step. Keep it small.',p:[0,2,4,5,4,2,0],b:[1,1,1,2,1,1,2],bpm:76,w:['do','re','mi','fa','mi','re','do']}]},
+ {n:'Up to sol',x:[{t:'Five-note scale',h:'Do re mi fa sol and back.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:80,w:['do','re','mi','fa','sol','fa','mi','re','do']}]},
+ {n:'Hold the top',x:[{t:'Scale, held top',h:'Climb and hold sol before coming down.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,3,1,1,1,2],bpm:80}]},
+ {n:'From the top',x:[{t:'Sol down to do',h:'Start on sol and walk down.',p:[7,5,4,2,0],b:[1,1,1,1,3],bpm:76,w:['sol','fa','mi','re','do']}]},
+ {n:'Rising keys',x:[{t:'Scale in new keys',h:'It moves a half step each round.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,1,1,1,1,2],bpm:84,k:'climb'}]},
+ {n:'Skipping thirds',x:[{t:'Skip and step',h:'Do mi re fa mi sol, then down.',p:[0,4,2,5,4,7,5,4,2,0],b:[1,1,1,1,1,2,1,1,1,2],bpm:80}]},
+ {n:'Faster scale',x:[{t:'Quick scale',h:'Two notes per beat.',p:[0,2,4,5,7,5,4,2,0],b:[.5,.5,.5,.5,1,.5,.5,.5,2],bpm:76,k:'climb'}]}]},
+{name:'Slides and landings',tol:[26,70],desc:'Glide between notes and land cleanly, then jump with no slide at all.',
+ why:'Sirens and glides warm the voice through its range smoothly. Chant has both: gentle connected glides and clean direct attacks.',L:[
+ {n:'Small siren',x:[{t:'Small siren',h:'Straw or lip trill if you like. Glide up, land, glide back.',p:[0,4,0],b:[2,2,2],bpm:60}]},
+ {n:'Glide a fifth',x:[{t:'Glide a fifth',h:'Glide up and land on the gold bar.',p:[0,7,0],b:[2,2,2],bpm:60}]},
+ {n:'Glide down',x:[{t:'Glide down',h:'From above, glide down and land.',p:[5,0,5],b:[2,2,2],bpm:60}]},
+ {n:'Siren to the octave',x:[{t:'Octave siren',h:'Low to high and back like a slow siren, landing on each bar.',p:[0,7,12,7,0],b:[1.5,1.5,2,1.5,2],bpm:62,key:-3}]},
+ {n:'Glide and hold',x:[{t:'Glide and hold',h:'Glide up and hold the landing steady.',p:[0,7],b:[2,5],bpm:60}]},
+ {n:'No scoop',x:[{t:'Jump, no slide',h:'Now the opposite: jump straight onto each note.',p:[0,5,0,7,0],b:2,bpm:66}]},
+ {n:'Glide or jump',x:[{t:'Glide or jump',h:'Glide to the first landing, jump to the second.',v:[[0,4,0,7,0],[0,7,0,4,0]],b:2,bpm:66}]},
+ {n:'Mixed landings',x:[{t:'Landings',h:'Different landings, starting note only.',v:[[0,5,0],[0,9,0],[0,-5,0],[0,12,0]],b:[2,2,2],bpm:64,key:-2}]}]},
+{name:'Thirds',tol:[24,66],desc:'Your first leaps: sol-mi, then major and minor thirds and broken chords.',
+ why:'Kodály teaching begins with sol-mi, the falling minor third, because it is natural to sing. Thirds then build chords.',L:[
+ {n:'Sol-mi',x:[{t:'Sol-mi',h:'The falling minor third, the first interval in Kodály teaching.',p:[0,-3,0,-3],b:[1,1,1,2],bpm:66,key:3,w:['sol','mi','sol','mi']}]},
+ {n:'Sol-la-sol-mi',x:[{t:'Sol la sol mi',h:'Add la above sol.',p:[0,2,0,-3],b:[1,1,1,2],bpm:66,key:3,w:['sol','la','sol','mi']}]},
+ {n:'Mi up to sol',x:[{t:'Mi-sol',h:'The minor third upward.',p:[0,3,0],b:[2,2,2],bpm:66,w:['mi','sol','mi']}]},
+ {n:'Do-mi',x:[{t:'Do-mi',h:'The major third.',p:[0,4,0],b:[2,2,2],bpm:66,w:['do','mi','do']}]},
+ {n:'Major or minor',x:[{t:'Major or minor third',h:'Four half steps or three. Hear the brighter and darker colors.',v:[[0,4,0,3,0],[0,3,0,4,0]],b:[1,1,1,1,2],bpm:66}]},
+ {n:'Do mi sol',x:[{t:'Major chord',h:'One, three, five, three, one.',p:[0,4,7,4,0],b:[1,1,2,1,2],bpm:76,k:'climb',w:['do','mi','sol','mi','do']}]},
+ {n:'La do mi',x:[{t:'Minor chord',h:'The minor chord: darker, very common in chant.',p:[0,3,7,3,0],b:[1,1,2,1,2],bpm:76,k:'climb',w:['la','do','mi','do','la']}]},
+ {n:'Thirds in a scale',x:[{t:'Thirds in a scale',h:'Leap a third, step back, leap again.',p:[0,4,2,5,4,7,5,4,2,0],b:[1,1,1,1,1,2,1,1,1,2],bpm:76}]},
+ {n:'Thirds from a cue',x:[{t:'Thirds',h:'Starting note only.',v:[[0,4,7,4,0],[0,3,7,3,0],[0,-3,0,4,0]],b:[1,1,2,1,2],bpm:76,l:'cue'}]}]},
+{name:'Fourths and fifths',tol:[24,66],desc:'Wider leaps. The fifth and fourth are the ison\'s natural partners.',
+ why:'Fourths and fifths frame chant melodies and sound most stable against an ison. Picturing the target before leaping is a standard teaching cue.',L:[
+ {n:'Do to sol',x:[{t:'Up a fifth',h:'Picture the top note, then jump.',p:[0,7,0],b:[2,2,3],bpm:66,w:['do','sol','do']}]},
+ {n:'Sol down to do',x:[{t:'Down a fifth',h:'From the top down to the bottom.',p:[7,0,7],b:[2,2,3],bpm:66,key:-3,w:['sol','do','sol']}]},
+ {n:'Do to fa',x:[{t:'Up a fourth',h:'The fourth: one step smaller.',p:[0,5,0],b:[2,2,3],bpm:66,w:['do','fa','do']}]},
+ {n:'Fourth or fifth',x:[{t:'Fourth or fifth',h:'Hear which is which.',v:[[0,5,0,7,0],[0,7,0,5,0]],b:[1,1,1,1,2],bpm:66}]},
+ {n:'Leap, then step back',x:[{t:'Leap and step',h:'After a leap, melodies usually step back the other way.',p:[0,7,5,4,2,0],b:[1,2,1,1,1,2],bpm:72}]},
+ {n:'Sol up to do',x:[{t:'Up a fourth from sol',h:'Sol to the do above.',p:[0,5,0],b:[2,2,3],bpm:66,key:2,w:['sol','do','sol']}]},
+ {n:'Fill in the fifth',x:[{t:'Climb and jump home',h:'Step up through the fifth, then jump straight home.',p:[0,2,4,5,7,0],b:[1,1,1,1,1,3],bpm:72}]},
+ {n:'Leaps from a cue',x:[{t:'Leaps',h:'Starting note only.',v:[[0,7,0,5,0],[0,5,7,0],[0,7,5,7,0]],b:[1,1,1,1,2],bpm:72,l:'cue'}]}]},
+{name:'The octave and your range',tol:[24,66],desc:'All eight notes and beyond, low and high, light on top.',
+ why:'Range grows with gentle repetition, never by pushing. Wide-range work also sharpens pitch matching.',L:[
+ {n:'Octave leap',x:[{t:'Octave leap',h:'Light on top. Don\'t reach up with your chin.',p:[0,12,0],b:[2,2,3],bpm:60,key:-4}]},
+ {n:'Octave scale up',x:[{t:'Up the scale',h:'Eight notes up, smooth and even.',p:[0,2,4,5,7,9,11,12],b:[1,1,1,1,1,1,1,3],bpm:80,key:-4}]},
+ {n:'Octave scale down',x:[{t:'Down the scale',h:'Eight notes down. Keep the bottom from going flat.',p:[12,11,9,7,5,4,2,0],b:[1,1,1,1,1,1,1,3],bpm:80,key:-4}]},
+ {n:'Chord to the octave',x:[{t:'Arpeggio',h:'One, three, five, eight, and back.',p:[0,4,7,12,7,4,0],b:[1,1,1,2,1,1,2],bpm:76,key:-4}]},
+ {n:'Full scale',x:[{t:'Full scale',h:'All eight up and back.',p:[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],bpm:88,key:-4}]},
+ {n:'Scale of nine',x:[{t:'Scale of nine',h:'Up to the ninth note. Breathe before you start.',p:[0,2,4,5,7,9,11,12,14,12,11,9,7,5,4,2,0],b:[1,1,1,1,1,1,1,1,2,1,1,1,1,1,1,1,2],bpm:96,key:-6}]},
+ {n:'Low notes',x:[{t:'Low and relaxed',h:'Down below home. Let it be quiet.',p:[0,-2,-4,-5,-4,-2,0],b:[1,1,1,2,1,1,2],bpm:72}]},
+ {n:'High notes',x:[{t:'High and light',h:'Above home. Soft and easy.',p:[0,2,4,5,7,9,7,5,4,2,0],b:[1,1,1,1,1,2,1,1,1,1,2],bpm:80,key:2}]}]}
+];
+const F2=[
+{name:'Minor and the old modes',tol:[22,62],desc:'Minor, Dorian and Phrygian colors and the wide step. These prepare the ear for the chant tones.',
+ why:'The church modes are the Western cousins of the eight chant tones. Learning their colors first makes the tones familiar.',L:[
+ {n:'Minor five',x:[{t:'Minor five',h:'Do re me fa sol: a darker scale.',p:[0,2,3,5,7,5,3,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:80,k:'climb'}]},
+ {n:'Major or minor',x:[{t:'Major, then minor',h:'Hear how one note changes the whole color.',v:[[0,2,4,5,7,5,4,2,0],[0,2,3,5,7,5,3,2,0]],b:[1,1,1,1,2,1,1,1,2],bpm:80}]},
+ {n:'Natural minor octave',x:[{t:'Minor scale',h:'The whole minor scale.',p:[0,2,3,5,7,8,10,12,10,8,7,5,3,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],bpm:88,key:-4}]},
+ {n:'Dorian',x:[{t:'Dorian color',h:'Minor with a raised sixth. Close to the sound of Tone 1.',p:[0,2,3,5,7,9,7,5,3,2,0],b:[1,1,1,1,1,2,1,1,1,1,2],bpm:80,key:-2}]},
+ {n:'Phrygian',x:[{t:'Phrygian color',h:'A half step right at the bottom. Close to the sound of Tone 4.',p:[0,1,3,5,7,5,3,1,0],b:[1,1,1,1,2,1,1,1,2],bpm:76}]},
+ {n:'The wide step',x:[{t:'The wide step',h:'A step and a half between the 2nd and 3rd notes: the sound of the chromatic tones (2 and 6).',p:[0,1,4,5,4,1,0],b:[1,1,1,2,1,1,2],bpm:72}]},
+ {n:'Chant tetrachord',x:[{t:'Chant tetrachord',h:'Four notes, then dipping below: the cell many chant phrases are built from.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:72}]},
+ {n:'Colors from a cue',x:[{t:'Which color?',h:'Starting note only.',v:[[0,2,3,5,7,5,3,2,0],[0,1,3,5,3,1,0],[0,1,4,5,4,1,0]],b:[1,1,1,1,2,1,1,1,2],bpm:80,l:'cue'}]}]},
+{name:'Rhythm and pulse',tol:[22,62],desc:'Long and short notes, rests, even recitation, and two or three notes to a beat.',
+ why:'Chant rhythm is carried by the text and by time signs (gorgon, digorgon, klasma). Steady pulse comes before speed.',L:[
+ {n:'Long and short',x:[{t:'Short and long',h:'Notes of different lengths. Feel the beat first.',v:[[0,2,4,2,0],[0,0,2,4,2],[4,2,0,2,0]],b:[.5,.5,1,.5,1.5],bpm:76}]},
+ {n:'Even recitation',x:[{t:'Even notes',h:'Many short notes on one pitch, perfectly even, the way psalms are read.',p:[0,0,0,0,0,0,0,0],b:[.5,.5,.5,.5,.5,.5,.5,2],bpm:72}]},
+ {n:'Notes and rests',x:[{t:'Rests on time',h:'Stop cleanly in the gaps and come back exactly on time.',p:[0,null,2,null,4,2,0],b:[1,1,1,1,1,1,2],bpm:72}]},
+ {n:'Dotted rhythm',x:[{t:'Long-short',h:'Long-short, long-short.',p:[0,2,4,5,4,2,0],b:[1.5,.5,1.5,.5,1.5,.5,2],bpm:72}]},
+ {n:'Two to a beat',x:[{t:'Quickened notes',h:'Two notes sharing one beat. In chant notation this is the gorgon.',p:[0,2,4,2,0],b:[1,.5,.5,1,2],bpm:72}]},
+ {n:'Three to a beat',x:[{t:'Three in a beat',h:'Three notes sharing one beat: the digorgon.',p:[0,2,4,5,2,0],b:[1,1/3,1/3,1/3,1,2],bpm:66}]},
+ {n:'Slow then quick',x:[{t:'Slow, then quick',h:'The beat stays, the notes get faster.',p:[0,2,4,5,7,5,4,2,0],b:[2,2,1,1,.5,.5,.5,.5,2],bpm:72}]},
+ {n:'Rhythm from a cue',x:[{t:'Rhythm',h:'Starting note only.',v:[[0,2,4,2,0],[0,2,0,4,2]],b:[1,.5,.5,1.5,2],bpm:76,l:'cue'}]}]},
+{name:'Agility',tol:[28,72],desc:'Quick runs, turns and many notes on one vowel (melisma).',
+ why:'Agility is built slow first, then gradually faster. Papadic and kalophonic chant uses long melismas.',L:[
+ {n:'Slow run',x:[{t:'Slow run',h:'Five notes up and down, even.',p:[0,2,4,5,7,5,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:56}]},
+ {n:'Run at speed',x:[{t:'Run',h:'The same run, quicker.',p:[0,2,4,5,7,5,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:76}]},
+ {n:'Run down',x:[{t:'Run down',h:'From the top, quick and light.',p:[7,5,4,2,0],b:[.5,.5,.5,.5,2],bpm:72}]},
+ {n:'Quick turn',x:[{t:'Quick turn',h:'Up, back, down, back. Small and light.',p:[0,2,0,-1,0],b:[1,.5,.5,.5,1.5],bpm:66}]},
+ {n:'Flick and hold',x:[{t:'Flick and hold',h:'A tiny flick up before settling, the way cantors decorate a long note.',p:[0,2,0,4,5,4],b:[1.5,.5,1.5,1,.5,2],bpm:66}]},
+ {n:'Alternation',x:[{t:'Alternation',h:'Quick back and forth between two notes, like the figures in a kratema.',p:[0,2,0,2,0,2,0],b:[.5,.5,.5,.5,.5,.5,2],bpm:66}]},
+ {n:'Melisma on "A-men"',x:[{t:'Melisma',h:'Many notes on one vowel. Keep the vowel steady.',p:[0,2,4,2,4,5,4,2,0],b:[1,.5,.5,.5,.5,1,.5,.5,2],bpm:66,w:['A-','','','','','','','','men']}]},
+ {n:'Fast and clean',x:[{t:'Fast run',h:'Starting note only.',p:[0,2,4,5,7,5,4,2,0,2,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:84,l:'cue'}]}]},
+{name:'Hearing it inside',tol:[24,66],desc:'Hold notes in your head, then sing with the guide hidden and see the result after.',
+ why:'Inner hearing (audiation) is what lets a cantor start a hymn on his own. The guide is faded out because feedback that is always on can become a crutch.',L:[
+ {n:'Think, then sing',x:[{t:'Hear, think, sing',h:'Two beats of silence after the note. Hear it inside, then sing.',v:[[0],[4],[-3],[7]],b:3,bpm:60,think:2,l:'full'}]},
+ {n:'Think two notes',x:[{t:'Think two',h:'Hold both notes in your head through the silence.',v:[[0,4],[0,-3],[2,0],[0,7]],b:[2,2],bpm:60,think:2,l:'full'}]},
+ {n:'Think a shape',x:[{t:'Think a shape',h:'Five notes, a silence, then sing.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:66,think:3,l:'full'}]},
+ {n:'From memory: one note',x:[{t:'From memory',h:'The guide disappears while you sing. You see how you did afterward.',v:[[0],[5],[-3],[7]],b:4,bpm:60,blind:true,l:'full'}]},
+ {n:'From memory: steps',x:[{t:'Steps from memory',h:'Guide hidden while you sing.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:66,blind:true,l:'full'}]},
+ {n:'From memory: chords',x:[{t:'Chord from memory',h:'Guide hidden while you sing.',v:[[0,4,7,4,0],[0,3,7,3,0]],b:[1,1,2,1,2],bpm:70,blind:true,l:'full'}]},
+ {n:'The fifth on your own',x:[{t:'Find the fifth',h:'You hear only home. Sing home, then the fifth above it, from your own ear.',p:[0,7],b:[2,4],bpm:60,blind:true,l:'cue'}]},
+ {n:'From memory: a phrase',x:[{t:'Phrase from memory',h:'Hear it once, think, then sing it with the guide hidden.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:72,blind:true,think:2,l:'full'}]},
+ {n:'The scale on your own',x:[{t:'Scale from home',h:'Only home is given. Sing the five-note scale from your ear.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:72,blind:true,l:'cue'}]}]},
+{name:'Words and vowels',tol:[24,66],desc:'Keep pitch steady through real words: pure vowels, quick consonants.',
+ why:'In chant the text comes first. Sing on the vowels, keep consonants short, and the pitch stays where it belongs.',L:[
+ {n:'A-men',x:[{t:'Amen',h:'Two syllables. Pure "ah", pure "eh".',p:[2,0],b:[2,3],bpm:60,w:['A-','men']}]},
+ {n:'Alleluia',x:[{t:'Alleluia',h:'Five syllables on a little step pattern.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:72,w:['Al-','le-','lu-','i-','a']}]},
+ {n:'Lord, have mercy',x:[{t:'Lord, have mercy',h:'One note. Every syllable on pitch.',p:[0,0,0,0],b:[1,1,1,2],bpm:72,w:['Lord,','have','mer-','cy']}]},
+ {n:'Lord, have mercy, falling',x:[{t:'Lord, have mercy',h:'A small falling ending.',p:[2,2,0,0],b:[1,1,1,2],bpm:72,w:['Lord,','have','mer-','cy']}]},
+ {n:'Kyrie eleison',x:[{t:'Kyrie eleison',h:'The same prayer in Greek.',p:[0,2,2,0,-2,0],b:[1,1,1,1,1,2],bpm:72,w:['Ky-','ri-','e','e-','lei-','son']}]},
+ {n:'Pure vowels',x:[{t:'Vowels on steps',h:'Each note a new vowel. Mouth shape changes, pitch stays on target.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:66,w:['ah','eh','ee','oh','oo']}]},
+ {n:'Glory to the Father',x:[{t:'Glory',h:'Recited on one note with a small cadence.',p:[0,0,0,0,0,0,0,-2,0],b:[.5,.5,.5,.5,.5,1,.5,.5,2],bpm:66,w:['Glo-','ry','to','the','Fa-','ther,','and','the','Son']}]},
+ {n:'Holy God',x:[{t:'Holy God',h:'The opening of the Trisagion.',p:[4,2,0,-1,-3,-5,-3,-1,0],b:[1,1,.5,.5,.5,.5,1,1,2],bpm:80,key:2,w:['Ho-','','','','','','','ly','God']}]}]},
+{name:'Volume and long breath',tol:[22,62],desc:'Swells, soft high notes, and phrases of 10 to 15 seconds on one breath.',
+ why:'Services are long. Breath management and steady pitch while volume changes are what let a chanter last.',L:[
+ {n:'Swell and fade',x:[{t:'Swell and fade',h:'Soft, louder, soft. Pitch flat.',p:[0],b:8,bpm:60,w:['ah']}]},
+ {n:'Soft high note',x:[{t:'Soft top',h:'Sing the top softly, never pushed.',p:[0,5,7],b:[2,2,4],bpm:60,key:2}]},
+ {n:'Grow as you climb',x:[{t:'Grow',h:'Get louder as you climb, without going sharp.',p:[0,2,4,5,7],b:[1,1,1,1,3],bpm:66}]},
+ {n:'Fade as you fall',x:[{t:'Fade',h:'Get softer as you come down, without going flat.',p:[7,5,4,2,0],b:[1,1,1,1,3],bpm:66}]},
+ {n:'One-breath phrase',x:[{t:'One breath',h:'A long phrase on one breath. Breathe low first and save air for the end.',p:[0,2,4,5,7,5,4,2,0,2,4,2,0],b:[1,1,1,1,2,1,1,1,1,1,1,1,3],bpm:66}]},
+ {n:'Longer phrase',x:[{t:'Longer breath',h:'About 15 seconds.',p:[0,2,3,5,7,5,3,2,0,2,3,2,0,-2,0],b:[1,1,1,1,2,1,1,1,1,1,1,1,1,1,3],bpm:60}]},
+ {n:'Long hold, soft end',x:[{t:'Soft ending',h:'Keep the pitch from sagging as the breath runs out.',p:[0,2,0],b:[4,2,5],bpm:56}]},
+ {n:'Quick catch breath',x:[{t:'Catch breath',h:'Two phrases with a quick, low breath in the gap.',p:[0,2,4,2,0,null,0,2,4,5,4,2,0],b:[1,1,1,1,1,.5,1,1,1,1,1,1,2],bpm:72}]}]}
+];
+const F3=[
+{name:'Singing over the ison',tol:[22,60],desc:'An organ ison holds your home note while you sing over it.',
+ why:'The ison is the foundation of Byzantine chant. A drone makes tuning audible: when you are slightly off you hear slow beats, and when you lock in the sound rings.',L:[
+ {n:'Become one with the ison',x:[{t:'Unison with the ison',h:'Match the ison until it sounds like one voice, with no slow wobble. Headphones work best for ison exercises.',p:[0],b:6,bpm:60,ison:0,k:'none'}]},
+ {n:'The fifth above',x:[{t:'Fifth over the ison',h:'Listen for the fifth to lock in and ring.',p:[7],b:6,bpm:60,ison:0,k:'none'}]},
+ {n:'The fourth above',x:[{t:'Fourth over the ison',h:'A fourth above. It should feel open and still.',p:[5],b:6,bpm:60,ison:0,k:'none'}]},
+ {n:'The third above',x:[{t:'Third over the ison',h:'The major third sings sweetest a little lower than piano tuning.',p:[4],b:6,bpm:60,ison:0,k:'none'}]},
+ {n:'Steps over the ison',x:[{t:'Steps over the ison',h:'Move, but keep hearing the ison underneath.',p:[0,2,4,2,0],b:[1.5,1.5,2,1.5,2],bpm:66,ison:0,k:'none'}]},
+ {n:'Scale over the ison',x:[{t:'Scale over the ison',h:'Each note has its own color against the ison.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:72,ison:0,k:'none'}]},
+ {n:'Dip below the ison',x:[{t:'Below the ison',h:'Melodies may dip below the ison for a moment. Don\'t let it pull you.',p:[0,-2,0,2,0],b:[1.5,1.5,1.5,1.5,2],bpm:66,ison:0,k:'none'}]},
+ {n:'Minor over the ison',x:[{t:'Minor over the ison',h:'The darker scale against the drone.',p:[0,2,3,5,7,5,3,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:72,ison:0,k:'none'}]},
+ {n:'From memory over the ison',x:[{t:'Over the ison, from memory',h:'Guide hidden. Let the ison be your map.',p:[0,2,3,5,3,2,0],b:[1,1,1,2,1,1,2],bpm:72,ison:0,k:'none',blind:true,l:'full'}]}]},
+{name:'Holding the ison',tol:[22,60],desc:'Now you are the ison: hold steady while a melody moves above you, and move when it moves.',
+ why:'Ison singers hold the base note of the phrase, follow the melody down when it dips below, move to the new base when the melody shifts, and stay steady across the cantor\'s breaths.',L:[
+ {n:'Under a slow melody',x:[{t:'Hold the ison',h:'Hold home while the melody moves above you.',p:[0],b:10,bpm:66,k:'none',acc:{p:[0,2,4,2,0],b:2},l:'cue'}]},
+ {n:'Under steps',x:[{t:'Hold the ison',h:'Steady. Don\'t follow the melody up.',p:[0],b:10,bpm:66,k:'none',acc:{p:[0,2,3,5,3,2,0],b:[1,1,1,2,1,1,3]},l:'cue'}]},
+ {n:'Under leaps',x:[{t:'Hold the ison',h:'The leaps above you will tempt you. Stay put.',p:[0],b:10,bpm:66,k:'none',acc:{p:[0,7,5,4,7,4,2,0],b:[1,1,1,1,2,1,1,2]},l:'cue'}]},
+ {n:'Under a quick melody',x:[{t:'Hold the ison',h:'A busy melody above you.',p:[0],b:8,bpm:72,k:'none',acc:{p:[0,2,4,5,7,5,4,2,0,2,4,2,0],b:[.5,.5,.5,.5,1,.5,.5,.5,.5,.5,.5,.5,1.5]},l:'cue'}]},
+ {n:'Follow a dip',x:[{t:'Ison follows down',h:'When the melody drops below you, step down with it, then come back.',p:[0,-2,0],b:[4,3,4],bpm:66,k:'none',acc:{p:[4,2,0,2,-2,-3,-2,0,2,0],b:[1,1,1,1,1,1,1,1,1,2]},l:'cue'}]},
+ {n:'Move to the new base',x:[{t:'Ison shifts',h:'The melody moves up to a new group of notes, so the ison moves up to its base, then home again.',p:[0,5,0],b:[4,4,4],bpm:66,k:'none',acc:{p:[0,2,4,2,5,7,9,7,5,2,0,0],b:1},l:'cue'}]},
+ {n:'Ison at a cadence',x:[{t:'Cadence ison',h:'A common ending: the ison steps down one note and back as the melody closes.',p:[0,-2,0],b:[5,2,3],bpm:66,k:'none',acc:{p:[4,2,0,2,-2,0,0],b:[1,1,1,1,2,2,2]},l:'cue'}]},
+ {n:'Long ison',x:[{t:'Long ison',h:'Sixteen beats. Take quick breaths through your nose if you need to and come back on the same pitch.',p:[0],b:16,bpm:72,k:'none',acc:{p:[0,2,3,5,7,5,3,2,0,2,3,5,3,2,0],b:[1,1,1,1,2,1,1,1,1,1,1,1,1,1,1]},l:'cue'}]}]},
+{name:'Singing with the cantor',tol:[22,60],desc:'A second voice sings in unison with you, then fades away until you sing alone.',
+ why:'Choirs learn by singing with a leader, then alone. The model voice is gradually removed so you keep the skill when it is gone.',L:[
+ {n:'Together: one note',x:[{t:'Together',h:'A voice sings with you. Blend into it so the two sound like one. Headphones help.',p:[0],b:4,bpm:60,acc:'double'}]},
+ {n:'Together: steps',x:[{t:'Together',h:'Move exactly with the other voice.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:66,acc:'double'}]},
+ {n:'Together: a phrase',x:[{t:'Together',h:'A chant-shaped phrase in unison.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:72,acc:'double'}]},
+ {n:'Together at speed',x:[{t:'Together, quicker',h:'Stay locked as it speeds up.',p:[0,2,4,5,4,2,0],b:[.5,.5,.5,1,.5,.5,2],bpm:76,acc:'double'}]},
+ {n:'Together, then alone',x:[{t:'Together',h:'First with the voice...',p:[0,2,3,2,0],b:[1,1,2,1,2],bpm:72,acc:'double'},{t:'Alone',h:'...then alone.',p:[0,2,3,2,0],b:[1,1,2,1,2],bpm:72,l:'cue'}]},
+ {n:'Blend on a hold',x:[{t:'Blend',h:'A long note in unison. Listen for one sound.',p:[0,2],b:[4,4],bpm:60,acc:'double'}]},
+ {n:'Alone',x:[{t:'Alone',h:'No partner now. Starting note only.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:72,l:'cue'}]},
+ {n:'Alone from memory',x:[{t:'Alone, from memory',h:'Guide hidden too.',p:[0,2,3,5,3,2,0],b:[1,1,1,2,1,1,2],bpm:72,blind:true,l:'full'}]}]},
+{name:'Parallage: chant note names',tol:[22,60],desc:'Sing the Byzantine note names: Ni, Pa, Vou, Ga, Di, Ke, Zo, Ni.',
+ why:'Parallage is the chant equivalent of solfege and one of the oldest teaching methods: learn the melody on note names first, then add the words. Teachers suggest doing it many times for each new piece. (Piano tuning here; chant tuning comes with the tones.)',L:[
+ {n:'Ni Pa Vou Ga',x:[{t:'Ni Pa Vou Ga',h:'Up four notes by name.',p:[0,2,4,5,4,2,0],b:[1,1,1,2,1,1,2],bpm:72,k:'none',w:['Ni','Pa','Vou','Ga','Vou','Pa','Ni']}]},
+ {n:'Pa Vou Ga Di',x:[{t:'Pa Vou Ga Di',h:'The first-tone tetrachord.',p:[2,4,5,7,5,4,2],b:[1,1,1,2,1,1,2],bpm:72,k:'none',w:['Pa','Vou','Ga','Di','Ga','Vou','Pa']}]},
+ {n:'Ga Di Ke Zo',x:[{t:'Ga Di Ke Zo',h:'Higher up.',p:[5,7,9,11,9,7,5],b:[1,1,1,2,1,1,2],bpm:72,k:'none',key:-2,w:['Ga','Di','Ke','Zo','Ke','Di','Ga']}]},
+ {n:'Di Ke Zo Ni',x:[{t:'Di Ke Zo Ni',h:'To the upper Ni.',p:[7,9,11,12,11,9,7],b:[1,1,1,2,1,1,2],bpm:72,k:'none',key:-4,w:['Di','Ke','Zo','Ni','Zo','Ke','Di']}]},
+ {n:'The whole scale',x:[{t:'Ni to Ni',h:'All eight by name.',p:[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],bpm:84,k:'none',key:-4,w:['Ni','Pa','Vou','Ga','Di','Ke','Zo','Ni','Zo','Ke','Di','Ga','Vou','Pa','Ni']}]},
+ {n:'Skips by name',x:[{t:'Skips',h:'Leaps between named notes.',p:[0,4,2,5,4,7,5,2,0],b:[1,1,1,1,1,2,1,1,2],bpm:72,k:'none',w:['Ni','Vou','Pa','Ga','Vou','Di','Ga','Pa','Ni']}]},
+ {n:'A melody by name',x:[{t:'Melody on parallage',h:'Learn it on names first, as cantors do.',p:[2,4,5,7,7,5,4,5,4,2],b:[1,1,1,1,2,1,1,1,1,2],bpm:76,k:'none',w:['Pa','Vou','Ga','Di','Di','Ga','Vou','Ga','Vou','Pa']}]},
+ {n:'Names from a cue',x:[{t:'Names',h:'Starting note only.',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:76,k:'none',l:'cue',w:['Ni','Pa','Vou','Ga','Di','Ga','Vou','Pa','Ni']}]},
+ {n:'Names from memory',x:[{t:'Names from memory',h:'Guide hidden.',p:[2,4,5,7,5,4,2],b:[1,1,1,2,1,1,2],bpm:72,k:'none',blind:true,l:'full',w:['Pa','Vou','Ga','Di','Ga','Vou','Pa']}]}]},
+{name:'Reciting a psalm',tol:[22,60],desc:'Psalm 23 on a reciting note with opening, middle and final cadences.',
+ why:'Much of the service is psalmody: many syllables on one reciting note, closed by short cadence formulas. Even, unhurried syllables on a steady pitch are the skill.',L:[
+ {n:'Even reciting',x:[{t:'Reciting note',h:'Every syllable on one pitch, evenly spaced.',p:sq(10,0),b:[.5,.5,.5,.5,.5,1,.5,.5,.5,2],bpm:66,w:['The','Lord','is','my','shep-','herd;','I','shall','not','want.']}]},
+ {n:'Recite, then fall',x:[{t:'Final cadence',h:'Recite on the note above home and fall to home at the end.',p:[2,2,2,2,2,2,2,2,2,0,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,1,2],bpm:66,w:['He','ma-','keth','me','to','lie','down','in','green','pas-','tures']}]},
+ {n:'Rising start',x:[{t:'Opening',h:'Begin on home, rise to the reciting note.',p:[0,2,2,2,2,2,2,2,2,0],b:[1,.5,.5,.5,.5,.5,.5,.5,1,2],bpm:66,w:['He','lead-','eth','me','be-','side','the','still','wa-','ters.']}]},
+ {n:'Middle cadence',x:[{t:'Half-verse pause',h:'The middle of a verse rises a step and returns.',p:[2,2,2,2,4,2],b:[.5,.5,.5,.5,1,2],bpm:66,w:['He','re-','stor-','eth','my','soul:']}]},
+ {n:'A whole verse',x:[{t:'Full verse',h:'Opening, recitation, middle cadence, recitation, final cadence.',p:[0,2,2,2,2,2,2,2,2,2,2,4,2,null,2,2,2,2,2,0],b:[1,.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,1,1.5,.5,.5,.5,.5,.5,1,2],bpm:72,w:['Yea,','though','I','walk','through','the','val-','ley','of','the','sha-','dow','of death,','','I','will','fear','no','e-','vil']}]},
+ {n:'Over the ison',x:[{t:'Psalm over the ison',h:'The same verse with the ison on home.',p:[0,2,2,2,2,2,2,2,2,0],b:[1,.5,.5,.5,.5,.5,.5,.5,1,2],bpm:66,ison:0,w:['He','lead-','eth','me','be-','side','the','still','wa-','ters.']}]},
+ {n:'Quicker recitation',x:[{t:'Quicker',h:'Faster, still even and on pitch.',p:[2,2,2,2,2,2,2,2,2,0,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,1,2],bpm:84,w:['He','ma-','keth','me','to','lie','down','in','green','pas-','tures']}]},
+ {n:'Recite from memory',x:[{t:'From memory',h:'Guide hidden.',p:[2,2,2,2,4,2],b:[.5,.5,.5,.5,1,2],bpm:72,blind:true,l:'full',w:['He','re-','stor-','eth','my','soul:']}]}]},
+{name:'Chant signs and ornaments',tol:[28,72],desc:'Time signs (gorgon, digorgon, klasma, argon) and common ways to sing the expressive signs.',
+ why:'Byzantine notation adds time signs and qualitative signs that shape each note. Exact realization varies by school, so learn the general shapes here and copy your teacher\'s or recordings\' style.',L:[
+ {n:'Klasma: one beat longer',x:[{t:'Klasma',h:'The klasma adds a beat to a note. Hold it full length.',p:[0,2,4,2],b:[1,1,2,3],bpm:72}]},
+ {n:'Gorgon: quicken',x:[{t:'Gorgon',h:'Two notes share one beat.',p:[0,2,4,2,0],b:[1,.5,.5,1,2],bpm:72}]},
+ {n:'Digorgon: three in a beat',x:[{t:'Digorgon',h:'Three notes share one beat.',p:[0,2,4,5,4,2],b:[1,1/3,1/3,1/3,1,2],bpm:66}]},
+ {n:'Argon: hold back',x:[{t:'Argon',h:'A slowed, weighted note before moving on.',p:[0,2,4],b:[1,3,2],bpm:72}]},
+ {n:'A small shake',x:[{t:'Shake',h:'One common way to sing the omalon: a tiny upper-neighbor shake as a held note begins.',p:[0,2,0,0],b:[.5,.25,.25,2.5],bpm:66}]},
+ {n:'Weighted note',x:[{t:'Heavy accent',h:'Lean into the note with weight, then release (one way to sing the vareia\'s emphasis).',p:[2,0,0],b:[1,1,2],bpm:66}]},
+ {n:'Linked rise',x:[{t:'Linked rise',h:'A smooth connected rise with a light turn, as the antikenoma is often sung.',p:[0,2,1,2,4],b:[1,.5,.25,.25,2],bpm:66}]},
+ {n:'Kratema syllables',x:[{t:'Te-ri-rem',h:'Kratemata are sung on syllables like "te-ri-rem". Quick, even and light.',p:[0,2,0,2,4,2,4,5,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:66,w:['te','ri','rem','te','ri','rem','te','ri','rem','te','rem']}]},
+ {n:'Ornaments in a phrase',x:[{t:'Ornamented phrase',h:'Gorgon, klasma and a shake together. Starting note only.',p:[0,2,4,2,0,2,0,0],b:[1,.5,.5,2,1,.25,.25,2.5],bpm:66,l:'cue'}]}]}
+];
+/* The eight tones. Each note is given in piano tuning (w) and chant tuning (c), in half steps above
+   the tone's base note. Chant tuning follows the 72-moria system used in modern Byzantine teaching
+   (diatonic 12-10-8, soft chromatic 8-14-8, hard chromatic 6-20-4, enharmonic 12-12-6). Real cantors
+   also bend notes by attraction toward strong notes. */
+const TONES=[
+{n:'Tone 1',mo:10,key:0,b:1,ison:'Pa',desc:'Diatonic, based on Pa (D in printed music). Gentle and settled. Middle cadences on Di, final on Pa.',
+ sc:[['Ni',-2,-2],['Pa',0,0],['Vou',2,5/3],['Ga',3,3],['Di',5,5],['Ke',7,7],['Zo',9,26/3],['Ni',10,10]],
+ ph:[[1,2,3,4,4,3,2,1],[1,1,1,2,1,1,1,2]],med:[[3,2,3,4,4],[1,1,1,1,2]],fin:[[3,4,3,2,1],[1,1,1,1,3]],model:[[1,1,2,3,4,5,4,3,4,3,2,1],[1,1,1,1,2,1,1,1,1,1,1,3]]},
+{n:'Tone 5 (Plagal 1)',mo:10,key:-3,b:1,ison:'Pa',desc:'Diatonic on Pa, reaching up to Ke. Brighter than Tone 1. The ison often steps down to Ni and back at cadences.',
+ sc:[['Ni',-2,-2],['Pa',0,0],['Vou',2,5/3],['Ga',3,3],['Di',5,5],['Ke',7,7],['Zo',9,26/3],['Ni',10,10]],
+ ph:[[1,2,3,4,5,4,5],[1,1,1,1,2,1,2]],med:[[6,5,4,5,5],[1,1,1,1,2]],fin:[[3,2,1,0,1],[1,1,1,1,3]],model:[[5,5,6,7,6,5,4,3,2,1],[1,1,1,2,1,1,1,1,1,3]],isonMove:[[0,-2,0],[5,2,3]]},
+{n:'Tone 4',mo:10,key:0,b:1,ison:'Vou',desc:'Diatonic, here as Legetos based on Vou (E). Lively and bright, ending on Vou.',
+ sc:[['Pa',-2,-5/3],['Vou',0,0],['Ga',1,4/3],['Di',3,10/3],['Ke',5,16/3],['Zo',7,7]],
+ ph:[[1,2,3,4,3,2,1],[1,1,1,2,1,1,2]],med:[[2,3,4,3,3],[1,1,1,1,2]],fin:[[3,2,1,1],[1,1,1,3]],model:[[1,2,3,3,4,3,2,3,2,1],[1,1,1,1,2,1,1,1,1,3]]},
+{n:'Tone 8 (Plagal 4)',mo:11,key:-2,b:1,ison:'Ni',desc:'Diatonic on Ni (C). Majestic and joyful, close to a major scale but with a lower Vou and Zo.',
+ sc:[['Zo',-1,-4/3],['Ni',0,0],['Pa',2,2],['Vou',4,11/3],['Ga',5,5],['Di',7,7],['Ke',9,9],['Zo',11,32/3],['Ni',12,12]],
+ ph:[[1,2,3,4,5,4,3,2,1],[1,1,1,1,2,1,1,1,2]],med:[[3,4,5,4,4],[1,1,1,1,2]],fin:[[3,2,1,1],[1,1,1,3]],model:[[1,2,3,4,5,5,6,5,4,3,2,1],[1,1,1,1,1,1,2,1,1,1,1,3]]},
+{n:'Tone 3',mo:11,key:0,b:2,ison:'Ga',desc:'Enharmonic, based on Ga (F). Strong and festive. Zo is flat (B-flat in printed music). This one sits closest to Western tuning.',
+ sc:[['Pa',-3,-3],['Vou',-1,-1],['Ga',0,0],['Di',2,2],['Ke',4,4],['Zo',5,5],['Ni',7,7]],
+ ph:[[2,3,4,5,4,3,2],[1,1,1,2,1,1,2]],med:[[3,4,5,4,4],[1,1,1,1,2]],fin:[[4,3,2,2],[1,1,1,3]],model:[[2,3,4,4,5,4,3,4,3,2],[1,1,1,1,2,1,1,1,1,3]]},
+{n:'Grave tone (Varys)',mo:11,key:0,b:2,ison:'Ga',desc:'Enharmonic on Ga (F), sung low and weighty. Same notes as Tone 3, heavier character.',
+ sc:[['Ni',-5,-5],['Pa',-3,-3],['Vou',-1,-1],['Ga',0,0],['Di',2,2],['Ke',4,4],['Zo',5,5]],
+ ph:[[5,4,3,2,3],[1,1,1,1,3]],med:[[3,4,4,3],[1,1,1,2]],fin:[[4,3,2,3],[1,1,1,3]],model:[[3,4,5,4,3,2,1,2,3],[1,1,2,1,1,1,1,1,3]]},
+{n:'Tone 2',mo:12,key:0,b:3,ison:'Di',desc:'Soft chromatic, based on Di (G). Tender and sweet. Ke sits low and Zo a little high, with a wide step between them.',
+ sc:[['Pa',-5,-5],['Vou',-3,-11/3],['Ga',-1,-4/3],['Di',0,0],['Ke',2,4/3],['Zo',4,11/3],['Ni',5,5]],
+ ph:[[3,4,5,6,5,4,3],[1,1,1,2,1,1,2]],med:[[3,2,1,2,1],[1,1,1,1,2]],fin:[[5,4,3,3],[1,1,1,3]],model:[[3,4,5,6,5,4,3,2,3,4,3],[1,1,1,2,1,1,1,1,1,1,3]],wide:[4,5]},
+{n:'Tone 6 (Plagal 2)',mo:12,key:0,b:0,ison:'Pa',desc:'Hard chromatic, based on Pa (D). Intense and sorrowful, with a big step and a half between Vou and Ga.',
+ sc:[['Pa',0,0],['Vou',1,1],['Ga',4,13/3],['Di',5,5],['Ke',7,7],['Zo',8,8],['Ni',11,34/3],['Pa',12,12]],
+ ph:[[0,1,2,3,2,1,0],[1,1,1,2,1,1,2]],med:[[1,2,3,3],[1,1,1,3]],fin:[[3,2,1,0,0],[1,1,1,1,2]],model:[[0,1,2,3,4,3,2,1,2,1,0],[1,1,1,1,2,1,1,1,1,1,3]],wide:[1,2]}
+];
+function toneUnit(T){
+  const pw=(ix,tun)=>ix.map(i=>T.sc[i][tun==='c'?2:1]),nm=ix=>ix.map(i=>T.sc[i][0]),bi=T.b,tol=[18,55];
+  const up=[bi,bi+1,bi+2,bi+3].filter(i=>i<T.sc.length),tet=up.concat(up.slice(0,-1).reverse());
+  const lo=Math.max(0,bi-1),hi=Math.min(T.sc.length-1,bi+4),full=[];for(let i=lo;i<=hi;i++)full.push(i);for(let i=hi-1;i>=bi;i--)full.push(i);
+  const S1=(t,h,ix,b,o)=>({t,h,p:pw(ix,o&&o.c?'c':'w'),b,bpm:(o&&o.bpm)||66,k:'none',key:T.key,w:nm(ix),tol,micro:!!(o&&o.c),...(o||{}),c:undefined});
+  const tb=ix=>ix.map((_,i)=>i===ix.length-1?2:1);
+  const L=[
+    {n:'The notes, piano tuning',x:[S1(T.n+': first four notes','Up and back on the note names, in piano tuning first.',tet,tb(tet))]},
+    {n:'A wider stretch',x:[S1(T.n+': the range','Below the base note and up to the fifth note.',full,tb(full),{bpm:72})]},
+    {n:'The notes, chant tuning',x:[S1(T.n+' in chant tuning','The same notes as chanted. Small differences (a third or two thirds of a half step) give the tone its color. The small number by each note name shows how far it sits from piano tuning.',tet,tb(tet),{c:1})]},
+    {n:'Over the ison',x:[S1('Over the ison on '+T.ison,'The ison holds the base note. Tune each note against it.',full,tb(full),{c:1,bpm:66,ison:0})]},
+    {n:'Signature phrase',x:[S1(T.n+': a typical phrase','A phrase in the character of this tone.',T.ph[0],T.ph[1],{c:1,bpm:72})]},
+    {n:'Middle cadence',x:[S1(T.n+': middle cadence','A pause in the middle of a verse.',T.med[0],T.med[1],{c:1,bpm:72})]},
+    {n:'Final cadence',x:[S1(T.n+': final cadence','How verses in this tone end. The ison holds the final.',T.fin[0],T.fin[1],{c:1,bpm:66,ison:0})]},
+    {n:'Hold this tone\'s ison',x:[{t:'Ison for '+T.n,h:'Hold the ison on '+T.ison+' under a melody in this tone.',p:T.isonMove?T.isonMove[0]:[0],b:T.isonMove?T.isonMove[1]:T.model[1].reduce((a,x)=>a+x,0),bpm:66,k:'none',key:T.key,tol,l:'cue',acc:{p:pw(T.model[0],'c'),b:T.model[1]}}]},
+    {n:'Model melody',x:[S1(T.n+': model melody','A short melody in this tone, over the ison.',T.model[0],T.model[1],{c:1,bpm:76,ison:0})]},
+    {n:'Model melody from memory',x:[S1(T.n+' from memory','Guide hidden while you sing.',T.model[0],T.model[1],{c:1,bpm:76,ison:0,blind:true,l:'full'})]}];
+  if(T.wide){const[a,b]=T.wide,ix=[a,b,a,b,a];L.splice(3,0,{n:'The wide step',x:[S1(T.n+': the wide step','The step and a half between '+T.sc[a][0]+' and '+T.sc[b][0]+', the heart of the chromatic sound.',ix,[1,1,1,1,2],{c:1})]})}
+  return{name:T.n,tol,desc:T.desc,why:'Each tone (echos) has its own scale, base note, ison and cadences. Learn it in piano tuning, then chant tuning, over the ison, in phrases and cadences, and finally a model melody from memory. Here each tone is placed on or near your home note so it fits your voice; the letter names in the description are the usual ones in printed music.',L};
+}
+const CAP={name:'First hymns',tol:[20,60],desc:'Short hymn phrases: the Trisagion, Christ Is Risen, Blessed Be the Name and Before Thy Cross. With the guide, then from memory.',
+ why:'Real repertoire brings everything together. Learn each with the guide, then sing it from memory.',L:[
+ {n:'Trisagion',x:[{t:'Trisagion: Holy God',h:'The opening phrase of the Trisagion.',p:[4,2,0,-1,-3,-5,-3,-1,0],b:[1,1,.5,.5,.5,.5,1,1,2],bpm:84,key:2,w:['Ho-','','','','','','','ly','God']}]},
+ {n:'Trisagion from memory',x:[{t:'Trisagion from memory',h:'Guide hidden.',p:[4,2,0,-1,-3,-5,-3,-1,0],b:[1,1,.5,.5,.5,.5,1,1,2],bpm:84,key:2,blind:true,l:'full',w:['Ho-','','','','','','','ly','God']}]},
+ {n:'Christ Is Risen',x:[{t:'Christ Is Risen',h:'The opening of the Paschal troparion.',p:[0,2,2,5,3,2,0,0,-2,0,2,2],b:[1,1,2,1,1,1,1,1,1,1,1,3],bpm:88,w:['Christ','','is','ris-','','en','','from','','the','','dead']}]},
+ {n:'Christ Is Risen from memory',x:[{t:'Christ Is Risen from memory',h:'Guide hidden.',p:[0,2,2,5,3,2,0,0,-2,0,2,2],b:[1,1,2,1,1,1,1,1,1,1,1,3],bpm:88,blind:true,l:'full',w:['Christ','','is','ris-','','en','','from','','the','','dead']}]},
+ {n:'Blessed Be the Name',x:[{t:'Blessed Be the Name',h:'Sung three times at the end of the Liturgy.',p:[0,2,4,4,4,4,2,4,4,4,4,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,2,2,4],bpm:96,w:['Bless-','ed','be','the','name','of','the','Lord,','hence-','forth','and','for-','ev-','er-','more.']}]},
+ {n:'Blessed Be the Name over the ison',x:[{t:'Blessed Be the Name, with ison',h:'Now over the ison.',p:[0,2,4,4,4,4,2,4,4,4,4,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,2,2,4],bpm:96,ison:0,w:['Bless-','ed','be','the','name','of','the','Lord,','hence-','forth','and','for-','ev-','er-','more.']}]},
+ {n:'Before Thy Cross',x:[{t:'Before Thy Cross',h:'Lenten hymn, traditional melody.',p:[-1,0,-1,0,2,4,5,4,5,2],b:[1,2,2,2,1,1,1,1,1,1],bpm:84,w:['Be-','fore','thy','Cross','we','bow','down','','','in']}]},
+ {n:'Before Thy Cross from memory',x:[{t:'Before Thy Cross from memory',h:'Guide hidden.',p:[-1,0,-1,0,2,4,5,4,5,2],b:[1,2,2,2,1,1,1,1,1,1],bpm:84,blind:true,l:'full',w:['Be-','fore','thy','Cross','we','bow','down','','','in']}]}]};
+const MOS=[1,1,1,2,2,2,3,3,3, 4,4,4,5,5,6, 7,7,8,8,9,9];
+const foundTrack={id:'found3',name:'Foundations',unit:'Unit',
+  units:[...F1.map((U,i)=>buildUnit(U,MOS[i],0)),...F2.map((U,i)=>buildUnit(U,MOS[9+i],1)),...F3.map((U,i)=>buildUnit(U,MOS[15+i],2)),
+    ...TONES.map(T=>buildUnit(toneUnit(T),T.mo,3)),buildUnit(CAP,12,3)]};
 
 /* ================= Song courses =================
    Analysis (on the phone, from a saved song): drop the drone, find the home note (the pitch it rests on
@@ -1214,7 +1496,7 @@ function analyzeSong4Course(rec){
   const scale=Object.keys(share).map(Number).filter(r=>share[r]/tot>=0.02).sort((a,b)=>a-b).map(r=>({r,d:r-tonicR,m:exact(r),share:share[r]/tot}));
   const ph=[];let cur=[N[0]];
   for(let i=1;i<N.length;i++){const a=N[i-1],b=N[i],gap=b.t0-a.t1,cd=a.t1-cur[0].t0;
-    if((gap>0.28&&cd>2.2)||(a.t1-a.t0>1.3&&cd>5)||cd>11){ph.push(cur);cur=[b]}else cur.push(b)}
+    if((gap>0.28&&cd>2.2)||(a.w&&/[,.;:!?]$/.test(a.w)&&cd>1.5)||(a.t1-a.t0>1.3&&cd>5)||cd>11){ph.push(cur);cur=[b]}else cur.push(b)}
   ph.push(cur);for(let i=ph.length-1;i>0;i--){const p=ph[i];if(p[p.length-1].t1-p[0].t0<1.6){ph[i-1]=ph[i-1].concat(p);ph.splice(i,1)}}
   const inScale=r=>scale.some(s=>s.r===r);
   const phrases=ph.map((p,i)=>{const len=p[p.length-1].t1-p[0].t0;let jump=0;for(let k=1;k<p.length;k++)jump+=Math.abs(p[k].m-p[k-1].m);
@@ -1227,93 +1509,138 @@ function analyzeSong4Course(rec){
     for(let i=2;i<r.length;i++)if(inScale(r[i])&&inScale(r[i-1])&&inScale(r[i-2])){const k=r[i-2]+','+r[i-1]+','+r[i];tri[k]=(tri[k]||0)+1}});
   const top=(o,n,min)=>Object.keys(o).filter(k=>o[k]>=min).sort((a,b)=>o[b]-o[a]).slice(0,n).map(k=>({rs:k.split(',').map(Number),n:o[k]}));
   const lo=Math.min(...N.map(n=>n.m)),hi=Math.max(...N.map(n=>n.m));
-  return{tonic,tonicR,off,scale,phrases,moves:top(bi,10,2),turns:top(tri,8,2),lo,hi,dur:rec.dur,contour:rec.contour||null}
+  const mv=top(bi,10,2),tu=top(tri,8,2);
+  return{tonic,tonicR,off,scale,phrases,moves:mv.length>=3?mv:top(bi,10,1),turns:tu.length>=3?tu:top(tri,8,1),lo,hi,dur:rec.dur,contour:rec.contour||null}
 }
 function pitchOf(an,r){const s=an.scale.find(x=>x.r===r);return s?s.m:r+an.off}
-/* A slice of the song as an exercise: listen pass (song notes, or the singer's own audio), a breath, then the sung pass. */
-function songItem(an,shift,title,how,ps,speed,tol,useSinger){
-  const src=[].concat(...ps.map(p=>p.notes||p)),a=src[0].t0,b=src[src.length-1].t1,len=(b-a)/speed,notes=[];
-  src.forEach(n=>notes.push({t0:(n.t0-a)/speed,t1:(n.t1-a)/speed,m:n.m+shift,listen:true}));
-  const sOff=len+1.2;src.forEach(n=>notes.push({t0:(n.t0-a)/speed+sOff,t1:(n.t1-a)/speed+sOff,m:n.m+shift}));
-  let contour=null;if(an.contour){contour=[];for(const pass of [0,sOff]){for(const p of an.contour){if(p.t<a-0.05||p.t>b+0.05)continue;contour.push({t:(p.t-a)/speed+pass,m:p.m==null?null:p.m+shift})}contour.push({t:pass+len+0.01,m:null})}}
-  return{title,how,notes,dur:sOff+len+0.4,tolA:tol[0],tolB:tol[1],contour,seg:useSinger?{a,b,ls:0,le:len,speed}:null}
+/* A slice of the song as an exercise: listen pass (song notes, or the singer's own audio), a breath, then
+   the sung pass that is scored. Options: blind (guide hidden while you sing), ison (drone on the home
+   note), together (tones double your line), cue (no listen pass, just the first note). */
+function songItem(an,shift,title,how,ps,speed,tol,useSinger,o){
+  o=o||{};const src=[].concat(...ps.map(p=>p.notes||p)),a=src[0].t0,b=src[src.length-1].t1,len=(b-a)/speed,notes=[];
+  let sOff;
+  if(o.cue){notes.push({t0:0,t1:1.5,m:src[0].m+shift,listen:true});sOff=2.2}
+  else{src.forEach(n=>notes.push({t0:(n.t0-a)/speed,t1:(n.t1-a)/speed,m:n.m+shift,listen:true}));sOff=len+1.2}
+  src.forEach(n=>notes.push({t0:(n.t0-a)/speed+sOff,t1:(n.t1-a)/speed+sOff,m:n.m+shift}));
+  let contour=null;if(an.contour&&!o.cue){contour=[];for(const pass of [0,sOff]){for(const p of an.contour){if(p.t<a-0.05||p.t>b+0.05)continue;contour.push({t:(p.t-a)/speed+pass,m:p.m==null?null:p.m+shift})}contour.push({t:pass+len+0.01,m:null})}}
+  const dur=sOff+len+0.4,it={title,how,notes,dur,tolA:tol[0],tolB:tol[1],contour,singFrom:sOff,blind:!!o.blind,seg:useSinger&&!o.cue?{a,b,ls:0,le:len,speed}:null};
+  if(o.ison)it.ison=[{t0:0,t1:dur,m:an.tonic+shift}];
+  if(o.together){it.acc=notes.filter(n=>!n.listen).map(n=>({t0:n.t0,t1:n.t1,m:n.m}));it.accDouble=true;it.accLevel=0.55}
+  return it;
+}
+/* Hold the home note as the ison while the song plays above you: the singer's own recording when it is
+   available in the same key, otherwise the melody in tones. */
+function isonItem(an,shift,title,how,ps,speed,singer){
+  const src=[].concat(...ps.map(p=>p.notes||p)),a=src[0].t0,b=src[src.length-1].t1,len=(b-a)/speed,sOff=2.6,T=an.tonic+shift;
+  const notes=[{t0:0,t1:1.8,m:T,listen:true},{t0:sOff,t1:sOff+len,m:T}];
+  const it={title,how,notes,dur:sOff+len+0.4,tolA:24,tolB:65,singFrom:sOff,contour:null};
+  if(singer)it.seg={a,b,ls:sOff,le:sOff+len,speed,during:true};
+  else it.acc=src.map(n=>({t0:(n.t0-a)/speed+sOff,t1:(n.t1-a)/speed+sOff,m:n.m+shift}));
+  return it;
 }
 function songTrack(rec){
-  const an=analyzeSong4Course(rec);if(!an)return null;const id='song2:'+rec.id,shift=(store.get('ison-songkey',{})[rec.id])||0;
-  const useS=()=>S.useSinger&&!!L.audio,P=an.phrases,np=P.length,nm=m=>nameOf(m);
+  const an=analyzeSong4Course(rec);if(!an)return null;const id='song3:'+rec.id,shift=(store.get('ison-songkey',{})[rec.id])||0;
+  const useS=()=>S.useSinger&&!!L.audio,singerSameKey=()=>useS()&&shift===0,P=an.phrases,np=P.length,nm=m=>nameOf(m);
   const base=[28,75],TL=(R,k)=>[base[0]*R.tol*(k||1),base[1]*R.tol*(k||1)];
-  /* a short exercise from exact song pitches */
-  const seq=(title,how,ms,beats,bpm,R,i)=>mkItem({title,how,pat:ms.map(m=>m-ms[0]),beats,bpm:bpm*R.bpm,base:ms[0]+shift,listen:lm(R.listen,i),tolA:base[0]*R.tol,tolB:base[1]*R.tol});
+  const seq=(title,how,ms,beats,bpm,R,i,ex)=>mkItem({title,how,pat:ms.map(m=>m-ms[0]),beats,bpm:bpm*R.bpm,base:ms[0]+shift,listen:lm(R.listen,i),tolA:base[0]*R.tol,tolB:base[1]*R.tol,...(ex||{})});
   const T=an.tonic,byShare=an.scale.filter(s=>s.r!==an.tonicR).sort((a,b)=>b.share-a.share),sorted=an.scale.slice().sort((a,b)=>a.r-b.r);
   const above=sorted.find(s=>s.r>an.tonicR),below=sorted.slice().reverse().find(s=>s.r<an.tonicR);
   const partner=an.scale.find(s=>s.d===7)||an.scale.find(s=>s.d===5)||an.scale.find(s=>s.d===-5)||byShare[0];
-  const unit=(name,desc,lessons,test)=>({name,desc,lessons,test});
+  const shade=x=>{const c=Math.round(((x.m-T)-Math.round(x.m-T))*100);return Math.abs(c)>=18?' In this recording it sits about '+Math.abs(c)+' cents '+(c>0?'higher':'lower')+' than piano tuning from home, so trust the gold bar, not a piano.':''};
+  const unit=(name,desc,why,lessons,test)=>({name,desc,why,lessons,test});
   const L5=(n,f)=>Array.from({length:n},(_,i)=>i).map(f);
+  const medH=med(P.map(x=>x.hard)),tricky=p=>p.hard>=medH*1.15;
   const units=[];
   // U0 home base
-  units.push(unit('Home base','The note this song rests on and keeps returning to. Learn to find it, hold it, and come back to it from either side.',[
-    {name:'Hear home',items:()=>L5(4,i=>seq('Hum the home note','Hum it until it feels like home.',[T],[4],60,ramp(0,6),0))},
-    {name:'Hold home longer',items:()=>L5(4,i=>seq('Hold home','One breath, flat line, to the end.',[T],[6],60,ramp(1,6),0))},
+  units.push(unit('Home base','The note this song rests on and keeps returning to: find it, hold it, return to it, and hold it under the song.',
+    'A clear sense of the home note (tonic) anchors every other note. In chant it is also the ison.',[
+    {name:'Hear home',items:()=>L5(4,i=>seq('Hum the home note','Hum it until it feels like home.',[T],[4],60,ramp(0,8),0))},
+    {name:'Hold home longer',items:()=>L5(4,i=>seq('Hold home','One breath, flat line, to the end.',[T],[6],60,ramp(1,8),0))},
     {name:'Home from silence',items:()=>L5(4,i=>mkItem({title:'Find home',how:'Only a short cue. Find the note yourself.',pat:[0],beats:[4],bpm:60,base:T+shift,listen:'cue',tolA:base[0],tolB:base[1]}))},
-    {name:'Step down to home',items:()=>L5(4,i=>seq('Down to home','Start on the note above and settle onto home.',[above?above.m:T+2,T],[2,3],62,ramp(3,6),i))},
-    {name:'Step up to home',items:()=>L5(4,i=>seq('Up to home','Start on the note below and rise onto home.',[below?below.m:T-2,T],[2,3],62,ramp(4,6),i))},
-    {name:'Home and its partner',items:()=>L5(4,i=>seq('Home, partner, home','The other strong note of the song, then back home.',[T,partner.m,T],[2,2,3],64,ramp(5,6),i))}],
-    ()=>{const R={bpm:1.1,tol:0.85,listen:'cue'};return[seq('Find home','',[T],[4],60,R,0),seq('Down to home','',[above?above.m:T+2,T],[2,3],62,R,0),seq('Up to home','',[below?below.m:T-2,T],[2,3],62,R,0),seq('Home, partner, home','',[T,partner.m,T],[2,2,3],64,R,0),seq('Hold home','',[T],[6],60,R,0),seq('Home, partner, home','',[T,partner.m,T],[1.5,1.5,2],66,R,0)]}));
+    {name:'Step down to home',items:()=>L5(4,i=>seq('Down to home','Start on the note above and settle onto home.',[above?above.m:T+2,T],[2,3],62,ramp(3,8),i))},
+    {name:'Step up to home',items:()=>L5(4,i=>seq('Up to home','Start on the note below and rise onto home.',[below?below.m:T-2,T],[2,3],62,ramp(4,8),i))},
+    {name:'Home and its partner',items:()=>L5(4,i=>seq('Home, partner, home','The other strong note of the song, then back home.',[T,partner.m,T],[2,2,3],64,ramp(5,8),i))},
+    {name:'Home under the song',items:()=>[isonItem(an,shift,'Hold home under phrase 1','Hold the home note as an ison while the first phrase plays above you. Headphones help.',[P[0]],0.75,singerSameKey()),
+      isonItem(an,shift,'Hold home under phrase 2','Same again with the next phrase.',[P[Math.min(1,np-1)]],0.75,singerSameKey())]},
+    {name:'Home from memory',items:()=>L5(3,i=>mkItem({title:'Home from memory',how:'Hear home once, then hold it with the guide hidden.',pat:[0],beats:[5],bpm:60,base:T+shift,listen:'full',blind:true,think:2,tolA:base[0],tolB:base[1]}))}],
+    ()=>{const R={bpm:1.1,tol:0.85,listen:'cue'};return[seq('Find home','',[T],[4],60,R,0),seq('Down to home','',[above?above.m:T+2,T],[2,3],62,R,0),seq('Up to home','',[below?below.m:T-2,T],[2,3],62,R,0),seq('Home, partner, home','',[T,partner.m,T],[2,2,3],64,R,0),seq('Hold home','',[T],[6],60,R,0),
+      mkItem({title:'Home from memory',how:'',pat:[0],beats:[5],bpm:60,base:T+shift,listen:'full',blind:true,think:2,tolA:base[0]*0.85,tolB:base[1]*0.85}),isonItem(an,shift,'Hold home under phrase 1','',[P[0]],1,singerSameKey())]}));
   // U1 one note at a time
   const l1=[];byShare.forEach((x,k)=>{const R0=ramp(k*2,byShare.length*2),R1=ramp(k*2+1,byShare.length*2);
-    l1.push({name:'Meet '+nm(x.m),items:()=>[seq('Hold '+nm(x.m),'A new note from the song. Listen, then hold it.',[x.m],[4],60,{...R0,listen:'full'},0),seq('Hold '+nm(x.m),'Once more, steady.',[x.m],[4],60,{...R0,listen:'full'},0),
-      ...L5(3,i=>seq('Home to '+nm(x.m),'From home to the new note and back.',[T,x.m,T],[2,3,2],60,{...R0,listen:'full'},i))]});
+    l1.push({name:'Meet '+nm(x.m),items:()=>[seq('Hold '+nm(x.m),'A new note from the song. Listen, then hold it.'+shade(x),[x.m],[4],60,{...R0,listen:'full'},0),seq('Hold '+nm(x.m),'Once more, steady.',[x.m],[4],60,{...R0,listen:'full'},0),
+      ...L5(2,i=>seq('Home to '+nm(x.m),'From home to the new note and back.',[T,x.m,T],[2,3,2],60,{...R0,listen:'full'},i)),seq(nm(x.m)+' over the ison','The ison holds home. Hear how this note sits against it.',[x.m],[5],60,{...R0,listen:'full'},0,{ison:T-x.m})]});
     l1.push({name:nm(x.m)+' on your own',items:()=>[seq('Find '+nm(x.m),'Only a cue this time.',[x.m],[4],60,{...R1,listen:'cue'},0),seq('Find '+nm(x.m),'',[x.m],[4],60,{...R1,listen:'cue'},0),
-      seq('Home to '+nm(x.m),'',[T,x.m],[2,3],64,R1,1),seq('Home to '+nm(x.m),'',[T,x.m],[2,3],64,R1,1),seq(nm(x.m)+' to home','',[x.m,T],[2,3],64,R1,1)]})});
-  units.push(unit('One note at a time','Every note in the song, one at a time, most-used first. Each is held, then reached from home.',l1,
+      seq('Home to '+nm(x.m),'',[T,x.m],[2,3],64,R1,1),seq(nm(x.m)+' to home','',[x.m,T],[2,3],64,R1,1),seq('Home to '+nm(x.m)+', from memory','Guide hidden while you sing.',[T,x.m,T],[2,3,2],60,{...R1,listen:'full'},0,{blind:true})]})});
+  units.push(unit('One note at a time','Every note in the song, one at a time, most-used first: held, over the ison, reached from home, then from memory.',
+    'Single pitches come before intervals and melodies: they are the easiest to fix and everything else is built from them.',l1,
     ()=>{const R={bpm:1.05,tol:0.85,listen:'cue'};return[].concat(...byShare.map(x=>[seq('Find '+nm(x.m),'',[x.m],[4],60,R,0),seq('Home to '+nm(x.m),'',[T,x.m,T],[1.5,2,1.5],66,R,1)]))}));
   // U2 neighbors
   const l2=[],pairs=[],wins=[];for(let i=0;i+1<sorted.length;i++)pairs.push([sorted[i],sorted[i+1]]);for(let i=0;i+2<sorted.length;i++)wins.push(sorted.slice(i,i+3));
   pairs.forEach(([a,b],k)=>{const R=ramp(k,pairs.length+wins.length);l2.push({name:nm(a.m)+' and '+nm(b.m),items:()=>[
     seq(nm(a.m)+' ↔ '+nm(b.m),'Two notes side by side. Move cleanly, no slide.',[a.m,b.m,a.m,b.m],[2,2,2,2],60,{...R,listen:'full'},0),seq(nm(a.m)+' ↔ '+nm(b.m),'',[a.m,b.m,a.m,b.m],[2,2,2,2],60,R,1),
     seq(nm(b.m)+' down to '+nm(a.m),'',[b.m,a.m],[2,3],64,R,0),seq(nm(b.m)+' down to '+nm(a.m),'',[b.m,a.m],[2,3],64,R,1),seq(nm(a.m)+' up and back','',[a.m,b.m,a.m],[1,1,2],70,R,1)]})});
-  wins.forEach((w,k)=>{const R=ramp(pairs.length+k,pairs.length+wins.length);l2.push({name:w.map(x=>nm(x.m)).join(' '),items:()=>L5(4,i=>seq('Three in a row','Up through three neighbors and back.',[w[0].m,w[1].m,w[2].m,w[1].m,w[0].m],[1,1,1,1,2],68,R,i))})});
-  units.push(unit('Neighbors','Notes that sit next to each other in this song, in twos and then threes.',l2,
-    ()=>wins.concat(wins).slice(0,8).map((w,i)=>seq('Three in a row','',[w[0].m,w[1].m,w[2].m,w[1].m,w[0].m],[1,1,1,1,2],76,{bpm:1.08,tol:0.85,listen:'cue'},1))));
-  // U3 the song's moves
+  wins.forEach((w,k)=>{const R=ramp(pairs.length+k,pairs.length+wins.length);l2.push({name:w.map(x=>nm(x.m)).join(' '),items:()=>[...L5(3,i=>seq('Three in a row','Up through three neighbors and back.',[w[0].m,w[1].m,w[2].m,w[1].m,w[0].m],[1,1,1,1,2],68,R,i)),
+    seq('Three in a row, from memory','Guide hidden.',[w[0].m,w[1].m,w[2].m,w[1].m,w[0].m],[1,1,1,1,2],68,{...R,listen:'full'},0,{blind:true})]})});
+  units.push(unit('Neighbors','Notes that sit next to each other in this song, in twos and then threes.','Steps before leaps: most of any chant moves by neighbor notes.',l2,
+    ()=>wins.concat(wins).slice(0,8).map(w=>seq('Three in a row','',[w[0].m,w[1].m,w[2].m,w[1].m,w[0].m],[1,1,1,1,2],76,{bpm:1.08,tol:0.85,listen:'cue'},1))));
+  // U3 moves
   const l3=an.moves.map((mv,k)=>{const a=pitchOf(an,mv.rs[0]),b=pitchOf(an,mv.rs[1]),R=ramp(k,an.moves.length);return{name:nm(a)+' → '+nm(b)+' (×'+mv.n+')',items:()=>[
     seq('Move '+nm(a)+' to '+nm(b),'A move this song makes '+mv.n+' times.',[a,b],[2,3],60,{...R,listen:'full'},0),seq('Move '+nm(a)+' to '+nm(b),'',[a,b],[2,3],60,{...R,listen:'full'},0),
-    seq('Back and forth','',[a,b,a,b],[1.5,1.5,1.5,2],64,R,1),seq('Back and forth','',[a,b,a,b],[1.5,1.5,1.5,2],64,R,1),seq('Quick move','',[a,b],[1,2],76,{...R,listen:'cue'},1)]}});
-  units.push(unit('The song\'s moves','The moves from note to note this melody makes most often, most frequent first.',l3,
+    seq('Back and forth','',[a,b,a,b],[1.5,1.5,1.5,2],64,R,1),seq('Quick move','',[a,b],[1,2],76,{...R,listen:'cue'},1),seq('Move from memory','Guide hidden.',[a,b,a,b],[1,1,1,2],70,{...R,listen:'full'},0,{blind:true})]}});
+  units.push(unit('The song\'s moves','The moves from note to note this melody makes most often, most frequent first.','Practicing the exact intervals a piece uses (part practice) transfers to the whole piece faster than generic drills.',l3,
     ()=>an.moves.map(mv=>seq('Move','',[pitchOf(an,mv.rs[0]),pitchOf(an,mv.rs[1])],[1,2],76,{bpm:1.1,tol:0.85,listen:'cue'},1))));
-  // U4 signature turns
+  // U4 turns
   const l4=an.turns.map((tu,k)=>{const ms=tu.rs.map(r=>pitchOf(an,r)),R=ramp(k,an.turns.length),lab=ms.map(nm).join(' ');return{name:'Turn '+lab+' (×'+tu.n+')',items:()=>[
     seq('Turn '+lab,'A three-note shape the singer repeats '+tu.n+' times.',ms,[2,2,3],60,{...R,listen:'full'},0),seq('Turn '+lab,'',ms,[2,2,3],60,{...R,listen:'full'},0),
-    seq('Turn '+lab,'A bit quicker.',ms,[1,1,2],70,R,1),seq('Turn '+lab,'',ms,[1,1,2],70,R,1),seq('Turn '+lab,'At song speed.',ms,[0.75,0.75,1.5],80,{...R,listen:'cue'},1)]}});
-  units.push(unit('Signature turns','The three-note shapes that run all through the song. Learn these and most of the melody is familiar.',l4,
+    seq('Turn '+lab,'A bit quicker.',ms,[1,1,2],70,R,1),seq('Turn '+lab,'At song speed.',ms,[0.75,0.75,1.5],80,{...R,listen:'cue'},1),seq('Turn '+lab+' over the ison','With the ison on home.',ms,[1,1,2],70,R,1,{ison:T-ms[0]})]}});
+  units.push(unit('Signature turns','The three-note shapes that run all through the song. Learn these and most of the melody is familiar.','Chunking: melodies are remembered as familiar groups, not single notes.',l4,
     ()=>an.turns.map(tu=>seq('Turn','',tu.rs.map(r=>pitchOf(an,r)),[0.75,0.75,1.5],80,{bpm:1.08,tol:0.85,listen:'cue'},1))));
-  const hardest=(n)=>P.slice().sort((a,b)=>b.hard-a.hard).slice(0,n).sort((a,b)=>a.i-b.i);
-  // U5 phrase pieces
-  units.push(unit('Phrase pieces','Each phrase cut into bites of three or four notes, slow, then the bites put back together.',
-    P.map(p=>({name:'Phrase '+(p.i+1)+' in pieces',items:()=>[...p.bites.map((b,k)=>songItem(an,shift,'Phrase '+(p.i+1)+', bite '+(k+1)+' of '+p.bites.length,'Listen to this small piece, then sing it.',[b],0.6,TL({tol:1.1}),useS())),
-      songItem(an,shift,'Phrase '+(p.i+1)+' joined up','Now the whole phrase, still slow.',[p],0.6,TL({tol:1.1}),useS())]})),
+  const hardest=n=>P.slice().sort((a,b)=>b.hard-a.hard).slice(0,n).sort((a,b)=>a.i-b.i);
+  const sec=Math.max(3,Math.round(np/5)),secs=[];for(let i=0;i<np;i+=sec)secs.push(P.slice(i,i+sec));
+  const secName=(s,k)=>'Section '+(k+1)+' (phrases '+(s[0].i+1)+' to '+(s[s.length-1].i+1)+')';
+  // U5 holding the ison under the song
+  units.push(unit('The ison under the song','Hold the home note as the ison while the song plays, section by section.','Holding the ison trains your sense of home and your listening to the cantor, and it is the first job a new chanter is given.',
+    secs.map((s,k)=>({name:'Ison under section '+(k+1),items:()=>[isonItem(an,shift,'Ison under section '+(k+1)+' at 75%','Steady on home. Breathe quickly when the singer breathes and come back on the same pitch.',s,0.75,singerSameKey()),isonItem(an,shift,'Ison under section '+(k+1),'Now at full speed.',s,1,singerSameKey())]})),
+    ()=>secs.map((s,k)=>isonItem(an,shift,'Ison under section '+(k+1),'',s,1,singerSameKey()))));
+  // U6 phrase pieces (+ backward building for tricky phrases)
+  const l6=[];P.forEach(p=>{
+    l6.push({name:'Phrase '+(p.i+1)+' in pieces',items:()=>[songItem(an,shift,'Phrase '+(p.i+1)+', bite 1, together','Sing the first bite along with the tones. Headphones help.',[p.bites[0]],0.6,TL({tol:1.15}),useS(),{together:true}),
+      ...p.bites.map((b,k)=>songItem(an,shift,'Phrase '+(p.i+1)+', bite '+(k+1)+' of '+p.bites.length,'Listen to this small piece, then sing it.',[b],0.6,TL({tol:1.1}),useS())),
+      songItem(an,shift,'Phrase '+(p.i+1)+' joined up','Now the whole phrase, still slow.',[p],0.6,TL({tol:1.1}),useS())]});
+    if(tricky(p)&&p.bites.length>=2)l6.push({name:'Phrase '+(p.i+1)+' built from the end',items:()=>{const out=[];for(let k=p.bites.length-1;k>=0;k--){const part=p.bites.slice(k);
+      out.push(songItem(an,shift,'Phrase '+(p.i+1)+': last '+(part.length===p.bites.length?'all ':'')+part.length+' bite'+(part.length>1?'s':''),'Building backward, so the ending you know best is always last.',[[].concat(...part)],0.7,TL({tol:1.05}),useS()))}return out}})});
+  units.push(unit('Phrase pieces','Each phrase cut into bites of three or four notes, slow, then joined. Tricky phrases are also built backward from the end.',
+    'Part practice and backward chaining: start with small pieces, and for hard passages learn the ending first so you always finish on familiar ground.',l6,
     ()=>hardest(6).map(p=>songItem(an,shift,'Phrase '+(p.i+1),'',[p],0.7,TL({tol:0.95}),useS()))));
-  // U6 whole phrases
-  units.push(unit('Whole phrases','Every phrase on its own, from 75% speed up to full speed.',
-    P.map(p=>({name:'Phrase '+(p.i+1)+(p.hard>=med(P.map(x=>x.hard))*1.2?' · tricky':''),items:()=>[songItem(an,shift,'Phrase '+(p.i+1)+' at 75%','Listen, then sing.',[p],0.75,TL({tol:1}),useS()),
-      songItem(an,shift,'Phrase '+(p.i+1)+' at 90%','A little faster.',[p],0.9,TL({tol:0.92}),useS()),songItem(an,shift,'Phrase '+(p.i+1)+' at full speed','The real thing.',[p],1,TL({tol:0.85}),useS())]})),
+  // U7 whole phrases
+  units.push(unit('Whole phrases','Every phrase on its own, from 75% speed up to full speed, then over the ison.','Speed rises in small steps; accuracy first, then tempo.',
+    P.map(p=>({name:'Phrase '+(p.i+1)+(tricky(p)?' · tricky':''),items:()=>[songItem(an,shift,'Phrase '+(p.i+1)+' at 75%','Listen, then sing.',[p],0.75,TL({tol:1}),useS()),
+      songItem(an,shift,'Phrase '+(p.i+1)+' at 90%','A little faster.',[p],0.9,TL({tol:0.92}),useS()),songItem(an,shift,'Phrase '+(p.i+1)+' at full speed','The real thing.',[p],1,TL({tol:0.85}),useS()),
+      songItem(an,shift,'Phrase '+(p.i+1)+' over the ison','Full speed with the ison on home.',[p],1,TL({tol:0.85}),useS(),{ison:true})]})),
     ()=>hardest(8).map(p=>songItem(an,shift,'Phrase '+(p.i+1),'',[p],1,TL({tol:0.8}),useS()))));
-  // U7 phrase pairs
+  // U8 phrase pairs
   const prs=[];for(let i=0;i+1<np;i+=2)prs.push(i);
-  units.push(unit('Phrase pairs','Two phrases joined, breathing exactly where the singer breathes.',
+  units.push(unit('Phrase pairs','Two phrases joined, breathing exactly where the singer breathes.','Joining parts back together (part-whole practice) is where most of the real song is learned.',
     prs.map(i=>({name:'Phrases '+(i+1)+' to '+Math.min(np,i+3),items:()=>{const out=[];for(const j of [i,i+1])if(j+1<np){out.push(songItem(an,shift,'Phrases '+(j+1)+' and '+(j+2)+' at 85%','Connect them.',P.slice(j,j+2),0.85,TL({tol:0.95}),useS()));
       out.push(songItem(an,shift,'Phrases '+(j+1)+' and '+(j+2)+' at full speed','',P.slice(j,j+2),1,TL({tol:0.88}),useS()))}return out}})),
     ()=>{const pr=P.slice(0,-1).map((p,i)=>({i,h:p.hard+P[i+1].hard})).sort((a,b)=>b.h-a.h).slice(0,4);return pr.map(x=>songItem(an,shift,'Phrases '+(x.i+1)+' and '+(x.i+2),'',P.slice(x.i,x.i+2),1,TL({tol:0.8}),useS()))}));
-  // U8 sections
-  const sec=Math.max(3,Math.round(np/5)),secs=[];for(let i=0;i<np;i+=sec)secs.push(P.slice(i,i+sec));
-  units.push(unit('Sections','About a fifth of the song at a time, then at full speed.',
-    secs.map((s,k)=>({name:'Section '+(k+1)+' (phrases '+(s[0].i+1)+' to '+(s[s.length-1].i+1)+')',items:()=>[songItem(an,shift,'Section '+(k+1)+' at 80%','Keep the energy up to the end.',s,0.8,TL({tol:0.95}),useS()),songItem(an,shift,'Section '+(k+1)+' at full speed','',s,1,TL({tol:0.88}),useS())]})),
+  // U9 sections
+  units.push(unit('Sections','About a fifth of the song at a time: 80%, full speed, then over the ison.','Longer spans build stamina and the flow between phrases.',
+    secs.map((s,k)=>({name:secName(s,k),items:()=>[songItem(an,shift,'Section '+(k+1)+' at 80%','Keep the energy up to the end.',s,0.8,TL({tol:0.95}),useS()),songItem(an,shift,'Section '+(k+1)+' at full speed','',s,1,TL({tol:0.88}),useS()),
+      songItem(an,shift,'Section '+(k+1)+' over the ison','',s,1,TL({tol:0.88}),useS(),{ison:true})]})),
     ()=>secs.map((s,k)=>({s,k,h:s.reduce((a,p)=>a+p.hard,0)/s.length})).sort((a,b)=>b.h-a.h).slice(0,2).map(x=>songItem(an,shift,'Section '+(x.k+1),'',x.s,1,TL({tol:0.8}),useS()))));
-  // U9 the whole song
-  units.push(unit('The whole song','Start to finish: 75%, 85%, full speed, then full speed with a tight pitch window. The final test is the song, sung precisely.',
-    [[0.75,1,'at 75%'],[0.85,0.95,'at 85%'],[1,0.9,'at full speed'],[1,0.75,'full speed, tight pitch']].map(([sp,tl,lab])=>({name:'Whole song '+lab,items:()=>[songItem(an,shift,'The whole song '+lab,'Breathe where the singer breathes.',P,sp,TL({tol:tl}),useS())]})),
+  // U10 from memory
+  units.push(unit('From memory','Hidden guide: hear a section, then sing it with nothing to follow. Then start from only the first note.','A cantor sings from memory and inner hearing. Removing the guide checks what you have really learned and makes it stick.',
+    [...secs.map((s,k)=>({name:'Section '+(k+1)+' from memory',items:()=>[songItem(an,shift,'Section '+(k+1)+' from memory at 85%','Guide hidden while you sing. You see the result after.',s,0.85,TL({tol:1}),useS(),{blind:true}),songItem(an,shift,'Section '+(k+1)+' from memory','Full speed.',s,1,TL({tol:0.92}),useS(),{blind:true})]})),
+     ...secs.map((s,k)=>({name:'Section '+(k+1)+' from the first note',items:()=>[songItem(an,shift,'Section '+(k+1)+' from its first note','No listen pass: just the first note, then sing it all.',s,1,TL({tol:0.92}),false,{cue:true})]}))],
+    ()=>hardest(4).map(p=>songItem(an,shift,'Phrase '+(p.i+1)+' from memory','',[p],1,TL({tol:0.85}),useS(),{blind:true}))));
+  // U11 the whole song
+  units.push(unit('The whole song','Start to finish: 75%, 85%, full speed, tight pitch, over the ison, and from memory. The final test is the song, sung precisely.','The final goal: the whole song at full speed with precision.',
+    [[0.75,1,'at 75%'],[0.85,0.95,'at 85%'],[1,0.9,'at full speed'],[1,0.75,'full speed, tight pitch']].map(([sp,tl,lab])=>({name:'Whole song '+lab,items:()=>[songItem(an,shift,'The whole song '+lab,'Breathe where the singer breathes.',P,sp,TL({tol:tl}),useS())]}))
+     .concat([{name:'Whole song over the ison',items:()=>[songItem(an,shift,'The whole song over the ison','Full speed with the ison on home.',P,1,TL({tol:0.8}),useS(),{ison:true})]},
+       {name:'Whole song from memory',items:()=>[songItem(an,shift,'The whole song from memory','Only the first note, then the whole song with the guide hidden.',P,1,TL({tol:0.85}),false,{cue:true,blind:true})]}]),
     ()=>[songItem(an,shift,'Final test: the whole song','Full speed, precise pitch.',P,1,[18,50],useS())]));
-  return{id,name:rec.name,unit:'Unit',an,rec,units};
+  return{id,name:rec.name,unit:'Unit',an,rec,units:units.filter(u=>u.lessons.length)};
 }
 
 /* ================= Session runner ================= */
@@ -1330,12 +1657,23 @@ function nextUp(tr){const P=prog(tr.id);for(let u=0;u<tr.units.length;u++){if((P
    from the chosen one until the time is used, never running past the end of the unit. */
 function buildSession(tr,u,l,minutes,isTest){
   if(isTest){return tr.units[u].test().map(it=>({...it,lid:'T'+u,lname:'Unit test',main:true}))}
-  const budget=minutes*60,items=[];let t=0;const P=prog(tr.id);
-  const done=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).filter(k=>{const[a,b]=k.split('.').map(Number);return a<u||(a===u&&b<l)});
-  if(minutes>=5&&done.length){const k=done[Math.floor(Math.random()*done.length)],[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];
-    if(les){const its=les.items();const it=its[its.length-1];items.push({...it,title:'Review: '+it.title,lid:null,main:false});t+=it.dur+5}}
-  let j=Math.max(0,l);const ls=tr.units[u].lessons;
-  while(j<ls.length&&(t<budget||!items.some(x=>x.lid))){const its=ls[j].items();its.forEach(it=>{it.lid=u+'.'+j;it.lname=ls[j].name;it.main=true});items.push(...its);t+=its.reduce((a,it)=>a+it.dur+5,0);j++}
+  const budget=minutes*60,items=[];let t=0;const P=prog(tr.id),H=S.home;
+  const add=(it,kind)=>{items.push({...it,lid:null,main:false,kind});t+=it.dur+5};
+  /* gentle semi-occluded warm-up for sessions of 10 minutes or more */
+  if(minutes>=10)add(mkItem({title:'Warm-up: straw or lip-trill siren',how:'Through a straw or with a lip trill, glide up and down. Easy and quiet.',pat:[0,4,7,4,0],beats:[1.5,1.5,2,1.5,2],bpm:60,base:H,listen:'full',tolA:45,tolB:110}),'Warm-up');
+  /* spaced review: older finished lessons, weighted toward the lowest scores */
+  const done=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).filter(k=>{const[a,b]=k.split('.').map(Number);return a<u||(a===u&&b<l)}).sort((a,b)=>P.les[a]-P.les[b]);
+  const nRev=minutes>=15?2:minutes>=5?1:0,picked=[];
+  for(let r=0;r<nRev&&done.length;r++){const pool=r===0?done.slice(0,5):done;const k=pool[Math.floor(Math.random()*pool.length)];if(!picked.includes(k))picked.push(k)}
+  const reviews=picked.map(k=>{const[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];if(!les)return null;const its=les.items(),it=its[its.length-1];return{...it,title:'Review: '+it.title.replace(/^Review: /,'')}}).filter(Boolean);
+  if(reviews[0])add(reviews[0],'Review');
+  let j=Math.max(0,l),midDone=false;const ls=tr.units[u].lessons,mid=reviews[1];
+  while(j<ls.length&&(t<budget||!items.some(x=>x.lid))){const its=ls[j].items();its.forEach(it=>{it.lid=u+'.'+j;it.lname=ls[j].name;it.main=true});items.push(...its);t+=its.reduce((a,it)=>a+it.dur+5,0);j++;
+    if(mid&&!midDone&&t>budget/2){midDone=true;items.push({...mid,lid:null,main:false,kind:'Review'});t+=mid.dur+5}}
+  /* time left at the end of the unit: extra practice on this unit's lessons, weakest first (the unit test is next) */
+  if(t<budget-30){const pool=ls.map((x,k)=>k).sort((a,b)=>(P.les[u+'.'+a]||0)-(P.les[u+'.'+b]||0));let g=0;
+    while(t<budget-20&&g<pool.length*2){const k=pool[g%pool.length],its=ls[k].items().slice(-3);its.forEach(it=>add({...it,title:'Extra: '+it.title.replace(/^Review: /,'')},'Extra practice'));g++}}
+  if(minutes>=15)add(mkItem({title:'Cool-down: gentle hum down',how:'A soft hum from a little above home down to home.',pat:[4,2,0],beats:[2,2,4],bpm:60,base:H,listen:'full',tolA:45,tolB:110}),'Cool-down');
   return items;
 }
 function fmtT(s){s=Math.round(s);return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')}
@@ -1367,7 +1705,7 @@ function renderPractice(){
     b.append(seal,sm);
     b.onclick=()=>{selU=i;const j=s.lessons.findIndex((x,k)=>(P.les[i+'.'+k]||0)<LESSON_PASS);selL=j<0?0:j;renderPractice()};map.appendChild(b)});
   const selEl=map.children[selU];if(selEl)map.scrollLeft=Math.max(0,selEl.offsetLeft-map.clientWidth/2+selEl.clientWidth/2);
-  const un=tr.units[selU];$('stTitle').textContent=tr.unit+' '+selU+' · '+un.name;$('stDesc').textContent=un.desc;
+  const un=tr.units[selU];$('stTitle').textContent=(un.part!=null?'Part '+(un.part+1)+' · '+PART[un.part]+' · ':'')+tr.unit+' '+selU+' · '+un.name;$('stDesc').textContent=un.desc;
   const nd=un.lessons.filter((x,j)=>(P.les[selU+'.'+j]||0)>=LESSON_PASS).length,tb=P.test[selU];
   $('unitProg').innerHTML='';$('unitProg').append(nd+' of '+un.lessons.length+' lessons done');
   $('unitTest').textContent=tb!=null?'Unit test best '+tb+(tb>=UNIT_PASS?' · mastered':' · need '+UNIT_PASS):'Unit test: need '+UNIT_PASS;
@@ -1379,10 +1717,10 @@ function renderPractice(){
   const tli=document.createElement('li');tli.className='test'+((tb||0)>=UNIT_PASS?' done':'');const tbtn=document.createElement('button'),td=document.createElement('span'),tn=document.createElement('span'),ts=document.createElement('small');
   td.className='dot';td.textContent='★';tn.textContent='Unit test · hardest parts, pass at '+UNIT_PASS;ts.textContent=tb!=null?String(tb):'';tbtn.append(td,tn,ts);tbtn.onclick=()=>startTest();tli.appendChild(tbtn);ol.appendChild(tli);
   const selLi=ol.children[selL];if(selLi)ol.scrollTop=Math.max(0,selLi.offsetTop-ol.offsetTop-60);
-  $('stGoal').textContent='Lessons get a little harder one by one: quicker tempo, a narrower pitch window, a wider range and less help. '+(nd===un.lessons.length&&(tb||0)<UNIT_PASS?'All lessons done: take the unit test.':'');
+  $('stGoal').textContent=(un.why?'Why: '+un.why+' ':'')+'Each lesson is a small step above the last. '+(nd===un.lessons.length&&(tb||0)<UNIT_PASS?'All lessons done: take the unit test.':'');
   const tc=$('timeChips');if(!tc.children.length){[2,5,10,15,20,25,30].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{selMin=m;store.set('ison-min',m);renderPractice()};tc.appendChild(b)})}
   [...tc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===selMin)));
-  const plan=buildSession(tr,selU,selL,selMin),groups=[];plan.forEach(it=>{const k=it.lid?it.lname:'Review';const g=groups.find(x=>x.t===k);if(g){g.n++;g.d+=it.dur}else groups.push({t:k,n:1,d:it.dur})});
+  const plan=buildSession(tr,selU,selL,selMin),groups=[];plan.forEach(it=>{const k=it.lid?it.lname:(it.kind||'Review');const g=groups.find(x=>x.t===k);if(g){g.n++;g.d+=it.dur}else groups.push({t:k,n:1,d:it.dur})});
   const pl=$('planList');pl.innerHTML='';groups.forEach(g=>{const li=document.createElement('li');const a=document.createElement('span'),b=document.createElement('span');
     a.textContent=g.t+' · '+g.n+(g.n>1?' exercises':' exercise');b.textContent=fmtT(g.d);li.append(a,b);pl.appendChild(li)});
   $('startSession').textContent='Start at lesson '+(selL+1)+' · '+un.lessons[selL].name;
@@ -1391,11 +1729,16 @@ function renderPractice(){
   if(mode==='song')renderSongSummary();
   drawHistory();
 }
-function fillCourseSongs(){refreshMySongsList().then(list=>{const s=$('courseSong');s.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent=list.length?'Choose a saved song':'No saved songs yet';s.appendChild(o0);
-  list.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;s.appendChild(o)})})}
+const BUILTIN=[['song-trisagion','Trisagion: Holy God (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord']];
+function fillCourseSongs(){refreshMySongsList().then(list=>{const s=$('courseSong');s.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent='Choose a song';s.appendChild(o0);
+  const g1=document.createElement('optgroup');g1.label=list.length?'My songs (recordings)':'My songs: none saved yet';list.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;g1.appendChild(o)});s.appendChild(g1);
+  const g2=document.createElement('optgroup');g2.label='Built-in chants';BUILTIN.forEach(([k,n])=>{const o=document.createElement('option');o.value='b:'+k;o.textContent=n;g2.appendChild(o)});s.appendChild(g2)})}
+/* A built-in chant as a course source: its written notes (men's octave by default), no recording. */
+function builtinRec(id){const k=String(id).slice(2),sg=SONGS[k];if(!sg)return null;const r=parseTyped(sg.text,sg.bpm,S.shift);if(r.error)return null;
+  const nmB=(BUILTIN.find(x=>x[0]===k)||[k,k])[1];return{id:String(id),name:nmB,notes:r.notes,dur:r.dur,off:0,contour:null,audio:null}}
 async function refreshMySongsList(){try{return await MyDB.all()}catch(e){return[]}}
 async function openSongCourse(id){
-  let rec=null;try{rec=await MyDB.get(id)}catch(e){}
+  let rec=null;if(typeof id==='string'&&id.startsWith('b:'))rec=builtinRec(id);else{try{rec=await MyDB.get(+id)}catch(e){}}
   if(!rec){$('courseStatus').textContent='That song could not be opened.';return}
   if(rec.contour&&rec.contour.length&&Array.isArray(rec.contour[0]))rec.contour=rec.contour.map(p=>({t:p[0],m:p[1]}));
   if(L.audio){URL.revokeObjectURL(L.audio)}L.audio=rec.audio?URL.createObjectURL(rec.audio):null;
@@ -1403,7 +1746,7 @@ async function openSongCourse(id){
   store.set('ison-course',id);const nx=nextUp(songT);selU=nx.u;selL=Math.max(0,nx.l);
   const ks=$('songKey');ks.innerHTML='';for(let k=7;k>=-12;k--){const o=document.createElement('option');o.value=k;o.textContent=k===0?'As sung':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');ks.appendChild(o)}
   ks.value=String((store.get('ison-songkey',{})[rec.id])||0);
-  $('singerNote').textContent=L.audio?'The recording is saved with this song.':'This song was saved without its audio, so the listen part uses tones.';
+  $('singerNote').textContent=L.audio?'The recording is saved with this song.':String(id).startsWith('b:')?'Built-in chant: the listen parts use tones.':'This song was saved without its audio, so the listen part uses tones.';
   renderPractice();
 }
 function renderSongSummary(){
@@ -1424,6 +1767,7 @@ function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
 }
 function lessonLoad(i,keepPos){
   const it=L.items[i];G.lesson=true;G.ui=LESSON_UI;G.tolA=it.tolA;G.tolB=it.tolB;G.speed=1;L.item=it;
+  G.ison=it.ison||null;G.acc=it.acc||null;G.accLevel=it.accLevel||0.7;G.blind=!!it.blind;G.micro=!!it.micro;G.singFrom=it.singFrom!=null?it.singFrom:0;
   setGuide({notes:it.notes,dur:it.dur,contour:it.contour||null},false,0);if(keepPos){G.pos=L.pos;G.trace=L.trace}
   G.onFinish=lessonItemDone;$('exTitle').textContent=it.title;$('exHow').textContent=(it.lname&&!L.isTest?'Lesson: '+it.lname+'. ':'')+(it.how||'');
   $('plCount').textContent='Exercise '+(i+1)+' of '+L.items.length+((L.tries[i]||0)?' · try '+((L.tries[i]||0)+1):'')+(S.diff!=='easy'?' · '+DIFF[S.diff].name:'');renderSegs();drawSing();updatePhase();
@@ -1432,8 +1776,11 @@ function renderSegs(){const sg=$('segs');sg.innerHTML='';L.items.forEach((it,i)=
   e.className=i===L.idx?'cur':r?(r.score>=60?'done':'low'):'';sg.appendChild(e)})}
 function updatePhase(){const ph=$('exPhase');if(!G.lesson)return;const tg=targetAt(G.pos),it=L.item;
   const inSeg=it&&it.seg&&G.pos>=it.seg.ls&&G.pos<it.seg.le;
-  if(G.pos<0){ph.textContent='Get ready';ph.className='phase'}else if(inSeg||(tg&&tg.listen)){ph.textContent=inSeg&&L.audio&&S.useSinger?'Listen to the singer':'Listen';ph.className='phase'}
-  else{ph.textContent='Your turn';ph.className='phase sing'}}
+  const sungSeg=inSeg&&it.seg.during;
+  if(G.pos<0){ph.textContent='Get ready';ph.className='phase'}
+  else if((inSeg&&!sungSeg)||(tg&&tg.listen)){ph.textContent=inSeg&&L.audio&&S.useSinger?'Listen to the singer':'Listen';ph.className='phase'}
+  else if(G.pos<G.singFrom-0.05){ph.textContent=it.think&&G.pos>G.singFrom-it.think-0.05?'Hear it in your head':'Breathe';ph.className='phase'}
+  else{ph.textContent=sungSeg?'Hold the ison with the singer':G.blind?'Your turn, from memory':it.acc&&it.accDouble?'Sing together':it.acc?'Hold the ison':'Your turn';ph.className='phase sing'}}
 /* Plays the singer's own recording during a phrase's listen part, kept in step with the lesson clock. */
 function singerTick(){
   const it=L.item;if(!G.lesson||!it||!it.seg||!L.audio||!S.useSinger){return false}
@@ -1465,7 +1812,9 @@ function lessonItemDone(){
     L.fails=0;if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},next==='retry'?2600:1800)}
 function slowCopy(it){const f=0.75,sc=t=>t/f;return{...it,slowOf:it,title:it.title+' (75% speed)',dur:sc(it.dur),
   notes:it.notes.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})),contour:it.contour?it.contour.map(p=>({t:sc(p.t),m:p.m})):null,
-  seg:it.seg?{...it.seg,ls:sc(it.seg.ls),le:sc(it.seg.le),speed:it.seg.speed*f}:null}}
+  seg:it.seg?{...it.seg,ls:sc(it.seg.ls),le:sc(it.seg.le),speed:it.seg.speed*f}:null,
+  ison:it.ison?it.ison.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})):null,acc:it.acc?it.acc.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})):null,
+  singFrom:sc(it.singFrom||0),think:it.think?it.think/f:0}}
 const DIFF={easy:{name:'Easy',pass:null,note:'Every step counts once and the session ends on time.'},
   medium:{name:'Medium',pass:70,note:'Pass each step with 70 to move on.'},
   hard:{name:'Hard',pass:82,note:'Pass each step with 82 to move on.'},
@@ -1543,7 +1892,7 @@ function drawHistory(){
 /* ---------- buttons ---------- */
 $('mode-found').onclick=()=>{if(L.active)return;mode='found';store.set('ison-mode',mode);const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l);renderPractice()};
 $('mode-song').onclick=async()=>{if(L.active)return;mode='song';store.set('ison-mode',mode);const id=store.get('ison-course',null);if(id!=null&&!songT)await openSongCourse(id);renderPractice()};
-$('courseSong').onchange=()=>{const v=$('courseSong').value;if(v)openSongCourse(+v)};
+$('courseSong').onchange=()=>{const v=$('courseSong').value;if(v)openSongCourse(v.startsWith('b:')?v:+v)};
 $('courseFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;ensureCtx();const st=$('courseStatus');st.textContent='Reading the recording';
   try{const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
     const an=await analyzeSong(ab,st);const off=tuningOffset(an.pts),notes=melodyNotes(an.pts,0.14,off);
@@ -1557,7 +1906,7 @@ $('useSinger').checked=S.useSinger!==false;$('useSinger').onchange=()=>{S.useSin
 $('startSession').onclick=()=>{const tr=curTrack();if(!tr)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('startTest').onclick=()=>startTest();
 $('resumeSession').onclick=async()=>{const s=store.get('ison-session',null);if(!s)return;
-  if(s.tr!=='found2'){mode='song';if(!songT||songT.id!==s.tr){await openSongCourse(+s.tr.split(':')[1])}}else mode='found';
+  if(s.tr.startsWith('song3:')){mode='song';if(!songT||songT.id!==s.tr){const sid=s.tr.slice(6);await openSongCourse(sid.startsWith('b:')?sid:+sid)}}else mode='found';
   const tr=curTrack();if(!tr){$('resumeSession').hidden=true;return}startSessionWith(tr,s.items,s.u||0,s.l||0,s.minutes,s.isTest,s.idx,s.results)};
 $('lsPause').onclick=()=>{if(G.playing)lessonPause();else lessonPlay()};
 $('lsRedo').onclick=()=>{stopSing(true);L.results[L.idx]=null;lessonLoad(L.idx,false);lessonPlay()};
@@ -1578,6 +1927,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
+window.__tracks=()=>({foundTrack,songT,buildSession});
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
 function renderDiff(){const c=$('diffChips');if(!c.children.length){Object.keys(DIFF).forEach(k=>{const b=document.createElement('button');b.textContent=DIFF[k].name;b.dataset.k=k;
