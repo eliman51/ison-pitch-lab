@@ -177,6 +177,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <span class="status">Use this to skip a low drone or bass line</span></div>
       </div>
       <label class="check"><input type="checkbox" id="guideSound" checked> Play the recording's sound (use headphones)</label>
+      <label class="check"><input type="checkbox" id="showLine" checked> Show the singer's exact pitch line over the note bars</label>
+      <label class="check"><input type="checkbox" id="glide"> Guide tones glide with the singer, including the in-between notes</label>
       <div class="row">
         <input type="text" id="saveName" placeholder="Name this song" aria-label="Song name" style="flex:1;min-width:10em">
         <button id="saveSong" disabled>Save to My songs</button>
@@ -252,11 +254,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
-const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false};
+const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false,showLine:true,glide:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
 const G={notes:[],dur:0,src:'ex-major',useAudio:false,playing:false,pos:-2,speed:1,trace:[],last:0,youM:null,ready:false};
+window.__ison=G;
 
 const f2m=f=>69+12*Math.log2(f/S.a4);
 const m2f=m=>S.a4*Math.pow(2,(m-69)/12);
@@ -590,12 +593,13 @@ function notesFromPts(pts,minLen){
     if(l&&Math.abs(l.m-n.m)<0.5&&n.t0-l.t1<0.12){l.t1=n.t1}else out.push(n)}
   return out;
 }
-function setGuide(g,useAudio,shift){G.notes=g.notes;G.dur=g.dur;G.useAudio=!!useAudio;G.shiftApplied=shift||0;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
+function setGuide(g,useAudio,shift){G.notes=g.notes;G.dur=g.dur;G.contour=g.contour||null;G.useAudio=!!useAudio;G.shiftApplied=shift||0;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
   stopSing(true);drawSing();$('singStatus').textContent=G.ready?G.notes.length+' notes loaded. Tap Start.':'No notes found in that guide.'}
 /* Recordings keep their own key setting (default: as sung), separate from the chants (default: men's octave). */
 const isRecLike=src=>src==='rec'||src.startsWith('my-');
 function curShift(){return isRecLike(G.src)?S.recShift:S.shift}
-function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,w:n.w})),dur:raw.dur}}
+function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,w:n.w})),dur:raw.dur,
+  contour:raw.contour?raw.contour.map(p=>({t:p.t,m:p.m==null?null:p.m+k})):null}}
 function loadSource(){
   G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
   $('transpose').disabled=G.src.startsWith('ex-');$('transpose').value=String(curShift());
@@ -610,10 +614,43 @@ function loadSource(){
 function segmentRec(){
   const floor=+$('floorNote').value||0,minLen=+$('detail').value;
   const pts=G.recPts.map(p=>({t:p.t,m:p.m!=null&&p.m>=floor-0.5?p.m:null}));
-  G.recRaw={notes:notesFromPts(pts,minLen),dur:G.recDur};
+  const off=tuningOffset(pts);
+  G.recRaw={notes:melodyNotes(pts,minLen,off),dur:G.recDur,contour:pts,off};
   setGuide(shifted(G.recRaw,S.recShift),true,S.recShift);$('saveSong').disabled=!G.recRaw.notes.length;
-  if(G.recRaw.notes.length){const ms=G.recRaw.notes.map(n=>n.m);
-    $('singStatus').textContent=G.recRaw.notes.length+' notes found, '+nameOf(Math.min(...ms))+' to '+nameOf(Math.max(...ms))+(S.recShift?' (shown '+describeShift(S.recShift)+')':'')+'. Tap Start.'}
+  if(G.recRaw.notes.length){const ms=G.recRaw.notes.map(n=>n.m),c=Math.round(off*100);
+    $('singStatus').textContent=G.recRaw.notes.length+' notes found, '+nameOf(Math.min(...ms))+' to '+nameOf(Math.max(...ms))+
+      (Math.abs(c)>=5?'. The singer is tuned '+Math.abs(c)+'¢ '+(c<0?'flat':'sharp')+' of A'+S.a4+', and the bars follow his tuning':'')+(S.recShift?'. Shown '+describeShift(S.recShift):'')+'. Tap Start.'}
+}
+/* The singer's own tuning: circular mean of how far each frame sits from the nearest piano key. */
+function tuningOffset(pts){let sx=0,sy=0;for(const p of pts)if(p.m!=null){const a=2*Math.PI*(p.m-Math.round(p.m));sx+=Math.cos(a);sy+=Math.sin(a)}
+  return(sx||sy)?Math.atan2(sy,sx)/(2*Math.PI):0}
+/* Notes that never drop voice. Inside each sung stretch a new note starts only when the pitch moves
+   more than 0.6 of a half step from the current note (measured in the singer's tuning) and stays there
+   for at least half the minimum note length. Short leftovers merge into the neighbor closest in pitch,
+   so every voiced moment belongs to a note. Each note's pitch is the median of what was actually sung. */
+function melodyNotes(pts,minLen,off){
+  const hopT=pts.length>1?pts[1].t-pts[0].t:0.023,maxGap=Math.ceil(0.18/hopT),need=Math.max(1,Math.round(minLen*0.5/hopT));
+  const runs=[];let i=0;
+  while(i<pts.length){if(pts[i].m==null){i++;continue}let j=i,gap=0,last=i;
+    while(j<pts.length&&gap<=maxGap){if(pts[j].m!=null){last=j;gap=0}else gap++;j++}runs.push([i,last]);i=last+1}
+  const notes=[];
+  for(const [a,b] of runs){const segs=[];let cur=null,start=a;
+    for(let k=a;k<=b;k++){const m=pts[k].m;if(m==null)continue;const q=m-off;
+      if(cur==null){cur=Math.round(q);start=k;continue}
+      if(Math.abs(q-cur)>0.6){let ok=true,cnt=0;const nq=Math.round(q);
+        for(let z=k;z<=b&&cnt<need;z++){const mz=pts[z].m;if(mz==null)continue;cnt++;if(Math.abs(mz-off-nq)>0.6){ok=false;break}}
+        if(ok){segs.push([start,k-1,cur]);cur=nq;start=k}}}
+    if(cur!=null)segs.push([start,b,cur]);
+    let merged=true;while(merged&&segs.length>1){merged=false;
+      for(let s=0;s<segs.length;s++){const d=pts[segs[s][1]].t-pts[segs[s][0]].t+hopT;if(d>=minLen)continue;
+        const L=segs[s-1],R=segs[s+1];const tgt=!L?R:!R?L:(Math.abs(L[2]-segs[s][2])<=Math.abs(R[2]-segs[s][2])?L:R);
+        if(tgt===L)L[1]=segs[s][1];else R[0]=segs[s][0];segs.splice(s,1);merged=true;break}}
+    for(const [s0,s1] of segs){const ms=[];for(let k=s0;k<=s1;k++)if(pts[k].m!=null)ms.push(pts[k].m);if(!ms.length)continue;ms.sort((x,y)=>x-y);
+      notes.push({t0:pts[s0].t-hopT/2,t1:pts[s1].t+hopT/2,m:ms[ms.length>>1]})}}
+  // a lone note an octave above its neighbors is a harmonic slip, not a leap: bring it down
+  for(let i=0;i<notes.length;i++){const nb=[];for(let k=Math.max(0,i-4);k<=Math.min(notes.length-1,i+4);k++)if(k!==i)nb.push(notes[k].m);
+    if(nb.length<3)continue;nb.sort((x,y)=>x-y);const md=nb[nb.length>>1];if(notes[i].m-md>9.5)notes[i].m-=12}
+  return notes;
 }
 function describeShift(k){return k===-12?'an octave lower':k===12?'an octave higher':(k>0?'up ':'down ')+Math.abs(k)+' half steps'}
 function loadTyped(){const res=parseTyped($('typed').value,Math.max(20,Math.min(240,+$('bpm').value||60)),S.shift);
@@ -683,7 +720,7 @@ async function refreshMySongs(select){
 async function loadMySong(id){
   let s=null;try{s=await MyDB.get(id)}catch(e){}
   if(!s){$('singStatus').textContent='That saved song could not be opened.';return}
-  G.recRaw={notes:s.notes,dur:s.dur};G.myId=id;
+  G.recRaw={notes:s.notes,dur:s.dur,contour:s.contour?s.contour.map(p=>({t:p[0],m:p[1]})):null,off:s.off||0};G.myId=id;
   if(s.audio){gAudio.src=URL.createObjectURL(s.audio)}
   setGuide(shifted(G.recRaw,S.recShift),!!s.audio,S.recShift);
   $('myStatus').textContent=s.audio?'Saved with its audio.':'Saved notes only. Turn on guide tones to hear them.';
@@ -696,8 +733,17 @@ function toneOn(m,level){
   const f=m2f(m+(S.toneUp?12:0));tone=voiceOn(f,level);
 }
 function toneOff(){if(!tone)return;voiceOff(tone,0.06);tone=null}
+function contourAt(t){const c=G.contour;if(!c||!c.length)return null;let lo=0,hi=c.length-1;
+  while(lo<hi){const mid=(lo+hi)>>1;if(c[mid].t<t)lo=mid+1;else hi=mid}const p=c[lo];return p&&Math.abs(p.t-t)<0.05?p.m:null}
 function updateTone(){
   let want=null,level=1;
+  if(G.playing&&S.tones&&S.glide&&G.contour&&G.pos>=0){
+    const m=contourAt(G.pos);
+    if(m==null){if(tone){toneOff();G.toneNote=null}return}
+    const f=m2f(m+(S.toneUp?12:0));
+    if(tone&&G.toneNote==='glide'){tone.o.frequency.setTargetAtTime(f,ctx.currentTime,0.025);tone.lp.frequency.setTargetAtTime(Math.min(6000,f*10),ctx.currentTime,0.025)}
+    else{toneOff();G.toneNote='glide';tone=voiceOn(f,1)}return}
+  if(G.toneNote==='glide'){toneOff();G.toneNote=null}
   if(G.playing&&S.tones){
     if(G.pos<-0.5&&G.notes.length&&G.pos>-1.6){want=G.notes[0];level=0.7}
     else want=targetAt(G.pos);
@@ -744,6 +790,10 @@ function drawSing(){
     if(x1-x0>26&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(nameOf(n.m),x0+3,y-bh/2-4)}
     if(n.w){g.fillStyle=n===cur?c.gold:c.muted;g.font='600 14px '+getComputedStyle(document.body).fontFamily;
       g.fillText(n.w,x0,Math.min(h-4,y+bh/2+16));g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--f-mono')}}
+  if(G.contour&&S.showLine){g.strokeStyle=c.gold;g.globalAlpha=0.6;g.lineWidth=1.6;g.beginPath();let pen=false,pm=null;
+    const tA=G.pos-nowX/pxs-0.1,tB=G.pos+(w-nowX)/pxs+0.1;
+    for(const p of G.contour){if(p.t<tA)continue;if(p.t>tB)break;if(p.m==null){pen=false;pm=null;continue}if(pm!=null&&Math.abs(p.m-pm)>2)pen=false;
+      const x=xOf(p.t),y=yOf(p.m);if(pen)g.lineTo(x,y);else{g.moveTo(x,y);pen=true}pm=p.m}g.stroke();g.globalAlpha=1}
   g.lineWidth=3;g.lineCap='round';
   for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;
     const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);
@@ -770,6 +820,8 @@ $('toneVol').value=S.vol;$('volTxt').textContent=Math.round(S.vol*100)+'%';
 $('toneVol').oninput=()=>{S.vol=+$('toneVol').value;$('volTxt').textContent=Math.round(S.vol*100)+'%';if(outBus)outBus.gain.setTargetAtTime(S.vol,ctx.currentTime,0.02);save()};
 $('toneUp').checked=!!S.toneUp;
 $('toneUp').onchange=()=>{S.toneUp=$('toneUp').checked;save();if(tone&&G.toneNote)voiceRetune(tone,m2f(G.toneNote.m+(S.toneUp?12:0)))};
+$('showLine').checked=!!S.showLine;$('showLine').onchange=()=>{S.showLine=$('showLine').checked;save();if(!G.playing)drawSing()};
+$('glide').checked=!!S.glide;$('glide').onchange=()=>{S.glide=$('glide').checked;if(S.glide&&!S.tones){S.tones=true;$('guideTones').checked=true}save();toneOff();G.toneNote=null};
 $('guideTones').checked=!!S.tones;
 $('guideTones').onchange=()=>{S.tones=$('guideTones').checked;save();if(!S.tones){toneOff();G.toneNote=null}};
 $('typedLoad').onclick=loadTyped;
@@ -807,7 +859,7 @@ $('detail').oninput=()=>{detailLabel();if(G.recPts&&G.src==='rec'&&!G.playing)se
 $('floorNote').onchange=()=>{if(G.recPts&&G.src==='rec'&&!G.playing)segmentRec()};
 $('saveSong').onclick=async()=>{
   if(!G.recRaw||!G.recRaw.notes.length)return;const name=$('saveName').value.trim()||'My song';
-  const rec={name,notes:G.recRaw.notes,dur:G.recRaw.dur,audio:G.recFile||null,created:Date.now()};
+  const rec={name,notes:G.recRaw.notes,dur:G.recRaw.dur,contour:(G.recRaw.contour||[]).map(p=>[+p.t.toFixed(3),p.m==null?null:+p.m.toFixed(2)]),off:G.recRaw.off||0,audio:G.recFile||null,created:Date.now()};
   try{const id=await MyDB.put(rec);await refreshMySongs('my-'+id);$('singStatus').textContent='Saved "'+name+'" to My songs on this device.'}
   catch(err){try{rec.audio=null;const id=await MyDB.put(rec);await refreshMySongs('my-'+id);$('singStatus').textContent='Saved the notes. The audio was too large to keep, so use guide tones.'}
     catch(e2){$('singStatus').textContent='This browser would not save the song. Private browsing blocks saving.'}}};
