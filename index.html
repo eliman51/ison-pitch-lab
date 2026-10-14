@@ -214,6 +214,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <h2 id="t-build">Today's session</h2>
     <div class="field"><span class="label">Time I have</span><div class="chips" id="timeChips"></div></div>
     <ul class="plan" id="planList"></ul>
+    <div class="field"><span class="label">Challenge</span><div class="chips diffchips" id="diffChips"></div><span class="status" id="diffNote"></span></div>
     <button class="primary big" id="startSession">Start session</button>
     <button class="big" id="resumeSession" hidden>Resume saved session</button>
     <label class="check"><input type="checkbox" id="lessonTones"> Also play the notes while I sing (wear headphones)</label>
@@ -290,6 +291,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
         <input type="range" id="speed" min="0.25" max="1" step="0.05" value="1">
         <div class="ticks"><span>¼</span><span>½</span><span>¾</span><span>full</span></div></div>
+      <div class="field"><label class="label" for="songDiff">Challenge</label><select id="songDiff"></select>
+        <span class="status">Above Easy, a run must pass before it counts; two misses slow it to 75%.</span></div>
       <div class="field"><label class="label" for="transpose">Key</label>
         <select id="transpose"></select></div>
       <div class="field"><span class="label">Guide tones</span>
@@ -431,7 +434,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
-const S={home:50,lessonTones:false,useSinger:true,a4:440,thr:10,smooth:0.5,filt:2,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false,showLine:true,glide:false};
+const S={diff:'easy',home:50,lessonTones:false,useSinger:true,a4:440,thr:10,smooth:0.5,filt:2,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false,showLine:true,glide:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
@@ -955,9 +958,15 @@ async function startSing(){
   requestAnimationFrame(singFrame);
 }
 function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
-function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}const pts=G.trace.filter(p=>p.m!=null);let on=0,tot=0;
-  for(const p of pts){const n=targetAt(p.t);if(!n)continue;tot++;if(Math.abs(p.m-n.m)*100<=S.thr)on++}
-  $('singStatus').textContent=tot?'Done. '+Math.round(on/tot*100)+'% of your singing was within ±'+S.thr+'¢ of the guide.':'Done. No singing was heard during the notes.'}
+function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
+  const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
+  if(D.pass==null){$('singStatus').textContent=r?'Done. Score '+sc+' '+starStr(sc)+'. '+praise(r)+'.':'Done. No singing was heard during the notes.';return}
+  const setSp=v=>{$('speed').value=v;$('speed').oninput()},pass=sc>=D.pass;let msg='Score '+sc+'. ';
+  if(G.slowRun){if(pass){G.slowRun=false;setSp(G.userSpeed||1);msg+='Passed at 75%. Now once more at full speed.'}else msg+='Need '+D.pass+'. Again at 75%.'}
+  else if(!pass){G.fails=(G.fails||0)+1;if(G.fails>=2){G.fails=0;G.slowRun=true;G.userSpeed=G.speed;setSp(Math.max(0.25,+(G.speed*0.75).toFixed(2)));msg+='Two misses. Slowing to 75%.'}else msg+='Need '+D.pass+' to pass. Again.'}
+  else{G.fails=0;$('singStatus').textContent='Score '+sc+' '+starStr(sc)+'. Passed at '+D.name+'.';return}
+  $('singStatus').textContent=msg+' Restarting...';
+  setTimeout(()=>{if(G.lesson||G.playing)return;G.trace=[];G.pos=G.useAudio?0:-2;try{gAudio.currentTime=0}catch(e){}startSing()},2600)}
 function singFrame(ts){
   if(!G.playing)return;const dt=Math.min(0.1,(ts-G.last)/1000);G.last=ts;
   if(G.useAudio){G.pos=gAudio.currentTime;if(gAudio.ended){finishSing();return}}
@@ -1233,7 +1242,7 @@ function songTrack(rec){
 }
 
 /* ================= Session runner ================= */
-const L={active:false,items:[],idx:0,results:[],stage:0,level:0,minutes:5,timer:null,pos:-2,trace:[],track:null,audio:null};
+const L={tries:[],fails:0,active:false,items:[],idx:0,results:[],stage:0,level:0,minutes:5,timer:null,pos:-2,trace:[],track:null,audio:null};
 let mode='found',selStage=0,selLevel=0,selMin=5,songT=null;
 const store={get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
 function prog(id){const all=store.get('ison-prog',{});return all[id]||{passed:{},best:{},gold:{},ptr:{}}}
@@ -1320,7 +1329,7 @@ function renderSongSummary(){
   [['Home note',nameOf(an.tonic)+(Math.abs(c2)>=5?' '+(c2>0?'+':'')+c2+'¢':'')],['Range',nameOf(an.lo)+' to '+nameOf(an.hi)],['Phrases',String(an.phrases.length)],['Notes',an.scale.map(s=>nameOf(s.m)).join(' ')],['Length',fmtT(an.dur)]].forEach(([k,v])=>{const sp=document.createElement('span');sp.textContent=k+': '+v;f.appendChild(sp)});
 }
 function startSessionWith(tr,items,stage,level,minutes,idx,results){
-  L.active=true;L.track=tr;L.items=items;L.stage=stage;L.level=level;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
+  L.active=true;L.tries=[];L.fails=0;L.track=tr;L.items=items;L.stage=stage;L.level=level;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+stage+' · '+tr.stages[stage].name+' · '+LV[level].name;
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1328,7 +1337,7 @@ function lessonLoad(i,keepPos){
   const it=L.items[i];G.lesson=true;G.ui=LESSON_UI;G.tolA=it.tolA;G.tolB=it.tolB;G.speed=1;L.item=it;
   setGuide({notes:it.notes,dur:it.dur,contour:it.contour||null},false,0);if(keepPos){G.pos=L.pos;G.trace=L.trace}
   G.onFinish=lessonItemDone;$('exTitle').textContent=it.title;$('exHow').textContent=it.how;
-  $('plCount').textContent='Exercise '+(i+1)+' of '+L.items.length;renderSegs();drawSing();updatePhase();
+  $('plCount').textContent='Exercise '+(i+1)+' of '+L.items.length+((L.tries[i]||0)?' · try '+((L.tries[i]||0)+1):'')+(S.diff!=='easy'?' · '+DIFF[S.diff].name:'');renderSegs();drawSing();updatePhase();
 }
 function renderSegs(){const sg=$('segs');sg.innerHTML='';L.items.forEach((it,i)=>{const e=document.createElement('i');const r=L.results[i];
   e.className=i===L.idx?'cur':r?(r.score>=60?'done':'low'):'';sg.appendChild(e)})}
@@ -1348,11 +1357,30 @@ function singerTick(){
 function lessonPlay(){if(!L.active)return;if(!G.lesson||G.ui!==LESSON_UI)lessonLoad(L.idx,true);startSing();$('lsPause').textContent='Pause';
   clearInterval(L.timer);L.timer=setInterval(()=>{updatePhase();$('lsStatus').textContent=live?$('status').textContent:'Allow the microphone so your singing can be scored.'},250)}
 function lessonPause(){if(!G.playing)return;stopSing(true);L.pos=G.pos;L.trace=G.trace;clearInterval(L.timer);$('lsPause').textContent='Resume';$('lsStatus').textContent='Paused. Tap Resume when you are ready.';drawSing()}
+/* Step gate. Easy: every step counts once and the session keeps to the chosen time.
+   Medium, Hard, Extra hard: a step must reach the pass mark before the session moves on. Two misses
+   in a row slow that step to 75%; once it passes slow, it must be sung once more at full speed. */
 function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
-  L.results[L.idx]=r?{...r,title:it.title,dur:it.dur,main:it.main}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main};
-  const R=L.results[L.idx];$('lsToast').textContent=starStr(R.score)+'  '+R.score+' · '+praise(R);renderSegs();
-  setTimeout(()=>{if(!L.active)return;$('lsToast').textContent='';if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},1800)}
+  const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main};
+  const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
+  let msg=starStr(R.score)+'  '+R.score+' · ',next='advance';
+  if(D.pass==null){msg+=praise(R)}
+  else if(it.slowOf){if(pass){L.items[L.idx]=it.slowOf;L.fails=0;msg+='Passed at 75%. Now once more at full speed.';next='retry'}else{msg+='Need '+D.pass+'. Once more at 75%.';next='retry'}}
+  else if(!pass){L.fails=(L.fails||0)+1;if(L.fails>=2){L.items[L.idx]=slowCopy(it);L.fails=0;msg+='Two misses. Slowing this step to 75%.'}else msg+='Need '+D.pass+' to move on. Try again.';next='retry'}
+  else{L.fails=0;msg+=praise(R)+'. Passed.'}
+  if(next==='advance'||D.pass==null)L.results[L.idx]=R;else if(!L.results[L.idx])L.results[L.idx]=null;
+  $('lsToast').textContent=msg;renderSegs();
+  setTimeout(()=>{if(!L.active)return;$('lsToast').textContent='';
+    if(next==='retry'){lessonLoad(L.idx,false);lessonPlay();return}
+    L.fails=0;if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},next==='retry'?2600:1800)}
+function slowCopy(it){const f=0.75,sc=t=>t/f;return{...it,slowOf:it,title:it.title+' (75% speed)',dur:sc(it.dur),
+  notes:it.notes.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})),contour:it.contour?it.contour.map(p=>({t:sc(p.t),m:p.m})):null,
+  seg:it.seg?{...it.seg,ls:sc(it.seg.ls),le:sc(it.seg.le),speed:it.seg.speed*f}:null}}
+const DIFF={easy:{name:'Easy',pass:null,note:'Every step counts once and the session ends on time.'},
+  medium:{name:'Medium',pass:70,note:'Pass each step with 70 to move on.'},
+  hard:{name:'Hard',pass:82,note:'Pass each step with 82 to move on.'},
+  extra:{name:'Extra hard',pass:95,note:'Pass each step with 95 to move on. Precision work.'}};
 function starStr(s){return s>=88?'★★★':s>=75?'★★☆':s>=60?'★☆☆':'☆☆☆'}
 function praise(r){const s=r.score;if(r.cov<0.3)return'I barely heard you. Sing out a little more';if(s>=88)return'Excellent';if(s>=75)return'Good';
   if(r.bias>15)return'Close. You were a little sharp';if(r.bias<-15)return'Close. You were a little flat';
@@ -1457,6 +1485,14 @@ $('findHome').onclick=async()=>{
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=firstOpen(foundTrack);selStage=nx[0];selLevel=nx[1]}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
+
+function renderDiff(){const c=$('diffChips');if(!c.children.length){Object.keys(DIFF).forEach(k=>{const b=document.createElement('button');b.textContent=DIFF[k].name;b.dataset.k=k;
+    b.onclick=()=>{S.diff=k;save();renderDiff()};c.appendChild(b)})}
+  [...c.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===S.diff)));
+  $('diffNote').textContent=DIFF[S.diff].note+(S.diff!=='easy'?' Two misses in a row slow a step to 75%; pass it, then sing it once more at full speed. Sessions may run past the time you picked.':'');
+  const sd=$('songDiff');if(!sd.children.length)Object.keys(DIFF).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=DIFF[k].name+(DIFF[k].pass?' (pass '+DIFF[k].pass+')':'');sd.appendChild(o)});sd.value=S.diff}
+$('songDiff').onchange=()=>{S.diff=$('songDiff').value;save();G.fails=0;G.slowRun=false;renderDiff()};
+renderDiff();
 
 /* Settings wiring */
 function smoothLabel(){$('smoothTxt').textContent=S.smooth<0.25?'Fast':S.smooth<0.65?'Balanced':'Smooth'}
