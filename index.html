@@ -138,6 +138,11 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <select id="transpose"></select></div>
       <div class="field"><span class="label">Guide tones</span>
         <label class="check"><input type="checkbox" id="guideTones"> Play each note as it comes</label></div>
+      <div class="field"><label class="label" for="toneVol">Tone volume <span id="volTxt">90%</span></label>
+        <input type="range" id="toneVol" min="0.1" max="1" step="0.05" value="0.9"></div>
+      <div class="field"><span class="label">Phone speaker</span>
+        <label class="check"><input type="checkbox" id="toneUp"> Play tones an octave higher</label>
+        <span class="status">Easier to hear on a phone. Sing the note an octave below it.</span></div>
     </div>
     <p class="status" id="songCredit" hidden></p>
     <div class="field" id="typedBox" hidden>
@@ -212,7 +217,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
-const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,tones:false};
+const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,tones:false,vol:0.9,toneUp:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
@@ -288,6 +293,8 @@ document.addEventListener('touchend',resumeLive,{passive:true});document.addEven
 async function startLive(){
   ensureCtx();
   try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('none');
+    /* iOS 16.4+: ask for a play-and-record session so tones keep playing out loud while the mic listens */
+    try{if(navigator.audioSession)navigator.audioSession.type='play-and-record'}catch(e){}
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
   catch(e){$('micHelp').hidden=false;$('status').textContent='Microphone unavailable here';return}
   $('micHelp').hidden=true;
@@ -349,15 +356,33 @@ $('recBtn').onclick=()=>{
 let drone=null;
 function refSelect(){const s=$('refNote');for(let m=24;m<=96;m++){const o=document.createElement('option');o.value=m;o.textContent=nameOf(m)+'  ('+m2f(m).toFixed(1)+' Hz)';s.appendChild(o)}s.value=S.ref}
 function refreshRefLabels(){[...$('refNote').options].forEach(o=>{const m=+o.value;o.textContent=nameOf(m)+'  ('+m2f(m).toFixed(1)+' Hz)'})}
+/* Shared tone voice. Phone speakers barely reproduce notes below about 300 Hz, so a pure sine at
+   A3 (220 Hz) is almost silent. This voice is organ-like: strong 2nd to 5th harmonics the speaker
+   can play (the ear still hears the low note), then a compressor and makeup gain for loudness. */
+let outBus=null,organWave=null;
+function bus(){
+  ensureCtx();if(outBus)return outBus;
+  const vol=ctx.createGain(),comp=ctx.createDynamicsCompressor(),make=ctx.createGain();
+  comp.threshold.value=-20;comp.knee.value=8;comp.ratio.value=8;comp.attack.value=0.003;comp.release.value=0.25;make.gain.value=1.75;
+  vol.connect(comp);comp.connect(make);make.connect(ctx.destination);vol.gain.value=S.vol;
+  const amps=[0,1,0.9,0.75,0.6,0.42,0.3,0.2,0.14,0.09,0.06],real=new Float32Array(amps.length),imag=new Float32Array(amps);
+  organWave=ctx.createPeriodicWave(real,imag);outBus=vol;return vol;
+}
+function voiceOn(f,level){
+  const out=bus(),now=ctx.currentTime,g=ctx.createGain(),o=ctx.createOscillator(),lp=ctx.createBiquadFilter();
+  o.setPeriodicWave(organWave);o.frequency.value=f;lp.type='lowpass';lp.frequency.value=Math.min(6000,f*10);lp.Q.value=0.5;
+  g.gain.setValueAtTime(0,now);g.gain.linearRampToValueAtTime(0.9*level,now+0.025);g.gain.setTargetAtTime(0.75*level,now+0.06,0.2);
+  o.connect(lp);lp.connect(g);g.connect(out);o.start(now);return{o,g,lp};
+}
+function voiceOff(v,fade){const now=ctx.currentTime;v.g.gain.cancelScheduledValues(now);v.g.gain.setValueAtTime(v.g.gain.value,now);
+  v.g.gain.linearRampToValueAtTime(0,now+fade);try{v.o.stop(now+fade+0.02)}catch(e){}}
+function voiceRetune(v,f){v.o.frequency.setTargetAtTime(f,ctx.currentTime,0.03);v.lp.frequency.setTargetAtTime(Math.min(6000,f*10),ctx.currentTime,0.03)}
 $('droneBtn').onclick=()=>{
   ensureCtx();
-  if(drone){drone.g.gain.setTargetAtTime(0,ctx.currentTime,0.05);const d=drone;setTimeout(()=>{d.o1.stop();d.o2.stop()},300);drone=null;$('droneBtn').textContent='Play drone';return}
-  const f=m2f(S.ref),g=ctx.createGain();g.gain.value=0;const o1=ctx.createOscillator(),o2=ctx.createOscillator(),g2=ctx.createGain();
-  o1.type='sine';o2.type='triangle';g2.gain.value=0.3;o1.frequency.value=f;o2.frequency.value=f;
-  o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(ctx.destination);o1.start();o2.start();
-  g.gain.setTargetAtTime(0.16,ctx.currentTime,0.08);drone={o1,o2,g};$('droneBtn').textContent='Stop drone';
+  if(drone){voiceOff(drone,0.25);drone=null;$('droneBtn').textContent='Play drone';return}
+  drone=voiceOn(m2f(S.ref),0.8);$('droneBtn').textContent='Stop drone';
 };
-function retuneDrone(){if(drone){const f=m2f(S.ref);drone.o1.frequency.setTargetAtTime(f,ctx.currentTime,0.03);drone.o2.frequency.setTargetAtTime(f,ctx.currentTime,0.03)}}
+function retuneDrone(){if(drone)voiceRetune(drone,m2f(S.ref))}
 
 /* Take analysis */
 let take=null;const audio=$('audio');
@@ -515,19 +540,13 @@ function targetAt(t){for(const n of G.notes){if(t>=n.t0&&t<n.t1)return n;if(n.t0
    so note lengths follow the speed slider automatically. */
 let tone=null;
 function toneOn(m,level){
-  ensureCtx();const f=m2f(m),now=ctx.currentTime,g=ctx.createGain();g.gain.setValueAtTime(0,now);
-  g.gain.linearRampToValueAtTime(level,now+0.03);g.gain.setTargetAtTime(level*0.75,now+0.08,0.25);
-  const o1=ctx.createOscillator(),o2=ctx.createOscillator(),g2=ctx.createGain();o1.type='sine';o2.type='triangle';g2.gain.value=0.35;
-  o1.frequency.value=f;o2.frequency.value=f;o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(ctx.destination);o1.start(now);o2.start(now);
-  tone={o1,o2,g};
+  const f=m2f(m+(S.toneUp?12:0));tone=voiceOn(f,level);
 }
-function toneOff(){if(!tone)return;const t=tone,now=ctx.currentTime;tone=null;
-  t.g.gain.cancelScheduledValues(now);t.g.gain.setValueAtTime(t.g.gain.value,now);t.g.gain.linearRampToValueAtTime(0,now+0.06);
-  try{t.o1.stop(now+0.08);t.o2.stop(now+0.08)}catch(e){}}
+function toneOff(){if(!tone)return;voiceOff(tone,0.06);tone=null}
 function updateTone(){
-  let want=null,level=0.16;
+  let want=null,level=1;
   if(G.playing&&S.tones){
-    if(G.pos<-0.5&&G.notes.length&&G.pos>-1.6){want=G.notes[0];level=0.1}
+    if(G.pos<-0.5&&G.notes.length&&G.pos>-1.6){want=G.notes[0];level=0.7}
     else want=targetAt(G.pos);
   }
   if(want!==G.toneNote){toneOff();G.toneNote=want;if(want)toneOn(want.m,level)}
@@ -588,6 +607,10 @@ $('guideSrc').onchange=loadSource;
   o.textContent=k===0?'As written':k===-12?'One octave lower (men)':k===-24?'Two octaves lower':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');t.appendChild(o)}
   t.value=String(S.shift)})();
 $('transpose').onchange=()=>{S.shift=+$('transpose').value;save();if(!G.playing)loadSource()};
+$('toneVol').value=S.vol;$('volTxt').textContent=Math.round(S.vol*100)+'%';
+$('toneVol').oninput=()=>{S.vol=+$('toneVol').value;$('volTxt').textContent=Math.round(S.vol*100)+'%';if(outBus)outBus.gain.setTargetAtTime(S.vol,ctx.currentTime,0.02);save()};
+$('toneUp').checked=!!S.toneUp;
+$('toneUp').onchange=()=>{S.toneUp=$('toneUp').checked;save();if(tone&&G.toneNote)voiceRetune(tone,m2f(G.toneNote.m+(S.toneUp?12:0)))};
 $('guideTones').checked=!!S.tones;
 $('guideTones').onchange=()=>{S.tones=$('guideTones').checked;save();if(!S.tones){toneOff();G.toneNote=null}};
 $('typedLoad').onclick=loadTyped;
