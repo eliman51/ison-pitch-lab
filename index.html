@@ -162,7 +162,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
     <div class="field" id="recBox" hidden>
       <label class="label" for="guideFile">Song or chant recording (m4a, mp3, wav, or a video)</label>
-      <input class="file" type="file" id="guideFile">
+      <input class="file" type="file" id="guideFile" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/aac,video/mp4,video/quicktime">
       <span class="status">On iPhone, tap Choose File, then Browse to find downloads in the Files app (usually the Downloads folder).</span>
       <div class="row">
         <button id="capBtn">Capture by listening</button>
@@ -232,7 +232,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   <section class="panel" aria-labelledby="t-take">
     <h2 id="t-take">Take analysis</h2>
     <div class="row"><span class="tag" id="takeName">Example take (synthetic voice)</span></div>
-    <input class="file" type="file" id="file" aria-label="Upload a recording">
+    <input class="file" type="file" id="file" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/aac,video/mp4,video/quicktime" aria-label="Upload a recording">
     <div class="row">
       <button id="playBtn">Play take</button>
       <span class="status" id="takeStatus">Tap the graph to jump to a moment</span>
