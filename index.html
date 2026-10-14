@@ -150,6 +150,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .lessons li.test.done .dot{background:radial-gradient(circle at 35% 30%,#F3D48E,#B98429 70%)}
 .lessons li button small{font-family:var(--f-mono);color:var(--muted);font-size:.78rem}
 @media (prefers-reduced-motion: reduce){.needle,.note{transition:none}}
+.seek{display:flex;gap:12px;align-items:center;margin-top:6px}.seek input{flex:1;min-width:0}#seekTxt{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);white-space:nowrap}
 </style>
 
 <div class="wrap">
@@ -361,7 +362,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button id="setA">Start here</button><button id="setB">End here</button>
     </div>
     <audio id="guideAudio" preload="auto" playsinline></audio>
-    <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch"></canvas>
+    <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch. Drag sideways to look through the song."></canvas>
+    <div class="seek"><input type="range" id="singSeek" min="0" max="1" step="0.1" value="0" aria-label="Position in the song"><span id="seekTxt">0:00 / 0:00</span></div>
+    <p class="status" style="margin:0">Drag the chart sideways, or use the slider, to look through the whole song. Start plays from wherever you leave it.</p>
     <div class="duo">
       <div><span class="label">Sing this</span><b id="tgt">--</b></div>
       <div><span class="label">You</span><b id="you">--</b></div>
@@ -999,7 +1002,7 @@ function singFrame(ts){
   updateTone();drawSing();requestAnimationFrame(singFrame);
 }
 function drawSing(){
-  const cv=$(G.ui.cv),w=cv.clientWidth||cv.parentElement.clientWidth,h=G.ui.h,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);
+  const cv=$(G.ui.cv),pe=cv.parentElement,pcs=getComputedStyle(pe),w=Math.max(200,pe.clientWidth-parseFloat(pcs.paddingLeft)-parseFloat(pcs.paddingRight)),h=G.ui.h,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);
   let lo=S.ref-4,hi=S.ref+8;if(G.notes.length){const all=G.notes.concat(G.lesson&&G.acc?G.acc:[],G.lesson&&G.ison?G.ison:[]);lo=Math.min(...all.map(n=>n.m));hi=Math.max(...all.map(n=>n.m))}
   lo-=2;hi+=2;if(hi-lo<10){const mid=(hi+lo)/2;lo=mid-5;hi=mid+5}
   const yOf=m=>h-(m-lo)/(hi-lo)*h,nowX=w*0.3,pxs=w/6,xOf=t=>nowX+(t-G.pos)*pxs;
@@ -1034,6 +1037,7 @@ function drawSing(){
   if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
   if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
   let syl='';if(cur){for(const n of G.notes){if(n.t0>cur.t0)break;if(n.w)syl=n.w}}
+  if(G.ui.cv==='sing'&&!G.seekHold){const sk=$('singSeek');sk.max=String(Math.max(1,G.dur).toFixed(1));sk.value=String(Math.max(0,G.pos));$('seekTxt').textContent=fmtT(Math.max(0,G.pos))+' / '+fmtT(G.dur)}
   const T=$(G.ui.tgt),Y=$(G.ui.you);
   if(cur&&hid(cur)){T.textContent='?'}
   else if(cur){T.innerHTML='';T.append(G.lesson&&G.micro?nameC(cur.m):nameOf(cur.m));if(syl){const s=document.createElement('small');s.textContent=syl.replace(/-$/,'');T.append(s)}}
@@ -1043,6 +1047,22 @@ function drawSing(){
     Y.innerHTML=nameOf(G.youM)+(cv2!=null?'<small>'+(cv2>=0?'+':'')+cv2+'¢</small>':'')}else Y.textContent='--';
 }
 $('guideSrc').onchange=loadSource;
+/* Look through the song while paused: drag the chart sideways, use a trackpad or shift+wheel, or the slider.
+   Dragging while it plays pauses first. Start then plays from the new spot. */
+function seekTo(t){if(G.lesson||!G.ready)return;if(G.playing)stopSing(true);
+  G.pos=Math.max(G.useAudio?0:-2,Math.min(G.dur,t));if(G.useAudio){try{gAudio.currentTime=Math.max(0,G.pos)}catch(e){}}
+  drawSing();$('singStatus').textContent='Paused at '+fmtT(Math.max(0,G.pos))+'. Tap Start to play from here.'}
+(function(){const cv=$('sing');cv.style.touchAction='pan-y';let drag=null;
+  cv.addEventListener('pointerdown',e=>{if(G.lesson||!G.ready)return;drag={x:e.clientX,p:G.pos,moved:false,id:e.pointerId}});
+  cv.addEventListener('pointermove',e=>{if(!drag)return;const dx=e.clientX-drag.x;if(!drag.moved){if(Math.abs(dx)<5)return;drag.moved=true;try{cv.setPointerCapture(drag.id)}catch(_){}}
+    seekTo(drag.p-dx/(cv.clientWidth/6))});
+  ['pointerup','pointercancel','lostpointercapture'].forEach(ev=>cv.addEventListener(ev,()=>{drag=null}));
+  cv.addEventListener('wheel',e=>{if(G.lesson||!G.ready)return;const d=Math.abs(e.deltaX)>Math.abs(e.deltaY)?e.deltaX:(e.shiftKey?e.deltaY:0);if(!d)return;
+    e.preventDefault();seekTo(G.pos+d/(cv.clientWidth/6))},{passive:false});
+  const sk=$('singSeek');sk.addEventListener('pointerdown',()=>{G.seekHold=true});
+  sk.addEventListener('input',()=>{G.seekHold=true;seekTo(+sk.value);$('seekTxt').textContent=fmtT(+sk.value)+' / '+fmtT(G.dur)});
+  ['change','pointerup','pointercancel','blur'].forEach(ev=>sk.addEventListener(ev,()=>{G.seekHold=false}));
+})();
 (function(){const t=$('transpose');for(let k=12;k>=-24;k--){const o=document.createElement('option');o.value=k;
   o.textContent=k===0?'As written':k===-12?'One octave lower (men)':k===-24?'Two octaves lower':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');t.appendChild(o)}
   t.value=String(S.shift)})();
