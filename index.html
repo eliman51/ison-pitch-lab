@@ -331,8 +331,8 @@ document.addEventListener('touchend',resumeLive,{passive:true});document.addEven
 async function startLive(){
   ensureCtx();
   try{if(!navigator.mediaDevices||!navigator.mediaDevices.getUserMedia)throw new Error('none');
-    /* iOS 16.4+: ask for a play-and-record session so tones keep playing out loud while the mic listens */
-    try{if(navigator.audioSession)navigator.audioSession.type='play-and-record'}catch(e){}
+    /* Leave the iOS audio session on automatic: forcing play-and-record broke pitch on some iPhones */
+    try{if(navigator.audioSession&&navigator.audioSession.type!=='auto')navigator.audioSession.type='auto'}catch(e){}
     stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}})}
   catch(e){$('micHelp').hidden=false;$('status').textContent='Microphone unavailable here';return}
   $('micHelp').hidden=true;
@@ -358,11 +358,15 @@ function loop(){
   analyser.getFloatTimeDomainData(buf);let m=null;const lvl=rms(buf,0,buf.length);
   const db=lvl>0?20*Math.log10(lvl):-100;$('levelBar').style.width=Math.max(0,Math.min(100,(db+60)/60*100))+'%';
   $('levelBar').style.background=lvl>S.gate?'var(--good)':'var(--muted)';
-  if(liveCtx.state==='running')$('status').textContent=lvl>S.gate?'Hearing you':'Listening (sing louder or raise sensitivity)';
+  let clar=0;
   if(lvl>S.gate){
     /* halve the sample rate: same speed as before, but a window long enough for bass notes down to about E1 */
     for(let i=0;i<half.length;i++)half[i]=(buf[2*i]+buf[2*i+1])*0.5;
-    const p=yin(half,liveCtx.sampleRate/2,half.length);if(p&&p.clarity>0.5&&p.f>FMIN&&p.f<FMAX)m=f2m(p.f)}
+    let p=yin(half,liveCtx.sampleRate/2,half.length);
+    if(!(p&&p.clarity>0.45))p=yin(buf,liveCtx.sampleRate,2048)||p;
+    if(p){clar=p.clarity;if(p.clarity>0.45&&p.f>FMIN&&p.f<FMAX)m=f2m(p.f)}}
+  if(liveCtx.state==='running'){const now=performance.now();if(!loop.t||now-loop.t>250){loop.t=now;
+    $('status').textContent=lvl<=S.gate?'Listening (sing louder or raise sensitivity)':m!=null?'Hearing you':'Hearing sound but no clear note (clarity '+Math.round(clar*100)+'%, mic '+Math.round(liveCtx.sampleRate/1000)+' kHz)'}}
   if(m!=null){if(lastM!=null&&Math.abs(m-lastM)<1)m=lastM*S.smooth+m*(1-S.smooth);lastM=m}else lastM=null;
   const t=(performance.now()-t0)/1000;hist.push({t,m});while(hist.length&&hist[0].t<t-12)hist.shift();
   if(G.playing&&G.pos>=0)G.trace.push({t:G.pos,m});G.youM=m;
