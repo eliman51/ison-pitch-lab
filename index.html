@@ -150,6 +150,12 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .lessons li.test.done .dot{background:radial-gradient(circle at 35% 30%,#F3D48E,#B98429 70%)}
 .lessons li button small{font-family:var(--f-mono);color:var(--muted);font-size:.78rem}
 @media (prefers-reduced-motion: reduce){.needle,.note{transition:none}}
+.karaoke{margin-top:10px;padding:16px 14px;border-radius:14px;background:var(--surface2);border:1px solid var(--line);text-align:center;min-height:104px;display:flex;flex-direction:column;justify-content:center;gap:8px}
+.karaoke[hidden]{display:none}
+.kl{font-family:var(--f-body);font-weight:700;line-height:1.3;overflow-wrap:anywhere}
+#kLine1{font-size:1.6rem}
+#kLine1 span{background-image:linear-gradient(90deg,var(--gold) var(--p,0%),var(--ink) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;cursor:pointer}
+#kLine2{font-size:1.05rem;color:var(--muted);opacity:.8}
 .seek{display:flex;gap:12px;align-items:center;margin-top:6px}.seek input{flex:1;min-width:0}#seekTxt{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);white-space:nowrap}
 </style>
 
@@ -363,6 +369,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     </div>
     <audio id="guideAudio" preload="auto" playsinline></audio>
     <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch. Drag sideways to look through the song."></canvas>
+    <div class="karaoke" id="karaoke" hidden aria-live="off"><div class="kl" id="kLine1"></div><div class="kl" id="kLine2"></div></div>
     <div class="seek"><input type="range" id="singSeek" min="0" max="1" step="0.1" value="0" aria-label="Position in the song"><span id="seekTxt">0:00 / 0:00</span></div>
     <p class="status" style="margin:0">Drag the chart sideways, or use the slider, to look through the whole song. Start plays from wherever you leave it.</p>
     <div class="duo">
@@ -804,7 +811,7 @@ function notesFromPts(pts,minLen){
     if(l&&Math.abs(l.m-n.m)<0.5&&n.t0-l.t1<0.12){l.t1=n.t1}else out.push(n)}
   return out;
 }
-function setGuide(g,useAudio,shift){G.notes=g.notes;G.dur=g.dur;G.contour=g.contour||null;G.useAudio=!!useAudio;G.shiftApplied=shift||0;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
+function setGuide(g,useAudio,shift){G.lyr=buildLyrics(g.notes);G.lyrLine=null;G.notes=g.notes;G.dur=g.dur;G.contour=g.contour||null;G.useAudio=!!useAudio;G.shiftApplied=shift||0;G.trace=[];G.pos=G.useAudio?0:-2;G.ready=G.notes.length>0;
   stopSing(true);drawSing();if(!G.lesson)$('singStatus').textContent=G.ready?G.notes.length+' notes loaded. Tap Start.':'No notes found in that guide.'}
 /* Recordings keep their own key setting (default: as sung), separate from the chants (default: men's octave). */
 const isRecLike=src=>src==='rec'||src.startsWith('my-');
@@ -1037,6 +1044,7 @@ function drawSing(){
   if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
   if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
   let syl='';if(cur){for(const n of G.notes){if(n.t0>cur.t0)break;if(n.w)syl=n.w}}
+  if(G.ui.cv==='sing')renderLyrics();
   if(G.ui.cv==='sing'&&!G.seekHold){const sk=$('singSeek');sk.max=String(Math.max(1,G.dur).toFixed(1));sk.value=String(Math.max(0,G.pos));$('seekTxt').textContent=fmtT(Math.max(0,G.pos))+' / '+fmtT(G.dur)}
   const T=$(G.ui.tgt),Y=$(G.ui.you);
   if(cur&&hid(cur)){T.textContent='?'}
@@ -1047,6 +1055,26 @@ function drawSing(){
     Y.innerHTML=nameOf(G.youM)+(cv2!=null?'<small>'+(cv2>=0?'+':'')+cv2+'¢</small>':'')}else Y.textContent='--';
 }
 $('guideSrc').onchange=loadSource;
+/* Karaoke lyrics: syllables from the guide notes grouped into lines at punctuation, breaths and phrase
+   marks. The current line fills with gold as each syllable is sung; the next line waits below. A note
+   with no syllable extends the one before it (a melisma). Tap a syllable while paused to jump there. */
+function buildLyrics(notes){const syl=[];
+  for(const n of notes){if(n.listen)continue;if(n.w)syl.push({w:n.w,t0:n.t0,t1:n.t1});else if(syl.length&&n.t0-syl[syl.length-1].t1<1.2)syl[syl.length-1].t1=n.t1}
+  if(syl.filter(x=>/[A-Za-z\u00C0-\u024F\u0370-\u03FF\u0400-\u04FF\u0600-\u06FF\u0700-\u074F]/.test(x.w)).length<2)return null;const lines=[];let cur=[],len=0;
+  syl.forEach((x,i)=>{const prev=syl[i-1],mark=/^[\u2460-\u2473]/.test(x.w);
+    if(cur.length&&(mark||(x.t0-prev.t1>0.9&&len>8)||(len>30&&!/-$/.test(prev.w)))){lines.push(cur);cur=[];len=0}
+    cur.push(x);len+=x.w.length+1;if(/[,.;:!?]$/.test(x.w)&&len>14){lines.push(cur);cur=[];len=0}});
+  if(cur.length)lines.push(cur);
+  return lines.map(l=>({syl:l,t0:l[0].t0,t1:l[l.length-1].t1}))}
+function fillLine(el,line,live){el.innerHTML='';if(!line)return;
+  line.syl.forEach((x,i)=>{const hy=/-$/.test(x.w),txt=x.w.replace(/-$/,'');
+    if(live){const sp=document.createElement('span');sp.textContent=txt;sp.onclick=()=>{if(!G.playing)seekTo(x.t0-0.05)};el.appendChild(sp)}
+    else el.appendChild(document.createTextNode(txt));
+    if(!hy&&i<line.syl.length-1)el.appendChild(document.createTextNode(' '))})}
+function renderLyrics(){const box=$('karaoke');if(!G.lyr||G.lesson){box.hidden=true;return}box.hidden=false;
+  const t=G.pos;let li=G.lyr.findIndex(l=>t<l.t1+0.35);if(li<0)li=G.lyr.length-1;
+  if(G.lyrLine!==li){G.lyrLine=li;fillLine($('kLine1'),G.lyr[li],true);fillLine($('kLine2'),G.lyr[li+1],false)}
+  const sp=$('kLine1').children;G.lyr[li].syl.forEach((x,i)=>{const p=t<=x.t0?0:t>=x.t1?100:(t-x.t0)/(x.t1-x.t0)*100;if(sp[i])sp[i].style.setProperty('--p',p.toFixed(1)+'%')})}
 /* Look through the song while paused: drag the chart sideways, use a trackpad or shift+wheel, or the slider.
    Dragging while it plays pauses first. Start then plays from the new spot. */
 function seekTo(t){if(G.lesson||!G.ready)return;if(G.playing)stopSing(true);
