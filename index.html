@@ -30,6 +30,7 @@
   --accent:#86A2F2; --gold:#D8A748; --good:#4CC38B; --warn:#E5A845; --bad:#EE6B62;
   --grid:#222737; --gridC:#3A4157; --lane:rgba(134,162,242,.16); color-scheme:dark}
 html,body{background:var(--bg);color:var(--ink)}
+[hidden]{display:none!important}
 body{font-family:var(--f-body);font-size:16px;line-height:1.5}
 .wrap{max-width:760px;margin:0 auto;padding-inline:16px;padding-block:20px 48px;display:flex;flex-direction:column;gap:18px}
 header h1{font-family:var(--f-display);font-weight:400;font-size:2rem;margin:0;letter-spacing:.02em;text-wrap:balance}
@@ -118,16 +119,27 @@ input[type=range]{width:100%;accent-color:var(--accent)}
     <div class="grid2">
       <div class="field"><label class="label" for="guideSrc">Guide melody</label>
         <select id="guideSrc">
+          <optgroup label="Chants">
+            <option value="song-trisagion">Trisagion: Holy God (Byzantine Tone 3)</option>
+            <option value="song-trisagion3">Trisagion: Holy God, three times</option>
+          </optgroup>
+          <optgroup label="Practice">
           <option value="ex-major">Warm-up: major scale on reference note</option>
           <option value="ex-minor">Warm-up: minor scale on reference note</option>
           <option value="ex-hold">Warm-up: long holds and a fifth</option>
           <option value="typed">My typed melody</option>
           <option value="rec">From a recording</option>
+          </optgroup>
         </select></div>
       <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
         <input type="range" id="speed" min="0.25" max="1" step="0.05" value="1">
         <div class="ticks"><span>¼</span><span>½</span><span>¾</span><span>full</span></div></div>
+      <div class="field"><label class="label" for="transpose">Key</label>
+        <select id="transpose"></select></div>
+      <div class="field"><span class="label">Guide tones</span>
+        <label class="check"><input type="checkbox" id="guideTones"> Play each note as it comes</label></div>
     </div>
+    <p class="status" id="songCredit" hidden></p>
     <div class="field" id="typedBox" hidden>
       <label class="label" for="typed">Notes (name and octave, then beats)</label>
       <textarea id="typed" rows="4" spellcheck="false"></textarea>
@@ -153,6 +165,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <button id="singRestart">Restart</button>
       <span class="status" id="singStatus">Bars are the notes to hit. Your line draws over them.</span>
     </div>
+    <p class="status" style="margin:0">With guide tones on, wear headphones so the mic hears only you.</p>
   </section>
 
   <section class="panel" aria-labelledby="t-ref">
@@ -198,8 +211,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 <script>
 (function(){
 const $=id=>document.getElementById(id);
-const NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
-const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false};
+const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
+const S={a4:440,thr:10,smooth:0.5,gate:0.005,ref:50,lane:false,shift:-12,tones:false};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
@@ -436,17 +449,33 @@ setPitchKeep(gAudio);
 const LETTERS={C:0,D:2,E:4,F:5,G:7,A:9,B:11};
 function parseNote(s){const r=/^([A-Ga-g])([#b♯♭]*)(-?\d)$/.exec(s);if(!r)return null;
   let n=LETTERS[r[1].toUpperCase()];for(const ch of r[2])n+=(ch==='#'||ch==='♯')?1:-1;return(+r[3]+1)*12+n}
-function parseTyped(text,bpm){
-  const beat=60/bpm,notes=[];let t=0;
-  const toks=text.replace(/,/g,' ').split(/\s+/).filter(Boolean);
-  for(const tok of toks){const [nm,b]=tok.split(':');const beats=b===undefined?1:parseFloat(b);
+/* Tokens are NOTE:BEATS or NOTE:BEATS:syllable. Syllables carry their own punctuation. */
+function parseTyped(text,bpm,shift){
+  const beat=60/bpm,notes=[];let t=0;shift=shift||0;
+  const toks=text.split(/\s+/).filter(Boolean);
+  for(const tok of toks){const parts=tok.split(':');const nm=parts[0].replace(/,$/,''),b=parts[1],w=parts.slice(2).join(':')||'';
+    const beats=b===undefined||b===''?1:parseFloat(b);
     if(!(beats>0))return{error:'Could not read the length in "'+tok+'". Use a number after the colon, like D4:2.'};
     if(/^r$/i.test(nm)){t+=beats*beat;continue}
     const m=parseNote(nm);if(m==null)return{error:'Could not read the note "'+nm+'". Write it like D4, F#3 or Bb4.'};
-    notes.push({t0:t,t1:t+beats*beat*0.97,m});t+=beats*beat}
+    notes.push({t0:t,t1:t+beats*beat*0.97,m:m+shift,w});t+=beats*beat}
   if(!notes.length)return{error:'Type at least one note, like D4:1.'};
   return{notes,dur:t};
 }
+/* Built-in chants. Melody (top voice) transcribed note for note from the Antiochian Archdiocese
+   setting 10-B: The Trisagion Hymn, Byzantine Tone 3, Prof. Michael Hilko, English by Michael G. Farrow. */
+const TRISAGION='A4:1:Ho- G4:1 F4:0.5 E4:0.5 D4:0.5 C4:0.5 D4:1 E4:1:ly F4:2:God, '+
+  'A4:1:Ho- G4:1 F4:1 F4:1:ly '+
+  'A4:1:Might- Bb4:1 C5:2:y, '+
+  'C5:2:Ho- D5:1:ly C5:1:Im- '+
+  'Bb4:0.5:mor- A4:0.5 G4:0.5 Bb4:0.5 A4:2:tal, '+
+  'Bb4:1:have G4:1 A4:0.5:mer- Bb4:0.5 A4:0.5 G4:0.5 '+
+  'F4:0.5:cy E4:0.5 D4:0.5:on E4:0.5 F4:2:us.';
+const SONGS={
+  'song-trisagion':{text:TRISAGION,bpm:100},
+  'song-trisagion3':{text:[TRISAGION,TRISAGION,TRISAGION].join(' R:2 '),bpm:100}
+};
+const SONG_CREDIT='Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow). Written in F major, starting on A.';
 function exercise(kind){
   const r=S.ref,beat=0.9,seq=[];
   if(kind==='ex-hold'){[[0,4],[null,1],[7,4],[null,1],[0,2],[2,2],[4,2],[2,2],[0,4]].forEach(x=>seq.push(x))}
@@ -471,16 +500,40 @@ function setGuide(g,useAudio){G.notes=g.notes;G.dur=g.dur;G.useAudio=!!useAudio;
   stopSing(true);drawSing();$('singStatus').textContent=G.ready?G.notes.length+' notes loaded. Tap Start.':'No notes found in that guide.'}
 function loadSource(){
   G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';
-  if(G.src.startsWith('ex-'))setGuide(exercise(G.src));
+  $('transpose').disabled=!(G.src.startsWith('song-')||G.src==='typed');
+  $('songCredit').hidden=!G.src.startsWith('song-');$('songCredit').textContent=SONG_CREDIT;
+  if(G.src.startsWith('song-')){const s=SONGS[G.src];setGuide(parseTyped(s.text,s.bpm,S.shift))}
+  else if(G.src.startsWith('ex-'))setGuide(exercise(G.src));
   else if(G.src==='typed')loadTyped();
   else if(G.src==='rec'){if(G.recGuide)setGuide(G.recGuide,true);else{G.ready=false;G.notes=[];drawSing();$('singStatus').textContent='Choose a recording of a cantor singing the chant.'}}
 }
-function loadTyped(){const res=parseTyped($('typed').value,Math.max(20,Math.min(240,+$('bpm').value||60)));
+function loadTyped(){const res=parseTyped($('typed').value,Math.max(20,Math.min(240,+$('bpm').value||60)),S.shift);
   try{localStorage.setItem('ison-typed',$('typed').value)}catch(e){}
   if(res.error){G.ready=false;G.notes=[];drawSing();$('singStatus').textContent=res.error;return}setGuide(res)}
 function targetAt(t){for(const n of G.notes){if(t>=n.t0&&t<n.t1)return n;if(n.t0>t)break}return null}
+/* Guide tones: one soft voice per note, started and released as the playhead crosses each bar,
+   so note lengths follow the speed slider automatically. */
+let tone=null;
+function toneOn(m,level){
+  ensureCtx();const f=m2f(m),now=ctx.currentTime,g=ctx.createGain();g.gain.setValueAtTime(0,now);
+  g.gain.linearRampToValueAtTime(level,now+0.03);g.gain.setTargetAtTime(level*0.75,now+0.08,0.25);
+  const o1=ctx.createOscillator(),o2=ctx.createOscillator(),g2=ctx.createGain();o1.type='sine';o2.type='triangle';g2.gain.value=0.35;
+  o1.frequency.value=f;o2.frequency.value=f;o1.connect(g);o2.connect(g2);g2.connect(g);g.connect(ctx.destination);o1.start(now);o2.start(now);
+  tone={o1,o2,g};
+}
+function toneOff(){if(!tone)return;const t=tone,now=ctx.currentTime;tone=null;
+  t.g.gain.cancelScheduledValues(now);t.g.gain.setValueAtTime(t.g.gain.value,now);t.g.gain.linearRampToValueAtTime(0,now+0.06);
+  try{t.o1.stop(now+0.08);t.o2.stop(now+0.08)}catch(e){}}
+function updateTone(){
+  let want=null,level=0.16;
+  if(G.playing&&S.tones){
+    if(G.pos<-0.5&&G.notes.length&&G.pos>-1.6){want=G.notes[0];level=0.1}
+    else want=targetAt(G.pos);
+  }
+  if(want!==G.toneNote){toneOff();G.toneNote=want;if(want)toneOn(want.m,level)}
+}
 async function startSing(){
-  if(!G.ready)return;
+  if(!G.ready)return;ensureCtx();
   if(G.pos>=G.dur){G.pos=G.useAudio?0:-2;G.trace=[]}
   if(G.useAudio){gAudio.muted=!$('guideSound').checked;gAudio.playbackRate=G.speed;setPitchKeep(gAudio);
     try{gAudio.currentTime=Math.max(0,G.pos)}catch(e){}
@@ -490,7 +543,7 @@ async function startSing(){
   if(!live)startLive();
   requestAnimationFrame(singFrame);
 }
-function stopSing(silent){G.playing=false;if(!gAudio.paused)gAudio.pause();$('singPlay').textContent='Start';if(!silent)drawSing()}
+function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();if(!gAudio.paused)gAudio.pause();$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();const pts=G.trace.filter(p=>p.m!=null);let on=0,tot=0;
   for(const p of pts){const n=targetAt(p.t);if(!n)continue;tot++;if(Math.abs(p.m-n.m)*100<=S.thr)on++}
   $('singStatus').textContent=tot?'Done. '+Math.round(on/tot*100)+'% of your singing was within ±'+S.thr+'¢ of the guide.':'Done. No singing was heard during the notes.'}
@@ -499,7 +552,7 @@ function singFrame(ts){
   if(G.useAudio){G.pos=gAudio.currentTime;if(gAudio.ended){finishSing();return}}
   else{const was=G.pos;G.pos+=dt*(G.pos<0?1:G.speed);if(was<0&&G.pos>=0)$('singStatus').textContent='Sing';}
   if(G.pos>G.dur+0.6){if(G.useAudio)gAudio.pause();finishSing();return}
-  drawSing();requestAnimationFrame(singFrame);
+  updateTone();drawSing();requestAnimationFrame(singFrame);
 }
 function drawSing(){
   const cv=$('sing'),w=cv.clientWidth||cv.parentElement.clientWidth,h=260,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);
@@ -512,7 +565,9 @@ function drawSing(){
   for(const n of G.notes){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);
     g.fillStyle=n===cur?c.gold:c.accent;g.globalAlpha=n===cur?0.9:(n.t1<G.pos?0.3:0.6);
     g.fillRect(x0,y-bh/2,Math.max(2,x1-x0),bh);g.globalAlpha=1;
-    if(x1-x0>34&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(nameOf(n.m),x0+4,y-bh/2-4)}}
+    if(x1-x0>26&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(nameOf(n.m),x0+3,y-bh/2-4)}
+    if(n.w){g.fillStyle=n===cur?c.gold:c.muted;g.font='600 14px '+getComputedStyle(document.body).fontFamily;
+      g.fillText(n.w,x0,Math.min(h-4,y+bh/2+16));g.font='600 12px '+getComputedStyle(document.body).getPropertyValue('--f-mono')}}
   g.lineWidth=3;g.lineCap='round';
   for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;
     const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);
@@ -522,11 +577,19 @@ function drawSing(){
   g.strokeStyle=c.gold;g.lineWidth=2;g.beginPath();g.moveTo(nowX,0);g.lineTo(nowX,h);g.stroke();
   if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
   if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
-  $('tgt').textContent=cur?nameOf(cur.m):(G.playing?'rest':'--');
+  let syl='';if(cur){for(const n of G.notes){if(n.t0>cur.t0)break;if(n.w)syl=n.w}}
+  if(cur){$('tgt').innerHTML='';$('tgt').append(nameOf(cur.m));if(syl){const s=document.createElement('small');s.textContent=syl.replace(/-$/,'');$('tgt').append(s)}}
+  else $('tgt').textContent=G.playing?'rest':'--';
   if(G.youM!=null&&G.playing){const cv2=cur?Math.round((G.youM-cur.m)*100):null;
     $('you').innerHTML=nameOf(G.youM)+(cv2!=null?'<small>'+(cv2>=0?'+':'')+cv2+'¢</small>':'')}else $('you').textContent='--';
 }
 $('guideSrc').onchange=loadSource;
+(function(){const t=$('transpose');for(let k=12;k>=-24;k--){const o=document.createElement('option');o.value=k;
+  o.textContent=k===0?'As written':k===-12?'One octave lower (men)':k===-24?'Two octaves lower':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');t.appendChild(o)}
+  t.value=String(S.shift)})();
+$('transpose').onchange=()=>{S.shift=+$('transpose').value;save();if(!G.playing)loadSource()};
+$('guideTones').checked=!!S.tones;
+$('guideTones').onchange=()=>{S.tones=$('guideTones').checked;save();if(!S.tones){toneOff();G.toneNote=null}};
 $('typedLoad').onclick=loadTyped;
 $('singPlay').onclick=()=>G.playing?stopSing():startSing();
 $('singRestart').onclick=()=>{stopSing(true);G.trace=[];G.pos=G.useAudio?0:-2;try{gAudio.currentTime=0}catch(e){}drawSing();$('singStatus').textContent='Ready. Tap Start.'};
@@ -536,7 +599,7 @@ $('guideFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;ensureC
   try{const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
     const an=await analyze(ab,$('singStatus'));G.recGuide={notes:notesFromPts(an.pts),dur:an.dur};gAudio.src=URL.createObjectURL(f);setGuide(G.recGuide,true)}
   catch(err){$('singStatus').textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
-try{$('typed').value=localStorage.getItem('ison-typed')||'D3:1 E3:1 F3:1 G3:1 A3:2 G3:1 F3:1 E3:1 D3:3'}catch(e){$('typed').value='D3:1 E3:1 F3:1 G3:1 A3:2 G3:1 F3:1 E3:1 D3:3'}
+try{$('typed').value=localStorage.getItem('ison-typed')||'D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}catch(e){$('typed').value='D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}
 
 /* Settings wiring */
 function smoothLabel(){$('smoothTxt').textContent=S.smooth<0.25?'Fast':S.smooth<0.65?'Balanced':'Smooth'}
