@@ -615,6 +615,7 @@ details.habit summary::-webkit-details-marker{display:none}
     <label class="check"><input type="checkbox" id="burstChk"> Gold bursts for good scores and passed lessons</label>
     <label class="check"><input type="checkbox" id="uiChk"> Interface motion (sliding tabs, pop-ins, count-ups)</label>
     <label class="check"><input type="checkbox" id="tipsChk"> Coach tips above the graph</label>
+    <label class="check"><input type="checkbox" id="awakeChk"> Keep the screen on while practicing (a sleeping screen pauses the microphone)</label>
     <div class="row"><button id="fxPreview">Preview the celebration</button><span class="status">If your phone has Reduce Motion turned on, all motion stays off.</span></div>
   </section>
   <section class="panel" aria-labelledby="t-set">
@@ -1302,7 +1303,7 @@ async function startLiveInner(){
   $('recBtn').disabled=typeof MediaRecorder==='undefined';
   requestAnimationFrame(loop);
 }
-function stopLive(){live=false;if(rec&&rec.state==='recording')rec.stop();
+function stopLive(){live=false;setTimeout(updateAwake,0);if(rec&&rec.state==='recording')rec.stop();
   if(stream)stream.getTracks().forEach(t=>t.stop());stream=null;
   try{if(liveCtx)liveCtx.close()}catch(e){}liveCtx=null;$('levelBar').style.width='0%';
   $('startBtn').textContent='Start listening';$('status').textContent='Microphone off';$('recBtn').disabled=true;showReadout(null)}
@@ -1730,12 +1731,12 @@ async function startSing(){
   if(G.useAudio){gAudio.muted=!$('guideSound').checked;gAudio.playbackRate=G.speed;setPitchKeep(gAudio);
     try{gAudio.currentTime=Math.max(0,G.pos)}catch(e){}
     try{await gAudio.play()}catch(e){$('singStatus').textContent='Tap Start again to begin playback.';return}}
-  G.playing=true;G.last=performance.now();
+  G.playing=true;G.last=performance.now();updateAwake();
   if(!G.lesson){$('singPlay').textContent='Pause';$('singStatus').textContent=G.useAudio?'Sing with the recording':'Get ready...'}
   if(!live)startLive();
   requestAnimationFrame(singFrame);
 }
-function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
+function stopSing(silent){G.playing=false;setTimeout(updateAwake,0);G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
   {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);if(v>0.3)recordHabits(analyzeHabits({notes:G.notes,tolA:Math.max(S.thr,25)},G.trace,G.speed));if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
   const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
@@ -2587,7 +2588,8 @@ async function renderSafety(){const el=$('safeStatus');if(!el)return;let prot=nu
   const last=store.get('ison-lastbackup',null);
   el.textContent=(prot?'This device is keeping your data permanently. ':prot===false?'This browser has not promised to keep your data, so backups matter. ':'')+
     (last?'Last backup: '+new Date(last).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})+' ('+daysAgo(last)+').':'No backup yet.')+
-    (standalone?'':' You are in a browser tab: the home-screen app keeps its own separate copy, so use one of them consistently.');
+    (standalone?'':' You are in a browser tab: the home-screen app keeps its own separate copy, so use one of them consistently.')+
+    (navigator.serviceWorker&&navigator.serviceWorker.controller?' Works offline: yes, the app opens even with no signal.':location.protocol==='https:'?' Works offline after this visit: open the app once more with internet to finish setting it up.':'');
   renderNag()}
 function daysAgo(t){const d=Math.floor((Date.now()-t)/864e5);return d<1?'today':d===1?'yesterday':d+' days ago'}
 function renderNag(){const n=$('backupNag');if(!n)return;const last=store.get('ison-lastbackup',null),snooze=store.get('ison-bksnooze',0);
@@ -3005,6 +3007,21 @@ function selMinH(){return Math.max(3,Math.min(10,selMin||5))}
 function startHabitDrill(u){if(L.active)return;store.set('ison-session',null);const P=prog('habits'),ls=habitTrack.units[u].lessons;let l=ls.findIndex((x,j)=>(P.les[u+'.'+j]||0)<LESSON_PASS);if(l<0)l=0;
   const items=buildSession(habitTrack,u,l,selMinH());startSessionWith(habitTrack,items,u,l,selMinH(),false);$('plStage').textContent='Fix-it drill · '+habitTrack.units[u].name}
 
+/* ================= Keep the screen awake =================
+   A locked or sleeping screen pauses the microphone, so during a session, a sing-along or the tuner
+   the app asks the phone to keep the screen on (Screen Wake Lock), and also plays a tiny silent,
+   invisible video, the long-standing way to stop iPhones (including Low Power Mode) from dimming.
+   Both stop as soon as you are done. */
+let wakeLock=null,nsVid=null;
+function needAwake(){return S.awake!==false&&(L.active||G.playing||live)&&document.visibilityState==='visible'}
+async function updateAwake(){const want=needAwake();
+  if(want){if(!wakeLock&&navigator.wakeLock){try{wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}catch(e){wakeLock=null}}
+    if(!nsVid){nsVid=document.createElement('video');nsVid.setAttribute('playsinline','');nsVid.setAttribute('muted','');nsVid.muted=true;nsVid.loop=true;nsVid.setAttribute('aria-hidden','true');
+      nsVid.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMsbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlZ0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHObWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeW1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATlzdGJsAAAAuXN0c2QAAAAAAAAAAQAAAKlhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAAL2F2Y0MBQsAK/+EAFmdCwArZHsBEAAADAAQAAAMACDxImSABAAZoy4BlEyAAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAAKRAAACkQAAAAYc3R0cwAAAAAAAAABAAAAAgAAQAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAgAAAAEAAAAcc3RzegAAAAAAAAAAAAAAAgAAAoYAAAALAAAAFHN0Y28AAAAAAAAAAQAAA1wAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMAAAAAhmcmVlAAACmW1kYXQAAAJyBgX//27cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTA4IDMxZTE5ZjkgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDIzIC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MyBkZWJsb2NrPTE6LTM6LTMgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTIuMDA6MC43MCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTQgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTUxLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjIwAIAAAAAMZYiEBnOcmKAAIeeAAAAAB0GaOAxnOoA=';nsVid.style.cssText='position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1';document.body.appendChild(nsVid)}
+    if(nsVid.paused)nsVid.play().catch(()=>{})}
+  else{if(wakeLock){try{await wakeLock.release()}catch(e){}wakeLock=null}if(nsVid&&!nsVid.paused)nsVid.pause()}}
+document.addEventListener('visibilitychange',()=>{updateAwake()});
+
 /* ---------- Practice home ---------- */
 function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
@@ -3093,7 +3110,7 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
-  protectStorage();L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
+  protectStorage();L.active=true;setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -3191,7 +3208,7 @@ function scoreItem(it,trace){
 /* End of session: each lesson whose exercises were all sung gets its average; complete at 70.
    A unit test passes at 90 and marks the unit mastered. */
 function finishSession(){
-  stopSing(true);clearInterval(L.timer);G.onFinish=null;L.active=false;store.set('ison-session',null);
+  stopSing(true);clearInterval(L.timer);G.onFinish=null;L.active=false;store.set('ison-session',null);updateAwake();
   const all=L.results.filter(Boolean),tr=L.track,P=prog(tr.id);let w=0,sum=0;const agg={acc:0,cov:0,steady:0,react:0};
   all.forEach(r=>{w+=r.dur;sum+=r.score*r.dur;for(const k in agg)agg[k]+=r[k]*r.dur});
   const score=w?Math.round(sum/w):0;for(const k in agg)agg[k]=w?agg[k]/w:0;const sung=Math.round(w);
@@ -3288,6 +3305,7 @@ $('findHome').onclick=async()=>{
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
 window.__tracks=()=>({foundTrack,songT,buildSession});window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
@@ -3317,6 +3335,7 @@ $('celebSel').value=S.celeb||'every';$('celebSel').onchange=()=>{S.celeb=$('cele
 $('burstChk').checked=S.burst!==false;$('burstChk').onchange=()=>{S.burst=$('burstChk').checked;save();if(S.burst)fxBurst($('burstChk'),false)};
 const applyMo=()=>document.documentElement.classList.toggle('nomo',S.uimo===false);applyMo();
 $('uiChk').checked=S.uimo!==false;$('uiChk').onchange=()=>{S.uimo=$('uiChk').checked;save();applyMo()};
+$('awakeChk').checked=S.awake!==false;$('awakeChk').onchange=()=>{S.awake=$('awakeChk').checked;save();updateAwake()};
 $('tipsChk').checked=S.tips!==false;$('tipsChk').onchange=()=>{S.tips=$('tipsChk').checked;save();if(!S.tips)$('coach').hidden=true};
 $('fxPreview').onclick=()=>{const c=S.celeb;if(c==='off'){S.celeb='every'}fiveStar(96);S.celeb=c};
 $('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw();if(G.src.startsWith('ex-')&&!G.playing)loadSource()};
