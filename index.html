@@ -208,6 +208,42 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
 #fxLayer{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;background:none;border-radius:0}
 @media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}}
 .bar .tr i{transition:width .9s var(--e-out)}
+/* coach tip: sits right above the graph, two short lines at most */
+.coach{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;align-items:baseline;padding:9px 12px;border-radius:10px;background:linear-gradient(90deg,rgba(214,166,79,.12),rgba(214,166,79,.03));border-left:3px solid var(--accent);font-size:.92rem;line-height:1.35;min-height:2.7em}
+.coach b{font-weight:700;color:var(--accent);font-size:.8rem;white-space:nowrap}
+.coach span{color:var(--ink);display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.coach.in{animation:coachIn .45s var(--e-out)}
+@keyframes coachIn{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
+/* five-star celebration */
+.fivestar{position:fixed;inset:0;z-index:60;pointer-events:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.fivestar::before{content:"";position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 50% 50%,rgba(11,10,16,.82) 0%,rgba(11,10,16,.55) 35%,rgba(11,10,16,0) 70%);animation:veil 1.5s var(--e-out) forwards}
+@keyframes veil{0%{opacity:0}15%{opacity:1}70%{opacity:1}100%{opacity:0}}
+.fsrow{display:flex;gap:min(3vw,16px)}
+.fsrow span{font-size:min(15vw,72px);line-height:1;color:#FFD978;text-shadow:0 0 18px rgba(255,200,90,.9),0 0 46px rgba(214,166,79,.6);opacity:0;animation:starDrop .62s cubic-bezier(.2,1.5,.4,1) forwards}
+.fsnum{font-family:var(--f-display);font-weight:400;font-size:min(12vw,56px);color:var(--spark);text-shadow:0 0 22px rgba(255,200,90,.8);opacity:0;animation:numIn .5s .35s var(--e-out) forwards}
+@keyframes starDrop{0%{opacity:0;transform:translateY(-55vh) rotate(-40deg) scale(.6)}60%{opacity:1}100%{opacity:1;transform:none}}
+@keyframes numIn{from{opacity:0;transform:scale(.6)}to{opacity:1;transform:none}}
+.fivestar.boom .fsrow span{animation:starBoom .55s var(--e-out) forwards}
+.fivestar.boom .fsnum{animation:starBoom .7s .1s var(--e-out) forwards}
+@keyframes starBoom{0%{opacity:1;transform:scale(1)}40%{opacity:1;transform:scale(1.35)}100%{opacity:0;transform:scale(1.9)}}
+html.nomo *,html.nomo *::before,html.nomo *::after{animation:none!important;transition:none!important}
+html.nomo .fivestar{display:none}
+html.nomo .stars i{opacity:1}
+.fxgrid{display:grid;gap:12px}
+.rank{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:center}
+.rankseal{width:58px;height:58px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 30%,#F3D48E,#B98429 72%);box-shadow:0 0 18px var(--glow);border:2px solid #F0CF83}
+.rankseal b{font-family:var(--f-display);font-weight:400;font-size:1.55rem;color:var(--accentInk)}
+.rankinfo{display:grid;gap:5px;min-width:0}
+.rankhead{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap}
+.rankhead span:first-child{font-family:var(--f-display);font-size:1.15rem}
+.rankhead span:last-child{font-size:.82rem;color:var(--muted)}
+.rankbar,.ubar{height:8px;border-radius:4px;background:rgba(0,0,0,.35);overflow:hidden;border:1px solid var(--line)}
+.rankbar i,.ubar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#B98429,var(--gold));border-radius:4px;transition:width 1s var(--e-out)}
+.utime{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+.ubar{height:6px}
+.ubar i.met{background:linear-gradient(90deg,var(--good),#9BE3BD)}
+.fssub{font-family:var(--f-display);font-size:min(6vw,26px);color:var(--ink);opacity:0;animation:numIn .5s .5s var(--e-out) forwards;text-shadow:0 0 14px rgba(0,0,0,.8)}
+.fivestar.boom .fssub{animation:starBoom .8s .15s var(--e-out) forwards}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -231,9 +267,14 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
 
   <section class="panel hero" aria-labelledby="t-today">
     <div class="row" style="justify-content:space-between"><h2 id="t-today">Foundations</h2><span class="tag" id="heroStage"></span></div>
+    <div class="rank" aria-label="Rank">
+      <div class="rankseal"><b id="rankNum">1</b></div>
+      <div class="rankinfo"><div class="rankhead"><span id="rankTitle">Candle lighter</span><span id="rankNext"></span></div>
+        <div class="rankbar"><i id="rankBar"></i></div><span class="status" id="rankTotal"></span></div>
+    </div>
     <div class="kpis">
       <div class="kpi"><span>Day streak</span><b id="kStreak">0</b></div>
-      <div class="kpi"><span>Minutes sung</span><b id="kMin">0</b></div>
+      <div class="kpi"><span>Practice time</span><b id="kMin">0</b></div>
       <div class="kpi"><span id="kPassedLbl">Stages done</span><b id="kPassed">0</b></div>
     </div>
     <div id="songSummary" hidden>
@@ -243,6 +284,7 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
     <div class="map" id="map" role="list" aria-label="Stages"></div>
     <div class="stageinfo"><h3 id="stTitle"></h3><p id="stDesc"></p></div>
     <div class="unitbar"><span id="unitProg"></span><span id="unitTest"></span></div>
+    <div class="utime"><div class="ubar"><i id="unitTimeBar"></i></div><span id="unitTimeTxt"></span></div>
     <ol class="lessons" id="lessons" aria-label="Lessons in this unit"></ol>
     <p class="status" id="stGoal" style="margin:0"></p>
   </section>
@@ -289,13 +331,14 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
     <button class="big" id="startTest">Take the unit test</button>
     <button class="big" id="resumeSession" hidden>Resume saved session</button>
     <label class="check"><input type="checkbox" id="lessonTones"> Also play the notes while I sing (wear headphones)</label>
-    <p class="status" style="margin:0">A session works through lessons in order from the one you pick. Sessions of 10 minutes or more open with a gentle straw or lip-trill warm-up, and 15 minutes or more end with a cool-down. Older lessons come back as review, weakest first. If the unit runs out before your time does, you get extra practice on its weakest lessons. A lesson is complete at 70 or better. Each unit ends with a test that touches every lesson's hardest exercise: score 90 to master the unit. Exercises with an ison or a second voice work best with headphones. Everything stays open, so you can go back or jump ahead.</p>
+    <p class="status" style="margin:0">A session works through lessons in order from the one you pick. Sessions of 10 minutes or more open with a gentle straw or lip-trill warm-up, and 15 minutes or more end with a cool-down. Older lessons come back as review, weakest first. If the unit runs out before your time does, you get extra practice on its weakest lessons. A lesson is complete at 70 or better. Each unit ends with a test that touches every lesson's hardest exercise: score 90 to master the unit. Each unit also has a practice-time goal based on about 20 minutes a day, 5 days a week; up to 40 minutes a day count toward goals and your rank, because spreading practice out works better than cramming. Exercises with an ison or a second voice work best with headphones. Everything stays open, so you can go back or jump ahead.</p>
   </section>
 
   <section class="panel player" id="player" hidden aria-labelledby="exTitle">
     <div class="row" style="justify-content:space-between"><span class="tag" id="plStage"></span><span class="status" id="plCount"></span></div>
     <div class="segs" id="segs"></div>
     <div class="excard"><h3 id="exTitle">Exercise</h3><span class="phase" id="exPhase">Listen</span><p id="exHow"></p></div>
+    <div class="coach" id="coach" hidden><b id="coachTag">Tip</b><span id="coachTxt"></span></div>
     <canvas id="lsCanvas" height="280" aria-label="Notes to sing, scrolling toward the now line, with your voice drawn over them"></canvas>
     <div class="duo">
       <div><span class="label">Sing this</span><b id="lsTgt">--</b></div>
@@ -500,6 +543,19 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
   </section>
   </div>
   <div class="view" id="v-settings" hidden>
+  <section class="panel" aria-labelledby="t-fx">
+    <h2 id="t-fx">Coach and animations</h2>
+    <div class="grid2">
+      <div class="field"><label class="label" for="fxSel">Sparks and glow on the graph</label><select id="fxSel"><option value="full">Full</option><option value="subtle">Subtle</option><option value="off">Off</option></select>
+        <span class="status">Gold sparks fly from your line while you're on the note.</span></div>
+      <div class="field"><label class="label" for="celebSel">Five-star celebration</label><select id="celebSel"><option value="every">Every score of 90 or more</option><option value="milestones">Only on streaks of 90s</option><option value="off">Off</option></select>
+        <span class="status">Stars drop in and burst across the screen.</span></div>
+    </div>
+    <label class="check"><input type="checkbox" id="burstChk"> Gold bursts for good scores and passed lessons</label>
+    <label class="check"><input type="checkbox" id="uiChk"> Interface motion (sliding tabs, pop-ins, count-ups)</label>
+    <label class="check"><input type="checkbox" id="tipsChk"> Coach tips above the graph</label>
+    <div class="row"><button id="fxPreview">Preview the celebration</button><span class="status">If your phone has Reduce Motion turned on, all motion stays off.</span></div>
+  </section>
   <section class="panel" aria-labelledby="t-set">
     <h2 id="t-set">Settings</h2>
     <div class="grid2">
@@ -507,7 +563,6 @@ details.opts>.grid2,details.opts>.row{margin-top:10px}
       <div class="field"><label class="label" for="thr">Tolerance</label>
         <select id="thr"><option value="25">±25 cents</option><option value="10" selected>±10 cents</option><option value="5">±5 cents</option><option value="2">±2 cents</option><option value="1">±1 cent</option></select></div>
       <div class="field"><label class="label" for="smooth">Response speed</label><input type="range" id="smooth" min="0" max="0.9" step="0.05" value="0.5"><span class="status" id="smoothTxt">Balanced</span></div>
-      <div class="field"><label class="label" for="fxSel">Effects</label><select id="fxSel"><option value="full">Full: sparks, glow and celebrations</option><option value="subtle">Subtle</option><option value="off">Off</option></select><span class="status">Gold sparks fly from your line while you are on the note. Off is calmer and saves battery.</span></div>
       <div class="field"><label class="label" for="gate">Noise filter</label><input type="range" id="gate" min="1.3" max="6" step="0.1" value="2"><span class="status">Adjusts to the room on its own. Slide right only if background noise shows up as notes</span></div>
     </div>
   </section>
@@ -584,6 +639,9 @@ function drawPath(g,pts,xOf,yOf,c,t0,t1){
    and a note finished well gives off a ring of gold tesserae. Passing a lesson or test scatters gold
    over the results. Strength follows Settings > Effects; reduced motion turns it all off. */
 const FX={};
+function reducedMotion(){try{return matchMedia('(prefers-reduced-motion: reduce)').matches}catch(e){return false}}
+function uiMotion(){return S.uimo!==false&&!reducedMotion()}
+function burstOK(){return S.burst!==false&&!reducedMotion()}
 function fxLevel(){if(S.fx==='off')return 0;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return 0}catch(e){}return S.fx==='subtle'?0.5:1}
 function fxState(id){return FX[id]||(FX[id]={p:[],rings:[],lock:0,last:0,done:new Set(),lastPos:0})}
 function fxDt(st){const now=performance.now(),dt=st.last?Math.min(0.05,(now-st.last)/1000):0.016;st.last=now;return dt}
@@ -615,7 +673,7 @@ function fxTip(st,g,x,y,on,tight,dt,drift){const lv=fxLevel();
   fxEmit(st,x,y,n,{dir:Math.PI*1.08,spread:1.5,sp:130+90*L,lift:40,drift:drift,life:0.5,w:1.3+0.6*L})}
 /* overlay layer for celebrations over the page */
 const fxLayer={st:{p:[],rings:[],last:0},run:false};
-function fxBurst(el,big){const lv=fxLevel();if(!lv||!el)return;const cv=$('fxLayer'),r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,st=fxLayer.st;
+function fxBurst(el,big){const lv=burstOK()?1:0;if(!lv||!el)return;const cv=$('fxLayer'),r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,st=fxLayer.st;
   const n=Math.round((big?110:46)*lv);fxEmit(st,x,y,n,{dir:-Math.PI/2,spread:Math.PI*1.7,sp:big?420:300,lift:big?160:110,life:big?1.6:1.1,kind:'tess',w:big?3:2.4,grav:520});
   fxEmit(st,x,y,Math.round(n*0.6),{dir:-Math.PI/2,spread:Math.PI*2,sp:260,lift:60,life:0.7,w:1.6});
   st.rings.push({x,y,life:0,dur:0.8,r0:20,r1:big?120:70});if(big)st.rings.push({x,y,life:-0.15,dur:0.9,r0:30,r1:170});
@@ -624,9 +682,520 @@ function fxLayerFrame(){const cv=$('fxLayer'),st=fxLayer.st,dpr=window.devicePix
   if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
   const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);fxStep(st,g,fxDt(st));
   if(st.p.length||st.rings.length)requestAnimationFrame(fxLayerFrame);else{fxLayer.run=false;g.clearRect(0,0,W,H)}}
+/* Five stars drop in, land in a row, and burst into gold. Quick, full screen, never blocks a tap. */
+function fiveStar(score){if(S.celeb==='off'||reducedMotion())return;
+  const old=document.querySelector('.fivestar');if(old)old.remove();
+  const wrap=document.createElement('div');wrap.className='fivestar';wrap.setAttribute('aria-hidden','true');
+  const row=document.createElement('div');row.className='fsrow';for(let i=0;i<5;i++){const st=document.createElement('span');st.textContent='★';st.style.animationDelay=(i*0.07)+'s';row.appendChild(st)}
+  const num=document.createElement('b');num.className='fsnum';num.textContent=String(score);if(typeof score==='string'){const t=document.createElement('small');t.className='fssub';t.textContent=rankTitle(+score.replace(/\D/g,''));wrap.append(row,num,t);}if(!wrap.children.length)wrap.append(row,num);document.body.appendChild(wrap);
+  setTimeout(()=>{{[...row.children].forEach((st,i)=>setTimeout(()=>{const lv=1,r=st.getBoundingClientRect(),stt=fxLayer.st;
+      fxEmit(stt,r.left+r.width/2,r.top+r.height/2,26,{dir:-Math.PI/2,spread:Math.PI*2,sp:340,lift:120,life:1.1,kind:'tess',w:2.6,grav:560});
+      fxEmit(stt,r.left+r.width/2,r.top+r.height/2,14,{dir:-Math.PI/2,spread:Math.PI*2,sp:260,lift:40,life:0.6,w:1.8});
+      stt.rings.push({x:r.left+r.width/2,y:r.top+r.height/2,life:0,dur:0.6,r0:10,r1:60});
+      if(!fxLayer.run){fxLayer.run=true;stt.last=0;requestAnimationFrame(fxLayerFrame)}},i*45))}
+    wrap.classList.add('boom')},640);
+  setTimeout(()=>wrap.remove(),1500)}
 /* count a number up, for scores */
-function countUp(el,to,ms){if(!fxLevel()){el.textContent=String(to);return}const t0=performance.now();
+function countUp(el,to,ms){if(!uiMotion()){el.textContent=String(to);return}const t0=performance.now();
   (function step(now){const k=Math.min(1,(now-t0)/ms),e=1-Math.pow(1-k,3);el.textContent=String(Math.round(to*e));if(k<1)requestAnimationFrame(step)})(t0)}
+
+/* ================= The coach =================
+   A short tip above the graph for every exercise, chosen from what that exercise trains, what you
+   just did (sharp, flat, wobbly, late, quiet) and a pool of general practice and voice-care advice.
+   Tips rotate without repeating until a category is used up, across sessions. Sources: voice-teacher
+   practice (breath, onset, vowels, registers), choir and cantor guidance (diction, blend, legato,
+   speech-like pace), voice-care guidance from speech pathologists, singing-accuracy data (most misses
+   are flat, rising lines and top notes go flat, misses come in streaks), and Byzantine chant practice
+   (ison, parallage, psalmody, tones). Each tip is short enough to read at a glance. */
+const TIPS={
+general:[
+ 'Short and often beats long and rare. Ten focused minutes a day builds more than an hour once a week.',
+ 'Your first exercise of a session usually scores lowest. That is the cold start, not you.',
+ 'Repeating an exercise later in a session tends to score higher than the first try. Come back to it.',
+ 'Missed one? Reset before the next try: breathe out, relax your shoulders, start fresh.',
+ 'Misses come in streaks. One flat note makes the next more likely, so pause and re-center after a miss.',
+ 'Think the note before you sing it. Hearing it inside first is half of hitting it.',
+ 'Aim for the center of the note, not its edge. The middle of the gold bar is the target.',
+ 'Sing at a comfortable volume. Louder does not mean more in tune, and often means less.',
+ 'Practice just past what is easy. If everything scores 100, raise the challenge.',
+ 'Judge your first attempt, not your fifth. First tries show what you have truly learned.',
+ 'Listen to your best attempt and ask what was different. Do that again on purpose.',
+ 'Mistakes are information. Notice which way you missed, then adjust.',
+ 'Keep your face relaxed and alive. A frown or clenched jaw tightens the throat too.',
+ 'Your voice is a muscle system. Progress is gradual, then suddenly obvious.',
+ 'Slow is smooth and smooth is fast. Speed comes after accuracy.',
+ 'If you feel strain, stop, sip water, and try softer. Singing should never hurt.',
+ 'Record yourself now and then. Your ear inside your head is not what others hear.',
+ 'Practice where you can hear yourself well. Very echoey or very muffled rooms fool your ear.',
+ 'Pick one thing to fix per try. Fixing three things at once fixes none.',
+ 'Consistency builds the voice. A short daily habit changes more than any single trick.'],
+health:[
+ 'Sip water through the day. Hydration builds over hours, not minutes before you sing.',
+ 'Dry room? Breathing steam or using a humidifier helps the vocal folds more than any tea.',
+ 'Honey, lemon and gargles do not reach the vocal folds. Water and rest do.',
+ 'Constant throat clearing irritates the folds. Swallow or sip water instead.',
+ 'Hoarse or tired? Rest your voice. Pushing through vocal fatigue makes it last longer.',
+ 'Avoid shouting before practice. Your folds need to be fresh to learn fine control.',
+ 'Pain is a stop sign. If singing hurts, stop and rest. See a doctor if it lasts.',
+ 'Late heavy meals can bring reflux. Leave a couple of hours before lying down.',
+ 'Sleep is vocal rest. A tired body makes a wobbly, flat voice.',
+ 'Warm up gently before hard work, and cool down with soft hums after.',
+ 'Losing your soft high notes or range? That is an early fatigue sign. Rest a day.',
+ 'Whispering is not vocal rest. It can strain more than quiet speech.'],
+breath:[
+ 'Breathe low: let your belly and lower ribs widen. Shoulders stay still.',
+ 'Inhale through the nose when there is time. It is quieter and keeps the throat relaxed.',
+ 'Let the ribs stay open as you sing. Don\'t force them, just allow them to stay wide.',
+ 'Breathe before you need to. Running out of air makes the end of the note go flat.',
+ 'Silent breaths are relaxed breaths. A gasping inhale means a tight throat.',
+ 'Use the air evenly. A big burst at the start leaves nothing for the end.',
+ 'Imagine the breath as a steady thread, not a puff.',
+ 'Stand tall but loose: ears over shoulders, shoulders over hips.',
+ 'Breath sagging mid-phrase drags pitch down. Keep the support steady to the last note.',
+ 'Exhale fully before a big breath. Old air out makes room for new.',
+ 'Too much air is as bad as too little. Push less and the tone gets clearer.',
+ 'Practice a slow hiss for 15 seconds. The steady release is the same skill as singing.',
+ 'After the note, let the breath fall back in. Don\'t gulp.',
+ 'Hand on your belly: it should move out as you breathe in, then slowly in as you sing.'],
+onset:[
+ 'Start the note like the gentle start of "ahem" without the hard click. Clean, not breathy.',
+ 'Aim to begin right on pitch. Sliding up into a note is called scooping.',
+ 'A tiny "h" before the vowel softens a harsh start. Use it as training wheels.',
+ 'If the start clicks or pops, think "easier", not "louder".',
+ 'Breath and sound start together. Air first is breathy, sound first is pressed.',
+ 'Picture the note already sounding, then join it.',
+ 'Every new start is a chance to land dead center. Treat each one as a target.'],
+sovt:[
+ 'Straw singing makes the folds vibrate more easily with less effort. It is the gentlest warm-up.',
+ 'Use a thin straw for more resistance, a wider one for less.',
+ 'Lip trills should tickle. If they stall, press lightly on your cheeks with your fingers.',
+ 'Humming with lips closed and teeth apart buzzes the front of the face. That buzz is good.',
+ 'Slide around with a straw or lip trill. It eases register breaks without forcing.',
+ 'Bubbling through a straw into a cup of water is a fun variation. Keep it gentle.',
+ 'Five minutes of straw work before singing is a well-tested warm-up and cool-down.'],
+match:[
+ 'Hear it, think it, then sing it. Let the note settle in your ear for a beat.',
+ 'The miss is usually a gap between hearing and doing, not a bad ear. Practice closes it.',
+ 'If you are not sure, start a little higher. Most misses are flat.',
+ 'Missed? Match it first with a hum, then open to "ah".',
+ 'Notes far from your speaking pitch are harder. Practicing a wide range improves matching.',
+ 'Try humming the note quietly before the sung pass. Low effort makes matching easier.',
+ 'Imagine the note coming toward you, not you reaching for it.',
+ 'Use the gold bar as a check, not a crutch. Listen first, then glance.',
+ 'If you land off, slide gently to the center and remember how it felt there.',
+ 'Match the pitch, not the timbre. Your voice will not sound like the tone, and that is fine.',
+ 'High notes that feel unreachable often just need less weight, not more push.',
+ 'Speak the note on "hey" at that pitch, then sing it. Speech can be a bridge to song.'],
+sustain:[
+ 'Hold the line flat to the very end. Endings sag when breath gets lazy.',
+ 'Steady air, steady pitch. Think of pouring water at the same speed.',
+ 'A slow wobble often comes from tension. Relax the jaw and let the tongue lie flat.',
+ 'Keep the vowel the same from start to finish. Changing vowel shifts pitch.',
+ 'Bright "ee" tends to creep sharp. Dark "oo" can sag flat. Watch the line.',
+ 'Long notes in chant are usually sung straight, with little or no vibrato.',
+ 'Finish the note on purpose. Release it, don\'t let it die.',
+ 'Lean on the breath, not the throat. The throat stays open and quiet.',
+ 'Watch the last second. That is where most held notes drift.',
+ 'If you run short, don\'t squeeze. Take the breath sooner next time.',
+ 'Loudness changes can pull pitch. Keep volume steady unless the exercise asks for a swell.'],
+vowels:[
+ 'Pure vowels: keep the tongue tip touching the back of the lower front teeth.',
+ 'Shape vowels with the middle of the tongue and the lips, not the jaw.',
+ 'On a diphthong like "day", hold the first vowel and add the second only at the very end.',
+ 'Darken a vowel with more space inside the mouth, not by pushing the tongue down.',
+ 'Brighten a vowel by bringing the sound forward, as if it starts behind your front teeth.',
+ '"ee" and "oo" pull you lighter. Drop the jaw slightly to keep them full.',
+ 'Polish the vowel on a single note before adding words.',
+ 'Unified vowels are what make a choir or chant group sound like one voice.',
+ 'Changing vowel shape changes pitch slightly. Keep checking the line as you change.',
+ 'Open vowels like "ah" are easiest for long holds. Start there.'],
+dynamics:[
+ 'A swell (messa di voce) trains breath control. Grow and shrink, but keep the pitch still.',
+ 'Louder usually pulls sharp. Softer usually sags flat. Fight both.',
+ 'Sing high notes softer, not louder. Force makes the top go flat and strained.',
+ 'Get softer on a falling line without letting the pitch sink.',
+ 'Volume comes from breath and resonance, not from squeezing the throat.',
+ 'A soft note still needs full support. Quiet is not lazy.',
+ 'Lead a congregation, don\'t overpower it. Strong but not shouted is the cantor sound.',
+ 'Practice crescendos on easy notes first, then on higher ones.'],
+steps:[
+ 'Steps are the backbone of chant. Most melodies move by the next note over.',
+ 'Half steps are tiny. Aim smaller than you think.',
+ 'Whole step up? Think up, but not far. It is a short, sure move.',
+ 'Move cleanly from note to note. No slide, no gap.',
+ 'Going up, aim slightly higher. Rising lines are where most flat misses happen.',
+ 'Going down, keep the energy up so the lower note does not sink flat.',
+ 'Feel the difference between a whole and half step. The half step has more pull.',
+ 'Connect steps legato: one smooth line of sound, not separate bumps.',
+ 'Quick steps: lighten the voice. Heavy voices are slow voices.'],
+scale:[
+ 'Do re mi: say the names in your head as you sing. They anchor each note.',
+ 'Mi to fa and ti to do are the half steps. Keep them small.',
+ 'Each note in the scale has a feeling. Sol is strong, ti leans to do.',
+ 'Keep the same vowel through the whole scale for a smooth line.',
+ 'Going up the scale, lighten. Going down, add warmth but keep pitch up.',
+ 'The top note is not a summit to push. Float it.',
+ 'Moveable do means do is wherever home is. The relationships stay the same.',
+ 'Rising keys stretch your range a little at a time. Stop before strain.'],
+glide:[
+ 'Glides are only scored at the landings. Enjoy the slide, then lock the target.',
+ 'Siren like a slow fire siren. Smooth, quiet and easy.',
+ 'A lip trill siren is the safest way to cross register breaks.',
+ 'Land and hold still. No bounce after you arrive.',
+ 'Direct jumps and glides are both skills. Chant uses glides sparingly and tastefully.',
+ 'Swooping into every note is a habit, not a style. Use glides on purpose.',
+ 'Gliding down? Keep the support so you do not fall past the target.'],
+leaps:[
+ 'Picture the top note before you leap. Your ear leads, your voice follows.',
+ 'Major second: the step up from "py" to "birth" in Happy Birthday.',
+ 'Minor third: the first two notes of Greensleeves.',
+ 'Major third: the opening leap of When the Saints Go Marching In.',
+ 'Perfect fourth: the opening of Here Comes the Bride.',
+ 'Perfect fifth: the leap in the opening of Twinkle Twinkle Little Star.',
+ 'Octave: the first two notes of Somewhere Over the Rainbow.',
+ 'After a leap, melodies usually step back the other way. Expect it.',
+ 'Big leaps up go flat. Aim for the top of the target bar.',
+ 'Don\'t reach up with your chin for high notes. Keep the head level.',
+ 'Fourths and fifths sound open and still. Thirds sound warm.',
+ 'Leaps down are easier to overshoot. Land lightly.',
+ 'Sol-mi, the falling minor third, is the first interval children learn. It is natural to sing.'],
+range:[
+ 'High notes: less weight, less volume, more space. Never push.',
+ 'Low notes: relax and let them be quieter. Don\'t press down with your chin.',
+ 'Above your comfortable top, notes go flat. Practice there gently and quietly.',
+ 'Below your comfortable bottom, notes tend to go sharp. Let the jaw drop and relax.',
+ 'Range grows slowly with gentle repetition, not by straining once.',
+ 'Near your break, decide early: lighten or stay heavy. Indecision causes cracks.',
+ 'If lightening upward is hard, start high and lightly, then come down and add weight.',
+ 'An "oo" or "ee" helps the voice lighten up high. "ah" helps it stay full low.',
+ 'Cracks are normal while learning. They mean you are working at the edge.',
+ 'If your throat feels like it is squeezing a high note, back off. Tension never helps pitch.'],
+modes:[
+ 'Minor has a lowered third. It sounds darker because of one half step.',
+ 'Dorian is minor with a raised sixth. Many first-tone chants have this color.',
+ 'Phrygian starts with a half step. You hear it in many fourth-tone chants.',
+ 'The step and a half (augmented second) is the sound of the chromatic tones.',
+ 'Sing the base note first. Every mode makes sense from its home.',
+ 'Notice where the half steps are. They define each mode.',
+ 'Chant modes are not just scales. They come with typical phrases and endings.',
+ 'Compare major and minor on the same home. One note changes the whole mood.'],
+rhythm:[
+ 'Feel the beat in your body. Tap a finger quietly if it helps.',
+ 'Rests are part of the music. Stop cleanly and come back exactly on time.',
+ 'Short notes still need full pitch. Don\'t throw them away.',
+ 'Long-short (dotted) rhythms lilt. Keep the short one light.',
+ 'Two notes in a beat: chant notation marks this with the gorgon.',
+ 'Three notes in a beat is the digorgon. Keep them even.',
+ 'In chant, rhythm follows the text. Let the words set the pace.',
+ 'Slow first, then faster. Speed only after the pattern is clean.',
+ 'Speech-like pace is the goal in psalmody: not rushed, not dragged.'],
+agility:[
+ 'Practice quick figures slowly first, then raise the speed in small steps.',
+ 'Lighten the voice for fast notes. Heavy tone cannot move quickly.',
+ 'Sing runs on a narrow vowel like "oo" first, then return to the real vowel.',
+ 'Mark the turns: places where direction changes are where runs fall apart.',
+ 'Split a long run into chunks of three or four notes, then join them.',
+ 'A melisma is many notes on one vowel. Keep the vowel shape steady.',
+ 'Practice a little faster than comfortable sometimes. It stretches agility.',
+ 'Clarity over speed. Every note should be a real pitch.',
+ 'Kratema syllables like "te-ri-rem" keep fast notes crisp.'],
+audiation:[
+ 'In the silent gap, keep hearing the note. Don\'t let it fade.',
+ 'Hum silently in your head, with your mouth closed and still.',
+ 'Audiation means hearing music that is not sounding. It is how cantors start hymns alone.',
+ 'If the note fades in the silence, try imagining its color or vowel.',
+ 'Think the whole shape before you sing the first note.',
+ 'Inner hearing grows with practice, like reading silently.'],
+memory:[
+ 'From memory: the guide hides while you sing, then you see how you did.',
+ 'Trust your ear. You have heard this enough times to know it.',
+ 'Sing it in your head once before the sung pass.',
+ 'Mistakes from memory show what to review. That is the point.',
+ 'Learn the ending well. A strong finish carries you through.',
+ 'Remember the shape: where it rises, where it falls, where it rests.',
+ 'Hidden guides build the skill you need when there is no app in church.',
+ 'Missed a note from memory? Check the reveal and sing that spot twice next time.'],
+diction:[
+ 'Sing on the vowels. Consonants are quick and crisp, then get out of the way.',
+ 'Don\'t over-pronounce the "r". A light tap is enough.',
+ 'Hold the first vowel of a diphthong. "Lord" stays "aw" until the end.',
+ 'The words must be understood. That is the first rule of liturgical singing.',
+ 'Voiced consonants (m, n, l, v, z) carry pitch. Keep them on the note.',
+ 'Final consonants arrive on time, together, and softly.',
+ 'Keep the jaw loose. Clear words come from the tongue and lips.',
+ 'Read the text aloud in rhythm before you chant it.',
+ 'Say the text, then chant it on one note, then add the melody.'],
+endurance:[
+ 'Long phrases: breathe low and early, then spend the air evenly.',
+ 'Plan your breaths. Mark where you will breathe before you start.',
+ 'A quick catch breath can be silent and low. Practice it.',
+ 'If you run out, the last note goes flat. Breathe one phrase sooner.',
+ 'Pace your energy. A service is a marathon, not a sprint.',
+ 'Relax between phrases. Tension builds up across a long piece.',
+ 'Keep the last note of the phrase as strong as the first.'],
+ison:[
+ 'Listen for the slow wobble (beats) against the ison. No wobble means you are in tune.',
+ 'The fifth over the ison should ring and lock. You will feel it click.',
+ 'Major thirds over a drone sound sweetest a little lower than a piano plays them.',
+ 'Let the ison be your map. Every note has its own color against it.',
+ 'Use headphones for ison exercises so the mic hears only you.',
+ 'If the ison seems to pull you down, aim slightly higher than you think.',
+ 'Melodies can dip below the ison. Don\'t let it drag you there for long.',
+ 'The ison is the base note of the current phrase, not always the final note of the hymn.'],
+isonhold:[
+ 'You are the ison now. Hold steady and don\'t follow the melody.',
+ 'The ison supports the melody. Sing it quieter than the cantor.',
+ 'Breathe through your nose quickly and come back in on the same pitch.',
+ 'In a group, isokrates stagger their breaths so the ison never stops.',
+ 'When the melody drops below you, step down with it, then return.',
+ 'When the melody moves to a new group of notes, the ison moves to its base.',
+ 'Some teachers say: sing the words on the ison pitch at first to learn the rhythm.',
+ 'A good ison takes a remarkable ear. It is not the easy part.',
+ 'Keep the ison alive with a gentle pulse of breath, not a frozen tone.',
+ 'Follow the vowels of the text on the ison, but not the consonants.'],
+unison:[
+ 'Blend: match the other voice\'s pitch, vowel and volume until it sounds like one.',
+ 'If you can hear yourself sticking out, sing a little softer and listen more.',
+ 'Unison is listening first, singing second.',
+ 'Match the vowel shape of the leader. Vowel differences sound like pitch differences.',
+ 'Start exactly together. Watch the bar and breathe with the beat before it.',
+ 'Choirs learn by singing with a leader, then alone. That is where this unit goes.',
+ 'Headphones help: the mic then hears only you.'],
+parallage:[
+ 'Parallage is chant solfege: Ni Pa Vou Ga Di Ke Zo Ni.',
+ 'Teachers suggest singing a new piece on note names many times before adding words.',
+ 'Say the names in rhythm first, then sing them.',
+ 'Ni to Ni is the full octave. Ga and Di are strong pillars in many tones.',
+ 'Learn the names by how they feel, not just their order.',
+ 'Parallage lets you read and remember any melody, not just this one.',
+ 'Pa Vou Ga Di is the first-tone tetrachord. Learn it cold.'],
+psalmody:[
+ 'Psalms are read on one reciting note. Keep every syllable on pitch.',
+ 'Even syllables, speech-like pace: not rushed, not dragged.',
+ 'The cadence comes at the end of the line. Don\'t rush into it.',
+ 'Stress falls where speech puts it. Let the words lead.',
+ 'A middle cadence is a breath point, not an ending.',
+ 'Keep the reciting note from sagging over a long verse.',
+ 'Breathe at punctuation. Commas and colons are your breath marks.',
+ 'Lead and support, don\'t perform. The text is the point.',
+ 'Avoid swooping into notes. Plain and steady is the tradition.'],
+ornaments:[
+ 'Ornaments decorate the note. Keep them small and light.',
+ 'The gorgon quickens: two notes share one beat.',
+ 'The klasma lengthens a note by a beat. Give it full value.',
+ 'The argon slows and weights a note. Lean into it, don\'t rush.',
+ 'Exact ornament style varies by school. Copy your teacher or recordings you trust.',
+ 'Practice an ornament slowly until each note is clear, then speed it up.',
+ 'Ornaments should never hide the main note. Land it clearly.',
+ 'Kratema syllables like "te-ri-rem" keep quick notes clean.'],
+chanttune:[
+ 'Chant tuning: some notes sit a third or two thirds of a half step from piano tuning.',
+ 'The number by the note name shows how far it sits from piano tuning. Trust your ear and the bar.',
+ 'Listen for the difference between piano tuning and chant tuning. That color is the tone.',
+ 'Real cantors also bend notes toward strong notes (attraction). This tuning is the starting point.',
+ 'Tune each note against the ison. It reveals small differences clearly.'],
+tones:[
+ 'Each tone has a base note, a scale, an ison and its own cadences.',
+ 'Learn a tone in this order: notes, phrases, cadences, then a whole melody.',
+ 'Middle cadences pause. Final cadences close. Hear the difference.',
+ 'Sing the tone\'s typical phrase until it sounds like home.',
+ 'The tone\'s character matters as much as its notes. Sing with that mood.',
+ 'Learn the cadence first. It tells you where the melody is going.'],
+'tone:Tone 1':['Tone 1: gentle and settled. Vou sits a little low, between E and E-flat.','Tone 1 rests on Pa and pauses on Di.','Tone 1 ison is usually Pa. Feel the melody circle back to it.'],
+'tone:Tone 5 (Plagal 1)':['Tone 5 rises to Ke. Keep the climb light.','Tone 5\'s ison often dips to Ni and back at cadences.','Tone 5 shares Tone 1\'s notes but sings higher and brighter.'],
+'tone:Tone 4':['Tone 4 here is Legetos on Vou: lively and bright.','In Tone 4, Ga and Di sit slightly high compared with piano tuning.','Tone 4 often ends on Vou. Let the line settle there.'],
+'tone:Tone 8 (Plagal 4)':['Tone 8 sounds majestic and joyful.','Tone 8\'s Vou and Zo sit lower than a major scale\'s.','Tone 8 rests on Ni. Many festal hymns live here.'],
+'tone:Tone 3':['Tone 3 is strong and festive, built on Ga.','In Tone 3, Zo is flat, like B-flat over F.','Tone 3 sits closest to Western tuning of all the tones.'],
+'tone:Grave tone (Varys)':['The grave tone is weighty and low. Don\'t let it go dull.','The grave tone shares Tone 3\'s notes, sung lower and heavier.','Keep low notes supported so they don\'t sink flat.'],
+'tone:Tone 2':['Tone 2 is tender and sweet, built on Di.','In Tone 2, Ke sits well below A and Zo a little below B, with a wide step between them.','Tone 2\'s ison often moves between Di and Vou.'],
+'tone:Tone 6 (Plagal 2)':['Tone 6 is intense and sorrowful.','Tone 6 has a big step between Vou and Ga. Measure it carefully.','Tone 6 rests on Pa. Let the wide step resolve home.'],
+hymn:[
+ 'Sing the words as prayer, not performance.',
+ 'Know the text before the melody. Meaning shapes the phrasing.',
+ 'Learn the hymn on parallage, then on the words.',
+ 'Breathe where the text breathes.',
+ 'Keep a steady tone from the first note to the amen.'],
+home:[
+ 'The home note is the anchor. Every other note is heard against it.',
+ 'Hum home between phrases to keep your bearings.',
+ 'If you get lost, find home. Everything is closer from there.',
+ 'Home is also where the ison sits. Learn to feel it under the melody.'],
+phrase:[
+ 'Learn a phrase in small bites, then join them.',
+ 'Know where the phrase is going: where it peaks and where it rests.',
+ 'The singer breathes between phrases. Breathe there too.',
+ 'A phrase is one thought. Keep the line connected to the end.',
+ 'Tricky spot? Build it from the end so you always finish on familiar ground.',
+ 'Sing the phrase on "noo" first, then on the words.',
+ 'Match the singer\'s pacing before you match their speed.'],
+chunk:[
+ 'Chunking: learn the shape of three-note groups and the melody becomes familiar.',
+ 'Repeated turns are the song\'s vocabulary. Know them and you can read the song.',
+ 'Listen for where each turn appears in the full song.'],
+performance:[
+ 'The whole song is a story. Know the beginning, middle and end.',
+ 'Breathe where the singer breathes. Plan it before you start.',
+ 'If you lose a note mid-song, don\'t stop. Find the next one and keep going.',
+ 'Energy at the end. The last phrase deserves your best breath.',
+ 'Precision comes from the small pieces you already practiced. Trust them.',
+ 'Full speed is the goal, but steady is the means.'],
+warmup:[
+ 'Warm-up: gentle, quiet and easy. Don\'t aim for perfect, aim for loose.',
+ 'Straw or lip trill first. It warms the voice with the least strain.',
+ 'Roll your shoulders and loosen your jaw before you start.'],
+cooldown:[
+ 'Cool-down: soft and easy. Let the voice wind down.',
+ 'A few gentle hums after practice help your voice recover.',
+ 'Sip some water now. Your folds will thank you tomorrow.'],
+/* reacting to how the last exercise went */
+sharp:[
+ 'You were a bit sharp. Ease off the volume and think lower.',
+ 'Sharp often means pushing. Use less air and less force.',
+ 'Leaning sharp? Relax the tongue and drop the jaw a little.',
+ 'Sharp on bright vowels? Round "ee" slightly toward "ih".',
+ 'Low notes below your range drift sharp. Let them be quieter and looser.',
+ 'Too much air pressure raises pitch. Sing softer and listen.'],
+flat:[
+ 'You were a bit flat. Aim for the top half of the bar.',
+ 'Flat is the most common miss. Think slightly higher than feels right.',
+ 'Rising lines go flat most. Aim a little higher on the way up.',
+ 'Flat at the end of notes? Keep the breath steady to the last moment.',
+ 'High notes go flat with force. Lighter and softer, not louder.',
+ 'Lift your eyebrows slightly and think "up and over" the note.',
+ 'Tired voices sag flat. If you are late in a long session, take a short break.'],
+wobble:[
+ 'Some wobble: steady the breath, like pouring water at one speed.',
+ 'Wobble often comes from jaw or tongue tension. Let them go slack.',
+ 'Hold still: no pushing, no squeezing, just steady air.',
+ 'Lots of notes in one session can show up as wobble. A short rest helps.',
+ 'Pick a vowel and keep it exactly the same through the hold.'],
+late:[
+ 'You landed a bit late. Think the note before the bar arrives.',
+ 'Breathe one beat early so you are ready at the start.',
+ 'Start on pitch instead of sliding up into it.',
+ 'Hear the next note while you are still on this one.',
+ 'Late starts often mean a breath taken too late. Breathe sooner.'],
+quiet:[
+ 'I barely heard you. Sing at a normal speaking level or a bit more.',
+ 'Move a little closer to the phone so it can hear you clearly.',
+ 'A confident tone is easier to tune than a timid one.',
+ 'If background noise is loud, the noise filter in Settings can help.'],
+reset:[
+ 'That one was tough. Shake out your shoulders and breathe out fully before the next.',
+ 'Reset: sip of water, slow breath, then go.',
+ 'Hum the first note softly before you sing it out.']
+};
+/* which tip groups each unit draws on */
+const UNIT_TIPS={'Breath and first sounds':['breath','onset','sovt'],'Match a note':['match','onset'],'Hold it steady':['sustain','vowels','dynamics','breath'],
+ 'Next-door notes':['steps','match'],'Five-note scale':['scale','steps'],'Slides and landings':['glide','sovt','range'],'Thirds':['leaps','scale'],
+ 'Fourths and fifths':['leaps'],'The octave and your range':['range','leaps','breath'],'Minor and the old modes':['modes','scale'],
+ 'Rhythm and pulse':['rhythm'],'Agility':['agility','rhythm'],'Hearing it inside':['audiation','memory'],'Words and vowels':['diction','vowels'],
+ 'Volume and long breath':['dynamics','endurance','breath'],'Singing over the ison':['ison'],'Holding the ison':['isonhold'],
+ 'Singing with the cantor':['unison'],'Parallage: chant note names':['parallage'],'Reciting a psalm':['psalmody','diction'],
+ 'Chant signs and ornaments':['ornaments','rhythm'],'First hymns':['hymn','diction'],
+ 'Home base':['home','match','sustain'],'One note at a time':['match','sustain'],'Neighbors':['steps'],"The song's moves":['leaps','steps'],
+ 'Signature turns':['chunk','agility'],'The ison under the song':['isonhold'],'Phrase pieces':['phrase','chunk'],'Whole phrases':['phrase','breath'],
+ 'Phrase pairs':['phrase','endurance'],'Sections':['endurance','phrase'],'From memory':['memory','audiation'],'The whole song':['performance','endurance']};
+function unitTips(un){if(!un)return['general'];if(UNIT_TIPS[un.name])return UNIT_TIPS[un.name];if(TIPS['tone:'+un.name])return['tones','tone:'+un.name,'chanttune'];return['general']}
+const TIP_LABEL={general:'Practice',health:'Voice care',breath:'Breath',onset:'Starting notes',sovt:'Warm voice',match:'Matching',sustain:'Holding',vowels:'Vowels',
+ dynamics:'Volume',steps:'Steps',scale:'Scale',glide:'Glides',leaps:'Leaps',range:'Range',modes:'Modes',rhythm:'Rhythm',agility:'Agility',audiation:'Inner ear',
+ memory:'From memory',diction:'Words',endurance:'Stamina',ison:'Ison',isonhold:'Holding the ison',unison:'Blend',parallage:'Parallage',psalmody:'Psalmody',
+ ornaments:'Ornaments',chanttune:'Chant tuning',tones:'The tones',hymn:'Hymns',home:'Home note',phrase:'Phrases',chunk:'Patterns',performance:'Whole song',
+ warmup:'Warm-up',cooldown:'Cool-down',sharp:'Coach',flat:'Coach',wobble:'Coach',late:'Coach',quiet:'Coach',reset:'Coach'};
+/* recently shown tips are remembered across sessions so they don't come back too soon */
+const tipSeen=new Set(store0('ison-tips-seen',[]));
+function store0(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
+function tipIssue(r){if(!r)return null;if(r.cov<0.35)return'quiet';if(r.score<45)return'reset';if(r.bias>12)return'sharp';if(r.bias<-12)return'flat';if(r.steady<0.55)return'wobble';if(r.react<0.5)return'late';return null}
+function pickTip(it,last){
+  if(S.tips===false)return null;
+  const own=[...(it.utips||[])];
+  if(it.blind)own.push('memory');if(it.ison)own.push('ison');if(it.accDouble)own.push('unison');else if(it.acc||(it.seg&&it.seg.during))own.push('isonhold');
+  if(it.think)own.push('audiation');if(it.micro)own.push('chanttune');if(it.kind==='Warm-up')own.push('warmup');if(it.kind==='Cool-down')own.push('cooldown');
+  const issue=tipIssue(last);let groups;
+  if(issue&&Math.random()<0.7)groups=[[issue,1]];
+  else groups=own.map(c=>[c,4]).concat([['general',1],['health',0.6]]);
+  let pool=[];groups.forEach(([c,w])=>{(TIPS[c]||[]).forEach((t,i)=>pool.push({id:c+':'+i,c,t,w}))});
+  let fresh=pool.filter(x=>!tipSeen.has(x.id));
+  if(!fresh.length){pool.forEach(x=>tipSeen.delete(x.id));fresh=pool}
+  if(!fresh.length)return null;
+  const tot=fresh.reduce((a,x)=>a+x.w,0);let r=Math.random()*tot,pick=fresh[0];for(const x of fresh){r-=x.w;if(r<=0){pick=x;break}}
+  tipSeen.add(pick.id);try{const arr=[...tipSeen];localStorage.setItem('ison-tips-seen',JSON.stringify(arr.slice(-300)))}catch(e){}
+  return pick;
+}
+function showTip(it,last){const box=$('coach');const p=pickTip(it,last);if(!p){box.hidden=true;return}box.hidden=false;
+  $('coachTag').textContent=TIP_LABEL[p.c]||'Tip';$('coachTxt').textContent=p.t;
+  if(uiMotion()){box.classList.remove('in');void box.offsetWidth;box.classList.add('in')}}
+
+/* ================= Score sayings =================
+   Randomized by score band, with special lines for streaks, comebacks, retries, near misses and
+   slow-mode passes. Recent lines are not repeated. */
+const SAY={
+s100:['Flawless. The icons are taking notes.','Perfect score. Somewhere a protopsaltis just nodded.','100. Frame it. Hang it in the narthex.','Not a cent out of place. Show-off.','Perfect. Even the tuning fork is jealous.','A hundred. The gold leaf is real.','Dead center, start to finish. Beautiful.','Pitch perfect. Literally.'],
+s95:['Superb. That was cantor-grade.','Nearly flawless. The ison approves.','Gold-plated singing right there.','That note had a halo.','Precision with a capital P.','Excellent. Your ear is officially sharp. Not your pitch, your ear.','Like it was carved in stone.','Ninety-five plus. The choir director smiles.','Chef\'s kiss, in Byzantine.','That landed like a feather on a bullseye.'],
+s90:['Excellent work.','Locked in. Sparks were flying.','Top tier. Keep that feeling.','That is the sound of practice paying off.','Strong, steady and true.','You and that note are on a first-name basis.','Smooth as candle wax.','Very nice. The bar lit up for you.','Clean and confident.','Great control. Do that again on purpose.','Your teacher would be proud. Your app is.','On the money.'],
+s85:['Very good. Just a hair from great.','Solid. A little polish and it shines.','Really nice. Sweet spot almost every time.','Good stuff. Small tweaks, big results.','That one had real shape to it.','Very good. The center is within reach.','Nice and steady. Almost gold.','Strong singing.','You are getting the hang of this.','Good. Your ear is doing its job.'],
+s80:['Good work.','Nice. Mostly on the mark.','Good, with room to grow.','That is a pass with a smile.','Pretty good. The note knows your name now.','Good effort. Breathe and repeat.','Getting warmer. Literally, the bar lit up.','Nicely done.','Good. Now make it boring-easy.','Right neighborhood, nice house.'],
+s75:['Good. Some notes wandered off for a snack.','Decent. Tighten up the center.','Not bad at all. Keep that air steady.','Respectable. A little more focus on the landings.','On the road to great.','Good bones. Now the details.','Passing grade energy. Keep it coming.','Most of it landed. Hunt down the rest.','Okay! The pitch line was mostly friendly.','Solid foundation. Build on it.'],
+s70:['Passed. Just. That counts.','Over the line. Next one cleaner.','You made it. Now make it pretty.','A pass is a pass. Bank it.','Squeaked through. The note was being shy.','Just enough. Room to grow is a gift.','Pass. The bar is cheering politely.','Okay! On to the next.','Made the cut.','Got there. Breathe and keep going.'],
+s65:['So close. One deep breath and you have it.','Almost. The pass line could feel you coming.','Near miss. Next try is yours.','Nearly there. Aim for the middle of the bar.','A whisker short. Try again with a lighter touch.','Close enough to taste it.','Just under. Your ear knows what to fix.','Almost. Sing it like you mean it.'],
+s55:['Getting there. Focus on the first note.','Half the battle. Reset and go again.','Some good moments in there. Find more of them.','Work in progress, and that is fine.','The notes were close. Closer next time.','Keep at it. This is how it gets learned.','Not yet. Every try teaches your ear.','Okay start. Listen once more before you sing.','Find the first note, the rest follows.','Hmm, the melody took a detour. Bring it home.'],
+s40:['Rough one. That is what practice is for.','The note went one way, you went another. Try again.','Don\'t worry. Even great cantors started here.','That was a warm-up for your warm-up.','Shake it off. Breathe, listen, go.','Tough exercise. Slow down and try again.','The bar is patient. So should you be.','Not your best, not your last. Again.','Learning is messy. You are doing it.','Every miss is data. Your ear is collecting.'],
+s0:['Did we just invent a new tone? Let\'s try the written one.','Bold choice. Wrong note, but bold.','That was abstract art. Now let\'s do realism.','Your voice took the scenic route.','Even monks have off days. Try again.','Okay, that one was a sneeze. Again.','Interesting. Let\'s pretend that never happened.','The pitch went on vacation. Call it back.','Let\'s call that a sound check.','Plot twist: the note was over there.'],
+quiet:['Was that a secret? The mic didn\'t catch it.','Sing it out. The phone is not easily offended.','Shy voice? Give the mic something to hear.','A little more voice, please. Like talking across a table.','I heard a whisper. Let\'s hear the song.','Silence is golden, but not for scoring.'],
+streak3:['Three in a row over 90. You are on fire.','Hat trick of excellence.','Three straight. This is becoming a habit.','On a roll. Don\'t look down.','Triple gold. Somebody fetch the incense.','Three for three. The ison is impressed.','Streak! Keep that exact feeling.','Consistency. That is what mastery looks like.'],
+streak5:['Five in a row! Is this an app or a cathedral?','Unstoppable. Five straight 90-plus.','Five-streak. Legend status loading.','Five gold notes in a row. Breathtaking. Also breathe.','This streak has its own feast day now.','Five straight. Your voice is in the zone.'],
+comeback:['What a comeback.','From rough to radiant. Nice turnaround.','That is how you bounce back.','Redemption arc complete.','You fixed it. That is the real skill.','Big jump from last time. Your ear is learning.'],
+improved:['Better than last try. That is progress.','Up from last time. Keep climbing.','Improvement! The practice is working.','Each try a little better. That is the whole game.','Noticeably better. Do what you just did.','Step by step. That one was a step up.'],
+slowpass:['Passed at 75%. Now bring it up to speed.','Slow and right beats fast and wrong. Now full speed.','Got it slow. Let\'s see it at tempo.','Slow version nailed. Speed is next.','Solid at slow speed. One more at full.'],
+retrypass:['Persistence pays. Passed.','Third time\'s the charm, or whichever time that was.','Stuck with it and got it. That is how it\'s done.','Didn\'t give up. Passed.','Worth the retries. Nice.'],
+nearmiss:['So close to the pass mark. Once more.','A hair short of the line. You have it next time.','Within a few points. Same thing, a little cleaner.','Almost passed. Lighter, steadier, again.','That close. Breathe and go.']
+};
+const sayRecent=[];
+function pickSay(key){const arr=SAY[key]||SAY.s70;const fresh=arr.filter(x=>!sayRecent.includes(x));const p=(fresh.length?fresh:arr)[Math.floor(Math.random()*(fresh.length?fresh:arr).length)];
+  sayRecent.push(p);if(sayRecent.length>40)sayRecent.shift();return p}
+function bandKey(s){return s>=100?'s100':s>=95?'s95':s>=90?'s90':s>=85?'s85':s>=80?'s80':s>=75?'s75':s>=70?'s70':s>=65?'s65':s>=55?'s55':s>=40?'s40':'s0'}
+/* the line to show: special situations first, else the score band */
+function sayingFor(R,ctx){
+  if(R.cov<0.3)return pickSay('quiet');
+  if(ctx.streak>=5&&R.score>=90&&ctx.streak%5===0)return pickSay('streak5');
+  if(ctx.streak>=3&&R.score>=90&&(ctx.streak===3||ctx.streak%3===0))return pickSay('streak3');
+  if(ctx.slowPass)return pickSay('slowpass');
+  if(ctx.passMark&&R.score<ctx.passMark&&R.score>=ctx.passMark-3)return pickSay('nearmiss');
+  if(ctx.prevItem!=null&&ctx.tries>1&&ctx.passMark&&R.score>=ctx.passMark&&ctx.prevItem<ctx.passMark)return pickSay('retrypass');
+  if(ctx.prev!=null&&ctx.prev<60&&R.score>=80)return pickSay('comeback');
+  if(ctx.prevItem!=null&&R.score-ctx.prevItem>=10&&R.score<90)return pickSay('improved');
+  return pickSay(bandKey(R.score));
+}
+
+/* ================= Practice time, goals and rank =================
+   Research basis: voice teachers suggest 15 to 30 minutes a day for beginners, about 5 days a week,
+   with focused short sessions beating long ones; pitch accuracy improves fastest in the first weeks
+   while range and tone take months; formal Byzantine music schools teach over about five years.
+   So the 12-month Foundations path is planned at roughly 20 minutes a day, 5 days a week: about
+   86 hours. Each unit has a time goal from that budget (more for the musicianship and chant-skill
+   units, which take longer to settle). Only 40 minutes a day count toward goals, because spaced
+   practice beats cramming, but every minute is still tracked. Rank 1 to 100 runs on the same
+   credited time: rank 100 equals the full 86 hours, and each rank takes a little longer than the last. */
+const DAY_CAP=40,UNIT_GOAL_BY_PART=[150,210,210,145],RANK_TOTAL=5175;
+const TIME=(()=>{try{const v=JSON.parse(localStorage.getItem('ison-time')||'null');if(v&&v.day)return v}catch(e){}return{day:{},unit:{},raw:0,cred:0}})();
+function saveTime(){try{localStorage.setItem('ison-time',JSON.stringify(TIME))}catch(e){}}
+function todayKey(){const x=new Date();return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
+/* credit seconds of practice; returns the new rank if it went up */
+function addPractice(trId,u,sec){if(!(sec>0))return null;const before=rankOf(TIME.cred),d=todayKey(),used=TIME.day[d]||0,add=Math.max(0,Math.min(sec/60,DAY_CAP-used));
+  TIME.day[d]=used+add;TIME.raw+=sec/60;TIME.cred+=add;if(u!=null){const k=trId+':'+u;TIME.unit[k]=(TIME.unit[k]||0)+add}saveTime();
+  const after=rankOf(TIME.cred);return after>before?after:null}
+function unitGoal(tr,u){const un=tr.units[u];if(!un)return 0;if(un.goal)return un.goal;return Math.max(20,Math.round(un.lessons.length*6))}
+function unitMin(tr,u){return TIME.unit[tr.id+':'+u]||0}
+function rankMin(r){return r<=1?0:RANK_TOTAL*Math.pow((r-1)/99,1.6)}
+function rankOf(min){for(let k=100;k>1;k--)if(min>=rankMin(k))return k;return 1}
+const RANK_TITLES=['Candle lighter','Listener','Ison holder','Reader','Psalm reader','Chanter','Right choir','Domestikos','Lampadarios','Protopsaltis'];
+function rankTitle(r){return r>=100?'Master of the chant':RANK_TITLES[Math.min(9,Math.floor((r-1)/10))]}
+function fmtHM(min){min=Math.round(min);const h=Math.floor(min/60),m=min%60;return h?h+'h '+String(m).padStart(2,'0')+'m':m+' min'}
+function renderRank(){const r=rankOf(TIME.cred),a=rankMin(r),b=rankMin(Math.min(100,r+1)),f=r>=100?1:(TIME.cred-a)/(b-a);
+  $('rankNum').textContent=String(r);$('rankTitle').textContent=rankTitle(r);$('rankBar').style.width=(Math.max(0.02,f)*100).toFixed(1)+'%';
+  const today=TIME.day[todayKey()]||0;
+  $('rankNext').textContent=r>=100?'Top rank reached.':fmtHM(b-TIME.cred)+' to rank '+(r+1);
+  $('rankTotal').textContent=fmtHM(TIME.raw)+' practiced'+(today>=DAY_CAP?' · today\'s goal time is full, rest your voice':today>0?' · '+Math.round(today)+' of '+DAY_CAP+' min today':'');}
 
 /* Readout */
 function showReadout(m){
@@ -1107,6 +1676,7 @@ async function startSing(){
 }
 function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
+  {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
   const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
   if(D.pass==null){$('singStatus').textContent=r?'Done. Score '+sc+' '+starStr(sc)+'. '+praise(r)+'.':'Done. No singing was heard during the notes.';return}
   const setSp=v=>{$('speed').value=v;$('speed').oninput()},pass=sc>=D.pass;let msg='Score '+sc+'. ';
@@ -1215,7 +1785,7 @@ function fillLine(el,line,live){el.innerHTML='';if(!line)return;let word=null;
     if(!hy){word=null;if(i<line.syl.length-1)el.appendChild(document.createTextNode(' '))}})}
 function renderLyrics(){const box=$('karaoke');if(!G.lyr||G.lesson){box.hidden=true;return}box.hidden=false;
   const t=G.pos;let li=G.lyr.findIndex(l=>t<l.t1+0.35);if(li<0)li=G.lyr.length-1;
-  if(G.lyrLine!==li){G.lyrLine=li;fillLine($('kLine1'),G.lyr[li],true);fillLine($('kLine2'),G.lyr[li+1],false);if(fxLevel()&&G.playing)['kLine1','kLine2'].forEach(id=>{const e=$(id);e.classList.remove('rise');void e.offsetWidth;e.classList.add('rise')})}
+  if(G.lyrLine!==li){G.lyrLine=li;fillLine($('kLine1'),G.lyr[li],true);fillLine($('kLine2'),G.lyr[li+1],false);if(uiMotion()&&G.playing)['kLine1','kLine2'].forEach(id=>{const e=$(id);e.classList.remove('rise');void e.offsetWidth;e.classList.add('rise')})}
   const sp=$('kLine1').querySelectorAll('.sy');G.lyr[li].syl.forEach((x,i)=>{const p=t<=x.t0?0:t>=x.t1?100:(t-x.t0)/(x.t1-x.t0)*100;if(sp[i]){sp[i].style.setProperty('--p',p.toFixed(1)+'%');sp[i].classList.toggle('on',G.playing&&p>0&&p<100)}})}
 /* Look through the song while paused: drag the chart sideways, use a trackpad or shift+wheel, or the slider.
    Dragging while it plays pauses first. Start then plays from the new spot. */
@@ -1316,7 +1886,7 @@ function showTab(k){
   if(L.active&&k!=='practice'&&G.lesson&&G.playing)lessonPause();
   const was=TABS.find(t=>!$('v-'+t).hidden);
   TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});
-  placeTabInk();if(was&&was!==k&&fxLevel()){const v=$('v-'+k);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter')}
+  placeTabInk();if(was&&was!==k&&uiMotion()){const v=$('v-'+k);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter')}
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
   if(k==='songs'&&!G.playing)drawSing();if(k==='tuner'&&!live){drawLive(0);drawTake(null)}
@@ -1383,7 +1953,7 @@ function buildUnit(U,mo,part){
         const it=specItem(sp,i+j,R,U.tol,lis);out.push(it);total+=it.dur;i++;if(i>=10)break}
       if(j>0){const prev=U.L[j-1].x,sp=prev[prev.length-1],it=specItem(sp,j+3,R,U.tol,'cue');it.title='Review: '+it.title;out.push(it)}
       return out}}});
-  return{name:U.name,desc:U.desc,why:U.why,mo,part,lessons,
+  return{name:U.name,desc:U.desc,why:U.why,mo,part,lessons,goal:UNIT_GOAL_BY_PART[part],
     test:()=>{const R={t:1,bpm:1.06,tol:0.85,span:4},pick=U.L.length>10?U.L.slice(-10):U.L;
       return pick.map((les,j)=>specItem(les.x[les.x.length-1],j+5,R,U.tol,'cue'))}};
 }
@@ -1634,7 +2204,7 @@ const TONES=[
 {n:'Grave tone (Varys)',mo:11,key:0,b:2,ison:'Ga',desc:'Enharmonic on Ga (F), sung low and weighty. Same notes as Tone 3, heavier character.',
  sc:[['Ni',-5,-5],['Pa',-3,-3],['Vou',-1,-1],['Ga',0,0],['Di',2,2],['Ke',4,4],['Zo',5,5]],
  ph:[[5,4,3,2,3],[1,1,1,1,3]],med:[[3,4,4,3],[1,1,1,2]],fin:[[4,3,2,3],[1,1,1,3]],model:[[3,4,5,4,3,2,1,2,3],[1,1,2,1,1,1,1,1,3]]},
-{n:'Tone 2',mo:12,key:0,b:3,ison:'Di',desc:'Soft chromatic, based on Di (G). Tender and sweet. Ke sits low and Zo a little high, with a wide step between them.',
+{n:'Tone 2',mo:12,key:0,b:3,ison:'Di',desc:'Soft chromatic, based on Di (G). Tender and sweet. Ke sits well below A and Zo a little below B, with a wide step between them.',
  sc:[['Pa',-5,-5],['Vou',-3,-11/3],['Ga',-1,-4/3],['Di',0,0],['Ke',2,4/3],['Zo',4,11/3],['Ni',5,5]],
  ph:[[3,4,5,6,5,4,3],[1,1,1,2,1,1,2]],med:[[3,2,1,2,1],[1,1,1,1,2]],fin:[[5,4,3,3],[1,1,1,3]],model:[[3,4,5,6,5,4,3,2,3,4,3],[1,1,1,2,1,1,1,1,1,1,3]],wide:[4,5]},
 {n:'Tone 6 (Plagal 2)',mo:12,key:0,b:0,ison:'Pa',desc:'Hard chromatic, based on Pa (D). Intense and sorrowful, with a big step and a half between Vou and Ga.',
@@ -1846,12 +2416,14 @@ function prog(id){const all=store.get('ison-prog2',{});return all[id]||{les:{},t
 function saveProg(id,p){const all=store.get('ison-prog2',{});all[id]=p;store.set('ison-prog2',all)}
 function history(){return store.get('ison-history',[])}
 function curTrack(){return mode==='song'?songT:foundTrack}
-function nextUp(tr){const P=prog(tr.id);for(let u=0;u<tr.units.length;u++){if((P.test[u]||0)>=UNIT_PASS)continue;
+function nextUp(tr){const P=prog(tr.id);for(let u=0;u<tr.units.length;u++){const passed=(P.test[u]||0)>=UNIT_PASS,timeOk=unitMin(tr,u)>=unitGoal(tr,u);
+  if(passed&&timeOk)continue;
+  if(passed){const ls=tr.units[u].lessons;let w=0;ls.forEach((x,j)=>{if((P.les[u+'.'+j]||0)<(P.les[u+'.'+w]||0))w=j});return{u,l:w,more:true}}
   const l=tr.units[u].lessons.findIndex((x,j)=>(P.les[u+'.'+j]||0)<LESSON_PASS);return l<0?{u,l:-1}:{u,l}}return{u:tr.units.length-1,l:-1}}
 /* A session: one review exercise from an earlier finished lesson (for 5+ minutes), then whole lessons in order
    from the chosen one until the time is used, never running past the end of the unit. */
 function buildSession(tr,u,l,minutes,isTest){
-  if(isTest){return tr.units[u].test().map(it=>({...it,lid:'T'+u,lname:'Unit test',main:true}))}
+  if(isTest){const ut=unitTips(tr.units[u]);return tr.units[u].test().map(it=>({...it,lid:'T'+u,lname:'Unit test',main:true,utips:ut}))}
   const budget=minutes*60,items=[];let t=0;const P=prog(tr.id),H=S.home;
   const add=(it,kind)=>{items.push({...it,lid:null,main:false,kind});t+=it.dur+5};
   /* gentle semi-occluded warm-up for sessions of 10 minutes or more */
@@ -1860,14 +2432,14 @@ function buildSession(tr,u,l,minutes,isTest){
   const done=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).filter(k=>{const[a,b]=k.split('.').map(Number);return a<u||(a===u&&b<l)}).sort((a,b)=>P.les[a]-P.les[b]);
   const nRev=minutes>=15?2:minutes>=5?1:0,picked=[];
   for(let r=0;r<nRev&&done.length;r++){const pool=r===0?done.slice(0,5):done;const k=pool[Math.floor(Math.random()*pool.length)];if(!picked.includes(k))picked.push(k)}
-  const reviews=picked.map(k=>{const[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];if(!les)return null;const its=les.items(),it=its[its.length-1];return{...it,title:'Review: '+it.title.replace(/^Review: /,'')}}).filter(Boolean);
+  const reviews=picked.map(k=>{const[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];if(!les)return null;const its=les.items(),it=its[its.length-1];return{...it,title:'Review: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[a])}}).filter(Boolean);
   if(reviews[0])add(reviews[0],'Review');
   let j=Math.max(0,l),midDone=false;const ls=tr.units[u].lessons,mid=reviews[1];
-  while(j<ls.length&&(t<budget||!items.some(x=>x.lid))){const its=ls[j].items();its.forEach(it=>{it.lid=u+'.'+j;it.lname=ls[j].name;it.main=true});items.push(...its);t+=its.reduce((a,it)=>a+it.dur+5,0);j++;
+  while(j<ls.length&&(t<budget||!items.some(x=>x.lid))){const its=ls[j].items();its.forEach(it=>{it.lid=u+'.'+j;it.lname=ls[j].name;it.main=true;it.utips=unitTips(tr.units[u])});items.push(...its);t+=its.reduce((a,it)=>a+it.dur+5,0);j++;
     if(mid&&!midDone&&t>budget/2){midDone=true;items.push({...mid,lid:null,main:false,kind:'Review'});t+=mid.dur+5}}
   /* time left at the end of the unit: extra practice on this unit's lessons, weakest first (the unit test is next) */
   if(t<budget-30){const pool=ls.map((x,k)=>k).sort((a,b)=>(P.les[u+'.'+a]||0)-(P.les[u+'.'+b]||0));let g=0;
-    while(t<budget-20&&g<pool.length*2){const k=pool[g%pool.length],its=ls[k].items().slice(-3);its.forEach(it=>add({...it,title:'Extra: '+it.title.replace(/^Review: /,'')},'Extra practice'));g++}}
+    while(t<budget-20&&g<pool.length*2){const k=pool[g%pool.length],its=ls[k].items().slice(-3);its.forEach(it=>add({...it,title:'Extra: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[u])},'Extra practice'));g++}}
   if(minutes>=15)add(mkItem({title:'Cool-down: gentle hum down',how:'A soft hum from a little above home down to home.',pat:[4,2,0],beats:[2,2,4],bpm:60,base:H,listen:'full',tolA:45,tolB:110}),'Cool-down');
   return items;
 }
@@ -1882,12 +2454,12 @@ function renderPractice(){
   const tr=curTrack(),noSong=mode==='song'&&!tr;
   $('songSetup').hidden=!noSong;$('songOpts').hidden=mode!=='song'||!tr;$('songSummary').hidden=mode!=='song'||!tr;
   ['map','lessons'].forEach(i=>$(i).hidden=noSong);$('builder').hidden=noSong||L.active;$('player').hidden=!L.active;
-  const Hs=history();$('kMin').textContent=String(Math.round(Hs.reduce((a,h)=>a+(h.sung||0),0)/60));$('kStreak').textContent=String(streak(Hs));
+  const Hs=history();$('kMin').textContent=fmtHM(TIME.raw);renderRank();$('kStreak').textContent=String(streak(Hs));
   if(noSong){$('t-today').textContent='Song course';$('heroStage').textContent='No song chosen yet';$('stTitle').textContent='';$('stDesc').textContent='';$('stGoal').textContent='';$('unitProg').textContent='';$('unitTest').textContent='';$('kPassed').textContent='0';fillCourseSongs();return}
   const P=prog(tr.id);$('t-today').textContent=mode==='song'?tr.name:'Foundations';
   const totalL=tr.units.reduce((a,x)=>a+x.lessons.length,0),doneL=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).length;
   $('kPassedLbl').textContent='Lessons done';$('kPassed').textContent=doneL+'/'+totalL;
-  const nx=nextUp(tr);$('heroStage').textContent='Next: unit '+nx.u+(nx.l<0?', test':', lesson '+(nx.l+1));
+  const nx=nextUp(tr);$('heroStage').textContent='Next: unit '+nx.u+(nx.more?', more practice':nx.l<0?', test':', lesson '+(nx.l+1));
   if(selU>=tr.units.length)selU=0;
   const map=$('map');map.innerHTML='';
   tr.units.forEach((s,i)=>{const n=s.lessons.length,d=s.lessons.filter((x,j)=>(P.les[i+'.'+j]||0)>=LESSON_PASS).length,mastered=(P.test[i]||0)>=UNIT_PASS;
@@ -1904,8 +2476,10 @@ function renderPractice(){
   const nd=un.lessons.filter((x,j)=>(P.les[selU+'.'+j]||0)>=LESSON_PASS).length,tb=P.test[selU];
   $('unitProg').innerHTML='';$('unitProg').append(nd+' of '+un.lessons.length+' lessons done');
   $('unitTest').textContent=tb!=null?'Unit test best '+tb+(tb>=UNIT_PASS?' · mastered':' · need '+UNIT_PASS):'Unit test: need '+UNIT_PASS;
+  {const gm=unitGoal(tr,selU),um=unitMin(tr,selU),met=um>=gm;$('unitTimeBar').style.width=Math.min(100,um/gm*100).toFixed(1)+'%';$('unitTimeBar').classList.toggle('met',met);
+   $('unitTimeTxt').textContent='Practice time in this unit: '+fmtHM(um)+' of '+fmtHM(gm)+(met?' · time goal met':(tb||0)>=UNIT_PASS?' · test passed, keep practicing to reach the time goal':'')}
   const ol=$('lessons');ol.innerHTML='';
-  un.lessons.forEach((x,j)=>{const sc=P.les[selU+'.'+j],li=document.createElement('li');li.className=(sc>=LESSON_PASS?'done':'')+(j===selL?' sel':'')+(L.justDone&&L.justDone.includes(selU+'.'+j)&&fxLevel()?' just':'');
+  un.lessons.forEach((x,j)=>{const sc=P.les[selU+'.'+j],li=document.createElement('li');li.className=(sc>=LESSON_PASS?'done':'')+(j===selL?' sel':'')+(L.justDone&&L.justDone.includes(selU+'.'+j)&&uiMotion()?' just':'');
     const b=document.createElement('button'),dot=document.createElement('span'),nmE=document.createElement('span'),sm=document.createElement('small');
     dot.className='dot';dot.textContent=sc>=LESSON_PASS?'✓':String(j+1);nmE.textContent=x.name;sm.textContent=sc!=null?String(sc):'';b.append(dot,nmE,sm);
     b.onclick=()=>{selL=j;renderPractice()};li.appendChild(b);ol.appendChild(li)});
@@ -1957,7 +2531,7 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
-  L.active=true;L.tries=[];L.fails=0;L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
+  L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -1965,6 +2539,7 @@ function lessonLoad(i,keepPos){
   const it=L.items[i];G.lesson=true;G.ui=LESSON_UI;G.tolA=it.tolA;G.tolB=it.tolB;G.speed=1;L.item=it;
   G.ison=it.ison||null;G.acc=it.acc||null;G.accLevel=it.accLevel||0.7;G.blind=!!it.blind;G.micro=!!it.micro;G.singFrom=it.singFrom!=null?it.singFrom:0;
   setGuide({notes:it.notes,dur:it.dur,contour:it.contour||null},false,0);if(keepPos){G.pos=L.pos;G.trace=L.trace}
+  if(!keepPos)showTip(it,L.lastR||null);
   G.onFinish=lessonItemDone;$('exTitle').textContent=it.title;$('exHow').textContent=(it.lname&&!L.isTest?'Lesson: '+it.lname+'. ':'')+(it.how||'');
   $('plCount').textContent='Exercise '+(i+1)+' of '+L.items.length+((L.tries[i]||0)?' · try '+((L.tries[i]||0)+1):'')+(S.diff!=='easy'?' · '+DIFF[S.diff].name:'');renderSegs();drawSing();updatePhase();
 }
@@ -1978,7 +2553,7 @@ function updatePhase(){const ph=$('exPhase');if(!G.lesson)return;const tg=target
   else if(G.pos<G.singFrom-0.05)tx=it.think&&G.pos>G.singFrom-it.think-0.05?'Hear it in your head':'Breathe';
   else{tx=sungSeg?'Hold the ison with the singer':G.blind?'Your turn, from memory':it.acc&&it.accDouble?'Sing together':it.acc?'Hold the ison':'Your turn';md='phase sing'}
   if(ph.textContent!==tx)ph.textContent=tx;
-  if(ph.dataset.md!==md){ph.className=md;ph.dataset.md=md;if(md==='phase sing'&&fxLevel()){void ph.offsetWidth;ph.classList.add('flash')}}}
+  if(ph.dataset.md!==md){ph.className=md;ph.dataset.md=md;if(md==='phase sing'&&uiMotion()){void ph.offsetWidth;ph.classList.add('flash')}}}
 $('exPhase').addEventListener('animationend',()=>{$('exPhase').classList.remove('flash')});
 /* Plays the singer's own recording during a phrase's listen part, kept in step with the lesson clock. */
 function singerTick(){
@@ -1999,17 +2574,22 @@ function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
   const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main,lid:it.lid,lname:it.lname}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main,lid:it.lid,lname:it.lname};
   const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
+  if(R.cov>=0.2){const ru=addPractice(L.track.id,L.u,it.dur);if(ru)L.rankUp=ru}
+  L.streak=R.score>=90?(L.streak||0)+1:0;L.itemPrev=L.itemPrev||{};
+  const ctx={streak:L.streak,prev:L.lastScore,prevItem:L.itemPrev[L.idx],tries:L.tries[L.idx],passMark:D.pass,slowPass:!!(it.slowOf&&pass)};
+  const say=sayingFor(R,ctx);L.itemPrev[L.idx]=R.score;L.lastScore=R.score;L.lastR=R;
   let msg=starStr(R.score)+'  '+R.score+' · ',next='advance';
-  if(D.pass==null){msg+=praise(R)}
-  else if(it.slowOf){if(pass){L.items[L.idx]=it.slowOf;L.fails=0;msg+='Passed at 75%. Now once more at full speed.';next='retry'}else{msg+='Need '+D.pass+'. Once more at 75%.';next='retry'}}
-  else if(!pass){L.fails=(L.fails||0)+1;if(L.fails>=2){L.items[L.idx]=slowCopy(it);L.fails=0;msg+='Two misses. Slowing this step to 75%.'}else msg+='Need '+D.pass+' to move on. Try again.';next='retry'}
-  else{L.fails=0;msg+=praise(R)+'. Passed.'}
-  if(next==='advance')L.results[L.idx]=R;
-  const toast=$('lsToast');toast.textContent=msg;toast.classList.remove('pop');void toast.offsetWidth;if(fxLevel())toast.classList.add('pop');renderSegs();
-  if(next==='advance'&&R.score>=88)fxBurst(toast,false);
+  if(D.pass==null){msg+=say}
+  else if(it.slowOf){if(pass){L.items[L.idx]=it.slowOf;L.fails=0;msg+=say;next='retry'}else{msg+='Need '+D.pass+'. Once more at 75%. '+say;next='retry'}}
+  else if(!pass){L.fails=(L.fails||0)+1;if(L.fails>=2){L.items[L.idx]=slowCopy(it);L.fails=0;msg+='Two misses, so this step slows to 75%. '+say}else msg+='Need '+D.pass+' to move on. '+say;next='retry'}
+  else{L.fails=0;msg+=say}
+  if(next==='advance'){L.results[L.idx]=R;L.lastR=R.score>=80?null:R}
+  const celebrate=R.score>=90&&R.cov>=0.3&&(S.celeb==='every'||S.celeb==null||(S.celeb==='milestones'&&(L.streak===3||L.streak===5||L.streak===10)));
+  const toast=$('lsToast');toast.textContent=msg;toast.classList.remove('pop');void toast.offsetWidth;if(uiMotion())toast.classList.add('pop');renderSegs();
+  if(celebrate)fiveStar(R.score);else if(next==='advance'&&R.score>=85)fxBurst(toast,false);
   setTimeout(()=>{if(!L.active)return;$('lsToast').textContent='';
     if(next==='retry'){lessonLoad(L.idx,false);lessonPlay();return}
-    L.fails=0;if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},next==='retry'?2600:1800)}
+    L.fails=0;if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},next==='retry'?2800:celebrate?2300:2000)}
 function slowCopy(it){const f=0.75,sc=t=>t/f;return{...it,slowOf:it,title:it.title+' (75% speed)',dur:sc(it.dur),
   notes:it.notes.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})),contour:it.contour?it.contour.map(p=>({t:sc(p.t),m:p.m})):null,
   seg:it.seg?{...it.seg,ls:sc(it.seg.ls),le:sc(it.seg.le),speed:it.seg.speed*f}:null,
@@ -2074,7 +2654,9 @@ function showResults(score,agg,lessonRes){
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{const a=sv.querySelector('.arc');if(a)a.setAttribute('stroke-dasharray',(C*f).toFixed(1)+' '+C.toFixed(1))}));
   const won=isT?passT:nDone>0,vd=$('resVerdict');vd.classList.remove('win');
-  if(won&&fxLevel())setTimeout(()=>{vd.classList.add('win');fxBurst($('dial'),isT)},isT?1000:850);
+  if(won&&(burstOK()||uiMotion()))setTimeout(()=>{vd.classList.add('win');fxBurst($('dial'),isT)},isT?1000:850);
+  if(L.rankUp){const r=L.rankUp;L.rankUp=null;setTimeout(()=>fiveStar('Rank '+r),won?2300:900)}
+  if(isT&&passT&&unitMin(tr,L.u)<unitGoal(tr,L.u))$('resNote').textContent='Test passed with '+score+'. Spend '+fmtHM(unitGoal(tr,L.u)-unitMin(tr,L.u))+' more practicing this unit to reach its time goal, then move on.';
 }
 function barEl(name,v,num){const d=document.createElement('div');d.className='bar';const a=document.createElement('span');a.textContent=name;
   const tr=document.createElement('span');tr.className='tr';const i=document.createElement('i');i.style.width='0%';tr.appendChild(i);const wv=Math.round(clamp(v)*100)+'%';requestAnimationFrame(()=>requestAnimationFrame(()=>{i.style.width=wv}));
@@ -2150,7 +2732,13 @@ $('a4').onchange=()=>{const v=parseFloat($('a4').value);if(v>=400&&v<=480){S.a4=
 $('thr').onchange=()=>{S.thr=+$('thr').value;redraw()};
 $('smooth').oninput=()=>{S.smooth=+$('smooth').value;smoothLabel();save()};
 $('gate').oninput=()=>{S.filt=+$('gate').value;save()};
-$('fxSel').value=S.fx||'full';$('fxSel').onchange=()=>{S.fx=$('fxSel').value;save();if(S.fx!=='off')fxBurst($('fxSel'),false)};
+$('fxSel').value=S.fx||'full';$('fxSel').onchange=()=>{S.fx=$('fxSel').value;save()};
+$('celebSel').value=S.celeb||'every';$('celebSel').onchange=()=>{S.celeb=$('celebSel').value;save()};
+$('burstChk').checked=S.burst!==false;$('burstChk').onchange=()=>{S.burst=$('burstChk').checked;save();if(S.burst)fxBurst($('burstChk'),false)};
+const applyMo=()=>document.documentElement.classList.toggle('nomo',S.uimo===false);applyMo();
+$('uiChk').checked=S.uimo!==false;$('uiChk').onchange=()=>{S.uimo=$('uiChk').checked;save();applyMo()};
+$('tipsChk').checked=S.tips!==false;$('tipsChk').onchange=()=>{S.tips=$('tipsChk').checked;save();if(!S.tips)$('coach').hidden=true};
+$('fxPreview').onclick=()=>{const c=S.celeb;if(c==='off'){S.celeb='every'}fiveStar(96);S.celeb=c};
 $('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw();if(G.src.startsWith('ex-')&&!G.playing)loadSource()};
 $('lane').onchange=()=>{S.lane=$('lane').checked;redraw()};
 window.addEventListener('resize',()=>{drawTake(audio.paused?null:audio.currentTime);if(!live)drawLive(0);if(!G.playing)drawSing()});
