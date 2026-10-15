@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
 <style>
-/* Layout: sticky tab bar over four views (Practice, Songs, Tuner, Settings); one narrow column of dark panels.
+/* Layout: sticky tab bar over five views (Practice, Songs, Tuner, Stats, Settings); one narrow column of dark panels.
    Palette: icon-room dark. Near-black violet ground, warm parchment ink, gold leaf accent, lapis secondary. */
 :root{
   --bg:#0B0A10; --surface:#15131D; --surface2:#1D1A27; --ink:#EEE7D7; --muted:#9C95AB; --line:#2B2738;
@@ -33,10 +33,10 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
 header h1{font-family:var(--f-display);font-weight:400;font-size:1.9rem;margin:0;letter-spacing:.03em}
 header h1 span{color:var(--accent)}
 header p{margin:0;color:var(--muted);font-size:.92rem}
-.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;margin-inline:-6px;
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;margin-inline:-6px;
   background:rgba(11,10,16,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .tabs{isolation:isolate}
-.tabs button{background:transparent;border:0;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:.95rem;transition:color var(--t-med) var(--e-out)}
+.tabs button{background:transparent;border:0;color:var(--muted);padding:9px 2px;border-radius:8px;font-size:.9rem;transition:color var(--t-med) var(--e-out)}
 .tabs button[aria-selected="true"]{color:var(--accent)}
 .tabink{position:absolute;bottom:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 10px var(--glow),0 0 2px var(--gold);transition:left var(--t-med) var(--e-out),width var(--t-med) var(--e-out);pointer-events:none}
 .tabs::before{content:"";position:absolute;inset:6px auto 6px 0;width:var(--tw,0);transform:translateX(var(--tx,0));background:var(--surface2);border-radius:8px;z-index:-1;transition:transform var(--t-med) var(--e-out),width var(--t-med) var(--e-out)}
@@ -265,6 +265,62 @@ details.habit summary::-webkit-details-marker{display:none}
 .habit.lvl-occasional .hb{color:var(--muted)}
 .hbody{display:grid;gap:8px;margin-top:10px}.hbody p{margin:0;font-size:.92rem}.hbody b{color:var(--accent);font-weight:600}
 .hsvg{width:100%;max-width:320px;height:70px;background:var(--grid);border-radius:8px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}
+.chips::-webkit-scrollbar{display:none}
+.chips button{flex:none;font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:.85rem;min-height:36px;transition:background var(--t-quick),color var(--t-quick)}
+.chips button[aria-pressed="true"]{color:var(--accentInk);background:var(--accent);border-color:var(--accent)}
+.custom{display:flex;gap:10px;flex-wrap:wrap}.custom label{display:flex;flex-direction:column;font-size:.78rem;color:var(--muted);gap:4px;flex:1;min-width:130px}
+.custom input{background:var(--surface2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px;font:inherit;color-scheme:dark}
+.stiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.stile{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-width:0}
+.stile span{display:block;font-size:.78rem;color:var(--muted)}
+.stile b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.45rem;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stile small{display:block;font-family:var(--f-mono);font-size:.72rem;margin-top:2px}
+.stile small.up,.hrow b.up{color:var(--good)}.stile small.down,.hrow b.down{color:var(--bad)}
+.stake{font-size:.8rem;color:var(--muted);margin:0;line-height:1.45}
+.insights{display:grid;gap:12px}
+.icard{position:relative;border:1px solid var(--line);border-radius:12px;padding:14px 14px 14px 16px;background:linear-gradient(160deg,rgba(214,166,79,.07),rgba(0,0,0,.18) 55%);display:flex;flex-direction:column;gap:10px;overflow:hidden}
+.icard::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;border-radius:0 3px 3px 0;background:var(--accent)}
+.icard>b{font-family:var(--f-display);font-weight:400;font-size:1.08rem;color:var(--gold);letter-spacing:.01em}
+.icard p{margin:0;font-size:.9rem;line-height:1.5}
+.icard button{align-self:flex-start;border:1px solid var(--accent);background:transparent;color:var(--accent);border-radius:999px;padding:7px 14px;font:inherit;font-size:.88rem;min-height:36px}
+.icard .hsvg{max-width:100%}
+.vbars{display:flex;flex-direction:column;gap:6px}
+.vb{display:grid;grid-template-columns:5.6em 1fr 4.4em;gap:8px;align-items:center;font-size:.82rem;color:var(--muted)}
+.vt{display:block;height:10px;border-radius:5px;background:var(--grid);overflow:hidden}
+.vt i{display:block;height:100%;border-radius:5px;transition:width .9s var(--e-out)}
+.vb b,.ivrow b{font-family:var(--f-mono);font-weight:400;text-align:right;color:var(--ink);font-size:.8rem}
+.vrange{position:relative;height:14px;border-radius:7px;background:var(--grid);margin:6px 0 2px}
+.vrange i{position:absolute;top:0;bottom:0;border-radius:7px}
+.vrange i.cur{background:linear-gradient(90deg,#B98429,var(--accent),#B98429)}
+.vrange i.prev{top:-4px;bottom:-4px;border:2px dashed var(--lapis);border-radius:9px;background:transparent}
+.vrange em{position:absolute;top:-6px;bottom:-6px;width:2px;margin-left:-1px;background:var(--ink);border-radius:1px}
+.vrl{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted);margin-top:4px}
+.vgauge{position:relative;height:14px;border-radius:7px;background:linear-gradient(90deg,#6F8FE0,#2a2738 42%,#2a2738 58%,#B98429);margin-top:6px}
+.vgauge::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
+.vgauge i{position:absolute;top:-5px;width:6px;height:24px;margin-left:-3px;background:var(--ink);border-radius:3px;box-shadow:0 0 0 2px var(--bg)}
+.stcharts{display:flex;flex-direction:column;gap:18px}
+.scard{gap:10px}.scard canvas{display:block;max-width:100%;touch-action:pan-y}
+.smgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.smcell{min-width:0}.smcell span{font-size:.8rem;color:var(--muted)}.smcell b{float:right;font-family:var(--f-mono);font-weight:400;font-size:.85rem}
+.smcell canvas{margin-top:4px}
+.ivrow{display:grid;grid-template-columns:6.2em 1fr 2.6em 1fr 2.6em;gap:6px;align-items:center;font-size:.8rem;color:var(--muted)}
+.hrow{display:grid;grid-template-columns:1fr 96px 4em;gap:8px;align-items:center;font-size:.85rem}
+.hrow b{font-family:var(--f-mono);font-weight:400;text-align:right;font-size:.8rem}
+details.sess{border-top:1px solid var(--line)}
+details.sess summary{padding:10px 2px;cursor:pointer;list-style:none;display:flex;align-items:center;gap:12px}
+details.sess summary>span{flex:1;min-width:0}details.sess summary b{display:block;font-weight:600;font-size:.92rem}details.sess summary small{display:block;color:var(--muted);font-size:.8rem}
+details.sess summary em{font-style:normal;font-family:var(--f-mono);font-size:.9rem;min-width:2.6em;text-align:center;padding:4px 6px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+details.sess summary em.g{color:var(--good)}details.sess summary em.w{color:var(--warn)}details.sess summary em.r{color:var(--bad)}
+details.sess summary::after{content:"+";color:var(--accent);font-family:var(--f-mono)}
+details.sess[open] summary::after{content:"−"}
+details.sess summary::-webkit-details-marker{display:none}
+.att span{display:block;font-size:.78rem;color:var(--muted)}
+.att canvas{border-radius:6px;margin:4px 0 10px}
+.stip{position:fixed;z-index:40;background:var(--surface2);border:1px solid var(--gridC);border-radius:8px;padding:6px 10px;pointer-events:none;box-shadow:0 6px 20px rgba(0,0,0,.45);min-width:110px;max-width:190px}
+.stip b{display:block;font-family:var(--f-mono);font-weight:400;font-size:.88rem}
+.stip span{display:block;font-size:.75rem;color:var(--muted)}
+
 .htips{margin:0;padding-left:1.1em;font-size:.9rem;display:grid;gap:4px}
 .hlib{margin:8px 0 0;padding-left:1.1em;font-size:.88rem;display:grid;gap:6px;color:var(--muted)}.hlib b{color:var(--ink)}
 .resh{font-size:.9rem;color:var(--muted)}
@@ -280,6 +336,7 @@ details.habit summary::-webkit-details-marker{display:none}
     <button role="tab" id="tab-practice" aria-selected="true" aria-controls="v-practice">Practice</button>
     <button role="tab" id="tab-songs" aria-selected="false" aria-controls="v-songs">Songs</button>
     <button role="tab" id="tab-tuner" aria-selected="false" aria-controls="v-tuner">Tuner</button>
+    <button role="tab" id="tab-stats" aria-selected="false" aria-controls="v-stats">Stats</button>
     <button role="tab" id="tab-settings" aria-selected="false" aria-controls="v-settings">Settings</button>
   </nav>
 
@@ -592,6 +649,22 @@ details.habit summary::-webkit-details-marker{display:none}
       <div class="stat"><span class="label">Notes held</span><b id="sNotes">--</b></div>
     </div>
   </section>
+  </div>
+  <div class="view" id="v-stats" hidden>
+  <section class="panel" aria-labelledby="t-stats">
+    <h2 id="t-stats">Your stats</h2>
+    <div class="chips" id="statRange" role="group" aria-label="Time period"></div>
+    <div class="custom" id="statCustom" hidden><label>From<input type="date" id="stFrom"></label><label>To<input type="date" id="stTo"></label></div>
+    <div class="stiles" id="statTiles"></div>
+    <p class="stake" id="statSince"></p>
+  </section>
+  <section class="panel coachread" aria-labelledby="t-read">
+    <h2 id="t-read">Coach's read</h2>
+    <p class="stake" style="margin-top:-8px">What your numbers say for this period, most important first, and what to do about it.</p>
+    <div class="insights" id="statInsights"></div>
+  </section>
+  <div class="stcharts" id="statCharts"></div>
+  <div class="stip" id="statTip" role="status" hidden></div>
   </div>
   <div class="view" id="v-settings" hidden>
   <section class="panel" aria-labelledby="t-safe">
@@ -1672,8 +1745,10 @@ async function analyzeSong(ab,statusEl){
 }
 /* Saved songs live in this browser's storage (IndexedDB), with the audio when it fits. */
 const MyDB={
-  open(){return new Promise((res,rej)=>{let r;try{r=indexedDB.open('ison-pitch-lab',1)}catch(e){rej(e);return}
-    r.onupgradeneeded=()=>r.result.createObjectStore('songs',{keyPath:'id',autoIncrement:true});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)})},
+  open(){if(this._db)return Promise.resolve(this._db);return new Promise((res,rej)=>{let r;try{r=indexedDB.open('ison-pitch-lab',2)}catch(e){rej(e);return}
+    r.onupgradeneeded=()=>{const db=r.result;if(!db.objectStoreNames.contains('songs'))db.createObjectStore('songs',{keyPath:'id',autoIncrement:true});
+      if(!db.objectStoreNames.contains('att'))db.createObjectStore('att',{keyPath:'id',autoIncrement:true}).createIndex('t','t')};
+    r.onsuccess=()=>{const db=r.result;db.onversionchange=()=>{db.close();MyDB._db=null};MyDB._db=db;res(db)};r.onerror=()=>rej(r.error);r.onblocked=()=>rej(new Error('blocked'))})},
   async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('songs',mode),st=t.objectStore('songs');const out=fn(st);
     t.oncomplete=()=>res(out&&out.result!==undefined?out.result:out);t.onerror=()=>rej(t.error)})},
   all(){return this.tx('readonly',st=>st.getAll())},put(rec){return this.tx('readwrite',st=>st.put(rec))},del(id){return this.tx('readwrite',st=>st.delete(id))},get(id){return this.tx('readonly',st=>st.get(id))}
@@ -1738,7 +1813,9 @@ async function startSing(){
 }
 function stopSing(silent){G.playing=false;setTimeout(updateAwake,0);G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
-  {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);if(v>0.3)recordHabits(analyzeHabits({notes:G.notes,tolA:Math.max(S.thr,25)},G.trace,G.speed));if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
+  {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);let hs=null;if(v>0.3){hs=analyzeHabits({notes:G.notes,tolA:Math.max(S.thr,25)},G.trace,G.speed);recordHabits(hs)}
+   if(v>0.2){const r0=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace);if(r0){if(!G.sessId||Date.now()-(G.sessT||0)>20*6e4)G.sessId=Date.now();G.sessT=Date.now();const so=$('guideSrc').selectedOptions[0];
+     logAttempt({notes:G.notes,dur:G.dur,title:'Song: '+(so?so.textContent:'song'),tolA:25,utips:['songs']},r0,G.trace,{tr:'songs',kind:'songs',sess:G.sessId,pos:0,H:hs&&hs.H,O:hs&&hs.O,sec:G.dur/(G.speed||1)})}}if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
   const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
   if(D.pass==null){$('singStatus').textContent=r?'Done. Score '+sc+' '+starStr(sc)+'. '+praise(r)+'.':'Done. No singing was heard during the notes.';return}
   const setSp=v=>{$('speed').value=v;$('speed').oninput()},pass=sc>=D.pass;let msg='Score '+sc+'. ';
@@ -1938,8 +2015,265 @@ $('toText').onclick=()=>{
 refreshMySongs();detailLabel();
 try{$('typed').value=localStorage.getItem('ison-typed')||'D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}catch(e){$('typed').value='D4:1 E4:1 F4:1 G4:1 A4:2 G4:1 F4:1 E4:1 D4:3'}
 
+/* ================= Detailed history =================
+   Every scored exercise is stored as one record in IndexedDB: when, what, all score parts, the
+   sharp/flat lean, steadiness, landing time, every target note (pitch, timing, accuracy, interval),
+   the habits found, and the full pitch line itself, compressed to 20 points a second (about 40
+   bytes per second of singing: 100 hours is roughly 15 MB). The Stats tab reads these records. */
+const ATT={
+  async add(rec){try{const db=await MyDB.open();await new Promise((res,rej)=>{const t=db.transaction('att','readwrite');t.objectStore('att').add(rec);t.oncomplete=res;t.onerror=()=>rej(t.error)})}catch(e){}},
+  async range(t0,t1){try{const db=await MyDB.open();return await new Promise((res,rej)=>{const t=db.transaction('att','readonly'),ix=t.objectStore('att').index('t'),q=ix.getAll(IDBKeyRange.bound(t0,t1));q.onsuccess=()=>res(q.result||[]);q.onerror=()=>rej(q.error)})}catch(e){return[]}},
+  async all(){return this.range(0,Date.now()+864e5)},
+  async clear(){try{const db=await MyDB.open();await new Promise(res=>{const t=db.transaction('att','readwrite');t.objectStore('att').clear();t.oncomplete=res;t.onerror=res})}catch(e){}},
+  async addMany(list){try{const db=await MyDB.open();await new Promise(res=>{const t=db.transaction('att','readwrite'),st=t.objectStore('att');list.forEach(r=>{const c={...r};delete c.id;st.add(c)});t.oncomplete=res;t.onerror=res})}catch(e){}},
+  async first(){try{const db=await MyDB.open();return await new Promise(res=>{const t=db.transaction('att','readonly'),c=t.objectStore('att').index('t').openCursor();c.onsuccess=()=>res(c.result?c.result.value.t:null);c.onerror=()=>res(null)})}catch(e){return null}}};
+function packTrace(trace,dur){const hz=20,n=Math.max(1,Math.ceil(dur*hz)),a=new Int16Array(n);a.fill(-32768);const bins=new Array(n);
+  for(const p of trace){if(p.m==null||p.t<0)continue;const k=Math.floor(p.t*hz);if(k>=0&&k<n)(bins[k]=bins[k]||[]).push(p.m)}
+  for(let k=0;k<n;k++)if(bins[k])a[k]=Math.round(med(bins[k])*100);const u=new Uint8Array(a.buffer);let s='';for(let i=0;i<u.length;i+=0x8000)s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000));return btoa(s)}
+function unpackTrace(b64){try{const bin=atob(b64),u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);return Array.from(new Int16Array(u.buffer)).map(v=>v===-32768?null:v/100)}catch(e){return[]}}
+const fold=d=>{d=((d%1200)+1200)%1200;return d>600?d-1200:d};
+function logAttempt(it,R,trace,o){if(!R)return;const sung=it.notes.filter(n=>!n.listen),ms=trace.filter(p=>p.m!=null&&p.t>=0&&sung.some(n=>p.t>=n.t0-0.3&&p.t<n.t1+0.3&&Math.abs(p.m-n.m)<=7)).map(p=>p.m).sort((a,b)=>a-b);
+  const pct=q=>ms.length?ms[Math.min(ms.length-1,Math.floor(q*ms.length))]:null;
+  ATT.add({t:Date.now(),tr:o.tr,kind:o.kind,sess:o.sess,pos:o.pos,lid:it.lid||it.src||null,title:it.title,cats:it.utips||[],dur:+(it.dur||0).toFixed(2),sec:+(o.sec||it.dur||0).toFixed(1),
+    score:R.score,acc:+R.acc.toFixed(3),cov:+R.cov.toFixed(3),steady:+R.steady.toFixed(3),react:+R.react.toFixed(3),bias:Math.round(R.bias||0),sd:R.sd==null?null:Math.round(R.sd),rt:R.rt==null?null:+R.rt.toFixed(2),
+    blind:!!it.blind,think:!!it.think,ison:!!it.ison,acc2:!!it.acc,cue:it.notes.filter(n=>n.listen).length===1,tolA:Math.round(it.tolA||25),home:S.home,
+    lo:ms.length>=20?pct(0.04):null,hi:ms.length>=20?pct(0.96):null,sungSec:+(ms.length*(trace.length>1?Math.max(0.005,(trace[trace.length-1].t-trace[0].t)/trace.length):1/60)).toFixed(1),
+    notes:sung.map(n=>{const pn=(R.perNote||[]).find(x=>Math.abs(x.m-n.m)<0.001&&x.t0===n.t0);return[+n.m.toFixed(2),+n.t0.toFixed(2),+n.t1.toFixed(2),pn?+pn.a.toFixed(2):null,pn&&pn.dvAll!=null?Math.round(fold(pn.dvAll)):null,pn?pn.iv:0]}),
+    H:o.H||{},O:o.O||{},p:packTrace(trace,it.dur||0)})}
+
+/* ================= Stats tab ================= */
+const fmtDur=min=>min<1?Math.round(min*60)+' s':fmtHM(min);
+const catName=k=>TIP_LABEL[k]||(k==='songs'?'Songs':String(k).charAt(0).toUpperCase()+String(k).slice(1));
+const STATR={key:'7d',from:null,to:null};
+const RANGES=[['24h','24 hours',864e5],['48h','48 hours',1728e5],['7d','7 days',6048e5],['30d','30 days',2592e6],['90d','90 days',7776e6],['1y','Year',31536e6],['all','All',0],['custom','Custom',0]];
+function statWindow(){const now=Date.now();if(STATR.key==='custom'&&STATR.from&&STATR.to){const a=new Date(STATR.from+'T00:00').getTime(),b=new Date(STATR.to+'T23:59:59').getTime();return[a,Math.max(a+36e5,b)]}
+  const r=RANGES.find(x=>x[0]===STATR.key);if(!r||!r[2])return[0,now];return[now-r[2],now]}
+const avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const sum=a=>a.reduce((x,y)=>x+y,0);
+function bucketSpec(t0,t1){const span=t1-t0;if(span<=2.1*864e5)return{ms:36e5,lab:t=>new Date(t).toLocaleTimeString([], {hour:'numeric'})};if(span<=100*864e5)return{ms:864e5,lab:t=>new Date(t).toLocaleDateString([], {month:'short',day:'numeric'})};return{ms:7*864e5,lab:t=>new Date(t).toLocaleDateString([], {month:'short',day:'numeric'})}}
+function bucketize(recs,t0,t1,fn){const b=bucketSpec(t0,t1),start=b.ms===864e5?new Date(new Date(t0).toDateString()).getTime():b.ms===36e5?Math.floor(t0/36e5)*36e5:new Date(new Date(t0).toDateString()).getTime();
+  const n=Math.max(1,Math.ceil((t1-start)/b.ms)),out=[];for(let i=0;i<n;i++)out.push({t:start+i*b.ms,label:b.lab(start+i*b.ms),recs:[]});
+  recs.forEach(r=>{const k=Math.floor((r.t-start)/b.ms);if(k>=0&&k<n)out[k].recs.push(r)});return out.map(x=>({...x,v:fn(x.recs)}))}
+/* summaries */
+function summarize(recs){const sc=recs.filter(r=>r.cov>=0.2);const notes=[];sc.forEach(r=>r.notes.forEach(n=>{if(n[3]!=null)notes.push({m:n[0],a:n[3],dv:n[4],iv:n[5],home:r.home,r})}));
+  const sess=new Set(recs.map(r=>r.sess)).size,days=new Set(recs.map(r=>new Date(r.t).toDateString())).size;
+  const los=sc.map(r=>r.lo).filter(x=>x!=null),his=sc.map(r=>r.hi).filter(x=>x!=null);
+  const dvs=notes.filter(n=>n.dv!=null).map(n=>n.dv);
+  return{n:recs.length,sess,days,min:sum(recs.map(r=>r.sec||r.dur))/60,score:avg(sc.map(r=>r.score)),acc:avg(sc.map(r=>r.acc)),cov:avg(recs.map(r=>r.cov)),steady:avg(sc.map(r=>r.steady)),react:avg(sc.map(r=>r.react)),
+    bias:dvs.length?med(dvs):null,cents:dvs.length?avg(dvs.map(Math.abs)):null,inTune:notes.length?notes.filter(n=>n.a>=0.8).length/notes.length:null,
+    lo:los.length?los.slice().sort((x,y)=>x-y)[los.length>=5?1:0]:null,hi:his.length?his.slice().sort((x,y)=>y-x)[his.length>=5?1:0]:null,notes,sc}}
+/* ---------- small chart kit (one axis, thin marks, recessive grid, tap for values) ---------- */
+const CH={};
+function chartBox(id,title,take){const card=document.createElement('section');card.className='panel scard';const h=document.createElement('h3');h.textContent=title;
+  const cv=document.createElement('canvas');cv.id=id;cv.height=170;const tp=document.createElement('p');tp.className='stake';tp.textContent=take||'';card.append(h,cv,tp);return{card,cv,tp}}
+function setupTip(cv,hits){CH[cv.id]=hits;if(cv.dataset.tip)return;cv.dataset.tip='1';const show=e=>{const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,hs=CH[cv.id]||[];let best=null,bd=1e9;
+    hs.forEach(h=>{const d=h.y!=null?Math.abs(y-h.y-7):Math.abs(x-h.x);if(d<bd){bd=d;best=h}});const tt=$('statTip');if(!best||bd>40){tt.hidden=true;return}
+    tt.hidden=false;tt.innerHTML='';const b=document.createElement('b');b.textContent=best.v;const s=document.createElement('span');s.textContent=best.l;tt.append(b,s);
+    const bx=best.y!=null?x:best.x;tt.style.left=Math.min(innerWidth-178,Math.max(8,r.left+bx-80))+'px';tt.style.top=Math.max(8,r.top+(best.y!=null?best.y:best.py!=null?best.py-8:0)-52)+'px'};
+  cv.addEventListener('pointerdown',show);cv.addEventListener('pointermove',e=>{if(e.pointerType==='mouse'||e.buttons)show(e)});cv.addEventListener('pointerleave',()=>{$('statTip').hidden=true})}
+function cw(cv){const pe=cv.parentElement,cs=getComputedStyle(pe);return Math.max(200,pe.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight))}
+function axes(g,w,h,pl,pb,pt,lo,hi,fmt,c,ticks){g.font='11px '+getComputedStyle(document.body).getPropertyValue('--f-mono');g.lineWidth=1;
+  const y=v=>pt+(h-pt-pb)*(1-(v-lo)/(hi-lo||1));(ticks||[lo,(lo+hi)/2,hi]).forEach(v=>{g.strokeStyle=c.grid;g.beginPath();g.moveTo(pl,y(v));g.lineTo(w-6,y(v));g.stroke();g.fillStyle=c.muted;g.fillText(fmt(v),2,y(v)+4)});return y}
+function xLabels(g,pts,h,c){g.fillStyle=c.muted;g.textAlign='center';const step=Math.ceil(pts.length/5),show=[];pts.forEach((p,i)=>{if(i%step===0)show.push(i)});
+  const last=pts.length-1;if(show[show.length-1]!==last){if(pts.length>1&&pts[last].x-pts[show[show.length-1]].x<58)show.pop();show.push(last)}
+  const W=g.canvas.width/(window.devicePixelRatio||1);show.forEach(i=>{const p=pts[i],tw=g.measureText(p.label).width;g.fillText(p.label,Math.max(tw/2+30,Math.min(W-tw/2-2,p.x)),h-4)});g.textAlign='left'}
+function lineChart(cv,buckets,o){const w=cw(cv),h=o.h||170,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const pl=38,pb=26,pt=10;
+  const vals=buckets.map(b=>b.v).filter(v=>v!=null);if(!vals.length){emptyChart(g,w,h,c);setupTip(cv,[]);return}
+  let lo=o.lo!=null?o.lo:Math.min(...vals),hi=o.hi!=null?o.hi:Math.max(...vals);if(o.zero){lo=Math.min(lo,0);hi=Math.max(hi,0)}if(hi-lo<(o.minSpan||10)){const m=(hi+lo)/2;lo=m-(o.minSpan||10)/2;hi=m+(o.minSpan||10)/2}
+  const y=axes(g,w,h,pl,pb,pt,lo,hi,o.fmt||(v=>Math.round(v)),c,o.ticks||(o.zero?[lo,0,hi]:null));const xs=i=>pl+6+(w-pl-18)*(buckets.length>1?i/(buckets.length-1):0.5);
+  if(o.zero){g.strokeStyle=c.gridC;g.setLineDash([4,4]);g.beginPath();g.moveTo(pl,y(0));g.lineTo(w-6,y(0));g.stroke();g.setLineDash([]);if(o.zeroLabel){g.fillStyle=c.muted;g.fillText(o.zeroLabel,pl+4,y(0)-4)}}
+  if(o.band){g.fillStyle='rgba(214,166,79,.07)';g.fillRect(pl,y(o.band[1]),w-pl-6,y(o.band[0])-y(o.band[1]))}
+  g.strokeStyle=o.color||c.accent;g.lineWidth=2;g.lineJoin='round';g.beginPath();let pen=false;const hits=[];
+  buckets.forEach((b,i)=>{if(b.v==null)return;const X=xs(i),Y=y(b.v);if(pen)g.lineTo(X,Y);else{g.moveTo(X,Y);pen=true}});g.stroke();
+  const nn=buckets.filter(b=>b.v!=null).length,lastI=buckets.map(b=>b.v!=null).lastIndexOf(true);
+  buckets.forEach((b,i)=>{b.x=xs(i);if(b.v==null)return;if(nn<=24||i===lastI){g.fillStyle=o.color||c.accent;g.beginPath();g.arc(b.x,y(b.v),i===lastI?4:3.2,0,7);g.fill();g.strokeStyle=c.bg;g.lineWidth=1.5;g.stroke()}hits.push({x:b.x,py:y(b.v),v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(b.v),l:b.label})});
+  xLabels(g,buckets,h,c);setupTip(cv,hits)}
+function barChart(cv,buckets,o){const w=cw(cv),h=o.h||170,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const pl=38,pb=26,pt=10;
+  const vals=buckets.map(b=>b.v||0),hi=Math.max(o.minHi||1,...vals);if(!vals.some(v=>v>0)){emptyChart(g,w,h,c);setupTip(cv,[]);return}
+  const y=axes(g,w,h,pl,pb,pt,0,hi,o.fmt||(v=>Math.round(v)),c,[0,hi/2,hi]);const bw=Math.max(2,(w-pl-10)/buckets.length-2),hits=[];
+  buckets.forEach((b,i)=>{const X=pl+(w-pl-10)*(i+0.5)/buckets.length;b.x=X;const v=b.v||0;if(v>0){g.fillStyle=(o.colorFn&&o.colorFn(b))||o.color||c.accent;const top=y(v),bh=y(0)-top;g.beginPath();if(g.roundRect)g.roundRect(X-bw/2,top,bw,bh,[Math.min(4,bw/2),Math.min(4,bw/2),0,0]);else g.rect(X-bw/2,top,bw,bh);g.fill()}
+    hits.push({x:X,v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(v),l:b.label})});xLabels(g,buckets,h,c);setupTip(cv,hits)}
+function emptyChart(g,w,h,c){g.fillStyle=c.muted;g.font='14px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('No practice in this period',w/2,h/2);g.textAlign='left'}
+function spark(cv,vals,o){o=o||{};const w=o.w||110,h=o.h||32,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const v=vals.filter(x=>x!=null);if(v.length<2){g.fillStyle=c.muted;g.font='11px sans-serif';g.fillText('not enough data',2,h/2+4);return}
+  let lo=o.lo!=null?o.lo:Math.min(...v),hi=o.hi!=null?o.hi:Math.max(...v);const ms=o.minSpan||10;if(hi-lo<ms){const m=(hi+lo)/2;lo=m-ms/2;hi=m+ms/2;if(o.floor!=null&&lo<o.floor){hi+=o.floor-lo;lo=o.floor}if(o.ceil!=null&&hi>o.ceil){lo-=hi-o.ceil;hi=o.ceil}}
+  const y=x=>h-4-(h-8)*((x-lo)/((hi-lo)||1));g.strokeStyle=o.color||c.accent;g.lineWidth=2;g.lineJoin='round';g.beginPath();let pen=false;
+  vals.forEach((x,i)=>{if(x==null)return;const X=3+(w-6)*i/(vals.length-1);if(pen)g.lineTo(X,y(x));else{g.moveTo(X,y(x));pen=true}});g.stroke();
+  const li=vals.map((x,i)=>x==null?-1:i).filter(i=>i>=0).pop();g.fillStyle=o.color||c.accent;g.beginPath();g.arc(3+(w-6)*li/(vals.length-1),y(vals[li]),3,0,7);g.fill()}
+/* pitch map: time spent on every note, colored by how accurately it was sung */
+function pitchMap(cv,recs){const w=cw(cv),c=colors();const bins={};let total=0;
+  recs.forEach(r=>{const pts=unpackTrace(r.p);pts.forEach(m=>{if(m==null)return;const k=Math.round(m);(bins[k]=bins[k]||{t:0,a:[]}).t+=0.05;total+=0.05})});
+  recs.forEach(r=>r.notes.forEach(n=>{if(n[3]==null)return;const k=Math.round(n[0]);(bins[k]=bins[k]||{t:0,a:[]}).a.push(n[3])}));
+  const ks=Object.keys(bins).map(Number).filter(k=>bins[k].t>=0.5).sort((a,b)=>a-b);const h=Math.max(120,ks.length*16+16),g=fitCanvas(cv,w,h);g.clearRect(0,0,w,h);
+  if(!ks.length){emptyChart(g,w,h,c);setupTip(cv,[]);return null}const mx=Math.max(...ks.map(k=>bins[k].t)),pl=46,hits=[];g.font='11px '+getComputedStyle(document.body).getPropertyValue('--f-mono');
+  ks.slice().reverse().forEach((k,i)=>{const yy=8+i*16,b=bins[k],acc=b.a.length?avg(b.a):null,bw=(w-pl-96)*b.t/mx;
+    g.fillStyle=k===S.home?c.gold:c.muted;g.fillText(nameOf(k),4,yy+10);
+    g.fillStyle=acc==null?c.gridC:acc>=0.8?c.good:acc>=0.6?c.warn:c.bad;g.beginPath();if(g.roundRect)g.roundRect(pl,yy+2,Math.max(2,bw),10,[0,4,4,0]);else g.rect(pl,yy+2,Math.max(2,bw),10);g.fill();
+    g.fillStyle=c.muted;g.fillText((b.t>=60?Math.round(b.t/60)+'m':Math.round(b.t)+'s')+(acc!=null?' · '+Math.round(acc*100)+'%':''),pl+Math.max(2,bw)+6,yy+11);
+    hits.push({x:0,y:yy+2,v:nameOf(k)+(k===S.home?' (home)':''),l:(b.t>=60?(b.t/60).toFixed(1)+' min sung':Math.round(b.t)+' s sung')+(acc!=null?', '+Math.round(acc*100)+'% accurate':'')})});
+  setupTip(cv,hits);return{ks,bins,total}}
+/* session replay: every exercise in one session, target bars and your line */
+function drawAttempt(cv,r,w,h){const g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const pts=unpackTrace(r.p),notes=r.notes;if(!notes.length)return;
+  const allm=notes.map(n=>n[0]).concat(pts.filter(x=>x!=null&&Math.abs(x-notes[0][0])<14));let lo=Math.min(...allm)-1.5,hi=Math.max(...allm)+1.5;if(hi-lo<6){const m=(hi+lo)/2;lo=m-3;hi=m+3}
+  const T0=Math.max(0,notes[0][1]-0.3),T1=Math.min(r.dur,notes[notes.length-1][2]+0.3),x=t=>(t-T0)/(T1-T0||1)*w,y=m=>h-(m-lo)/(hi-lo)*h,bh=Math.max(4,h/(hi-lo)*(r.tolA||25)/100*2);
+  g.fillStyle=c.grid;g.fillRect(0,0,w,h);notes.forEach(n=>{g.fillStyle=n[3]==null?c.gridC:n[3]>=0.8?c.good:n[3]>=0.6?c.warn:c.bad;g.globalAlpha=0.35;g.fillRect(x(n[1]),y(n[0])-bh/2,Math.max(2,x(n[2])-x(n[1])),bh);g.globalAlpha=1});
+  g.strokeStyle=c.gold;g.lineWidth=1.6;g.beginPath();let pen=false;pts.forEach((m,i)=>{const t=i/20;if(t<T0||t>T1||m==null){pen=false;return}
+    let mm=m;const near=notes.find(n=>t>=n[1]&&t<n[2]);if(near){while(mm-near[0]>6)mm-=12;while(near[0]-mm>6)mm+=12}if(pen)g.lineTo(x(t),y(mm));else{g.moveTo(x(t),y(mm));pen=true}});g.stroke()}
+/* insight visuals */
+function visBars(items,o){const wrap=document.createElement('div');wrap.className='vbars';const mx=Math.max(o&&o.max||0,...items.map(x=>x.v));items.forEach(x=>{const row=document.createElement('div');row.className='vb';
+  const a=document.createElement('span');a.textContent=x.l;const tr=document.createElement('span');tr.className='vt';const i=document.createElement('i');i.style.width=Math.max(2,x.v/mx*100)+'%';i.style.background=x.c||'var(--accent)';tr.appendChild(i);
+  const b=document.createElement('b');b.textContent=x.t||String(Math.round(x.v));row.append(a,tr,b);wrap.appendChild(row)});return wrap}
+function visRange(lo,hi,plo,phi){const d=document.createElement('div');d.className='vrange';const L=Math.min(lo,plo!=null?plo:lo,S.home)-3,H=Math.max(hi,phi!=null?phi:hi,S.home)+3,pc=m=>((m-L)/(H-L)*100)+'%';
+  if(plo!=null){const p=document.createElement('i');p.className='prev';p.style.left=pc(plo);p.style.width='calc('+pc(phi)+' - '+pc(plo)+')';d.appendChild(p)}
+  const b=document.createElement('i');b.className='cur';b.style.left=pc(lo);b.style.width='calc('+pc(hi)+' - '+pc(lo)+')';d.appendChild(b);
+  const hm=document.createElement('em');hm.style.left=pc(S.home);d.appendChild(hm);
+  const lab=document.createElement('div');lab.className='vrl';const a=document.createElement('span');a.textContent=nameOf(lo);const m2=document.createElement('span');m2.textContent='home '+nameOf(S.home);const z=document.createElement('span');z.textContent=nameOf(hi);lab.append(a,m2,z);
+  const wrap=document.createElement('div');wrap.append(d,lab);return wrap}
+function visGauge(bias){const d=document.createElement('div');d.className='vgauge';const p=Math.max(-50,Math.min(50,bias));const m=document.createElement('i');m.style.left=(50+p)+'%';d.appendChild(m);
+  const lab=document.createElement('div');lab.className='vrl';['flat','on pitch','sharp'].forEach(t=>{const s=document.createElement('span');s.textContent=t;lab.appendChild(s)});const w=document.createElement('div');w.append(d,lab);return w}
+function visSpark(vals,o){const cv=document.createElement('canvas');setTimeout(()=>spark(cv,vals,o),0);return cv}
+/* ---------- the coach's read: insights from the data ---------- */
+function insights(cur,prev,recs,prevRecs){const out=[],P=(t,txt,vis,w,act)=>out.push({t,txt,vis,w,act});
+  const cs=cur.score,ps=prev.score;
+  if(cs!=null&&ps!=null&&Math.abs(cs-ps)>=3)P(cs>ps?'Scores are climbing':'Scores dipped',(cs>ps?'Your average score is up ':'Your average score is down ')+Math.abs(Math.round(cs-ps))+' points compared with the period before ('+Math.round(ps)+' to '+Math.round(cs)+').'+(cs<ps?' Harder lessons often cause a dip; check the skills below for the real story.':' Keep the same routine; it is working.'),visBars([{l:'Before',v:ps,c:'var(--lapis)'},{l:'Now',v:cs}],{max:100}),cs>ps?5:7);
+  else if(cs!=null)P('Average score '+Math.round(cs),'Across '+cur.n+' exercises in this period. Scores of 70 complete a lesson; 90 passes a unit test.',visBars([{l:'Average',v:cs}],{max:100}),3);
+  if(cur.lo!=null&&cur.hi!=null){const span=Math.round(cur.hi-cur.lo),grew=prev.lo!=null&&(cur.hi-cur.lo)-(prev.hi-prev.lo)>=1;
+    P(grew?'Your range is growing':'Your singing range','You sang from '+nameOf(cur.lo)+' to '+nameOf(cur.hi)+': '+span+' half steps'+(grew?', '+Math.round((cur.hi-cur.lo)-(prev.hi-prev.lo))+' more than before':'')+'. Range grows with gentle, regular use at the edges, never by pushing.',visRange(cur.lo,cur.hi,prev.lo,prev.hi),grew?6:2)}
+  if(cur.bias!=null&&Math.abs(cur.bias)>=8)P(cur.bias<0?'You lean flat':'You lean sharp','On average your notes sit '+Math.abs(Math.round(cur.bias))+' cents '+(cur.bias<0?'below':'above')+' the target. '+(cur.bias<0?'Aim for the top half of the bar, keep breath steady to the ends of notes, and lighten on rising lines.':'Use less air and push, relax the jaw, and keep the volume steady.')+(prev.bias!=null?' Before this period it was '+Math.round(prev.bias)+' cents.':''),visGauge(cur.bias),Math.abs(cur.bias)>=15?8:5);
+  /* skills */
+  const byCat=(rs)=>{const m={};rs.forEach(r=>{const c=(r.cats&&r.cats[0])||'general';(m[c]=m[c]||[]).push(r.score)});return m},cc=byCat(cur.sc),pc=byCat(prev.sc);
+  const deltas=Object.keys(cc).filter(k=>cc[k].length>=3&&pc[k]&&pc[k].length>=3).map(k=>({k,d:avg(cc[k])-avg(pc[k]),v:avg(cc[k])})).sort((a,b)=>b.d-a.d);
+  if(deltas.length&&deltas[0].d>=5)P('Most improved: '+catName(deltas[0].k),'Up '+Math.round(deltas[0].d)+' points compared with the period before. That skill is settling in.',visBars([{l:'Before',v:avg(pc[deltas[0].k]),c:'var(--lapis)'},{l:'Now',v:deltas[0].v}],{max:100}),6);
+  const weakC=Object.keys(cc).filter(k=>cc[k].length>=3).map(k=>({k,v:avg(cc[k])})).sort((a,b)=>a.v-b.v);
+  if(weakC.length>=2&&weakC[weakC.length-1].v-weakC[0].v>=10){const k=weakC[0].k,pool=TIPS[k]||TIPS.general;P('Needs the most work: '+catName(k),'Your weakest kind of exercise right now ('+Math.round(weakC[0].v)+' average, against '+Math.round(weakC[weakC.length-1].v)+' for your best). Tip: '+pool[Math.floor(Math.random()*pool.length)],visBars(weakC.slice(0,4).map(x=>({l:TIP_LABEL[x.k]||x.k,v:x.v})),{max:100}),7,{label:'Practice weak spots',fn:()=>{if(L.active)return;mode='weak';store.set('ison-mode',mode);showTab('practice')}})}
+  /* intervals */
+  const ivG=(rs,f)=>{const a=[];rs.forEach(n=>{if(f(n))a.push(n.a)});return a.length>=6?avg(a):null},N=cur.notes;
+  const st=ivG(N,n=>Math.abs(n.iv)>=0.9&&Math.abs(n.iv)<=2.1),lp=ivG(N,n=>Math.abs(n.iv)>=4.5),up=ivG(N,n=>n.iv>=0.9),dn=ivG(N,n=>n.iv<=-0.9);
+  if(st!=null&&lp!=null&&st-lp>=0.12)P('Leaps are harder than steps','You land steps '+Math.round(st*100)+'% accurately but leaps of a fourth or more only '+Math.round(lp*100)+'%. Picture the top note before you leap, and remember interval songs: Here Comes the Bride for a fourth, Twinkle Twinkle for a fifth.',visBars([{l:'Steps',v:st*100,t:Math.round(st*100)+'%'},{l:'Leaps',v:lp*100,t:Math.round(lp*100)+'%'}],{max:100}),6);
+  if(up!=null&&dn!=null&&dn-up>=0.1)P('Rising lines need attention','Moves up land '+Math.round(up*100)+'% accurately, moves down '+Math.round(dn*100)+'%. This is the most common pattern in singers: aim a little higher as you climb and lighten the voice.',visBars([{l:'Up',v:up*100,t:Math.round(up*100)+'%'},{l:'Down',v:dn*100,t:Math.round(dn*100)+'%',c:'var(--lapis)'}],{max:100}),6);
+  /* notes */
+  const nb={};N.forEach(n=>{const k=Math.round(n.m);(nb[k]=nb[k]||[]).push(n.a)});const nl=Object.keys(nb).filter(k=>nb[k].length>=5).map(k=>({k:+k,a:avg(nb[k])})).sort((a,b)=>a.a-b.a);
+  if(nl.length>=3&&nl[0].a<0.7)P('Trouble notes: '+nl.slice(0,2).map(x=>nameOf(x.k)).join(' and '),'These notes land least accurately ('+nl.slice(0,2).map(x=>Math.round(x.a*100)+'%').join(', ')+'). '+(nl[0].k>S.home+4?'They sit high for you: lighter and softer works better than pushing.':nl[0].k<S.home-3?'They sit low for you: relax and let them be quieter.':'Practice matching them from home, then from their neighbors.'),visBars(nl.slice(0,4).map(x=>({l:nameOf(x.k),v:x.a*100,t:Math.round(x.a*100)+'%',c:x.a<0.6?'var(--bad)':x.a<0.8?'var(--warn)':'var(--good)'})),{max:100}),5);
+  /* session shape */
+  const bySess={};recs.filter(r=>r.cov>=0.2&&r.kind!=='songs').forEach(r=>{(bySess[r.sess]=bySess[r.sess]||[]).push(r)});const ss=Object.values(bySess).filter(a=>a.length>=6).map(a=>a.sort((x,y)=>x.t-y.t));
+  if(ss.length>=2){const first=avg(ss.map(a=>avg(a.slice(0,2).map(r=>r.score)))),rest=avg(ss.map(a=>avg(a.slice(2).map(r=>r.score))));
+    if(rest-first>=8)P('Cold starts','Your first two exercises average '+Math.round(first)+', the rest '+Math.round(rest)+'. A minute of straw or lip-trill warm-up first, or a 10-minute session (which adds one automatically), closes that gap.',visBars([{l:'First 2',v:first,c:'var(--lapis)'},{l:'After',v:rest}],{max:100}),5)}
+  const longS=ss.filter(a=>(a[a.length-1].t-a[0].t)>=12*6e4);
+  if(longS.length>=2){const a=avg(longS.map(x=>avg(x.slice(0,Math.ceil(x.length/3)).map(r=>r.score)))),b=avg(longS.map(x=>avg(x.slice(-Math.ceil(x.length/3)).map(r=>r.score))));
+    if(a-b>=8)P('Long sessions fade','In longer sessions your last third scores '+Math.round(a-b)+' points lower than your first. Two shorter sessions in a day will probably teach you more than one long one.',visBars([{l:'Start',v:a},{l:'End',v:b,c:'var(--lapis)'}],{max:100}),5)}
+  /* time of day */
+  const part=t=>{const h=new Date(t).getHours();return h<5?'Night':h<12?'Morning':h<17?'Afternoon':h<21?'Evening':'Night'},tod={};cur.sc.forEach(r=>{const p=part(r.t);(tod[p]=tod[p]||[]).push(r.score)});
+  const todL=Object.keys(tod).filter(k=>tod[k].length>=5).map(k=>({k,v:avg(tod[k])})).sort((a,b)=>b.v-a.v);
+  if(todL.length>=2&&todL[0].v-todL[todL.length-1].v>=6)P('Your best time: '+todL[0].k.toLowerCase(),'You average '+Math.round(todL[0].v)+' in the '+todL[0].k.toLowerCase()+' and '+Math.round(todL[todL.length-1].v)+' in the '+todL[todL.length-1].k.toLowerCase()+'. The voice is usually stiffer right after waking; if you can, practice when you sing best.',visBars(todL.map(x=>({l:x.k,v:x.v})),{max:100}),4);
+  /* guided vs memory */
+  const gd=cur.sc.filter(r=>!r.blind&&!r.cue),mm=cur.sc.filter(r=>r.blind||r.cue);
+  if(gd.length>=6&&mm.length>=4&&avg(gd.map(r=>r.score))-avg(mm.map(r=>r.score))>=12)P('The guide is doing some of the work','With the guide you average '+Math.round(avg(gd.map(r=>r.score)))+', from memory '+Math.round(avg(mm.map(r=>r.score)))+'. That gap is normal early on. Glance at the bars less and listen more; hear-think-sing drills build the inner reference.',visBars([{l:'Guided',v:avg(gd.map(r=>r.score))},{l:'Memory',v:avg(mm.map(r=>r.score)),c:'var(--lapis)'}],{max:100}),5);
+  /* steadiness and landing */
+  if(cur.steady!=null&&prev.steady!=null&&cur.steady-prev.steady>=0.06)P('Steadier long notes','Your held notes are noticeably steadier than before ('+Math.round(prev.steady*100)+' to '+Math.round(cur.steady*100)+').',visBars([{l:'Before',v:prev.steady*100,c:'var(--lapis)'},{l:'Now',v:cur.steady*100}],{max:100}),4);
+  if(cur.react!=null&&prev.react!=null&&cur.react-prev.react>=0.06)P('Landing notes faster','You reach the center of each note quicker than before. Clean starts are becoming a habit.',visBars([{l:'Before',v:prev.react*100,c:'var(--lapis)'},{l:'Now',v:cur.react*100}],{max:100}),4);
+  /* habits */
+  const hr=(rs,id)=>{let o=0,k=0;rs.forEach(r=>{o+=(r.O||{})[id]||0;k+=(r.H||{})[id]||0});return o>=8?k/o:null};
+  HD.forEach(h=>{const a=hr(prevRecs,h.id),b=hr(recs,h.id);if(a!=null&&b!=null&&a>=h.min&&a-b>=Math.max(0.06,a*0.3)){
+      P('Improving: '+h.name.toLowerCase(),'Down from '+Math.round(a*100)+'% to '+Math.round(b*100)+'% of chances. Whatever you are doing, keep it up.',visBars([{l:'Before',v:a*100,t:Math.round(a*100)+'%',c:'var(--lapis)'},{l:'Now',v:b*100,t:Math.round(b*100)+'%'}],{max:Math.max(a,b)*100}),6)}
+    else if(b!=null&&b>=h.min*1.6&&(a==null||b-a>=0.05)){const u=habitTrack.units.findIndex(x=>x.hid===h.id);
+      P('Watch: '+h.name.toLowerCase(),h.look+' It happened in '+Math.round(b*100)+'% of chances this period. '+h.tips[0],(()=>{const d=document.createElement('div');d.innerHTML=habitSVG(h);return d})(),6,{label:'Start fix-it drill',fn:()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);showTab('practice');startHabitDrill(u)}})}});
+  /* consistency */
+  const [t0,t1]=statWindow(),spanDays=Math.max(1,Math.round((t1-t0)/864e5));
+  if(spanDays>=7&&STATR.key!=='all'){const dd=cur.days;P(dd>=spanDays*0.7?'Wonderfully consistent':'Consistency',('You practiced on '+dd+' of '+spanDays+' days. ')+(dd>=spanDays*0.7?'Regular short sessions are exactly what builds a voice.':'Short daily sessions (10 to 20 minutes) build more than occasional long ones.'),visBars([{l:'Days',v:dd,t:dd+'/'+spanDays}],{max:spanDays}),dd>=spanDays*0.7?3:6)}
+  return out.sort((a,b)=>b.w-a.w)}
+/* ---------- render ---------- */
+let statBusy=false;
+async function renderStats(){if(statBusy)return;statBusy=true;try{
+  const chips=$('statRange');if(!chips.children.length)RANGES.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.k=k;b.onclick=()=>{STATR.key=k;$('statCustom').hidden=k!=='custom';if(k==='custom'&&!STATR.from){const d=new Date();STATR.to=d.toISOString().slice(0,10);d.setDate(d.getDate()-14);STATR.from=d.toISOString().slice(0,10);$('stFrom').value=STATR.from;$('stTo').value=STATR.to}renderStats()};chips.appendChild(b)});
+  [...chips.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===STATR.key)));
+  const [t0,t1]=statWindow(),recs=await ATT.range(t0,t1),span=t1-t0||1,prevRecs=STATR.key==='all'?[]:await ATT.range(t0-span,t0-1),first=await ATT.first();
+  const cur=summarize(recs),prev=summarize(prevRecs);
+  const rl=(RANGES.find(x=>x[0]===STATR.key)||[])[1];$('statSince').textContent=(STATR.key!=='all'?'Arrows compare with the '+(STATR.key==='custom'?'same length of time':rl.toLowerCase())+' before. ':'')+(first?'Detailed history since '+new Date(first).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})+'. Your total practice time ('+fmtHM(TIME.raw)+') and rank include everything before that too.':'Detailed history starts with your next exercise.');
+  /* tiles */
+  const tl=$('statTiles');tl.innerHTML='';const tile=(label,val,delta,good,fd)=>{const d=document.createElement('div');d.className='stile';const a=document.createElement('span');a.textContent=label;const b=document.createElement('b');b.textContent=val;d.append(a,b);
+    if(delta!=null&&isFinite(delta)&&Math.abs(delta)>=0.5&&STATR.key!=='all'){const s=document.createElement('small');const up=delta>0;s.textContent=(up?'▲ ':'▼ ')+(fd?fd(Math.abs(delta)):Math.abs(Math.round(delta)));s.className=(up===good)?'up':'down';d.appendChild(s)}tl.appendChild(d)};
+  const R2=v=>v==null?'--':String(Math.round(v));
+  tile('Practice time',fmtDur(cur.min),cur.min-prev.min,true,v=>fmtDur(v));
+  tile('Sessions',String(cur.sess),cur.sess-prev.sess,true);
+  tile('Exercises',String(cur.n),cur.n-prev.n,true);
+  tile('Average score',R2(cur.score),cur.score!=null&&prev.score!=null?cur.score-prev.score:null,true);
+  tile('Notes on target',cur.inTune==null?'--':Math.round(cur.inTune*100)+'%',cur.inTune!=null&&prev.inTune!=null?(cur.inTune-prev.inTune)*100:null,true,v=>Math.round(v)+' pts');
+  tile('Average miss',cur.cents==null?'--':Math.round(cur.cents)+'¢',cur.cents!=null&&prev.cents!=null?cur.cents-prev.cents:null,false,v=>Math.round(v)+'¢');
+  tile('Range',cur.lo==null?'--':nameOf(cur.lo)+'–'+nameOf(cur.hi),cur.lo!=null&&prev.lo!=null?(cur.hi-cur.lo)-(prev.hi-prev.lo):null,true,v=>Math.round(v)+(Math.round(v)===1?' half step':' half steps'));
+  tile('Days practiced',String(cur.days),cur.days-prev.days,true);
+  /* insights */
+  const ins=insights(cur,prev,recs,prevRecs),ib=$('statInsights');ib.innerHTML='';
+  if(!recs.length){const p=document.createElement('p');p.className='status';p.textContent='No exercises in this period yet. Pick a longer range, or practice and come back.';ib.appendChild(p)}
+  ins.slice(0,8).forEach(x=>{const c=document.createElement('div');c.className='icard';const h=document.createElement('b');h.textContent=x.t;const p=document.createElement('p');p.textContent=x.txt;c.append(h);if(x.vis)c.appendChild(x.vis);c.appendChild(p);
+    if(x.act){const bt=document.createElement('button');bt.textContent=x.act.label;bt.onclick=x.act.fn;c.appendChild(bt)}ib.appendChild(c)});
+  /* charts */
+  const box=$('statCharts');box.innerHTML='';const add=(id,title,take)=>{const o=chartBox(id,title,take);box.appendChild(o.card);return o};
+  const B=fn=>bucketize(recs,t0===0&&recs.length?recs[0].t:t0,t1,fn);
+  const c1=add('chTime','Practice time','Minutes of exercises sung in each '+(bucketSpec(t0,t1).ms===36e5?'hour':bucketSpec(t0,t1).ms===864e5?'day':'week')+'.');barChart(c1.cv,B(rs=>sum(rs.map(r=>r.sec||r.dur))/60),{fmt:v=>v>=10?Math.round(v)+'m':(Math.round(v*10)/10)+'m'});
+  const c2=add('chScore','Average score','Tap a point for its value. 70 completes a lesson, 90 passes a test.');lineChart(c2.cv,B(rs=>{const a=rs.filter(r=>r.cov>=0.2);return a.length?avg(a.map(r=>r.score)):null}),{lo:0,hi:100,ticks:[0,50,70,90,100],band:[70,90]});
+  const c3=add('chTune','Notes on target','Share of notes sung within the pitch window.');lineChart(c3.cv,B(rs=>{const ns=[];rs.forEach(r=>r.notes.forEach(n=>{if(n[3]!=null)ns.push(n[3])}));return ns.length?ns.filter(a=>a>=0.8).length/ns.length*100:null}),{lo:0,hi:100,fmt:v=>Math.round(v)+'%',ticks:[0,50,100]});
+  const c4=add('chBias','Sharp or flat','Average lean of your notes in cents. Above the line is sharp, below is flat.');lineChart(c4.cv,B(rs=>{const d=[];rs.forEach(r=>r.notes.forEach(n=>{if(n[4]!=null)d.push(n[4])}));return d.length>=4?med(d):null}),{zero:true,zeroLabel:'on pitch',minSpan:30,fmt:v=>(v>0?'+':'')+Math.round(v)+'¢'});
+  const c5=add('chMiss','Average miss','How far off your notes are on average, in cents. Lower is better.');lineChart(c5.cv,B(rs=>{const d=[];rs.forEach(r=>r.notes.forEach(n=>{if(n[4]!=null)d.push(Math.abs(n[4]))}));return d.length>=4?avg(d):null}),{lo:0,fmt:v=>Math.round(v)+'¢',color:colors().lapis});
+  /* small multiples: score parts */
+  const sm=document.createElement('section');sm.className='panel scard';const smh=document.createElement('h3');smh.textContent='The four parts of your score';sm.appendChild(smh);const smg=document.createElement('div');smg.className='smgrid';
+  [['On pitch','acc'],['Steadiness','steady'],['Quick landing','react'],['Singing time','cov']].forEach(([l,k])=>{const bk=B(rs=>{const a=rs.filter(r=>r.cov>=0.2||k==='cov');return a.length?avg(a.map(r=>r[k]))*100:null});const v=bk.map(b=>b.v).filter(x=>x!=null);
+    const d=document.createElement('div');d.className='smcell';const s=document.createElement('span');s.textContent=l;const b=document.createElement('b');{const al=k==='cov'?recs:cur.sc;b.textContent=al.length?Math.round(avg(al.map(r=>r[k]))*100)+'':'--'}const cv=document.createElement('canvas');d.append(s,b,cv);smg.appendChild(d);setTimeout(()=>spark(cv,bk.map(x=>x.v),{floor:0,ceil:100,minSpan:12,w:Math.max(100,(cw(sm)-30)/2),h:44}),0)});
+  sm.appendChild(smg);const smp=document.createElement('p');smp.className='stake';smp.textContent='How each part of the score moved over the period (each line is scaled to its own data); the number is the average for the whole period.';sm.appendChild(smp);box.appendChild(sm);
+  /* range over time */
+  const c6=add('chRange','Range over time','Lowest and highest notes you sang in each period (the gold line marks your home note).');rangeChart(c6.cv,B(rs=>{const lo=rs.map(r=>r.lo).filter(x=>x!=null),hi=rs.map(r=>r.hi).filter(x=>x!=null);return lo.length?{lo:Math.min(...lo),hi:Math.max(...hi)}:null}));
+  const c7=add('chPitch','Where you sing','Time spent on each note, colored by how accurately you sang it: green 80%+, amber 60 to 80%, red below 60%.');c7.cv.height=200;pitchMap(c7.cv,recs);
+  /* intervals */
+  const ivc=document.createElement('section');ivc.className='panel scard';const ivh=document.createElement('h3');ivh.textContent='Moves between notes';ivc.appendChild(ivh);
+  const grp=[['Half step',0.9,1.1],['Whole step',1.9,2.1],['Third',2.9,4.1],['Fourth or fifth',4.9,7.1],['Bigger',7.9,13]],rows=[];
+  grp.forEach(([l,a,b])=>{const up=cur.notes.filter(n=>n.iv>=a&&n.iv<=b).map(n=>n.a),dn=cur.notes.filter(n=>-n.iv>=a&&-n.iv<=b).map(n=>n.a);if(up.length>=3||dn.length>=3)rows.push({l,up:up.length>=3?avg(up):null,dn:dn.length>=3?avg(dn):null})});
+  if(rows.length){const lg=document.createElement('div');lg.className='legend';lg.innerHTML='<span><i style="background:#B98429"></i>going up</span><span><i style="background:#6F8FE0"></i>going down</span>';ivc.appendChild(lg);
+    rows.forEach(r=>{const d=document.createElement('div');d.className='ivrow';const s=document.createElement('span');s.textContent=r.l;d.appendChild(s);[['up','#B98429'],['dn','#6F8FE0']].forEach(([k,col])=>{const tr=document.createElement('span');tr.className='vt';const i=document.createElement('i');i.style.width=(r[k]==null?0:r[k]*100)+'%';i.style.background=col;tr.appendChild(i);const b=document.createElement('b');b.textContent=r[k]==null?'--':Math.round(r[k]*100)+'%';d.append(tr,b)});ivc.appendChild(d)})}
+  else{const p=document.createElement('p');p.className='status';p.textContent='Not enough moves sung in this period.';ivc.appendChild(p)}
+  const ivp=document.createElement('p');ivp.className='stake';ivp.textContent='Accuracy landing each kind of move, up and down. Most singers find rising moves and bigger leaps hardest.';ivc.appendChild(ivp);box.appendChild(ivc);
+  /* skills */
+  const skc=document.createElement('section');skc.className='panel scard';const skh=document.createElement('h3');skh.textContent='Skills';skc.appendChild(skh);
+  const cats={},pcats={};cur.sc.forEach(r=>{const k=(r.cats&&r.cats[0])||'general';(cats[k]=cats[k]||[]).push(r.score)});prev.sc.forEach(r=>{const k=(r.cats&&r.cats[0])||'general';(pcats[k]=pcats[k]||[]).push(r.score)});
+  const kl=Object.keys(cats).filter(k=>cats[k].length>=2).sort((a,b)=>avg(cats[a])-avg(cats[b]));
+  if(kl.length)kl.forEach(k=>{const v=avg(cats[k]),pv=pcats[k]&&pcats[k].length>=2?avg(pcats[k]):null;const row=barEl(catName(k)+(pv!=null&&Math.abs(v-pv)>=3?(v>pv?'  ▲'+Math.round(v-pv):'  ▼'+Math.round(pv-v)):''),v/100,Math.round(v));skc.appendChild(row)});
+  else{const p=document.createElement('p');p.className='status';p.textContent='Skills appear after a few exercises of each kind.';skc.appendChild(p)}
+  const skp=document.createElement('p');skp.className='stake';skp.textContent='Average score by kind of exercise, weakest first. Arrows compare with the period before.';skc.appendChild(skp);box.appendChild(skc);
+  /* habits over time */
+  const hc=document.createElement('section');hc.className='panel scard';const hh=document.createElement('h3');hh.textContent='Habits over time';hc.appendChild(hh);let anyH=false;
+  HD.forEach(h=>{const bk=B(rs=>{let o=0,k=0;rs.forEach(r=>{o+=(r.O||{})[h.id]||0;k+=(r.H||{})[h.id]||0});return o>=4?k/o*100:null}),v=bk.map(b=>b.v).filter(x=>x!=null);
+    const tot=recs.reduce((a,r)=>a+((r.H||{})[h.id]||0),0);if(v.length<1||tot<2)return;anyH=true;const d=document.createElement('div');d.className='hrow';const n=document.createElement('span');n.textContent=h.name;
+    const cv=document.createElement('canvas');const b=document.createElement('b');const ch=v.length>=2?v[v.length-1]-v[0]:0;b.textContent=Math.round(v[v.length-1])+'%'+(v.length>=2&&Math.abs(ch)>=5?(ch<0?' ▼':' ▲'):'');b.className=ch<=-5?'up':ch>=5?'down':'';
+    d.append(n,cv,b);hc.appendChild(d);setTimeout(()=>spark(cv,bk.map(x=>x.v),{floor:0,minSpan:20,w:96,h:28,color:'#6F8FE0'}),0)});
+  if(!anyH){const p=document.createElement('p');p.className='status';p.textContent='No habits noticed in this period.';hc.appendChild(p)}
+  const hp=document.createElement('p');hp.className='stake';hp.textContent='How often each habit showed up (share of chances). A falling line is improvement.';hc.appendChild(hp);box.appendChild(hc);
+  /* session shape */
+  const c8=add('chShape','Your session shape','Average score by exercise number within a session: shows warm-up and fatigue.');const pos={};recs.filter(r=>r.cov>=0.2&&r.kind!=='songs').forEach(r=>{const k=Math.min(30,r.pos||0);(pos[k]=pos[k]||[]).push(r.score)});
+  const pk=Object.keys(pos).map(Number).sort((a,b)=>a-b);lineChart(c8.cv,pk.map(k=>({label:'#'+(k+1),v:pos[k].length>=2?avg(pos[k]):null})),{lo:0,hi:100,ticks:[0,50,100]});
+  /* recent sessions with replay */
+  const rsBox=document.createElement('section');rsBox.className='panel scard';const rh=document.createElement('h3');rh.textContent='Sessions';rsBox.appendChild(rh);
+  const sessions={};recs.forEach(r=>{(sessions[r.sess]=sessions[r.sess]||[]).push(r)});const sl=Object.values(sessions).sort((a,b)=>b[0].t-a[0].t).slice(0,25);
+  if(!sl.length){const p=document.createElement('p');p.className='status';p.textContent='No sessions in this period.';rsBox.appendChild(p)}
+  sl.forEach(a=>{a.sort((x,y)=>x.t-y.t);const d=document.createElement('details');d.className='sess';const s=document.createElement('summary');const sc=a.filter(r=>r.cov>=0.2);
+    {const L1=document.createElement('span'),b=document.createElement('b'),sm=document.createElement('small'),av=sc.length?Math.round(avg(sc.map(r=>r.score))):null,e=document.createElement('em');
+     b.textContent=new Date(a[0].t).toLocaleString([], {weekday:'short',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'});
+     sm.textContent=fmtDur(sum(a.map(r=>r.sec||r.dur))/60)+' · '+a.length+(a.length===1?' exercise':' exercises')+(a[0].kind==='songs'?' · Songs':a.some(r=>r.kind==='test')?' · Unit test':a.some(r=>r.kind==='habit')?' · Fix-it drill':a.some(r=>r.kind==='weak')?' · Weak spots':'');
+     L1.append(b,sm);e.textContent=av==null?'--':String(av);e.className=av==null?'':av>=85?'g':av>=70?'w':'r';s.append(L1,e)}
+    d.appendChild(s);d.addEventListener('toggle',()=>{if(!d.open||d.dataset.done)return;d.dataset.done='1';const W=Math.max(200,cw(rsBox)-20);
+      a.forEach(r=>{const row=document.createElement('div');row.className='att';const t=document.createElement('span');t.textContent=r.title+' · '+r.score+(r.blind?' · from memory':'');const cv=document.createElement('canvas');row.append(t,cv);d.appendChild(row);drawAttempt(cv,r,W,58)})});rsBox.appendChild(d)});
+  const rp=document.createElement('p');rp.className='stake';rp.textContent='Open a session to replay every exercise: the colored bars are the notes (green on target, amber close, red off) and the gold line is exactly what you sang.';rsBox.appendChild(rp);box.appendChild(rsBox);
+  }finally{statBusy=false}}
+function rangeChart(cv,buckets){const w=cw(cv),h=190,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const v=buckets.filter(b=>b.v);if(!v.length){emptyChart(g,w,h,c);setupTip(cv,[]);return}
+  let lo=Math.min(S.home,...v.map(b=>b.v.lo))-2,hi=Math.max(S.home,...v.map(b=>b.v.hi))+2;const pl=40,pb=26,pt=8,y=m=>pt+(h-pt-pb)*(1-(m-lo)/(hi-lo));g.font='11px '+getComputedStyle(document.body).getPropertyValue('--f-mono');
+  for(let m=Math.ceil(lo);m<=hi;m++){if(((m%12)+12)%12===0||(m===Math.ceil(lo)&&((m%12)+12)%12>2&&((m%12)+12)%12<10)){g.strokeStyle=c.grid;g.beginPath();g.moveTo(pl,y(m));g.lineTo(w-6,y(m));g.stroke();g.fillStyle=c.muted;g.fillText(nameOf(m),2,y(m)+4)}}
+  g.strokeStyle=c.gold;g.globalAlpha=0.6;g.beginPath();g.moveTo(pl,y(S.home));g.lineTo(w-6,y(S.home));g.stroke();g.globalAlpha=1;
+  const bw=Math.max(2,Math.min(14,(w-pl-10)/buckets.length-2)),hits=[];buckets.forEach((b,i)=>{const X=pl+(w-pl-10)*(i+0.5)/buckets.length;b.x=X;if(!b.v)return;g.fillStyle=c.accent;g.beginPath();if(g.roundRect)g.roundRect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi),4);else g.rect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi));g.fill();hits.push({x:X,v:nameOf(b.v.lo)+' to '+nameOf(b.v.hi),l:b.label})});
+  g.strokeStyle=c.gold;g.lineWidth=1.5;g.beginPath();g.moveTo(pl,y(S.home));g.lineTo(w-6,y(S.home));g.stroke();
+  xLabels(g,buckets,h,c);setupTip(cv,hits)}
+
+$('stFrom').onchange=$('stTo').onchange=()=>{STATR.from=$('stFrom').value;STATR.to=$('stTo').value;if(STATR.from&&STATR.to){if(STATR.from>STATR.to){const t=STATR.from;STATR.from=STATR.to;STATR.to=t;$('stFrom').value=STATR.from;$('stTo').value=STATR.to}renderStats()}};
+window.addEventListener('scroll',()=>{const t=$('statTip');if(t&&!t.hidden)t.hidden=true},{passive:true});
+{let rz=0,lw=innerWidth;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth!==lw&&!$('v-stats').hidden){lw=innerWidth;renderStats()}},300)})}
+
 /* ================= Tabs ================= */
-const TABS=['practice','songs','tuner','settings'];
+const TABS=['practice','songs','tuner','stats','settings'];
 const SONG_UI={cv:'sing',tgt:'tgt',you:'you',h:260},LESSON_UI={cv:'lsCanvas',tgt:'lsTgt',you:'lsYou',h:280};
 function placeTabInk(){const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
   nav.style.setProperty('--tx',b.offsetLeft+'px');nav.style.setProperty('--tw',b.offsetWidth+'px');ink.style.left=(b.offsetLeft+b.offsetWidth*0.2)+'px';ink.style.width=(b.offsetWidth*0.6)+'px'}
@@ -1952,6 +2286,7 @@ function showTab(k){
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
   if(k==='songs'&&!G.playing)drawSing();if(k==='tuner'&&!live){drawLive(0);drawTake(null)}
+  if(k==='stats')renderStats();
   if(k==='settings'){renderSafety();prepBackup().catch(()=>{})}
   if(k==='practice'){renderPractice();if(L.active&&!G.playing)lessonLoad(L.idx,true)}
 }
@@ -2599,7 +2934,7 @@ const b64=buf=>{let s='';const a=new Uint8Array(buf);for(let i=0;i<a.length;i+=0
 async function makeBackup(withAudio){const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(BK_KEYS(k))ls[k]=localStorage.getItem(k)}
   let songs=[];try{songs=await MyDB.all()}catch(e){}
   const out=[];for(const r of songs){const c={...r};if(r.audio&&withAudio){try{c.audio={type:r.audio.type||'audio/mpeg',name:r.audio.name||'',b64:b64(await r.audio.arrayBuffer())}}catch(e){c.audio=null}}else c.audio=null;out.push(c)}
-  return{app:'ison-pitch-lab',v:1,date:new Date().toISOString(),summary:{rank:rankOf(TIME.cred),minutes:Math.round(TIME.raw),songs:out.length,lessons:Object.values(JSON.parse(ls['ison-prog2']||'{}')).reduce((a,p)=>a+Object.values(p.les||{}).filter(x=>x>=LESSON_PASS).length,0)},ls,songs:out}}
+  return{app:'ison-pitch-lab',v:1,date:new Date().toISOString(),summary:{rank:rankOf(TIME.cred),minutes:Math.round(TIME.raw),songs:out.length,lessons:Object.values(JSON.parse(ls['ison-prog2']||'{}')).reduce((a,p)=>a+Object.values(p.les||{}).filter(x=>x>=LESSON_PASS).length,0)},ls,songs:out,att:await ATT.all()}}
 /* the file is prepared ahead (when Settings opens) so the share sheet opens straight from the tap,
    which iPhone requires */
 let bkPrep=null;
@@ -2624,6 +2959,7 @@ async function restoreNow(){const data=pendingRestore;if(!data)return;$('bkYes')
     Object.keys(data.ls).forEach(k=>localStorage.setItem(k,data.ls[k]));
     for(const r of data.songs||[]){const c={...r};if(r.audio&&r.audio.b64){const bin=atob(r.audio.b64),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);c.audio=new Blob([a],{type:r.audio.type})}else c.audio=null;
       try{await MyDB.put(c)}catch(e){}}
+    if(Array.isArray(data.att)){await ATT.clear();await ATT.addMany(data.att)}
     $('bkMsg').textContent='Restored. Reloading...';setTimeout(()=>location.reload(),600)}
   catch(e){$('bkMsg').textContent='Restore failed. Your current progress was not changed.';$('bkYes').disabled=false}}
 
@@ -3110,7 +3446,7 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
-  protectStorage();L.active=true;setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
+  protectStorage();L.active=true;L.sessId=Date.now();setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -3153,11 +3489,12 @@ function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
   const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main,lid:it.lid,lname:it.lname}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main,lid:it.lid,lname:it.lname};
   const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
-  recordAttempt(L.track,it,R);recordGuide(it,R);
-  if(R.cov>=0.3&&!it.kind){const hr=analyzeHabits(it,G.trace,1);recordHabits(hr);let best=null,bv=0;
+  recordAttempt(L.track,it,R);recordGuide(it,R);let hrL=null;
+  if(R.cov>=0.3&&!it.kind){const hr=analyzeHabits(it,G.trace,1);hrL=hr;recordHabits(hr);let best=null,bv=0;
     Object.keys(hr.H).forEach(id=>{const k=hr.H[id],o=hr.O[id]||1,ex=['phrasesag','streak','repeat'].includes(id);if((ex&&k>=1)||(k>=2&&k/o>=0.34)){L.sessHab[id]=(L.sessHab[id]||0)+1;const v=k/o;if(v>bv){bv=v;best=id}}});
     if(best)R.habit=best}
   if(R.cov>=0.2){const iu=it.lid&&/^\d+\./.test(it.lid)?+it.lid.split('.')[0]:L.u;const ru=addPractice(L.track.id,iu,it.dur);if(ru)L.rankUp=ru}
+  if(r)logAttempt(it,r,G.trace,{tr:L.track.id,kind:L.isTest?'test':it.kind?it.kind.toLowerCase():L.track.id==='habits'?'habit':/weak/.test(L.track.id)?'weak':'lesson',sess:L.sessId,pos:L.idx,H:hrL&&hrL.H,O:hrL&&hrL.O,sec:it.dur});
   L.streak=R.score>=90?(L.streak||0)+1:0;L.itemPrev=L.itemPrev||{};
   const ctx={streak:L.streak,prev:L.lastScore,prevItem:L.itemPrev[L.idx],tries:L.tries[L.idx],passMark:D.pass,slowPass:!!(it.slowOf&&pass)};
   const say=sayingFor(R,ctx);L.itemPrev[L.idx]=R.score;L.lastScore=R.score;L.lastR=R;
@@ -3193,11 +3530,11 @@ const med=a=>{const b=a.slice().sort((x,y)=>x-y);return b.length?b[b.length>>1]:
    singing time 20%, steadiness 15% (wobble on notes of 1.4 s or more), quick landing 10%. */
 function scoreItem(it,trace){
   let w=0,acc=0,cov=0,prevM=null;const sds=[],rts=[],devs=[],perNote=[];
-  for(const n of it.notes){if(n.listen)continue;const dir=prevM==null||Math.abs(n.m-prevM)<0.5?null:n.m>prevM?'up':'down';prevM=n.m;const dur=n.t1-n.t0,fr=trace.filter(p=>p.t>=n.t0&&p.t<n.t1);if(!fr.length)continue;
+  for(const n of it.notes){if(n.listen)continue;const dir=prevM==null||Math.abs(n.m-prevM)<0.5?null:n.m>prevM?'up':'down',iv=prevM==null?0:+(n.m-prevM).toFixed(2);prevM=n.m;const dur=n.t1-n.t0,fr=trace.filter(p=>p.t>=n.t0&&p.t<n.t1);if(!fr.length)continue;
     const grace=Math.min(0.3,dur*0.25),fr2=fr.filter(p=>p.t>=n.t0+grace),vo=fr2.filter(p=>p.m!=null);
     const c=vo.length/Math.max(1,fr2.length);let a=0;
-    const nd=[];for(const p of vo){const dv=devTo(p.m,n.m),d=Math.abs(dv);if(d<120){devs.push(dv);nd.push(dv)}a+=d<=it.tolA?1:d>=it.tolB?0:1-(d-it.tolA)/(it.tolB-it.tolA)}a=vo.length?a/vo.length:0;
-    if(vo.length>=3)perNote.push({m:n.m,a,dv:nd.length?med(nd):null,dir});
+    const nd=[],na=[];for(const p of vo){const dv=devTo(p.m,n.m),d=Math.abs(dv);na.push(dv);if(d<120){devs.push(dv);nd.push(dv)}a+=d<=it.tolA?1:d>=it.tolB?0:1-(d-it.tolA)/(it.tolB-it.tolA)}a=vo.length?a/vo.length:0;
+    if(vo.length>=3)perNote.push({m:n.m,t0:n.t0,a,dv:nd.length?med(nd):null,dvAll:na.length?med(na):null,dir,iv});
     const hit=fr.find(p=>p.m!=null&&Math.abs(devTo(p.m,n.m))<=it.tolA);rts.push(hit?hit.t-n.t0:Math.min(1.5,dur));
     if(dur>=1.4){const v=vo.filter(p=>p.t>=n.t0+0.5).map(p=>devTo(p.m,n.m));if(v.length>10){const mu=v.reduce((x,y)=>x+y,0)/v.length;sds.push(Math.sqrt(v.reduce((x,y)=>x+(y-mu)*(y-mu),0)/v.length))}}
     acc+=a*dur;cov+=c*dur;w+=dur}
@@ -3304,7 +3641,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
