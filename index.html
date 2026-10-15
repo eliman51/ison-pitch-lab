@@ -21,6 +21,8 @@
   --f-display:"Marcellus", "Cormorant Garamond", Georgia, serif;
   --f-body:"Source Sans 3", "Segoe UI", system-ui, sans-serif;
   --f-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  --ember:#FFB45E; --spark:#FFF1C9;
+  --e-out:cubic-bezier(.2,.8,.2,1); --t-quick:160ms; --t-med:320ms;
   color-scheme:dark;
 }
 html,body{background:var(--bg);color:var(--ink)}
@@ -33,13 +35,16 @@ header h1 span{color:var(--accent)}
 header p{margin:0;color:var(--muted);font-size:.92rem}
 .tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:6px;margin-inline:-6px;
   background:rgba(11,10,16,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
-.tabs button{background:transparent;border:0;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:.95rem}
-.tabs button[aria-selected="true"]{background:var(--surface2);color:var(--accent)}
+.tabs{isolation:isolate}
+.tabs button{background:transparent;border:0;color:var(--muted);padding:9px 4px;border-radius:8px;font-size:.95rem;transition:color var(--t-med) var(--e-out)}
+.tabs button[aria-selected="true"]{color:var(--accent)}
+.tabink{position:absolute;bottom:-1px;height:2px;border-radius:2px;background:linear-gradient(90deg,transparent,var(--gold),transparent);box-shadow:0 0 10px var(--glow),0 0 2px var(--gold);transition:left var(--t-med) var(--e-out),width var(--t-med) var(--e-out);pointer-events:none}
+.tabs::before{content:"";position:absolute;inset:6px auto 6px 0;width:var(--tw,0);transform:translateX(var(--tx,0));background:var(--surface2);border-radius:8px;z-index:-1;transition:transform var(--t-med) var(--e-out),width var(--t-med) var(--e-out)}
 .view{display:flex;flex-direction:column;gap:18px}
 .panel{scroll-margin-top:64px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px;min-width:0}
 .panel h2{font-family:var(--f-display);font-weight:400;font-size:1.3rem;margin:0;letter-spacing:.02em}
 .panel h3{font-family:var(--f-display);font-weight:400;font-size:1.05rem;margin:0;color:var(--accent)}
-.label{font-size:.72rem;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.label{font-size:.84rem;font-weight:600;color:var(--muted)}
 .readout{display:grid;grid-template-columns:auto 1fr;gap:4px 18px;align-items:end}
 .note{font-family:var(--f-display);font-size:4.2rem;line-height:1;min-width:3ch;transition:opacity .2s}
 .note.dim{opacity:.35}
@@ -53,7 +58,9 @@ header p{margin:0;color:var(--muted);font-size:.92rem}
 .ticks{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
 canvas{display:block;width:100%;border-radius:10px;background:var(--grid)}
 .row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
-button{font:inherit;font-weight:600;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:9px 14px;cursor:pointer}
+button{font:inherit;font-weight:600;border-radius:9px;border:1px solid var(--line);background:var(--surface2);color:var(--ink);padding:9px 14px;cursor:pointer;transition:transform var(--t-quick) var(--e-out),background-color var(--t-quick),border-color var(--t-quick),box-shadow var(--t-med)}
+button:active:not(:disabled){transform:scale(.97)}
+button.primary:not(:disabled):hover{box-shadow:0 0 0 3px var(--glow)}
 button.primary{background:var(--accent);border-color:var(--accent);color:var(--accentInk)}
 button.big{padding:14px 18px;font-size:1.05rem;width:100%}
 #capBtn.on,button.rec.on{background:var(--bad);border-color:var(--bad);color:#fff}
@@ -71,7 +78,7 @@ textarea{font:inherit;font-family:var(--f-mono);font-size:.95rem;padding:8px 10p
 .help{border-left:3px solid var(--accent);padding:8px 12px;background:var(--surface2);border-radius:6px;font-size:.92rem}
 .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
-select,input[type=number],input[type=text]{font:inherit;font-family:var(--f-mono);padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box}
+select,input[type=number],input[type=text]{font:inherit;padding:7px 9px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%;box-sizing:border-box}
 input[type=range]{width:100%;accent-color:var(--accent)}
 .check{display:flex;gap:8px;align-items:center}
 .check input{accent-color:var(--accent)}
@@ -89,7 +96,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .kpi{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:10px;min-width:0}
 .kpi b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.7rem;line-height:1.1;color:var(--ink);font-variant-numeric:tabular-nums}
-.kpi span{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.kpi span{font-size:.8rem;color:var(--muted)}
 .map{display:flex;gap:0;overflow-x:auto;padding:6px 2px 10px;scrollbar-width:none}
 .map::-webkit-scrollbar{display:none}
 .stop{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;gap:6px;width:84px;position:relative;background:none;border:0;padding:0;color:var(--muted)}
@@ -154,17 +161,62 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .karaoke[hidden]{display:none}
 .kl{font-family:var(--f-body);font-weight:700;line-height:1.3;overflow-wrap:anywhere}
 #kLine1{font-size:1.6rem}
-#kLine1 span{background-image:linear-gradient(90deg,var(--gold) var(--p,0%),var(--ink) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;cursor:pointer}
+#kLine1 .wd{white-space:nowrap}
+#kLine1 .sy{background-image:linear-gradient(90deg,var(--gold) var(--p,0%),var(--ink) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;cursor:pointer}
 #kLine2{font-size:1.05rem;color:var(--muted);opacity:.8}
 .seek{display:flex;gap:12px;align-items:center;margin-top:6px}.seek input{flex:1;min-width:0}#seekTxt{font-family:var(--f-mono);font-size:.85rem;color:var(--muted);white-space:nowrap}
+/* Motion. One vocabulary: gold leaf and candlelight. Things that answer your action move; the rest stays still. */
+.view.enter{animation:viewIn var(--t-med) var(--e-out)}
+@keyframes viewIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.stagehead{display:grid;gap:10px}
+.stagehead h2{margin:0}
+.transport{display:grid;grid-template-columns:auto auto 1fr;gap:10px;align-items:center}
+.transport #singSeek{grid-column:1/-1;margin:2px 0 4px}
+.transport #seekTxt{justify-self:end}
+details.opts{border-top:1px solid var(--line);padding-top:10px}
+details.opts summary{cursor:pointer;font-weight:600;color:var(--ink);list-style:none;display:flex;align-items:center;gap:10px;padding:4px 0}
+details.opts summary::-webkit-details-marker{display:none}
+details.opts summary::before{content:"";width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:rotate(-45deg);transition:transform var(--t-med) var(--e-out);flex:none}
+details.opts[open] summary::before{transform:rotate(45deg)}
+details.opts[open]>*:not(summary){animation:viewIn var(--t-med) var(--e-out)}
+details.opts>.grid2,details.opts>.row{margin-top:10px}
+.phase{transition:color var(--t-med),border-color var(--t-med),background-color var(--t-med)}
+.phase.sing{border-color:color-mix(in srgb,var(--good) 45%,var(--line))}
+.phase.flash{animation:phaseFlash .9s var(--e-out)}
+@keyframes phaseFlash{0%{box-shadow:0 0 0 0 color-mix(in srgb,var(--good) 55%,transparent);transform:scale(1.06)}100%{box-shadow:0 0 0 12px transparent;transform:none}}
+.segs i{transition:background-color .4s var(--e-out)}
+.segs i.cur{background:linear-gradient(90deg,var(--lapis) 0%,#AFC2F5 50%,var(--lapis) 100%);background-size:200% 100%;animation:sheen 1.8s linear infinite}
+@keyframes sheen{from{background-position:100% 0}to{background-position:-100% 0}}
+.toast.pop{animation:toastPop .5s var(--e-out)}
+@keyframes toastPop{0%{opacity:0;transform:translateY(6px) scale(.96)}60%{opacity:1;transform:translateY(-1px) scale(1.02)}100%{transform:none}}
+.stars i{display:inline-block;font-style:normal;opacity:0;animation:starIn .45s var(--e-out) forwards}
+@keyframes starIn{0%{opacity:0;transform:scale(.3) rotate(-30deg)}70%{opacity:1;transform:scale(1.25)}100%{opacity:1;transform:none}}
+.seal{transition:transform var(--t-med) var(--e-out),box-shadow var(--t-med)}
+.stop.sel .seal{transform:scale(1.06)}
+.lessons li .dot{transition:background-color var(--t-med),border-color var(--t-med)}
+.lessons li.just .dot{animation:dotPop .8s var(--e-out)}
+@keyframes dotPop{0%{transform:scale(.4)}55%{transform:scale(1.3);box-shadow:0 0 0 6px var(--glow)}100%{transform:none;box-shadow:0 0 0 0 transparent}}
+.verdict.win{animation:winGlow 1.6s var(--e-out)}
+@keyframes winGlow{0%{text-shadow:0 0 0 transparent}30%{text-shadow:0 0 18px var(--gold)}100%{text-shadow:0 0 0 transparent}}
+#dial circle.arc{transition:stroke-dasharray 1.1s var(--e-out)}
+#kLine1 .sy{display:inline-block;transition:transform var(--t-quick) var(--e-out),filter var(--t-quick)}
+#kLine1 .sy.on{transform:translateY(-2px) scale(1.04);filter:drop-shadow(0 0 6px rgba(246,216,143,.55))}
+.kl.rise{animation:kRise .32s var(--e-out)}
+@keyframes kRise{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.meter.lock{box-shadow:0 0 0 1px color-mix(in srgb,var(--good) 60%,transparent),0 0 16px color-mix(in srgb,var(--good) 35%,transparent);transition:box-shadow var(--t-med)}
+.note.lock{color:var(--gold);text-shadow:0 0 18px var(--glow);transition:color var(--t-med),text-shadow var(--t-med)}
+#fxLayer{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:50;background:none;border-radius:0}
+@media (prefers-reduced-motion: reduce){*,*::before,*::after{animation-duration:1ms!important;animation-iteration-count:1!important;transition-duration:1ms!important}}
+.bar .tr i{transition:width .9s var(--e-out)}
 </style>
 
+<canvas id="fxLayer" aria-hidden="true"></canvas>
 <div class="wrap">
   <header>
     <h1>Ison <span>Pitch Lab</span></h1>
     <p>Learn to sing, one note at a time.</p>
   </header>
-  <nav class="tabs" role="tablist" aria-label="Sections">
+  <nav class="tabs" role="tablist" aria-label="Sections"><span class="tabink" id="tabInk" aria-hidden="true"></span>
     <button role="tab" id="tab-practice" aria-selected="true" aria-controls="v-practice">Practice</button>
     <button role="tab" id="tab-songs" aria-selected="false" aria-controls="v-songs">Songs</button>
     <button role="tab" id="tab-tuner" aria-selected="false" aria-controls="v-tuner">Tuner</button>
@@ -284,10 +336,9 @@ input[type=range]{width:100%;accent-color:var(--accent)}
   </div>
 
   <div class="view" id="v-songs" hidden>
-  <section class="panel" aria-labelledby="t-sing">
-    <h2 id="t-sing">Sing-along</h2>
-    <div class="grid2">
-      <div class="field"><label class="label" for="guideSrc">Guide melody</label>
+  <section class="panel stage" aria-labelledby="t-sing">
+    <div class="stagehead"><h2 id="t-sing">Sing-along</h2>
+      <div class="field"><label class="label" for="guideSrc">Song</label>
         <select id="guideSrc">
           <optgroup label="Chants">
             <option value="song-trisagion">Trisagion: Holy God (Byzantine Tone 3)</option>
@@ -306,22 +357,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
           <option value="typed">My typed melody</option>
           <option value="rec">Learn a song from a recording</option>
           </optgroup>
-        </select></div>
-      <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
-        <input type="range" id="speed" min="0.25" max="1" step="0.05" value="1">
-        <div class="ticks"><span>¼</span><span>½</span><span>¾</span><span>full</span></div></div>
-      <div class="field"><label class="label" for="songDiff">Challenge</label><select id="songDiff"></select>
-        <span class="status">Above Easy, a run must pass before it counts; two misses slow it to 75%.</span></div>
-      <div class="field"><label class="label" for="transpose">Key</label>
-        <select id="transpose"></select></div>
-      <div class="field"><span class="label">Guide tones</span>
-        <label class="check"><input type="checkbox" id="guideTones"> Play each note as it comes</label></div>
-      <div class="field"><label class="label" for="toneVol">Tone volume <span id="volTxt">90%</span></label>
-        <input type="range" id="toneVol" min="0.1" max="1" step="0.05" value="0.9"></div>
-      <div class="field"><span class="label">Phone speaker</span>
-        <label class="check"><input type="checkbox" id="toneUp"> Play tones an octave higher</label>
-        <span class="status">Easier to hear on a phone. Sing the note an octave below it.</span></div>
-    </div>
+        </select></div></div>
     <p class="status" id="songCredit" hidden></p>
     <div class="field" id="typedBox" hidden>
       <label class="label" for="typed">Notes (name and octave, then beats)</label>
@@ -356,33 +392,58 @@ input[type=range]{width:100%;accent-color:var(--accent)}
         <button id="saveSong" disabled>Save to My songs</button>
       </div>
     </div>
-    <div class="row" id="myRow" hidden>
-      <button id="delSong">Delete this saved song</button>
-      <span class="status" id="myStatus"></span>
-    </div>
-    <div class="row">
-      <label class="check"><input type="checkbox" id="loopOn"> Practice a section</label>
-      <label class="label" for="loopA">from</label><input type="number" id="loopA" min="0" step="0.5" value="0" style="width:5.5em">
-      <label class="label" for="loopB">to</label><input type="number" id="loopB" min="0" step="0.5" value="10" style="width:5.5em">
-      <span class="status">seconds, repeating</span>
-      <button id="setA">Start here</button><button id="setB">End here</button>
-    </div>
     <audio id="guideAudio" preload="auto" playsinline></audio>
     <canvas id="sing" height="260" aria-label="Guide notes scrolling toward the now line, with your live pitch. Drag sideways to look through the song."></canvas>
     <div class="karaoke" id="karaoke" hidden aria-live="off"><div class="kl" id="kLine1"></div><div class="kl" id="kLine2"></div></div>
-    <div class="seek"><input type="range" id="singSeek" min="0" max="1" step="0.1" value="0" aria-label="Position in the song"><span id="seekTxt">0:00 / 0:00</span></div>
-    <p class="status" style="margin:0">Drag the chart sideways, or use the slider, to look through the whole song. Start plays from wherever you leave it.</p>
+    <div class="transport">
+      <input type="range" id="singSeek" min="0" max="1" step="0.1" value="0" aria-label="Position in the song">
+      <button class="primary" id="singPlay">Start</button>
+      <button id="singRestart" aria-label="Back to the start">Restart</button>
+      <span id="seekTxt">0:00 / 0:00</span>
+    </div>
+    <p class="status" id="singStatus" style="margin:0">Bars are the notes to hit. Your line draws over them. Drag the chart or the slider to look ahead.</p>
     <div class="duo">
       <div><span class="label">Sing this</span><b id="tgt">--</b></div>
       <div><span class="label">You</span><b id="you">--</b></div>
     </div>
-    <div class="row">
-      <button class="primary" id="singPlay">Start</button>
-      <button id="singRestart">Restart</button>
-      <button id="toText">Edit notes as text</button>
-      <span class="status" id="singStatus">Bars are the notes to hit. Your line draws over them.</span>
+    <div class="row" id="myRow" hidden>
+      <button id="delSong">Delete this saved song</button>
+      <span class="status" id="myStatus"></span>
     </div>
-    <p class="status" style="margin:0">With guide tones on, wear headphones so the mic hears only you.</p>
+    <details class="opts" open>
+      <summary>Speed, key and guide tones</summary>
+      <div class="grid2">
+        <div class="field"><label class="label" for="speed">Speed <span id="speedTxt">1×</span></label>
+          <input type="range" id="speed" min="0.25" max="1" step="0.05" value="1">
+          <div class="ticks"><span>¼</span><span>½</span><span>¾</span><span>full</span></div></div>
+        <div class="field"><label class="label" for="songDiff">Challenge</label><select id="songDiff"></select>
+          <span class="status">Above Easy, a run must pass before it counts; two misses slow it to 75%.</span></div>
+        <div class="field"><label class="label" for="transpose">Key</label>
+          <select id="transpose"></select></div>
+        <div class="field"><span class="label">Guide tones</span>
+          <label class="check"><input type="checkbox" id="guideTones"> Play each note as it comes</label>
+          <span class="status">Wear headphones so the mic hears only you.</span></div>
+        <div class="field"><label class="label" for="toneVol">Tone volume <span id="volTxt">90%</span></label>
+          <input type="range" id="toneVol" min="0.1" max="1" step="0.05" value="0.9"></div>
+        <div class="field"><span class="label">Phone speaker</span>
+          <label class="check"><input type="checkbox" id="toneUp"> Play tones an octave higher</label>
+          <span class="status">Easier to hear on a phone. Sing the note an octave below it.</span></div>
+      </div>
+    </details>
+    <details class="opts">
+      <summary>Practice one section</summary>
+      <div class="row">
+        <label class="check"><input type="checkbox" id="loopOn"> Repeat a section</label>
+        <label class="label" for="loopA">from</label><input type="number" id="loopA" min="0" step="0.5" value="0" style="width:5.5em">
+        <label class="label" for="loopB">to</label><input type="number" id="loopB" min="0" step="0.5" value="10" style="width:5.5em">
+        <span class="status">seconds</span>
+      </div>
+      <div class="row"><button id="setA">Start here</button><button id="setB">End here</button><span class="status">Drag the chart to a spot, then set it.</span></div>
+    </details>
+    <details class="opts">
+      <summary>Write or edit the notes</summary>
+      <div class="row"><button id="toText">Edit notes as text</button><span class="status">Turns the current song into editable notes, with a syllable on each if you like (G3:1:Lord).</span></div>
+    </details>
   </section>
   <section class="panel" aria-labelledby="t-ref">
     <h2 id="t-ref">Reference tone</h2>
@@ -446,6 +507,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
       <div class="field"><label class="label" for="thr">Tolerance</label>
         <select id="thr"><option value="25">±25 cents</option><option value="10" selected>±10 cents</option><option value="5">±5 cents</option><option value="2">±2 cents</option><option value="1">±1 cent</option></select></div>
       <div class="field"><label class="label" for="smooth">Response speed</label><input type="range" id="smooth" min="0" max="0.9" step="0.05" value="0.5"><span class="status" id="smoothTxt">Balanced</span></div>
+      <div class="field"><label class="label" for="fxSel">Effects</label><select id="fxSel"><option value="full">Full: sparks, glow and celebrations</option><option value="subtle">Subtle</option><option value="off">Off</option></select><span class="status">Gold sparks fly from your line while you are on the note. Off is calmer and saves battery.</span></div>
       <div class="field"><label class="label" for="gate">Noise filter</label><input type="range" id="gate" min="1.3" max="6" step="0.1" value="2"><span class="status">Adjusts to the room on its own. Slide right only if background noise shows up as notes</span></div>
     </div>
   </section>
@@ -456,7 +518,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 (function(){
 const $=id=>document.getElementById(id);
 const NAMES=['C','C♯','D','E♭','E','F','F♯','G','G♯','A','B♭','B'];
-const S={diff:'easy',home:50,lessonTones:false,useSinger:true,a4:440,thr:10,smooth:0.5,filt:2,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false,showLine:true,glide:false};
+const S={diff:'easy',home:50,lessonTones:false,useSinger:true,a4:440,thr:10,smooth:0.5,filt:2,ref:50,lane:false,shift:-12,recShift:0,tones:false,vol:0.9,toneUp:false,showLine:true,glide:false,fx:'full'};
 try{const s=JSON.parse(localStorage.getItem('ison-settings-v2')||'{}');Object.assign(S,s)}catch(e){}
 function save(){try{localStorage.setItem('ison-settings-v2',JSON.stringify(S))}catch(e){}}
 /* Sing-along state: guide notes {t0,t1,m}, clock position in guide seconds, your traced pitch */
@@ -514,6 +576,57 @@ function drawPath(g,pts,xOf,yOf,c,t0,t1){
     if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;
     g.strokeStyle=colorFor(p.m,c);g.beginPath();g.moveTo(xOf(q.t),yOf(q.m));g.lineTo(xOf(p.t),yOf(p.m));g.stroke()}
 }
+
+/* ================= Effects: gold leaf and candlelight =================
+   One visual language for "you are on the note". The tip of your line glows like a candle flame and
+   sheds small gold sparks that trail behind it, the way sparks leave a grinding wheel. Locked dead-on,
+   a faint electric crackle flickers around it. Bars you sang in tune are gilded where you sang them,
+   and a note finished well gives off a ring of gold tesserae. Passing a lesson or test scatters gold
+   over the results. Strength follows Settings > Effects; reduced motion turns it all off. */
+const FX={};
+function fxLevel(){if(S.fx==='off')return 0;try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return 0}catch(e){}return S.fx==='subtle'?0.5:1}
+function fxState(id){return FX[id]||(FX[id]={p:[],rings:[],lock:0,last:0,done:new Set(),lastPos:0})}
+function fxDt(st){const now=performance.now(),dt=st.last?Math.min(0.05,(now-st.last)/1000):0.016;st.last=now;return dt}
+function fxEmit(st,x,y,n,o){o=o||{};for(let i=0;i<n;i++){const a=(o.dir!=null?o.dir:Math.PI)+(Math.random()-0.5)*(o.spread||1.6),sp=(o.sp||150)*(0.45+Math.random());
+  st.p.push({x,y,vx:Math.cos(a)*sp+(o.drift||0),vy:Math.sin(a)*sp-(o.lift||50),life:0,max:(o.life||0.55)*(0.55+Math.random()*0.8),w:o.w||1.5,kind:o.kind||'spark',rot:Math.random()*6,g:o.grav!=null?o.grav:420})}
+  if(st.p.length>320)st.p.splice(0,st.p.length-320)}
+function fxStep(st,g,dt){if(!st.p.length&&!st.rings.length)return;g.save();g.globalCompositeOperation='lighter';g.lineCap='round';
+  for(let i=st.p.length-1;i>=0;i--){const q=st.p[i];q.life+=dt;if(q.life>=q.max){st.p.splice(i,1);continue}
+    q.vy+=q.g*dt;q.vx*=1-1.6*dt;q.vy*=1-0.5*dt;q.x+=q.vx*dt;q.y+=q.vy*dt;const k=1-q.life/q.max;
+    if(q.kind==='tess'){q.rot+=dt*7;g.fillStyle=k>0.5?'rgba(255,236,180,'+(k*0.95).toFixed(3)+')':'rgba(214,166,79,'+(k*1.2).toFixed(3)+')';
+      g.save();g.translate(q.x,q.y);g.rotate(q.rot);const z=q.w*2.2;g.fillRect(-z/2,-z/2,z,z*0.8);g.restore()}
+    else{g.strokeStyle=k>0.55?'rgba(255,244,214,'+k.toFixed(3)+')':'rgba(255,170,80,'+(k*1.3).toFixed(3)+')';g.lineWidth=q.w*k+0.35;
+      g.beginPath();g.moveTo(q.x,q.y);g.lineTo(q.x-q.vx*0.028,q.y-q.vy*0.028);g.stroke()}}
+  for(let i=st.rings.length-1;i>=0;i--){const r=st.rings[i];r.life+=dt;const k=r.life/(r.dur||0.6);if(k>=1){st.rings.splice(i,1);continue}
+    g.strokeStyle='rgba(246,216,143,'+(0.75*(1-k)).toFixed(3)+')';g.lineWidth=2.4*(1-k)+0.4;g.beginPath();g.arc(r.x,r.y,(r.r0||5)+k*(r.r1||26),0,7);g.stroke()}
+  g.restore()}
+/* the glowing pen tip: on = inside the pitch window, tight = inside half of it */
+function fxTip(st,g,x,y,on,tight,dt,drift){const lv=fxLevel();
+  st.lock=on?Math.min(2,st.lock+dt):Math.max(0,st.lock-dt*4);if(!lv||!on)return;
+  const L=Math.min(1,st.lock/0.7),now=performance.now(),flick=Math.sin(now/53)*0.6+Math.sin(now/31)*0.4;
+  const R=(11+12*L+flick*1.6)*(0.7+0.3*lv),gr=g.createRadialGradient(x,y,0,x,y,R);
+  gr.addColorStop(0,'rgba(255,244,214,'+(0.6*lv).toFixed(3)+')');gr.addColorStop(0.35,'rgba(246,190,96,'+(0.32*lv).toFixed(3)+')');gr.addColorStop(1,'rgba(246,190,96,0)');
+  g.save();g.globalCompositeOperation='lighter';g.fillStyle=gr;g.beginPath();g.arc(x,y,R,0,7);g.fill();
+  if(tight&&st.lock>0.35&&lv>=1&&Math.random()<0.55){g.strokeStyle='rgba(190,212,255,0.6)';g.lineWidth=1;
+    for(let k=0;k<2;k++){let a=Math.random()*Math.PI*2,px=x+Math.cos(a)*6,py=y+Math.sin(a)*6;g.beginPath();g.moveTo(px,py);
+      for(let j=0;j<4;j++){a+=(Math.random()-0.5)*1.4;px+=Math.cos(a)*(3+Math.random()*3.5);py+=Math.sin(a)*(3+Math.random()*3.5);g.lineTo(px,py)}g.stroke()}}
+  g.restore();
+  const rate=(0.4+0.9*L)*lv*(tight?1.3:1);let n=Math.floor(rate*2.2);if(Math.random()<rate*2.2-n)n++;
+  fxEmit(st,x,y,n,{dir:Math.PI*1.08,spread:1.5,sp:130+90*L,lift:40,drift:drift,life:0.5,w:1.3+0.6*L})}
+/* overlay layer for celebrations over the page */
+const fxLayer={st:{p:[],rings:[],last:0},run:false};
+function fxBurst(el,big){const lv=fxLevel();if(!lv||!el)return;const cv=$('fxLayer'),r=el.getBoundingClientRect(),x=r.left+r.width/2,y=r.top+r.height/2,st=fxLayer.st;
+  const n=Math.round((big?110:46)*lv);fxEmit(st,x,y,n,{dir:-Math.PI/2,spread:Math.PI*1.7,sp:big?420:300,lift:big?160:110,life:big?1.6:1.1,kind:'tess',w:big?3:2.4,grav:520});
+  fxEmit(st,x,y,Math.round(n*0.6),{dir:-Math.PI/2,spread:Math.PI*2,sp:260,lift:60,life:0.7,w:1.6});
+  st.rings.push({x,y,life:0,dur:0.8,r0:20,r1:big?120:70});if(big)st.rings.push({x,y,life:-0.15,dur:0.9,r0:30,r1:170});
+  if(!fxLayer.run){fxLayer.run=true;st.last=0;requestAnimationFrame(fxLayerFrame)}}
+function fxLayerFrame(){const cv=$('fxLayer'),st=fxLayer.st,dpr=window.devicePixelRatio||1,W=innerWidth,H=innerHeight;
+  if(cv.width!==Math.round(W*dpr)||cv.height!==Math.round(H*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,W,H);fxStep(st,g,fxDt(st));
+  if(st.p.length||st.rings.length)requestAnimationFrame(fxLayerFrame);else{fxLayer.run=false;g.clearRect(0,0,W,H)}}
+/* count a number up, for scores */
+function countUp(el,to,ms){if(!fxLevel()){el.textContent=String(to);return}const t0=performance.now();
+  (function step(now){const k=Math.min(1,(now-t0)/ms),e=1-Math.pow(1-k,3);el.textContent=String(Math.round(to*e));if(k<1)requestAnimationFrame(step)})(t0)}
 
 /* Readout */
 function showReadout(m){
@@ -587,7 +700,7 @@ function loop(){
   showReadout(m);drawLive(t);requestAnimationFrame(loop);
 }
 function drawLive(now){
-  const cv=$('live'),w=cv.clientWidth||cv.parentElement.clientWidth,h=240,g=fitCanvas(cv,w,h),c=colors();
+  const cv=$('live'),pe=cv.parentElement,pcs=getComputedStyle(pe),w=Math.max(200,pe.clientWidth-parseFloat(pcs.paddingLeft)-parseFloat(pcs.paddingRight)),h=240,g=fitCanvas(cv,w,h),c=colors();
   g.clearRect(0,0,w,h);
   const recent=hist.filter(p=>p.m!=null&&p.t>now-3).map(p=>p.m).sort((a,b)=>a-b);
   let tc=recent.length?recent[Math.floor(recent.length/2)]:(S.lane?S.ref:center);
@@ -595,6 +708,10 @@ function drawLive(now){
   const span=14,lo=center-span/2,hi=center+span/2,yOf=m=>h/2-(m-center)*(h/span),win=8,xOf=t=>w-(now-t)/win*w;
   drawGrid(g,w,h,lo,hi,yOf,c,[6]);
   drawPath(g,hist,xOf,yOf,c,now-win-1,now);
+  const st=fxState('live'),dt=fxDt(st),lp=hist.length?hist[hist.length-1]:null;let lock=false;
+  if(live&&lp&&lp.m!=null){const tgt=S.lane?S.ref:Math.round(lp.m),dv=Math.abs(lp.m-tgt)*100;lock=dv<=S.thr;
+    fxTip(st,g,xOf(lp.t)-2,yOf(lp.m),lock,dv<=S.thr/2,dt,-w/win)}else st.lock=0;
+  fxStep(st,g,dt);const L2=lock&&st.lock>0.25;$('zone').parentElement.classList.toggle('lock',L2);$('note').classList.toggle('lock',L2);
   if(!live||!hist.some(p=>p.m!=null&&p.t>now-win)){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';
     g.fillText(live?'Sing a note':'Tap Start listening and sing a note',w/2,h/2+5);g.textAlign='left'}
 }
@@ -1023,7 +1140,7 @@ function drawSing(){
   if(G.lesson&&G.acc&&!hideT){g.strokeStyle=c.lapis;g.lineWidth=1.5;g.globalAlpha=0.7;
     for(const n of G.acc){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);g.strokeRect(x0,y-bh/4,Math.max(2,x1-x0),bh/2)}g.globalAlpha=1}
   for(const n of G.notes){const x0=xOf(n.t0),x1=xOf(n.t1);if(x1<0||x0>w)continue;const y=yOf(n.m);if(hid(n))continue;
-    g.fillStyle=n.listen?c.lapis:n===cur?c.gold:c.accent;g.globalAlpha=n===cur?0.95:(n.t1<G.pos?0.3:(n.listen?0.45:0.7));
+    g.fillStyle=n.listen?c.lapis:n===cur?c.gold:c.accent;g.globalAlpha=n===cur?(fxLevel()&&!n.listen?0.62:0.95):(n.t1<G.pos?0.3:(n.listen?0.45:0.7));
     g.fillRect(x0,y-bh/2,Math.max(2,x1-x0),bh);g.globalAlpha=1;
     if(x1-x0>26&&n.t1>G.pos){g.fillStyle=c.ink;g.fillText(G.lesson&&G.micro?nameC(n.m):nameOf(n.m),x0+3,y-bh/2-4)}
     if(n.w){g.fillStyle=n===cur?c.gold:c.muted;g.font='600 14px '+getComputedStyle(document.body).fontFamily;
@@ -1032,16 +1149,40 @@ function drawSing(){
     const tA=G.pos-nowX/pxs-0.1,tB=G.pos+(w-nowX)/pxs+0.1;
     for(const p of G.contour){if(p.t<tA)continue;if(p.t>tB)break;if(p.m==null){pen=false;pm=null;continue}if(pm!=null&&Math.abs(p.m-pm)>2)pen=false;
       const x=xOf(p.t),y=yOf(p.m);if(pen)g.lineTo(x,y);else{g.moveTo(x,y);pen=true}pm=p.m}g.stroke();g.globalAlpha=1}
+  const st=fxState(G.ui.cv),dt=fxDt(st),lv=fxLevel(),tolA0=G.lesson?G.tolA:S.thr;
+  if(G.pos<st.lastPos-0.3)st.done.clear();
+  /* gild the parts of each bar you sang in tune */
+  if(lv){g.save();g.fillStyle='rgba(255,216,130,0.9)';g.shadowColor='rgba(255,196,90,0.8)';g.shadowBlur=10*lv;
+    for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||(hideT&&p.t>=G.singFrom-0.6))continue;
+      const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);if(!n||n.listen||hid(n))continue;
+      if(Math.abs(devTo(p.m,n.m))<=tolA0){const x0=Math.max(xOf(n.t0),xOf(q.t));g.fillRect(x0,yOf(n.m)-bh/2+1,Math.max(1,x-x0+0.5),bh-2)}}
+    g.restore()}
   g.lineWidth=3;g.lineCap='round';
   for(let i=1;i<G.trace.length;i++){const p=G.trace[i],q=G.trace[i-1];if(p.m==null||q.m==null||Math.abs(p.m-q.m)>1.5)continue;if(hideT&&p.t>=G.singFrom-0.6)continue;
     const x=xOf(p.t);if(x<-10||x>nowX+4)continue;const n=targetAt(p.t);
     const dv=n?Math.abs(devTo(p.m,n.m)):0,tA=G.lesson?G.tolA:S.thr,tB=G.lesson?G.tolB:Math.max(S.thr*2.5,25);
-    g.strokeStyle=!n||n.listen?c.muted:dv<=tA?c.good:dv<=tB?c.warn:c.bad;
+    const good=n&&!n.listen&&dv<=tA;g.strokeStyle=!n||n.listen?c.muted:good?c.good:dv<=tB?c.warn:c.bad;
+    if(good&&lv){g.shadowColor=c.good;g.shadowBlur=8*lv}else g.shadowBlur=0;
     g.beginPath();g.moveTo(xOf(q.t),yOf(q.m));g.lineTo(x,yOf(p.m));g.stroke()}
-  if(G.playing&&G.youM!=null&&!hideT){g.fillStyle=c.ink;g.beginPath();g.arc(nowX,yOf(G.youM),5,0,7);g.fill()}
+  g.shadowBlur=0;
+  /* a note finished well: ring of gold tesserae at its end */
+  if(G.playing&&lv)for(const n of G.notes){if(n.listen||hid(n)||st.done.has(n))continue;if(n.t1>G.pos)break;if(n.t1<st.lastPos-0.05)continue;
+    st.done.add(n);const fr=G.trace.filter(p=>p.t>=n.t0&&p.t<n.t1);if(fr.length<4)continue;
+    const ok=fr.filter(p=>p.m!=null&&Math.abs(devTo(p.m,n.m))<=tolA0).length/fr.length;
+    if(ok>=0.6){const x=xOf(n.t1),y=yOf(n.m);st.rings.push({x,y,life:0});fxEmit(st,x,y,Math.round(10*lv*(ok>=0.85?1.6:1)),{dir:-Math.PI/2,spread:Math.PI*1.8,sp:120,lift:60,life:0.7,kind:'tess',w:1.6,grav:300,drift:-pxs*G.speed*0.5})}}
+  st.lastPos=G.pos;
+  /* candlelight on the now line */
+  if(lv){const fl=0.07+0.03*Math.sin(performance.now()/90)+0.02*Math.sin(performance.now()/37),gl=g.createLinearGradient(nowX-16,0,nowX+16,0);
+    gl.addColorStop(0,'rgba(246,216,143,0)');gl.addColorStop(0.5,'rgba(246,216,143,'+(fl*lv).toFixed(3)+')');gl.addColorStop(1,'rgba(246,216,143,0)');g.fillStyle=gl;g.fillRect(nowX-16,0,32,h)}
+  if(G.playing&&G.youM!=null&&!hideT){const yy=yOf(G.youM),dv=cur&&!cur.listen?Math.abs(devTo(G.youM,cur.m)):999;
+    fxTip(st,g,nowX,yy,dv<=tolA0,dv<=tolA0/2,dt,-pxs*G.speed);
+    if(cur&&!cur.listen&&dv>tolA0&&dv<600){g.save();g.strokeStyle=c.muted;g.globalAlpha=0.5;g.setLineDash([2,4]);g.lineWidth=1.5;g.beginPath();g.moveTo(nowX,yy);g.lineTo(nowX,yOf(cur.m));g.stroke();g.restore()}
+    g.fillStyle=dv<=tolA0?'#FFF4D6':c.ink;g.beginPath();g.arc(nowX,yy,5,0,7);g.fill()}
+  else st.lock=0;
   if(hideT){g.fillStyle=c.muted;g.font='600 16px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('From memory',w*0.64,h/2-6);g.font='13px '+getComputedStyle(document.body).fontFamily;g.fillText('the guide returns when you finish',w*0.64,h/2+14);g.textAlign='left'}
   g.strokeStyle=c.gold;g.lineWidth=2;g.beginPath();g.moveTo(nowX,0);g.lineTo(nowX,h);g.stroke();
-  if(G.pos<0&&G.playing){g.fillStyle=c.ink;g.font='600 40px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.textAlign='left'}
+  if(G.pos<0&&G.playing){const fr=(-G.pos)%1,k=lv?fr:1;g.save();g.globalAlpha=0.35+0.65*k;g.fillStyle=c.ink;g.font='600 '+Math.round(40*(1+(lv?0.35*k*k:0)))+'px '+getComputedStyle(document.body).getPropertyValue('--f-display');g.textAlign='center';g.fillText(String(Math.ceil(-G.pos)),w*0.65,h/2+14);g.restore()}
+  fxStep(st,g,dt);
   if(!G.notes.length){g.fillStyle=c.muted;g.font='15px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('Load a guide melody',w/2,h/2);g.textAlign='left'}
   let syl='';if(cur){for(const n of G.notes){if(n.t0>cur.t0)break;if(n.w)syl=n.w}}
   if(G.ui.cv==='sing')renderLyrics();
@@ -1066,15 +1207,16 @@ function buildLyrics(notes){const syl=[];
     cur.push(x);len+=x.w.length+1;if(/[,.;:!?]$/.test(x.w)&&len>14){lines.push(cur);cur=[];len=0}});
   if(cur.length)lines.push(cur);
   return lines.map(l=>({syl:l,t0:l[0].t0,t1:l[l.length-1].t1}))}
-function fillLine(el,line,live){el.innerHTML='';if(!line)return;
+function fillLine(el,line,live){el.innerHTML='';if(!line)return;let word=null;
   line.syl.forEach((x,i)=>{const hy=/-$/.test(x.w),txt=x.w.replace(/-$/,'');
-    if(live){const sp=document.createElement('span');sp.textContent=txt;sp.onclick=()=>{if(!G.playing)seekTo(x.t0-0.05)};el.appendChild(sp)}
-    else el.appendChild(document.createTextNode(txt));
-    if(!hy&&i<line.syl.length-1)el.appendChild(document.createTextNode(' '))})}
+    if(!word){word=document.createElement('span');word.className='wd';el.appendChild(word)}
+    if(live){const sp=document.createElement('span');sp.className='sy';sp.textContent=txt;sp.onclick=()=>{if(!G.playing)seekTo(x.t0-0.05)};word.appendChild(sp)}
+    else word.appendChild(document.createTextNode(txt));
+    if(!hy){word=null;if(i<line.syl.length-1)el.appendChild(document.createTextNode(' '))}})}
 function renderLyrics(){const box=$('karaoke');if(!G.lyr||G.lesson){box.hidden=true;return}box.hidden=false;
   const t=G.pos;let li=G.lyr.findIndex(l=>t<l.t1+0.35);if(li<0)li=G.lyr.length-1;
-  if(G.lyrLine!==li){G.lyrLine=li;fillLine($('kLine1'),G.lyr[li],true);fillLine($('kLine2'),G.lyr[li+1],false)}
-  const sp=$('kLine1').children;G.lyr[li].syl.forEach((x,i)=>{const p=t<=x.t0?0:t>=x.t1?100:(t-x.t0)/(x.t1-x.t0)*100;if(sp[i])sp[i].style.setProperty('--p',p.toFixed(1)+'%')})}
+  if(G.lyrLine!==li){G.lyrLine=li;fillLine($('kLine1'),G.lyr[li],true);fillLine($('kLine2'),G.lyr[li+1],false);if(fxLevel()&&G.playing)['kLine1','kLine2'].forEach(id=>{const e=$(id);e.classList.remove('rise');void e.offsetWidth;e.classList.add('rise')})}
+  const sp=$('kLine1').querySelectorAll('.sy');G.lyr[li].syl.forEach((x,i)=>{const p=t<=x.t0?0:t>=x.t1?100:(t-x.t0)/(x.t1-x.t0)*100;if(sp[i]){sp[i].style.setProperty('--p',p.toFixed(1)+'%');sp[i].classList.toggle('on',G.playing&&p>0&&p<100)}})}
 /* Look through the song while paused: drag the chart sideways, use a trackpad or shift+wheel, or the slider.
    Dragging while it plays pauses first. Start then plays from the new spot. */
 function seekTo(t){if(G.lesson||!G.ready)return;if(G.playing)stopSing(true);
@@ -1167,9 +1309,14 @@ try{$('typed').value=localStorage.getItem('ison-typed')||'D4:1 E4:1 F4:1 G4:1 A4
 /* ================= Tabs ================= */
 const TABS=['practice','songs','tuner','settings'];
 const SONG_UI={cv:'sing',tgt:'tgt',you:'you',h:260},LESSON_UI={cv:'lsCanvas',tgt:'lsTgt',you:'lsYou',h:280};
+function placeTabInk(){const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
+  nav.style.setProperty('--tx',b.offsetLeft+'px');nav.style.setProperty('--tw',b.offsetWidth+'px');ink.style.left=(b.offsetLeft+b.offsetWidth*0.2)+'px';ink.style.width=(b.offsetWidth*0.6)+'px'}
+window.addEventListener('resize',()=>placeTabInk());
 function showTab(k){
   if(L.active&&k!=='practice'&&G.lesson&&G.playing)lessonPause();
+  const was=TABS.find(t=>!$('v-'+t).hidden);
   TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});
+  placeTabInk();if(was&&was!==k&&fxLevel()){const v=$('v-'+k);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter')}
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
   if(k==='songs'&&!G.playing)drawSing();if(k==='tuner'&&!live){drawLive(0);drawTake(null)}
@@ -1749,7 +1896,7 @@ function renderPractice(){
     const seal=document.createElement('span');seal.className='seal';seal.textContent=String(i);
     if(!mastered&&d)seal.style.background='conic-gradient(var(--accent) '+Math.round(d/n*360)+'deg, var(--surface2) 0)';
     const sm=document.createElement('small');sm.textContent=s.name;
-    if(s.mo&&(i===0||tr.units[i-1].mo!==s.mo)){const mo=document.createElement('span');mo.className='mo';mo.textContent='MONTH '+s.mo;b.append(mo)}else{const mo=document.createElement('span');mo.className='mo';mo.innerHTML='&nbsp;';b.append(mo)}
+    if(s.mo&&(i===0||tr.units[i-1].mo!==s.mo)){const mo=document.createElement('span');mo.className='mo';mo.textContent='Month '+s.mo;b.append(mo)}else{const mo=document.createElement('span');mo.className='mo';mo.innerHTML='&nbsp;';b.append(mo)}
     b.append(seal,sm);
     b.onclick=()=>{selU=i;const j=s.lessons.findIndex((x,k)=>(P.les[i+'.'+k]||0)<LESSON_PASS);selL=j<0?0:j;renderPractice()};map.appendChild(b)});
   const selEl=map.children[selU];if(selEl)map.scrollLeft=Math.max(0,selEl.offsetLeft-map.clientWidth/2+selEl.clientWidth/2);
@@ -1758,10 +1905,11 @@ function renderPractice(){
   $('unitProg').innerHTML='';$('unitProg').append(nd+' of '+un.lessons.length+' lessons done');
   $('unitTest').textContent=tb!=null?'Unit test best '+tb+(tb>=UNIT_PASS?' · mastered':' · need '+UNIT_PASS):'Unit test: need '+UNIT_PASS;
   const ol=$('lessons');ol.innerHTML='';
-  un.lessons.forEach((x,j)=>{const sc=P.les[selU+'.'+j],li=document.createElement('li');li.className=(sc>=LESSON_PASS?'done':'')+(j===selL?' sel':'');
+  un.lessons.forEach((x,j)=>{const sc=P.les[selU+'.'+j],li=document.createElement('li');li.className=(sc>=LESSON_PASS?'done':'')+(j===selL?' sel':'')+(L.justDone&&L.justDone.includes(selU+'.'+j)&&fxLevel()?' just':'');
     const b=document.createElement('button'),dot=document.createElement('span'),nmE=document.createElement('span'),sm=document.createElement('small');
     dot.className='dot';dot.textContent=sc>=LESSON_PASS?'✓':String(j+1);nmE.textContent=x.name;sm.textContent=sc!=null?String(sc):'';b.append(dot,nmE,sm);
     b.onclick=()=>{selL=j;renderPractice()};li.appendChild(b);ol.appendChild(li)});
+  L.justDone=null;
   const tli=document.createElement('li');tli.className='test'+((tb||0)>=UNIT_PASS?' done':'');const tbtn=document.createElement('button'),td=document.createElement('span'),tn=document.createElement('span'),ts=document.createElement('small');
   td.className='dot';td.textContent='★';tn.textContent='Unit test · hardest parts, pass at '+UNIT_PASS;ts.textContent=tb!=null?String(tb):'';tbtn.append(td,tn,ts);tbtn.onclick=()=>startTest();tli.appendChild(tbtn);ol.appendChild(tli);
   const selLi=ol.children[selL];if(selLi)ol.scrollTop=Math.max(0,selLi.offsetTop-ol.offsetTop-60);
@@ -1824,11 +1972,14 @@ function renderSegs(){const sg=$('segs');sg.innerHTML='';L.items.forEach((it,i)=
   e.className=i===L.idx?'cur':r?(r.score>=60?'done':'low'):'';sg.appendChild(e)})}
 function updatePhase(){const ph=$('exPhase');if(!G.lesson)return;const tg=targetAt(G.pos),it=L.item;
   const inSeg=it&&it.seg&&G.pos>=it.seg.ls&&G.pos<it.seg.le;
-  const sungSeg=inSeg&&it.seg.during;
-  if(G.pos<0){ph.textContent='Get ready';ph.className='phase'}
-  else if((inSeg&&!sungSeg)||(tg&&tg.listen)){ph.textContent=inSeg&&L.audio&&S.useSinger?'Listen to the singer':'Listen';ph.className='phase'}
-  else if(G.pos<G.singFrom-0.05){ph.textContent=it.think&&G.pos>G.singFrom-it.think-0.05?'Hear it in your head':'Breathe';ph.className='phase'}
-  else{ph.textContent=sungSeg?'Hold the ison with the singer':G.blind?'Your turn, from memory':it.acc&&it.accDouble?'Sing together':it.acc?'Hold the ison':'Your turn';ph.className='phase sing'}}
+  const sungSeg=inSeg&&it.seg.during;let md='phase',tx;
+  if(G.pos<0)tx='Get ready';
+  else if((inSeg&&!sungSeg)||(tg&&tg.listen))tx=inSeg&&L.audio&&S.useSinger?'Listen to the singer':'Listen';
+  else if(G.pos<G.singFrom-0.05)tx=it.think&&G.pos>G.singFrom-it.think-0.05?'Hear it in your head':'Breathe';
+  else{tx=sungSeg?'Hold the ison with the singer':G.blind?'Your turn, from memory':it.acc&&it.accDouble?'Sing together':it.acc?'Hold the ison':'Your turn';md='phase sing'}
+  if(ph.textContent!==tx)ph.textContent=tx;
+  if(ph.dataset.md!==md){ph.className=md;ph.dataset.md=md;if(md==='phase sing'&&fxLevel()){void ph.offsetWidth;ph.classList.add('flash')}}}
+$('exPhase').addEventListener('animationend',()=>{$('exPhase').classList.remove('flash')});
 /* Plays the singer's own recording during a phrase's listen part, kept in step with the lesson clock. */
 function singerTick(){
   const it=L.item;if(!G.lesson||!it||!it.seg||!L.audio||!S.useSinger){return false}
@@ -1854,7 +2005,8 @@ function lessonItemDone(){
   else if(!pass){L.fails=(L.fails||0)+1;if(L.fails>=2){L.items[L.idx]=slowCopy(it);L.fails=0;msg+='Two misses. Slowing this step to 75%.'}else msg+='Need '+D.pass+' to move on. Try again.';next='retry'}
   else{L.fails=0;msg+=praise(R)+'. Passed.'}
   if(next==='advance')L.results[L.idx]=R;
-  $('lsToast').textContent=msg;renderSegs();
+  const toast=$('lsToast');toast.textContent=msg;toast.classList.remove('pop');void toast.offsetWidth;if(fxLevel())toast.classList.add('pop');renderSegs();
+  if(next==='advance'&&R.score>=88)fxBurst(toast,false);
   setTimeout(()=>{if(!L.active)return;$('lsToast').textContent='';
     if(next==='retry'){lessonLoad(L.idx,false);lessonPlay();return}
     L.fails=0;if(L.idx+1<L.items.length){L.idx++;lessonLoad(L.idx,false);lessonPlay()}else finishSession()},next==='retry'?2600:1800)}
@@ -1898,7 +2050,7 @@ function finishSession(){
   const lessonRes=[];
   if(L.isTest){const done=all.length===L.items.length;if(done){P.test[L.u]=Math.max(P.test[L.u]||0,score)}}
   else{const ids=[...new Set(L.items.map(it=>it.lid).filter(Boolean))];ids.forEach(id=>{const idxs=L.items.map((it,i)=>it.lid===id?i:-1).filter(i=>i>=0);
-    if(idxs.every(i=>L.results[i])){const s=Math.round(idxs.reduce((a,i)=>a+L.results[i].score,0)/idxs.length);P.les[id]=Math.max(P.les[id]||0,s);lessonRes.push({id,name:L.items[idxs[0]].lname,score:s})}})}
+    if(idxs.every(i=>L.results[i])){const s=Math.round(idxs.reduce((a,i)=>a+L.results[i].score,0)/idxs.length);const was=P.les[id]||0;if(s>=LESSON_PASS&&was<LESSON_PASS)(L.justDone=L.justDone||[]).push(id);P.les[id]=Math.max(P.les[id]||0,s);lessonRes.push({id,name:L.items[idxs[0]].lname,score:s})}})}
   saveProg(tr.id,P);
   if(all.length){const Hs=history();Hs.push({d:today(),tr:tr.id,st:L.u,test:L.isTest,min:L.minutes,sung,score,passed:L.isTest?score>=UNIT_PASS:lessonRes.some(x=>x.score>=LESSON_PASS),acc:+agg.acc.toFixed(2),cov:+agg.cov.toFixed(2),steady:+agg.steady.toFixed(2),react:+agg.react.toFixed(2)});store.set('ison-history',Hs.slice(-400))}
   const nx=nextUp(tr);selU=nx.u;selL=Math.max(0,nx.l);
@@ -1906,23 +2058,26 @@ function finishSession(){
 }
 function showResults(score,agg,lessonRes){
   const tr=L.track,isT=L.isTest,passT=isT&&score>=UNIT_PASS&&L.results.filter(Boolean).length===L.items.length;
-  $('player').hidden=true;$('builder').hidden=false;$('results').hidden=false;$('resScore').textContent=String(score);$('resStars').textContent=starStr(score);
+  $('player').hidden=true;$('builder').hidden=false;$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
   const nDone=lessonRes.filter(x=>x.score>=LESSON_PASS).length;
   $('resVerdict').textContent=isT?(passT?'Unit '+L.u+' mastered':'Test not passed yet'):nDone?nDone+(nDone>1?' lessons':' lesson')+' complete':'Keep practicing';
   $('resNote').textContent=isT?(passT?'You scored '+score+'. The next unit is recommended.':'You need '+UNIT_PASS+' to master this unit. You scored '+score+'. Review the lessons with the lowest scores, then try again.'):
     lessonRes.length?'Lessons finish at '+LESSON_PASS+'. '+(lessonRes.length-nDone?'Lessons under '+LESSON_PASS+' stay open for another try.':'Your next lesson is selected.'):'Finish every exercise in a lesson for it to count.';
   const sv=$('dial'),c=colors(),R=56,C=2*Math.PI*R,f=score/100,mark=isT?UNIT_PASS:LESSON_PASS;
   sv.innerHTML='<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+c.grid+'" stroke-width="10"/>'+
-    '<circle cx="66" cy="66" r="'+R+'" fill="none" stroke="'+(score>=mark?c.accent:c.lapis)+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="'+(C*f).toFixed(1)+' '+C.toFixed(1)+'" transform="rotate(-90 66 66)"/>'+
+    '<circle class="arc" cx="66" cy="66" r="'+R+'" fill="none" stroke="'+(score>=mark?c.accent:c.lapis)+'" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 '+C.toFixed(1)+'" transform="rotate(-90 66 66)"/>'+
     '<line x1="66" y1="4" x2="66" y2="18" stroke="'+c.ink+'" stroke-width="2" transform="rotate('+(mark*3.6)+' 66 66)"/>';
   const bars=$('resBars');bars.innerHTML='';[['On pitch',agg.acc],['Singing time',agg.cov],['Steadiness',agg.steady],['Quick landing',agg.react]].forEach(([n,v])=>bars.appendChild(barEl(n,v)));
   const items=$('resItems');items.innerHTML='';
   if(lessonRes.length)lessonRes.forEach(x=>items.appendChild(barEl((x.score>=LESSON_PASS?'✓ ':'')+x.name,x.score/100,x.score)));
   else L.results.forEach(r=>{if(r)items.appendChild(barEl(r.title,r.score/100,r.score))});
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{const a=sv.querySelector('.arc');if(a)a.setAttribute('stroke-dasharray',(C*f).toFixed(1)+' '+C.toFixed(1))}));
+  const won=isT?passT:nDone>0,vd=$('resVerdict');vd.classList.remove('win');
+  if(won&&fxLevel())setTimeout(()=>{vd.classList.add('win');fxBurst($('dial'),isT)},isT?1000:850);
 }
 function barEl(name,v,num){const d=document.createElement('div');d.className='bar';const a=document.createElement('span');a.textContent=name;
-  const tr=document.createElement('span');tr.className='tr';const i=document.createElement('i');i.style.width=Math.round(clamp(v)*100)+'%';tr.appendChild(i);
+  const tr=document.createElement('span');tr.className='tr';const i=document.createElement('i');i.style.width='0%';tr.appendChild(i);const wv=Math.round(clamp(v)*100)+'%';requestAnimationFrame(()=>requestAnimationFrame(()=>{i.style.width=wv}));
   const b=document.createElement('span');b.textContent=num!=null?String(num):Math.round(clamp(v)*100)+'%';d.append(a,tr,b);return d}
 function drawHistory(){
   const cv=$('histChart'),w=cv.clientWidth||cv.parentElement.clientWidth;if(!w)return;const h=190,g=fitCanvas(cv,w,h),c=colors(),Hs=history().slice(-24);
@@ -1995,6 +2150,7 @@ $('a4').onchange=()=>{const v=parseFloat($('a4').value);if(v>=400&&v<=480){S.a4=
 $('thr').onchange=()=>{S.thr=+$('thr').value;redraw()};
 $('smooth').oninput=()=>{S.smooth=+$('smooth').value;smoothLabel();save()};
 $('gate').oninput=()=>{S.filt=+$('gate').value;save()};
+$('fxSel').value=S.fx||'full';$('fxSel').onchange=()=>{S.fx=$('fxSel').value;save();if(S.fx!=='off')fxBurst($('fxSel'),false)};
 $('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw();if(G.src.startsWith('ex-')&&!G.playing)loadSource()};
 $('lane').onchange=()=>{S.lane=$('lane').checked;redraw()};
 window.addEventListener('resize',()=>{drawTake(audio.paused?null:audio.currentTime);if(!live)drawLive(0);if(!G.playing)drawSing()});
