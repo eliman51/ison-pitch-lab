@@ -252,6 +252,7 @@ html.nomo .stars i{opacity:1}
 .notechips{display:flex;flex-wrap:wrap;gap:6px}
 .nc{font-family:var(--f-mono);font-size:.82rem;padding:5px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--good) 50%,var(--line));color:var(--ink);background:rgba(0,0,0,.25)}
 .nc.warn{border-color:color-mix(in srgb,var(--warn) 60%,var(--line))}.nc.bad{border-color:color-mix(in srgb,var(--bad) 70%,var(--line));color:#F3B4AA}
+.backupnag{display:grid;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:rgba(214,166,79,.08);font-size:.9rem}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -297,6 +298,7 @@ html.nomo .stars i{opacity:1}
       <div class="rankinfo"><div class="rankhead"><span id="rankTitle">Candle lighter</span><span id="rankNext"></span></div>
         <div class="rankbar"><i id="rankBar"></i></div><span class="status" id="rankTotal"></span></div>
     </div>
+    <div class="backupnag" id="backupNag" hidden><span id="nagTxt"></span><div class="row"><button class="primary" id="nagNow">Back up now</button><button id="nagLater">Later</button></div></div>
     <div class="kpis">
       <div class="kpi"><span>Day streak</span><b id="kStreak">0</b></div>
       <div class="kpi"><span>Practice time</span><b id="kMin">0</b></div>
@@ -568,6 +570,16 @@ html.nomo .stars i{opacity:1}
   </section>
   </div>
   <div class="view" id="v-settings" hidden>
+  <section class="panel" aria-labelledby="t-safe">
+    <h2 id="t-safe">Keep your progress safe</h2>
+    <p class="status" id="safeStatus" style="margin:0"></p>
+    <button class="primary big" id="bkNow">Back up now</button>
+    <label class="check"><input type="checkbox" id="bkAudio"> Include song recordings (makes the file much larger)</label>
+    <div class="field"><label class="label" for="bkFile">Restore from a backup</label><input class="file" type="file" id="bkFile" accept=".json,application/json"></div>
+    <p class="status" id="bkMsg" style="margin:0" aria-live="polite"></p>
+    <div class="row" id="bkConfirm" hidden><button class="primary" id="bkYes">Replace my progress with this backup</button><button id="bkNo">Cancel</button></div>
+    <p class="status" style="margin:0">A backup is one small file with your lessons, scores, weak-spot data, practice time, rank, settings and saved songs. Keep it in iCloud Drive, and restore it here on any phone or browser.</p>
+  </section>
   <section class="panel" aria-labelledby="t-fx">
     <h2 id="t-fx">Coach and animations</h2>
     <div class="grid2">
@@ -1914,6 +1926,7 @@ function showTab(k){
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
   if(k==='songs'&&!G.playing)drawSing();if(k==='tuner'&&!live){drawLive(0);drawTake(null)}
+  if(k==='settings'){renderSafety();prepBackup().catch(()=>{})}
   if(k==='practice'){renderPractice();if(L.active&&!G.playing)lessonLoad(L.idx,true)}
 }
 TABS.forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
@@ -2537,6 +2550,56 @@ function renderWeak(){
 function startWeak(list,minutes){const tr=weakTrack();if(!list.length)return;store.set('ison-session',null);const items=buildWeakSession(tr,list,minutes);
   startSessionWith(tr,items,list[0].u,list[0].l,minutes,false);$('plStage').textContent='Weak spots · '+(tr===foundTrack?'Foundations':tr.name)}
 
+/* ================= Keeping progress safe =================
+   1. Ask the browser to keep this app's storage permanently (not cleared to free space).
+   2. One-tap backup to a file (share sheet: Save to Files or iCloud Drive), and restore from it on any
+      device. Covers progress, scores, weak-spot data, practice time, rank, settings and saved songs
+      (recordings optional, since audio makes the file large). A reminder appears after a week. */
+const BK_KEYS=k=>k.startsWith('ison-')&&k!=='ison-tab';
+async function protectStorage(){try{if(navigator.storage&&navigator.storage.persist){if(!(await navigator.storage.persisted()))await navigator.storage.persist()}}catch(e){}renderSafety()}
+async function renderSafety(){const el=$('safeStatus');if(!el)return;let prot=null;try{if(navigator.storage&&navigator.storage.persisted)prot=await navigator.storage.persisted()}catch(e){}
+  const standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||navigator.standalone===true;
+  const last=store.get('ison-lastbackup',null);
+  el.textContent=(prot?'This device is keeping your data permanently. ':prot===false?'This browser has not promised to keep your data, so backups matter. ':'')+
+    (last?'Last backup: '+new Date(last).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})+' ('+daysAgo(last)+').':'No backup yet.')+
+    (standalone?'':' You are in a browser tab: the home-screen app keeps its own separate copy, so use one of them consistently.');
+  renderNag()}
+function daysAgo(t){const d=Math.floor((Date.now()-t)/864e5);return d<1?'today':d===1?'yesterday':d+' days ago'}
+function renderNag(){const n=$('backupNag');if(!n)return;const last=store.get('ison-lastbackup',null),snooze=store.get('ison-bksnooze',0);
+  const due=TIME.raw>=10&&(!last||Date.now()-last>7*864e5)&&Date.now()>snooze;n.hidden=!due;if(due&&!bkPrep)prepBackup().catch(()=>{});
+  if(due)$('nagTxt').textContent=last?'Your last backup was '+daysAgo(last)+'. Save a fresh copy so your progress is safe.':'You have '+fmtHM(TIME.raw)+' of practice saved only on this phone. Back it up to iCloud Drive in one tap.'}
+const b64=buf=>{let s='';const a=new Uint8Array(buf);for(let i=0;i<a.length;i+=0x8000)s+=String.fromCharCode.apply(null,a.subarray(i,i+0x8000));return btoa(s)};
+async function makeBackup(withAudio){const ls={};for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(BK_KEYS(k))ls[k]=localStorage.getItem(k)}
+  let songs=[];try{songs=await MyDB.all()}catch(e){}
+  const out=[];for(const r of songs){const c={...r};if(r.audio&&withAudio){try{c.audio={type:r.audio.type||'audio/mpeg',name:r.audio.name||'',b64:b64(await r.audio.arrayBuffer())}}catch(e){c.audio=null}}else c.audio=null;out.push(c)}
+  return{app:'ison-pitch-lab',v:1,date:new Date().toISOString(),summary:{rank:rankOf(TIME.cred),minutes:Math.round(TIME.raw),songs:out.length,lessons:Object.values(JSON.parse(ls['ison-prog2']||'{}')).reduce((a,p)=>a+Object.values(p.les||{}).filter(x=>x>=LESSON_PASS).length,0)},ls,songs:out}}
+/* the file is prepared ahead (when Settings opens) so the share sheet opens straight from the tap,
+   which iPhone requires */
+let bkPrep=null;
+async function prepBackup(){const audio=$('bkAudio').checked,raw=TIME.raw;const data=await makeBackup(audio),d=new Date(),name='ison-backup-'+d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')+'.json';
+  bkPrep={file:new File([JSON.stringify(data)],name,{type:'application/json'}),audio,raw,t:Date.now()};return bkPrep}
+async function backupNow(){const btn=$('bkNow');btn.disabled=true;
+  try{let pr=bkPrep;if(!pr||pr.audio!==$('bkAudio').checked||pr.raw!==TIME.raw||Date.now()-pr.t>600000){$('bkMsg').textContent='Preparing your backup...';pr=await prepBackup()}
+    const file=pr.file,name=file.name;let ok=false;
+    if(navigator.canShare&&navigator.canShare({files:[file]})){try{await navigator.share({files:[file],title:'Ison Pitch Lab backup'});ok=true}catch(e){if(e&&e.name==='AbortError'){$('bkMsg').textContent='Backup cancelled.';btn.disabled=false;return}}}
+    if(!ok){const a=document.createElement('a'),u=URL.createObjectURL(file);a.href=u;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000);ok=true}
+    store.set('ison-lastbackup',Date.now());$('bkMsg').textContent='Backup saved as '+name+' ('+Math.max(1,Math.round(file.size/1024))+' KB). On iPhone, choose Save to Files and pick iCloud Drive so it survives a lost phone.';
+  }catch(e){$('bkMsg').textContent='The backup could not be made on this device.'}
+  btn.disabled=false;renderSafety()}
+let pendingRestore=null;
+async function readBackup(f){$('bkConfirm').hidden=true;pendingRestore=null;
+  try{const data=JSON.parse(await f.text());if(data.app!=='ison-pitch-lab'||!data.ls)throw 0;pendingRestore=data;const s=data.summary||{};
+    $('bkMsg').textContent='Backup from '+new Date(data.date).toLocaleString([], {month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})+': rank '+(s.rank||1)+', '+fmtHM(s.minutes||0)+' practiced, '+(s.lessons||0)+' lessons done, '+(s.songs||0)+((s.songs||0)===1?' saved song.':' saved songs.')+' Restoring replaces what is on this device now.';
+    $('bkConfirm').hidden=false}
+  catch(e){$('bkMsg').textContent='That file is not an Ison Pitch Lab backup.'}}
+async function restoreNow(){const data=pendingRestore;if(!data)return;$('bkYes').disabled=true;
+  try{const rm=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(BK_KEYS(k))rm.push(k)}rm.forEach(k=>localStorage.removeItem(k));
+    Object.keys(data.ls).forEach(k=>localStorage.setItem(k,data.ls[k]));
+    for(const r of data.songs||[]){const c={...r};if(r.audio&&r.audio.b64){const bin=atob(r.audio.b64),a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);c.audio=new Blob([a],{type:r.audio.type})}else c.audio=null;
+      try{await MyDB.put(c)}catch(e){}}
+    $('bkMsg').textContent='Restored. Reloading...';setTimeout(()=>location.reload(),600)}
+  catch(e){$('bkMsg').textContent='Restore failed. Your current progress was not changed.';$('bkYes').disabled=false}}
+
 /* ---------- Practice home ---------- */
 function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
@@ -2546,7 +2609,7 @@ function renderPractice(){
   const tr=curTrack(),noSong=mode==='song'&&!tr;
   $('songSetup').hidden=!noSong;$('songOpts').hidden=mode!=='song'||!tr;$('songSummary').hidden=mode!=='song'||!tr;
   ['map','lessons'].forEach(i=>$(i).hidden=noSong);$('builder').hidden=noSong||L.active;$('player').hidden=!L.active;
-  const Hs=history();$('kMin').textContent=fmtHM(TIME.raw);renderRank();$('kStreak').textContent=String(streak(Hs));
+  const Hs=history();$('kMin').textContent=fmtHM(TIME.raw);renderRank();renderNag();$('kStreak').textContent=String(streak(Hs));
   if(noSong){$('t-today').textContent='Song course';$('heroStage').textContent='No song chosen yet';$('stTitle').textContent='';$('stDesc').textContent='';$('stGoal').textContent='';$('unitProg').textContent='';$('unitTest').textContent='';$('kPassed').textContent='0';fillCourseSongs();return}
   const P=prog(tr.id);$('t-today').textContent=mode==='song'?tr.name:'Foundations';
   const totalL=tr.units.reduce((a,x)=>a+x.lessons.length,0),doneL=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).length;
@@ -2623,7 +2686,7 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
-  L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
+  protectStorage();L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
@@ -2810,6 +2873,7 @@ $('findHome').onclick=async()=>{
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
 window.__tracks=()=>({foundTrack,songT,buildSession});
+protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
 function renderDiff(){const c=$('diffChips');if(!c.children.length){Object.keys(DIFF).forEach(k=>{const b=document.createElement('button');b.textContent=DIFF[k].name;b.dataset.k=k;
@@ -2829,6 +2893,10 @@ $('a4').onchange=()=>{const v=parseFloat($('a4').value);if(v>=400&&v<=480){S.a4=
 $('thr').onchange=()=>{S.thr=+$('thr').value;redraw()};
 $('smooth').oninput=()=>{S.smooth=+$('smooth').value;smoothLabel();save()};
 $('gate').oninput=()=>{S.filt=+$('gate').value;save()};
+$('bkNow').onclick=()=>backupNow();$('bkFile').onchange=e=>{const f=e.target.files[0];if(f)readBackup(f)};
+$('bkYes').onclick=()=>restoreNow();$('bkNo').onclick=()=>{pendingRestore=null;$('bkConfirm').hidden=true;$('bkMsg').textContent='';$('bkFile').value=''};
+$('nagNow').onclick=()=>{backupNow().then(()=>renderNag())};
+$('nagLater').onclick=()=>{store.set('ison-bksnooze',Date.now()+3*864e5);renderNag()};
 $('fxSel').value=S.fx||'full';$('fxSel').onchange=()=>{S.fx=$('fxSel').value;save()};
 $('celebSel').value=S.celeb||'every';$('celebSel').onchange=()=>{S.celeb=$('celebSel').value;save()};
 $('burstChk').checked=S.burst!==false;$('burstChk').onchange=()=>{S.burst=$('burstChk').checked;save();if(S.burst)fxBurst($('burstChk'),false)};
