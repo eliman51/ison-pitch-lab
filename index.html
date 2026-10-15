@@ -135,7 +135,7 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .bar span:last-child{font-family:var(--f-mono);text-align:right}
 .stars{font-size:1.4rem;letter-spacing:.15em;color:var(--accent)}
 .verdict{font-family:var(--f-display);font-size:1.3rem}
-.seg{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+.seg{display:grid;grid-auto-columns:1fr;grid-auto-flow:column;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
 .seg button{border:0;background:transparent;color:var(--muted);padding:10px 6px;border-radius:9px}
 .seg button[aria-selected="true"]{background:var(--surface2);color:var(--accent)}
 .levels{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -244,6 +244,14 @@ html.nomo .stars i{opacity:1}
 .ubar i.met{background:linear-gradient(90deg,var(--good),#9BE3BD)}
 .fssub{font-family:var(--f-display);font-size:min(6vw,26px);color:var(--ink);opacity:0;animation:numIn .5s .5s var(--e-out) forwards;text-shadow:0 0 14px rgba(0,0,0,.8)}
 .fivestar.boom .fssub{animation:starBoom .8s .15s var(--e-out) forwards}
+.weaklist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.weaklist button{width:100%;display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;text-align:left;padding:9px 10px;font-weight:400}
+.weaklist .wk{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:.75rem;border:1.5px solid var(--line);color:var(--muted)}
+.weaklist .wm{display:grid;min-width:0}.weaklist .wm b{font-weight:600}.weaklist .wm small{color:var(--muted);font-size:.78rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.weaklist .ws{font-family:var(--f-display);font-size:1.35rem;font-variant-numeric:tabular-nums}
+.notechips{display:flex;flex-wrap:wrap;gap:6px}
+.nc{font-family:var(--f-mono);font-size:.82rem;padding:5px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--good) 50%,var(--line));color:var(--ink);background:rgba(0,0,0,.25)}
+.nc.warn{border-color:color-mix(in srgb,var(--warn) 60%,var(--line))}.nc.bad{border-color:color-mix(in srgb,var(--bad) 70%,var(--line));color:#F3B4AA}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -261,11 +269,28 @@ html.nomo .stars i{opacity:1}
 
   <div class="view" id="v-practice">
   <div class="seg" role="tablist" aria-label="Practice plan">
-    <button role="tab" id="mode-found" aria-selected="true">Foundations · 12 months</button>
+    <button role="tab" id="mode-found" aria-selected="true">Foundations</button>
     <button role="tab" id="mode-song" aria-selected="false">Song course</button>
+    <button role="tab" id="mode-weak" aria-selected="false">Weak spots</button>
   </div>
 
-  <section class="panel hero" aria-labelledby="t-today">
+  <section class="panel" id="weakPanel" hidden aria-labelledby="t-weak">
+    <h2 id="t-weak">Weak spots</h2>
+    <div class="seg" id="weakTrSeg" role="tablist" aria-label="Which plan" hidden><button role="tab" id="wkFound" aria-selected="true">Foundations</button><button role="tab" id="wkSong" aria-selected="false">Song course</button></div>
+    <p class="status" style="margin:0">Lessons you have already practiced, lowest scores first. Newer tries count more, and lessons you haven't touched in a while move up. Tap one to drill it, or practice the top few mixed together.</p>
+    <p class="status" id="weakEmpty" style="margin:0">Practice at least three lessons and your weak spots will show up here.</p>
+    <ol class="weaklist" id="weakList" aria-label="Recommended lessons"></ol>
+    <div class="field"><span class="label">Time I have</span><div class="chips" id="weakChips"></div></div>
+    <button class="primary big" id="weakStart">Practice my weak spots</button>
+    <h3>Your notes</h3>
+    <div id="weakNotes"></div>
+    <p class="status" id="weakNoteTip" style="margin:0"></p>
+    <h3>Rising and falling</h3>
+    <div class="bars" id="weakDir"></div>
+    <h3>Skills, weakest first</h3>
+    <div class="bars" id="weakSkills"></div>
+  </section>
+  <section class="panel hero" id="heroPanel" aria-labelledby="t-today">
     <div class="row" style="justify-content:space-between"><h2 id="t-today">Foundations</h2><span class="tag" id="heroStage"></span></div>
     <div class="rank" aria-label="Rank">
       <div class="rankseal"><b id="rankNum">1</b></div>
@@ -331,7 +356,7 @@ html.nomo .stars i{opacity:1}
     <button class="big" id="startTest">Take the unit test</button>
     <button class="big" id="resumeSession" hidden>Resume saved session</button>
     <label class="check"><input type="checkbox" id="lessonTones"> Also play the notes while I sing (wear headphones)</label>
-    <p class="status" style="margin:0">A session works through lessons in order from the one you pick. Sessions of 10 minutes or more open with a gentle straw or lip-trill warm-up, and 15 minutes or more end with a cool-down. Older lessons come back as review, weakest first. If the unit runs out before your time does, you get extra practice on its weakest lessons. A lesson is complete at 70 or better. Each unit ends with a test that touches every lesson's hardest exercise: score 90 to master the unit. Each unit also has a practice-time goal based on about 20 minutes a day, 5 days a week; up to 40 minutes a day count toward goals and your rank, because spreading practice out works better than cramming. Exercises with an ison or a second voice work best with headphones. Everything stays open, so you can go back or jump ahead.</p>
+    <p class="status" style="margin:0">A session works through lessons in order from the one you pick. Sessions of 10 minutes or more open with a gentle straw or lip-trill warm-up, and 15 minutes or more end with a cool-down. Older lessons come back as review, weakest first. If the unit runs out before your time does, you get extra practice on its weakest lessons. A lesson is complete at 70 or better. Each unit ends with a test that touches every lesson's hardest exercise: score 90 to master the unit. Each unit also has a practice-time goal based on about 20 minutes a day, 5 days a week; every minute you actually sing counts toward goals and your rank, so extra practice moves you along faster. Exercises with an ison or a second voice work best with headphones. Everything stays open, so you can go back or jump ahead.</p>
   </section>
 
   <section class="panel player" id="player" hidden aria-labelledby="exTitle">
@@ -1173,10 +1198,9 @@ function sayingFor(R,ctx){
    while range and tone take months; formal Byzantine music schools teach over about five years.
    So the 12-month Foundations path is planned at roughly 20 minutes a day, 5 days a week: about
    86 hours. Each unit has a time goal from that budget (more for the musicianship and chant-skill
-   units, which take longer to settle). Only 40 minutes a day count toward goals, because spaced
-   practice beats cramming, but every minute is still tracked. Rank 1 to 100 runs on the same
-   credited time: rank 100 equals the full 86 hours, and each rank takes a little longer than the last. */
-const DAY_CAP=40,UNIT_GOAL_BY_PART=[150,210,210,145],RANK_TOTAL=5175;
+   units, which take longer to settle). Every minute you actually sing counts toward goals and rank, extra time included.
+   Rank 1 to 100 runs on that time: rank 100 equals the full 86 hours, and each rank takes a little longer than the last. */
+const DAY_CAP=1e9,UNIT_GOAL_BY_PART=[150,210,210,145],RANK_TOTAL=5175;
 const TIME=(()=>{try{const v=JSON.parse(localStorage.getItem('ison-time')||'null');if(v&&v.day)return v}catch(e){}return{day:{},unit:{},raw:0,cred:0}})();
 function saveTime(){try{localStorage.setItem('ison-time',JSON.stringify(TIME))}catch(e){}}
 function todayKey(){const x=new Date();return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')}
@@ -1195,7 +1219,7 @@ function renderRank(){const r=rankOf(TIME.cred),a=rankMin(r),b=rankMin(Math.min(
   $('rankNum').textContent=String(r);$('rankTitle').textContent=rankTitle(r);$('rankBar').style.width=(Math.max(0.02,f)*100).toFixed(1)+'%';
   const today=TIME.day[todayKey()]||0;
   $('rankNext').textContent=r>=100?'Top rank reached.':fmtHM(b-TIME.cred)+' to rank '+(r+1);
-  $('rankTotal').textContent=fmtHM(TIME.raw)+' practiced'+(today>=DAY_CAP?' · today\'s goal time is full, rest your voice':today>0?' · '+Math.round(today)+' of '+DAY_CAP+' min today':'');}
+  $('rankTotal').textContent=fmtHM(TIME.raw)+' practiced'+(today>0?' · '+fmtHM(today)+' today':'')+(today>=90?'. Long day: rest if your voice feels tired':'');}
 
 /* Readout */
 function showReadout(m){
@@ -2432,14 +2456,14 @@ function buildSession(tr,u,l,minutes,isTest){
   const done=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).filter(k=>{const[a,b]=k.split('.').map(Number);return a<u||(a===u&&b<l)}).sort((a,b)=>P.les[a]-P.les[b]);
   const nRev=minutes>=15?2:minutes>=5?1:0,picked=[];
   for(let r=0;r<nRev&&done.length;r++){const pool=r===0?done.slice(0,5):done;const k=pool[Math.floor(Math.random()*pool.length)];if(!picked.includes(k))picked.push(k)}
-  const reviews=picked.map(k=>{const[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];if(!les)return null;const its=les.items(),it=its[its.length-1];return{...it,title:'Review: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[a])}}).filter(Boolean);
+  const reviews=picked.map(k=>{const[a,b]=k.split('.').map(Number),les=tr.units[a]&&tr.units[a].lessons[b];if(!les)return null;const its=les.items(),it=its[its.length-1];return{...it,title:'Review: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[a]),src:a+'.'+b}}).filter(Boolean);
   if(reviews[0])add(reviews[0],'Review');
   let j=Math.max(0,l),midDone=false;const ls=tr.units[u].lessons,mid=reviews[1];
   while(j<ls.length&&(t<budget||!items.some(x=>x.lid))){const its=ls[j].items();its.forEach(it=>{it.lid=u+'.'+j;it.lname=ls[j].name;it.main=true;it.utips=unitTips(tr.units[u])});items.push(...its);t+=its.reduce((a,it)=>a+it.dur+5,0);j++;
     if(mid&&!midDone&&t>budget/2){midDone=true;items.push({...mid,lid:null,main:false,kind:'Review'});t+=mid.dur+5}}
   /* time left at the end of the unit: extra practice on this unit's lessons, weakest first (the unit test is next) */
   if(t<budget-30){const pool=ls.map((x,k)=>k).sort((a,b)=>(P.les[u+'.'+a]||0)-(P.les[u+'.'+b]||0));let g=0;
-    while(t<budget-20&&g<pool.length*2){const k=pool[g%pool.length],its=ls[k].items().slice(-3);its.forEach(it=>add({...it,title:'Extra: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[u])},'Extra practice'));g++}}
+    while(t<budget-20&&g<pool.length*2){const k=pool[g%pool.length],its=ls[k].items().slice(-3);its.forEach(it=>add({...it,title:'Extra: '+it.title.replace(/^Review: /,''),utips:unitTips(tr.units[u]),src:u+'.'+k},'Extra practice'));g++}}
   if(minutes>=15)add(mkItem({title:'Cool-down: gentle hum down',how:'A soft hum from a little above home down to home.',pat:[4,2,0],beats:[2,2,4],bpm:60,base:H,listen:'full',tolA:45,tolB:110}),'Cool-down');
   return items;
 }
@@ -2448,9 +2472,77 @@ const dayKey=x=>x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+S
 function streak(Hs){const days=new Set(Hs.map(h=>h.d.slice(0,10)));let n=0;const d=new Date();if(!days.has(dayKey(d)))d.setDate(d.getDate()-1);
   while(days.has(dayKey(d))){n++;d.setDate(d.getDate()-1)}return n}
 function today(){const d=new Date();return dayKey(d)+'T'+d.toTimeString().slice(0,5)}
+/* ================= Weak spots =================
+   Every scored attempt is remembered: per lesson (the last 8 scores, best, when), per skill, per sung
+   note (how close you land and whether you lean sharp or flat), and for rising versus falling moves.
+   The Weak spots view ranks lessons you have already practiced by a recent-weighted average (newer
+   tries count more), nudged up when a lesson hasn't been touched for a while (forgetting) or has slipped
+   below your best. Practice sessions built from it interleave two weak lessons at a time, which
+   motor-learning research finds sticks better than drilling one thing in a block. */
+const STATS=(()=>{try{const v=JSON.parse(localStorage.getItem('ison-stats')||'null');if(v&&v.les)return v}catch(e){}return{les:{},cat:{},note:{},dir:{up:{n:0,ok:0},down:{n:0,ok:0}}}})();
+function saveStats(){try{localStorage.setItem('ison-stats',JSON.stringify(STATS))}catch(e){}}
+function recordAttempt(tr,it,R){if(!tr||!R||R.cov<0.2)return;
+  const lid=it.lid&&!String(it.lid).startsWith('T')?it.lid:it.src;
+  if(lid){const k=tr.id+'|'+lid,[u,l]=String(lid).split('.').map(Number),e=STATS.les[k]||(STATS.les[k]={n:0,rec:[],best:0,tr:tr.id,u,l,bias:0});
+    e.n++;e.rec.push(R.score);if(e.rec.length>8)e.rec.shift();e.best=Math.max(e.best,R.score);e.last=Date.now();e.bias=e.bias*0.7+(R.bias||0)*0.3}
+  const c=(it.utips&&it.utips[0])||'general',cs=STATS.cat[c]||(STATS.cat[c]={n:0,sum:0});cs.n++;cs.sum+=R.score;
+  (R.perNote||[]).forEach(p=>{const key=Math.round(p.m),ns=STATS.note[key]||(STATS.note[key]={n:0,ok:0,dev:0});ns.n++;ns.ok+=p.a;if(p.dv!=null)ns.dev+=p.dv;
+    if(p.dir){const d=STATS.dir[p.dir];d.n++;d.ok+=p.a}});
+  saveStats()}
+const wavg=a=>{let s=0,w=0;a.forEach((x,i)=>{const k=1+i*0.35;s+=x*k;w+=k});return w?s/w:0};
+function weakList(tr){if(!tr)return[];const now=Date.now(),seen={},out=[],P=prog(tr.id);
+  for(const k in STATS.les){const e=STATS.les[k];if(e.tr!==tr.id)continue;seen[e.u+'.'+e.l]=1;out.push({...e})}
+  for(const id in P.les){if(seen[id])continue;const[u,l]=id.split('.').map(Number);out.push({u,l,rec:[P.les[id]],best:P.les[id],n:1,last:0,bias:0})}
+  return out.filter(e=>tr.units[e.u]&&tr.units[e.u].lessons[e.l]).map(e=>{const ra=wavg(e.rec),days=e.last?(now-e.last)/864e5:14;
+    return{...e,ra,days,name:tr.units[e.u].lessons[e.l].name,unit:tr.units[e.u].name,trend:e.rec.length>=2?e.rec[e.rec.length-1]-e.rec[0]:0,
+      pr:(100-ra)+Math.min(15,days*1.5)+(e.best-ra>10?5:0)}}).sort((a,b)=>b.pr-a.pr)}
+/* weak-spot session: whole lessons (so their scores update), two at a time interleaved */
+function buildWeakSession(tr,list,minutes){const budget=minutes*60,blocks=[];let t=0;
+  for(const e of list){if(t>=budget&&blocks.length)break;const un=tr.units[e.u],its=un.lessons[e.l].items();
+    its.forEach(it=>{it.lid=e.u+'.'+e.l;it.lname=un.lessons[e.l].name;it.main=true;it.utips=unitTips(un)});blocks.push(its);t+=its.reduce((a,x)=>a+x.dur+5,0)}
+  const items=[];
+  if(minutes>=10)items.push({...mkItem({title:'Warm-up: straw or lip-trill siren',how:'Through a straw or with a lip trill, glide up and down. Easy and quiet.',pat:[0,4,7,4,0],beats:[1.5,1.5,2,1.5,2],bpm:60,base:S.home,listen:'full',tolA:45,tolB:110}),lid:null,main:false,kind:'Warm-up'});
+  for(let i=0;i<blocks.length;i+=2){const a=blocks[i],b=blocks[i+1]||[];for(let j=0;j<Math.max(a.length,b.length);j++){if(a[j])items.push(a[j]);if(b[j])items.push(b[j])}}
+  if(minutes>=15)items.push({...mkItem({title:'Cool-down: gentle hum down',how:'A soft hum from a little above home down to home.',pat:[4,2,0],beats:[2,2,4],bpm:60,base:S.home,listen:'full',tolA:45,tolB:110}),lid:null,main:false,kind:'Cool-down'});
+  return items}
+let weakTr='found';
+function weakTrack(){return weakTr==='song'&&songT?songT:foundTrack}
+function renderWeak(){
+  const tr=weakTrack(),list=weakList(tr),ol=$('weakList');ol.innerHTML='';
+  const sg=$('weakTrSeg');sg.hidden=!songT;$('wkFound').setAttribute('aria-selected',String(tr===foundTrack));$('wkSong').setAttribute('aria-selected',String(tr!==foundTrack));if(songT)$('wkSong').textContent=songT.name;
+  const top=list.slice(0,10);$('weakEmpty').hidden=list.length>=3;$('weakStart').disabled=!list.length;
+  top.forEach((e,i)=>{const li=document.createElement('li'),b=document.createElement('button');
+    const rk=document.createElement('span');rk.className='wk';rk.textContent=String(i+1);
+    const mid=document.createElement('span');mid.className='wm';const nm=document.createElement('b');nm.textContent=e.name;const sub=document.createElement('small');
+    sub.textContent='Unit '+e.u+' · '+e.unit+' · '+e.n+(e.n>1?' tries':' try')+(e.last?' · '+(e.days<1?'today':Math.round(e.days)+(Math.round(e.days)===1?' day ago':' days ago')):'')+(Math.abs(e.bias)>12?' · leans '+(e.bias>0?'sharp':'flat'):'');
+    mid.append(nm,sub);const sc=document.createElement('span');sc.className='ws';const tr2=e.trend>=5?' ↑':e.trend<=-5?' ↓':'';sc.textContent=Math.round(e.ra)+tr2;
+    sc.style.color=e.ra>=85?'var(--good)':e.ra>=70?'var(--accent)':e.ra>=55?'var(--warn)':'var(--bad)';
+    b.append(rk,mid,sc);b.onclick=()=>{if(L.active)return;startWeak([e],Math.max(2,Math.min(selMin,5)))};li.appendChild(b);ol.appendChild(li)});
+  const wc=$('weakChips');if(!wc.children.length)[2,5,10,15,20,30].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{selMin=m;store.set('ison-min',m);renderWeak()};wc.appendChild(b)});
+  [...wc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===selMin)));
+  const plan=list.length?buildWeakSession(tr,list,selMin).filter(x=>x.lid):[],nl=new Set(plan.map(x=>x.lid)).size;
+  $('weakStart').textContent=list.length?'Practice my '+nl+' weakest lesson'+(nl>1?'s':'')+' · '+selMin+' min':'Practice my weak spots';
+  // notes
+  const nb=$('weakNotes');nb.innerHTML='';const notes=Object.keys(STATS.note).map(k=>({m:+k,...STATS.note[k]})).filter(x=>x.n>=4).map(x=>({...x,acc:x.ok/x.n,b:x.dev/x.n}));
+  if(!notes.length){nb.textContent='Sing a few more exercises to map your notes.';nb.className='status'}else{nb.className='notechips';
+    notes.sort((a,b)=>a.m-b.m).forEach(x=>{const s=document.createElement('span'),pc=Math.round(x.acc*100);s.className='nc'+(pc<60?' bad':pc<75?' warn':'');
+      s.textContent=nameOf(x.m)+' '+pc+'%'+(x.b>12?' ↑':x.b<-12?' ↓':'');s.title=x.n+' notes sung'+(x.b>12?', tends sharp':x.b<-12?', tends flat':'');nb.appendChild(s)})}
+  const worst=notes.filter(x=>x.n>=6).sort((a,b)=>a.acc-b.acc).slice(0,2);
+  $('weakNoteTip').textContent=worst.length&&worst[0].acc<0.8?'Hardest for you: '+worst.map(x=>nameOf(x.m)+(x.b>12?' (sharp)':x.b<-12?' (flat)':'')).join(' and ')+'. ↑ means you tend to sing it sharp, ↓ flat.':'Percent shows how close you land on each note. ↑ means you tend to sing it sharp, ↓ flat.';
+  const db=$('weakDir');db.innerHTML='';const up=STATS.dir.up,dn=STATS.dir.down;
+  if(up.n+dn.n>=8){db.appendChild(barEl('Rising moves',up.n?up.ok/up.n:0));db.appendChild(barEl('Falling moves',dn.n?dn.ok/dn.n:0))}else{const p=document.createElement('p');p.className='status';p.style.margin='0';p.textContent='Not enough moves sung yet.';db.appendChild(p)}
+  const kb=$('weakSkills');kb.innerHTML='';Object.keys(STATS.cat).map(c=>({c,...STATS.cat[c]})).filter(x=>x.n>=3).sort((a,b)=>a.sum/a.n-b.sum/b.n).slice(0,8).forEach(x=>kb.appendChild(barEl(TIP_LABEL[x.c]||x.c,x.sum/x.n/100,Math.round(x.sum/x.n))));
+  if(!kb.children.length){const p=document.createElement('p');p.className='status';p.style.margin='0';p.textContent='Skills appear after a few exercises of each kind.';kb.appendChild(p)}
+}
+function startWeak(list,minutes){const tr=weakTrack();if(!list.length)return;store.set('ison-session',null);const items=buildWeakSession(tr,list,minutes);
+  startSessionWith(tr,items,list[0].u,list[0].l,minutes,false);$('plStage').textContent='Weak spots · '+(tr===foundTrack?'Foundations':tr.name)}
+
 /* ---------- Practice home ---------- */
 function renderPractice(){
-  $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));
+  $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
+  $('weakPanel').hidden=mode!=='weak'||L.active;
+  if(mode==='weak'){['heroPanel','songSetup','songOpts','builder'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
+  $('heroPanel').hidden=false;
   const tr=curTrack(),noSong=mode==='song'&&!tr;
   $('songSetup').hidden=!noSong;$('songOpts').hidden=mode!=='song'||!tr;$('songSummary').hidden=mode!=='song'||!tr;
   ['map','lessons'].forEach(i=>$(i).hidden=noSong);$('builder').hidden=noSong||L.active;$('player').hidden=!L.active;
@@ -2532,7 +2624,7 @@ function renderSongSummary(){
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
   L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
-  $('results').hidden=true;$('builder').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
+  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function lessonLoad(i,keepPos){
@@ -2574,7 +2666,8 @@ function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
   const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main,lid:it.lid,lname:it.lname}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main,lid:it.lid,lname:it.lname};
   const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
-  if(R.cov>=0.2){const ru=addPractice(L.track.id,L.u,it.dur);if(ru)L.rankUp=ru}
+  recordAttempt(L.track,it,R);
+  if(R.cov>=0.2){const iu=it.lid&&/^\d+\./.test(it.lid)?+it.lid.split('.')[0]:L.u;const ru=addPractice(L.track.id,iu,it.dur);if(ru)L.rankUp=ru}
   L.streak=R.score>=90?(L.streak||0)+1:0;L.itemPrev=L.itemPrev||{};
   const ctx={streak:L.streak,prev:L.lastScore,prevItem:L.itemPrev[L.idx],tries:L.tries[L.idx],passMark:D.pass,slowPass:!!(it.slowOf&&pass)};
   const say=sayingFor(R,ctx);L.itemPrev[L.idx]=R.score;L.lastScore=R.score;L.lastR=R;
@@ -2608,17 +2701,18 @@ const med=a=>{const b=a.slice().sort((x,y)=>x-y);return b.length?b[b.length>>1]:
    on pitch 55% (full credit within tolA, fading to zero at tolB, octave ignored in lessons),
    singing time 20%, steadiness 15% (wobble on notes of 1.4 s or more), quick landing 10%. */
 function scoreItem(it,trace){
-  let w=0,acc=0,cov=0;const sds=[],rts=[],devs=[];
-  for(const n of it.notes){if(n.listen)continue;const dur=n.t1-n.t0,fr=trace.filter(p=>p.t>=n.t0&&p.t<n.t1);if(!fr.length)continue;
+  let w=0,acc=0,cov=0,prevM=null;const sds=[],rts=[],devs=[],perNote=[];
+  for(const n of it.notes){if(n.listen)continue;const dir=prevM==null||Math.abs(n.m-prevM)<0.5?null:n.m>prevM?'up':'down';prevM=n.m;const dur=n.t1-n.t0,fr=trace.filter(p=>p.t>=n.t0&&p.t<n.t1);if(!fr.length)continue;
     const grace=Math.min(0.3,dur*0.25),fr2=fr.filter(p=>p.t>=n.t0+grace),vo=fr2.filter(p=>p.m!=null);
     const c=vo.length/Math.max(1,fr2.length);let a=0;
-    for(const p of vo){const dv=devTo(p.m,n.m),d=Math.abs(dv);if(d<120)devs.push(dv);a+=d<=it.tolA?1:d>=it.tolB?0:1-(d-it.tolA)/(it.tolB-it.tolA)}a=vo.length?a/vo.length:0;
+    const nd=[];for(const p of vo){const dv=devTo(p.m,n.m),d=Math.abs(dv);if(d<120){devs.push(dv);nd.push(dv)}a+=d<=it.tolA?1:d>=it.tolB?0:1-(d-it.tolA)/(it.tolB-it.tolA)}a=vo.length?a/vo.length:0;
+    if(vo.length>=3)perNote.push({m:n.m,a,dv:nd.length?med(nd):null,dir});
     const hit=fr.find(p=>p.m!=null&&Math.abs(devTo(p.m,n.m))<=it.tolA);rts.push(hit?hit.t-n.t0:Math.min(1.5,dur));
     if(dur>=1.4){const v=vo.filter(p=>p.t>=n.t0+0.5).map(p=>devTo(p.m,n.m));if(v.length>10){const mu=v.reduce((x,y)=>x+y,0)/v.length;sds.push(Math.sqrt(v.reduce((x,y)=>x+(y-mu)*(y-mu),0)/v.length))}}
     acc+=a*dur;cov+=c*dur;w+=dur}
   if(!w)return null;acc/=w;cov/=w;const sd=sds.length?med(sds):null,steady=sd==null?acc:clamp(1-(sd-6)/40),rt=med(rts),react=clamp(1-(rt-0.25)/1.25);
   let score=100*(0.55*acc+0.2*cov+0.15*steady+0.1*react);if(cov<0.25)score*=cov/0.25;
-  return{score:Math.round(score),acc,cov,steady,react,sd,rt,bias:devs.length?med(devs):0}
+  return{score:Math.round(score),acc,cov,steady,react,sd,rt,bias:devs.length?med(devs):0,perNote}
 }
 /* End of session: each lesson whose exercises were all sung gets its average; complete at 70.
    A unit test passes at 90 and marks the unit mastered. */
@@ -2638,7 +2732,7 @@ function finishSession(){
 }
 function showResults(score,agg,lessonRes){
   const tr=L.track,isT=L.isTest,passT=isT&&score>=UNIT_PASS&&L.results.filter(Boolean).length===L.items.length;
-  $('player').hidden=true;$('builder').hidden=false;$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
+  $('player').hidden=true;$('builder').hidden=mode==='weak';$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
   const nDone=lessonRes.filter(x=>x.score>=LESSON_PASS).length;
   $('resVerdict').textContent=isT?(passT?'Unit '+L.u+' mastered':'Test not passed yet'):nDone?nDone+(nDone>1?' lessons':' lesson')+' complete':'Keep practicing';
   $('resNote').textContent=isT?(passT?'You scored '+score+'. The next unit is recommended.':'You need '+UNIT_PASS+' to master this unit. You scored '+score+'. Review the lessons with the lowest scores, then try again.'):
@@ -2675,6 +2769,9 @@ function drawHistory(){
   const last=Hs[Hs.length-1];$('histNote').textContent='Last session: '+last.score+' points, '+fmtT(last.sung||0)+' sung. Labels show the unit (U) or unit test (T). Dashed lines: 70 finishes a lesson, 90 passes a test.';
 }
 /* ---------- buttons ---------- */
+$('mode-weak').onclick=()=>{if(L.active)return;mode='weak';store.set('ison-mode',mode);renderPractice()};
+$('wkFound').onclick=()=>{weakTr='found';renderWeak()};$('wkSong').onclick=()=>{weakTr='song';renderWeak()};
+$('weakStart').onclick=()=>{if(L.active)return;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin)};
 $('mode-found').onclick=()=>{if(L.active)return;mode='found';store.set('ison-mode',mode);const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l);renderPractice()};
 $('mode-song').onclick=async()=>{if(L.active)return;mode='song';store.set('ison-mode',mode);const id=store.get('ison-course',null);if(id!=null&&!songT)await openSongCourse(id);renderPractice()};
 $('courseSong').onchange=()=>{const v=$('courseSong').value;if(v)openSongCourse(v.startsWith('b:')?v:+v)};
@@ -2700,7 +2797,7 @@ $('lsRestart').onclick=()=>{stopSing(true);L.idx=0;L.results=[];lessonLoad(0,fal
 $('lsSave').onclick=()=>{if(G.playing)lessonPause();store.set('ison-session',{tr:L.track.id,items:L.items,idx:L.idx,results:L.results,u:L.u,l:L.l,isTest:L.isTest,minutes:L.minutes});
   L.active=false;G.onFinish=null;clearInterval(L.timer);renderPractice();$('resumeSession').scrollIntoView({behavior:'smooth',block:'center'})};
 $('lsQuit').onclick=()=>{if(L.results.some(Boolean))finishSession();else{stopSing(true);clearInterval(L.timer);L.active=false;G.onFinish=null;renderPractice()}};
-$('resAgain').onclick=()=>{$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
+$('resAgain').onclick=()=>{if(mode==='weak'){$('results').hidden=true;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin);return}$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('resDone').onclick=()=>{$('results').hidden=true;renderPractice()};
 $('lessonTones').checked=!!S.lessonTones;$('lessonTones').onchange=()=>{S.lessonTones=$('lessonTones').checked;save()};
 (function(){const s=$('homeNote');for(let m=36;m<=72;m++){const o=document.createElement('option');o.value=m;
