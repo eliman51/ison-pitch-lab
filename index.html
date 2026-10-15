@@ -253,6 +253,21 @@ html.nomo .stars i{opacity:1}
 .nc{font-family:var(--f-mono);font-size:.82rem;padding:5px 9px;border-radius:999px;border:1px solid color-mix(in srgb,var(--good) 50%,var(--line));color:var(--ink);background:rgba(0,0,0,.25)}
 .nc.warn{border-color:color-mix(in srgb,var(--warn) 60%,var(--line))}.nc.bad{border-color:color-mix(in srgb,var(--bad) 70%,var(--line));color:#F3B4AA}
 .backupnag{display:grid;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:rgba(214,166,79,.08);font-size:.9rem}
+.seg button{font-size:.9rem;padding:10px 4px}
+.habits{display:grid;gap:10px}
+details.habit{border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:10px 12px}
+details.habit summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
+details.habit summary::-webkit-details-marker{display:none}
+.habit .hn{font-weight:700}.habit .hb{font-size:.78rem;font-weight:700;padding:2px 8px;border-radius:999px;border:1px solid var(--line);white-space:nowrap}
+.habit .hs{grid-column:1/-1;color:var(--muted);font-size:.8rem}
+.habit.lvl-consistent .hb{color:#F3B4AA;border-color:color-mix(in srgb,var(--bad) 60%,var(--line))}
+.habit.lvl-frequent .hb{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 55%,var(--line))}
+.habit.lvl-occasional .hb{color:var(--muted)}
+.hbody{display:grid;gap:8px;margin-top:10px}.hbody p{margin:0;font-size:.92rem}.hbody b{color:var(--accent);font-weight:600}
+.hsvg{width:100%;max-width:320px;height:70px;background:var(--grid);border-radius:8px}
+.htips{margin:0;padding-left:1.1em;font-size:.9rem;display:grid;gap:4px}
+.hlib{margin:8px 0 0;padding-left:1.1em;font-size:.88rem;display:grid;gap:6px;color:var(--muted)}.hlib b{color:var(--ink)}
+.resh{font-size:.9rem;color:var(--muted)}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -271,8 +286,9 @@ html.nomo .stars i{opacity:1}
   <div class="view" id="v-practice">
   <div class="seg" role="tablist" aria-label="Practice plan">
     <button role="tab" id="mode-found" aria-selected="true">Foundations</button>
-    <button role="tab" id="mode-song" aria-selected="false">Song course</button>
+    <button role="tab" id="mode-song" aria-selected="false">Song</button>
     <button role="tab" id="mode-weak" aria-selected="false">Weak spots</button>
+    <button role="tab" id="mode-habit" aria-selected="false">Habits</button>
   </div>
 
   <section class="panel" id="weakPanel" hidden aria-labelledby="t-weak">
@@ -290,6 +306,13 @@ html.nomo .stars i{opacity:1}
     <div class="bars" id="weakDir"></div>
     <h3>Skills, weakest first</h3>
     <div class="bars" id="weakSkills"></div>
+  </section>
+  <section class="panel" id="habitPanel" hidden aria-labelledby="t-habit">
+    <h2 id="t-habit">Habits</h2>
+    <p class="status" style="margin:0">The coach reads the shape of your pitch line on every note: how it starts, holds, ends and moves, how phrases drift, how your high and low notes behave, and how you do without the guide. Only patterns that keep coming back across sessions show up here, most important first. Each one has a short fix-it drill.</p>
+    <p class="status" id="habitEmpty" style="margin:0">Nothing consistent yet. Keep practicing: after a few sessions, any recurring habits will appear here with drills to fix them.</p>
+    <div id="habitList" class="habits"></div>
+    <details class="opts"><summary>Everything the coach listens for</summary><ul class="hlib" id="habitLib"></ul></details>
   </section>
   <section class="panel hero" id="heroPanel" aria-labelledby="t-today">
     <div class="row" style="justify-content:space-between"><h2 id="t-today">Foundations</h2><span class="tag" id="heroStage"></span></div>
@@ -344,6 +367,7 @@ html.nomo .stars i{opacity:1}
       <div style="min-width:0;flex:1"><div class="stars" id="resStars"></div><div class="verdict" id="resVerdict"></div><p class="status" id="resNote" style="margin:4px 0 0"></p></div>
     </div>
     <div class="bars" id="resBars"></div>
+    <p class="resh" id="resHabits" hidden style="margin:0"></p>
     <h3>Exercise by exercise</h3>
     <div class="bars" id="resItems"></div>
     <div class="row"><button class="primary" id="resAgain">Practice again</button><button id="resDone">Done</button></div>
@@ -1149,7 +1173,8 @@ function pickTip(it,last){
   if(it.blind)own.push('memory');if(it.ison)own.push('ison');if(it.accDouble)own.push('unison');else if(it.acc||(it.seg&&it.seg.during))own.push('isonhold');
   if(it.think)own.push('audiation');if(it.micro)own.push('chanttune');if(it.kind==='Warm-up')own.push('warmup');if(it.kind==='Cool-down')own.push('cooldown');
   const issue=tipIssue(last);let groups;
-  if(issue&&Math.random()<0.7)groups=[[issue,1]];
+  if(last&&last.habit&&TIPS['habit:'+last.habit]&&Math.random()<0.75)groups=[['habit:'+last.habit,1]];
+  else if(issue&&Math.random()<0.7)groups=[[issue,1]];
   else groups=own.map(c=>[c,4]).concat([['general',1],['health',0.6]]);
   let pool=[];groups.forEach(([c,w])=>{(TIPS[c]||[]).forEach((t,i)=>pool.push({id:c+':'+i,c,t,w}))});
   let fresh=pool.filter(x=>!tipSeen.has(x.id));
@@ -1712,7 +1737,7 @@ async function startSing(){
 }
 function stopSing(silent){G.playing=false;G.toneNote=null;toneOff();layersOff();if(!gAudio.paused)gAudio.pause();if(!G.lesson)$('singPlay').textContent='Start';if(!silent)drawSing()}
 function finishSing(){stopSing();if(G.onFinish){const f=G.onFinish;f();return}
-  {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
+  {const v=G.trace.filter(p=>p.m!=null).length/Math.max(1,G.trace.length);if(v>0.3)recordHabits(analyzeHabits({notes:G.notes,tolA:Math.max(S.thr,25)},G.trace,G.speed));if(v>0.2){const ru=addPractice('songs',null,G.dur/(G.speed||1));if(ru)setTimeout(()=>fiveStar('Rank '+ru),400)}}
   const r=scoreItem({notes:G.notes,tolA:25,tolB:70},G.trace),sc=r?r.score:0,D=DIFF[S.diff]||DIFF.easy;
   if(D.pass==null){$('singStatus').textContent=r?'Done. Score '+sc+' '+starStr(sc)+'. '+praise(r)+'.':'Done. No singing was heard during the notes.';return}
   const setSp=v=>{$('speed').value=v;$('speed').oninput()},pass=sc>=D.pass;let msg='Score '+sc+'. ';
@@ -2600,10 +2625,392 @@ async function restoreNow(){const data=pendingRestore;if(!data)return;$('bkYes')
     $('bkMsg').textContent='Restored. Reloading...';setTimeout(()=>location.reload(),600)}
   catch(e){$('bkMsg').textContent='Restore failed. Your current progress was not changed.';$('bkYes').disabled=false}}
 
+/* ================= Habits: subtle problems, found in the pitch line =================
+   After every exercise the app reads the shape of your pitch line note by note: how each note starts,
+   how it holds, how it ends, how you move between notes, how whole phrases drift, how your range edges
+   behave, and how you do with and without the guide. Each problem below has a detector, a picture of
+   what it looks like, why it happens, coaching tips and a short fix-it drill module. Results are kept
+   per day, so a problem is only shown once it repeats across sessions, ranked by how often and how
+   consistently it appears. Sources: voice-teacher fault-correction literature (onsets, scooping,
+   wobble and tremolo, register breaks, breath support), choral intonation practice (flat drift in
+   unaccompanied singing, rising lines going flat), singing-accuracy data (most misses are flat, misses
+   come in streaks, high notes go flat and low notes sharp, accuracy fades late in long sessions),
+   motor-learning research (guidance dependence), and Byzantine practice (straight tone, steady pitch). */
+const HGRP={onset:'Starting notes',hold:'Holding notes',end:'Ending notes',move:'Moving between notes',phrase:'Phrases and breath',range:'Range',ear:'Ear and memory',stamina:'Stamina',voice:'Confidence'};
+const HD=[
+/* ---------- starting notes ---------- */
+{id:'scoop',g:'onset',name:'Scooping up into notes',min:0.12,
+ look:'Your line starts below the gold bar and slides up into it.',
+ why:'The sound starts before the pitch is set: weak breath flow at the onset, or no clear picture of the note yet. It is the most common beginner onset habit.',
+ tips:['Hear the note in your head before any sound comes out.','"Inhale the pitch": breathe in already hearing the note, then just let it sound.','Aim for the top half of the bar on the first instant.','Start with a light "h" so air and tone arrive together, then drop the "h".','Short, separate notes train clean starts better than long ones.','Approaching from above breaks the scoop habit. Practice landing downward.','Don\'t feel for the note with your voice. Find it with your ear first.','A scoop sounds unsure even when the note ends up right. Commit to the start.'],
+ drills:[{n:'Clean short starts',x:[{t:'Short starts',h:'Three short notes, each starting dead on pitch. No slide.',p:[0,null,0,null,0],b:[1,.5,1,.5,2],bpm:72,w:['ah','','ah','','ah']},{t:'Short starts, new notes',h:'Separate short notes. Each one lands immediately.',v:[[0,null,2,null,4],[4,null,2,null,0]],b:[1,.5,1,.5,2],bpm:72}]},
+  {n:'Land from above',x:[{t:'Drop onto the note',h:'Start on the note above and step down. Scoops can\'t happen going down.',v:[[2,0],[4,2,0],[5,4,2,0]],b:[1,1,1,2],bpm:66},{t:'Then straight on',h:'Now start on the target itself. Same clean landing.',v:[[0],[2],[4]],b:3,bpm:60,think:2,l:'full'}]},
+  {n:'Leaps without scoops',x:[{t:'Clean leaps',h:'Jump straight to the top note. Picture it first.',v:[[0,null,5],[0,null,7],[0,null,4]],b:[1.5,.5,2],bpm:66},{t:'Clean leaps, from memory',h:'Guide hidden while you sing.',v:[[0,null,5],[0,null,7]],b:[1.5,.5,2],bpm:66,blind:true,l:'full'}]}],
+ curve:t=>t<0.25?-160*Math.pow(1-t/0.25,1.5):0},
+{id:'fallin',g:'onset',name:'Dropping in from above',min:0.12,
+ look:'Your line starts above the bar and falls onto it.',
+ why:'Starting with too much push or air pressure, or reaching high and settling down. Common on higher notes and loud starts.',
+ tips:['Start softer. Extra pressure at the onset pushes pitch up.','Think the note slightly lower than feels natural for the first instant.','A gentle, balanced start: not breathy, not pressed.','Practice approaching notes from below by step to retrain the landing.','Keep the larynx relaxed on the start. Don\'t reach up.'],
+ drills:[{n:'Soft starts',x:[{t:'Soft clean starts',h:'Quiet, easy starts right on the note.',p:[0,null,0,null,0],b:[1,.5,1,.5,2],bpm:66,w:['oo','','oo','','oo']}]},
+  {n:'Land from below',x:[{t:'Step up onto it',h:'Arrive from the note below.',v:[[-2,0],[-4,-2,0],[-3,0]],b:[1,1,2],bpm:66}]},
+  {n:'Soft high starts',x:[{t:'Light high starts',h:'Higher notes, started softly and right in the center.',v:[[5],[7],[4]],b:3,bpm:60,think:1,l:'full'}]}],
+ curve:t=>t<0.22?150*Math.pow(1-t/0.22,1.5):0},
+{id:'hunt',g:'onset',name:'Hunting for the note',min:0.1,
+ look:'At the start your line zig-zags above and below the bar before it settles.',
+ why:'You hear yourself, correct, over-correct, and correct again. It usually means the note wasn\'t clear in your ear before you started.',
+ tips:['Take one silent beat to hear the note before you sing.','Correct gently. Big corrections overshoot.','Hum the note quietly first: a hum finds pitch with less effort.','Trust the first instinct, then make one small adjustment.','Hunting fades as your inner hearing improves. Hear-think-sing drills help most.','Sing softer while you search. Loud searching swings wider.'],
+ drills:[{n:'Hear it first',x:[{t:'Hear, think, sing',h:'Two silent beats to hear the note inside, then one confident start.',v:[[0],[3],[-2],[5]],b:3,bpm:60,think:2,l:'full'}]},
+  {n:'Hum, then open',x:[{t:'Hum to ah',h:'Find it on a quiet hum, then open to "ah" without moving.',v:[[0,0],[2,2],[-3,-3]],b:[2,3],bpm:60,w:['hm','ah']}]},
+  {n:'Lock onto a partner',x:[{t:'Sing together',h:'A second voice gives you something to lock to. Match it calmly.',v:[[0],[4],[7]],b:4,bpm:60,acc:'double'},{t:'Now alone',h:'Same notes, alone.',v:[[0],[4],[7]],b:4,bpm:60,l:'cue'}]}],
+ curve:t=>t<0.5?120*Math.exp(-t*5)*Math.cos(t*30):0},
+{id:'settle',g:'onset',name:'Slow to settle',min:0.15,
+ look:'You start near the note but take a long time to arrive in the bar.',
+ why:'An unclear target or a hesitant onset. The voice drifts toward the note instead of starting on it.',
+ tips:['Decide the note before you breathe in.','Start with intention. Hesitant starts drift.','Shorter notes force quicker landings. Practice them.','Imagine the note already sounding and join it.','Keep the vowel ready before you start so nothing shifts after.'],
+ drills:[{n:'Quick landings',x:[{t:'Quick landings',h:'Short notes. Each one in the bar from the start.',v:[[0,2,0],[0,4,0],[0,-2,0]],b:[1,1,2],bpm:80}]},
+  {n:'Repeated starts',x:[{t:'Same note, new start',h:'Stop and restart on the same pitch. Every start lands.',p:[0,null,0,null,0,null,0],b:[.75,.25,.75,.25,.75,.25,2],bpm:72}]},
+  {n:'Targets from a cue',x:[{t:'Targets',h:'Only the starting note is given. Land each one fast.',v:[[0,4,7],[0,3,5],[7,4,0]],b:[1,1,2],bpm:72,l:'cue'}]}],
+ curve:t=>-90*Math.exp(-t*5)},
+{id:'late',g:'onset',name:'Late entrances',min:0.15,
+ look:'The bar starts but your line appears a moment later.',
+ why:'Breathing too late, or waiting to hear the note before starting. In chant, late entrances drag the whole group.',
+ tips:['Breathe one beat before the note, not on it.','Count in silently and start exactly on the bar.','Being early by a hair is better than late.','Have the vowel shape ready before the note arrives.','Keep the breath low and ready between notes.'],
+ drills:[{n:'On the beat',x:[{t:'Notes and rests',h:'Come back exactly on time after each rest.',v:[[0,null,2,null,4,null,2],[0,null,0,null,4,null,4]],b:1,bpm:72}]},
+  {n:'Breathe early',x:[{t:'Phrases with breaths',h:'A short rest to breathe, then on time.',p:[0,2,4,null,4,2,0],b:[1,1,1,1,1,1,2],bpm:72}]},
+  {n:'Quick entries',x:[{t:'Quick entries',h:'Faster notes and rests.',p:[0,null,2,null,0,null,4,null,0],b:.5,bpm:76}]}],
+ curve:t=>t<0.3?null:0},
+/* ---------- holding notes ---------- */
+{id:'sag',g:'hold',name:'Sagging flat on long notes',min:0.12,
+ look:'On long notes your line slowly slopes down below the bar.',
+ why:'Breath support fades as the note goes on, so pressure drops and pitch follows. Very common in unaccompanied singing.',
+ tips:['Keep the ribs open to the end of the note.','Think "up" as the note goes on, like the pitch is rising slightly.','Use less air at the start so you have plenty left.','Breathe sooner. A note sung on the last of your air sags.','Keep energy in the eyes and face; slump shows up as sag.','Steady airflow, like pouring water at one speed.'],
+ drills:[{n:'Hold over the ison',x:[{t:'Hold over the ison',h:'The ison makes sagging easy to hear. Keep it locked.',p:[0],b:8,bpm:60,ison:0}]},
+  {n:'Hold and swell',x:[{t:'Grow through the hold',h:'Get slightly louder as the note continues. It keeps support up.',p:[0],b:8,bpm:60,w:['ah']}]},
+  {n:'Long holds, higher',x:[{t:'Long and light',h:'A long note a bit higher, steady to the end.',v:[[4],[5],[7]],b:8,bpm:60}]}],
+ curve:t=>-110*t},
+{id:'creep',g:'hold',name:'Creeping sharp on long notes',min:0.12,
+ look:'On long notes your line slowly slopes up above the bar.',
+ why:'Increasing push or tension as the note goes on, often while trying to sound louder or more energetic.',
+ tips:['Don\'t push as the note goes on. Keep the effort the same.','Relax the jaw and tongue during long notes.','Keep the volume steady. Growing louder pulls sharp.','Think slightly lower toward the end.','Bright vowels creep sharp. Round them a little.'],
+ drills:[{n:'Easy holds',x:[{t:'Easy hold',h:'Same effort from start to end.',p:[0],b:7,bpm:60,w:['oo']}]},
+  {n:'Hold and fade',x:[{t:'Fade the end',h:'Get slightly softer as you hold. Pitch stays put.',p:[0],b:7,bpm:60,w:['ah']}]},
+  {n:'Over the ison',x:[{t:'Hold over the ison',h:'Listen for the beats if you creep up.',p:[0],b:8,bpm:60,ison:0}]}],
+ curve:t=>95*t},
+{id:'wobble',g:'hold',name:'Slow wide wobble',min:0.12,
+ look:'On held notes your line swings slowly and widely above and below the bar.',
+ why:'Usually unsteady breath support or tension under the chin, jaw or tongue. A wobble is slower and wider than a healthy vibrato.',
+ tips:['Steady breath first. A wobble often rides on uneven airflow.','Put a thumb gently under your chin. If it pulses, let that area relax.','Lip trills and straw holds steady the voice with little effort.','Sing a little softer and lighter while you retrain.','Don\'t lock the throat to stop it. Relax and support instead.','Long, quiet hums are the gentlest fix.'],
+ drills:[{n:'Straw holds',x:[{t:'Straw or lip-trill hold',h:'Steady airflow through a straw. Watch the line flatten out.',p:[0],b:6,bpm:60,w:['brrr']}]},
+  {n:'Quiet hums',x:[{t:'Quiet hum',h:'Soft and steady. Nothing pulsing under the chin.',v:[[0],[2],[-2]],b:6,bpm:60,w:['mm']}]},
+  {n:'Straight over the ison',x:[{t:'Straight tone over the ison',h:'Hold it calm and straight against the drone.',p:[0],b:8,bpm:60,ison:0}]}],
+ curve:t=>100*Math.sin(t*Math.PI*2*2.4)},
+{id:'tremolo',g:'hold',name:'Fast flutter',min:0.12,
+ look:'On held notes your line shakes quickly in small fast waves.',
+ why:'Excess tension in the throat or abdomen. The voice is being held too tightly.',
+ tips:['Release the belly. Don\'t squeeze to hold the note.','Yawny sighs and gentle sirens loosen the throat.','Drop the jaw slightly and let the tongue rest.','Sing softer while you retrain.','Check your shoulders and neck. Tension anywhere shows up in the tone.'],
+ drills:[{n:'Sighs and sirens',x:[{t:'Easy sigh',h:'A relaxed sigh from above down to home, then hold.',p:[5,0],b:[2,4],bpm:60,w:['hah','']}]},
+  {n:'Loose holds',x:[{t:'Loose hold',h:'Loose jaw, easy breath, steady line.',p:[0],b:6,bpm:60,w:['ah']}]},
+  {n:'Straw hold',x:[{t:'Straw hold',h:'Through a straw if you have one. Calm and even.',p:[0],b:6,bpm:60,w:['brrr']}]}],
+ curve:t=>35*Math.sin(t*Math.PI*2*9)},
+{id:'vibrato',g:'hold',name:'Vibrato in a straight-tone style',min:0.3,
+ look:'On held notes your line waves evenly around the bar.',
+ why:'Vibrato is natural and healthy, but Byzantine chant is usually sung with a straight tone. This is a style skill, not a fault.',
+ tips:['For chant, aim for a calm straight tone on long notes.','Don\'t clamp the throat to remove vibrato. Use steady breath and a lighter sound.','A slightly softer tone is easier to keep straight.','Listen to recordings of cantors: notice how still the long notes are.','Over the ison, a straight tone blends and locks more easily.'],
+ drills:[{n:'Straight and soft',x:[{t:'Straight tone',h:'Softer and calm. Let the line stay flat.',p:[0],b:6,bpm:60,w:['oo']}]},
+  {n:'Straight over the ison',x:[{t:'Lock with the ison',h:'A straight tone locks with the drone and stops the beats.',v:[[0],[7],[5]],b:6,bpm:60,ison:0,k:'none'}]},
+  {n:'Straight in a phrase',x:[{t:'Phrase with straight holds',h:'Long notes stay straight within a chant phrase.',p:[0,2,3,2,0],b:[1,1,3,1,4],bpm:66,ison:0}]}],
+ curve:t=>45*Math.sin(t*Math.PI*2*5.5)},
+{id:'unsteady',g:'hold',name:'Unsteady pitch',min:0.15,
+ look:'On held notes your line is jagged and restless instead of smooth.',
+ why:'Uneven breath, tension, or not yet having a stable sense of the note. It usually improves with steady breathing drills.',
+ tips:['Steady air, steady pitch.','Pick one vowel and keep it identical through the note.','Relax the jaw and let the tongue lie forward.','Straw or lip-trill holds steady the voice quickly.','Sing at a comfortable volume, not at the edge of soft or loud.'],
+ drills:[{n:'Straw holds',x:[{t:'Straw hold',h:'Steady and even.',p:[0],b:5,bpm:60,w:['brrr']}]},
+  {n:'Steady vowels',x:[{t:'One vowel, one line',h:'Hold the vowel shape perfectly still.',v:[[0],[2],[-2]],b:5,bpm:60,w:['ah']}]},
+  {n:'Hold, step, hold',x:[{t:'Hold, step, hold',h:'Long, steady notes connected by a step.',p:[0,2,0],b:[4,4,4],bpm:72}]}],
+ curve:t=>{const s=Math.sin(t*41)*22+Math.sin(t*97)*14+Math.sin(t*13)*18;return s}},
+{id:'dropout',g:'hold',name:'Gaps in the sound',min:0.15,
+ look:'Your line breaks off in the middle of a note and comes back.',
+ why:'The airflow stops or the voice flips off, often from running low on breath or from tension cutting the sound.',
+ tips:['Keep the air moving through the whole note.','Breathe before you need to.','Think of the note as one unbroken line.','Lip trills train continuous airflow: if the lips stop, the air stopped.','If a gap happens at the same place, breathe earlier before it.'],
+ drills:[{n:'Lip-trill lines',x:[{t:'Lip-trill line',h:'Keep the lips buzzing the whole time.',p:[0,2,4,2,0],b:[1,1,2,1,2],bpm:60,w:['brrr']}]},
+  {n:'Connected steps',x:[{t:'Legato steps',h:'One unbroken sound across all notes.',p:[0,2,4,5,4,2,0],b:[1,1,1,2,1,1,2],bpm:66}]},
+  {n:'Long unbroken notes',x:[{t:'Unbroken hold',h:'Eight beats without a gap.',p:[0],b:8,bpm:60}]}],
+ curve:t=>t>0.45&&t<0.56?null:0},
+{id:'crack',g:'hold',name:'Cracks and flips',min:0.06,
+ look:'Your line suddenly jumps far away and back in the middle of a note.',
+ why:'The voice flips between registers, usually near a break in your range or when pushing.',
+ tips:['Near your break, lighten rather than push.','Lip-trill sirens across the break smooth it out.','"oo" helps the voice cross the break smoothly.','Cracks are normal while learning. Back off volume and keep going.','Decide early whether to lighten up high. Indecision causes flips.'],
+ drills:[{n:'Sirens across the break',x:[{t:'Lip-trill siren',h:'Glide low to high and back, lightly.',p:[0,7,12,7,0],b:[1.5,1.5,2,1.5,2],bpm:60,key:-3,w:['brrr','','','','']}]},
+  {n:'Light on "oo"',x:[{t:'Light "oo" scale',h:'Five-note scale on a light "oo".',p:[0,2,4,5,7,5,4,2,0],b:[1,1,1,1,2,1,1,1,2],bpm:72,key:2,w:['oo']}]},
+  {n:'Through the break',x:[{t:'Scale through the break',h:'Up and down the octave, lighter as you rise.',p:[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],bpm:84,key:-4}]}],
+ curve:t=>t>0.48&&t<0.53?260:0},
+/* ---------- endings ---------- */
+{id:'taildrop',g:'end',name:'Falling off the end of notes',min:0.15,
+ look:'Your line holds, then drops below the bar right at the end.',
+ why:'Letting go of support as the note finishes. Very common at ends of phrases, where the breath is lowest.',
+ tips:['Finish the note on purpose. Release it, don\'t let it die.','Keep the support to the very last instant.','Think the end of the note slightly higher.','Stop the sound cleanly by stopping the air, not by relaxing the voice.','Final notes of a phrase need the most attention.'],
+ drills:[{n:'Clean endings',x:[{t:'Clean ending',h:'Hold, then stop cleanly on pitch.',v:[[0],[2],[4]],b:4,bpm:60}]},
+  {n:'Phrase endings',x:[{t:'Phrase ending',h:'The last note stays up to its last moment.',v:[[4,2,0],[2,1,0],[5,4,2,0]],b:[1,1,3],bpm:66}]},
+  {n:'Endings over the ison',x:[{t:'Ending over the ison',h:'The drone exposes any drop at the end.',p:[2,0],b:[2,4],bpm:60,ison:0}]}],
+ curve:t=>t>0.75?-150*Math.pow((t-0.75)/0.25,1.4):0},
+{id:'tailrise',g:'end',name:'Flipping up at the end',min:0.15,
+ look:'Your line rises above the bar right at the end of a note.',
+ why:'A push or a "lift" when releasing, sometimes from squeezing out the last of the air.',
+ tips:['Release the note without a final push.','Keep the volume steady to the end.','End notes by stopping the air gently.','Don\'t lift your chin or eyebrows at the release.'],
+ drills:[{n:'Soft releases',x:[{t:'Soft release',h:'Hold, then let it go quietly on pitch.',v:[[0],[2],[-2]],b:4,bpm:60}]},
+  {n:'Phrase endings',x:[{t:'Phrase ending',h:'The last note stays level.',v:[[0,2,0],[4,2,0]],b:[1,1,3],bpm:66}]},
+  {n:'Fade on pitch',x:[{t:'Fade on pitch',h:'Fade the volume, keep the pitch still.',p:[0],b:6,bpm:60}]}],
+ curve:t=>t>0.78?120*Math.pow((t-0.78)/0.22,1.4):0},
+{id:'short',g:'end',name:'Cutting notes short',min:0.18,
+ look:'Your line stops before the end of the bar.',
+ why:'Running out of air, rushing ahead, or not valuing the full length of the note.',
+ tips:['Give every note its full length.','Sing through to the next note: the end of one is the start of the next.','Breathe earlier so you have air for the ends.','In chant, long notes carry the text. Hold them.','Count the beats of long notes in your head.'],
+ drills:[{n:'Full value',x:[{t:'Full value',h:'Hold each note right to the end of the bar.',v:[[0,2],[2,0],[0,4]],b:[3,4],bpm:66}]},
+  {n:'Legato line',x:[{t:'Connected line',h:'No gaps between notes.',p:[0,2,4,2,0],b:2,bpm:72}]},
+  {n:'Long phrase',x:[{t:'Long phrase',h:'A long phrase with the last note held full.',p:[0,2,4,5,4,2,0],b:[1,1,1,1,1,1,4],bpm:66}]}],
+ curve:t=>t>0.7?null:0},
+/* ---------- moving between notes ---------- */
+{id:'under',g:'move',name:'Falling short on moves',min:0.15,
+ look:'When the melody moves, your line lands short of the new note: under it going up, above it going down.',
+ why:'Not moving far enough. The voice stays partly attached to the last note. Very common on leaps.',
+ tips:['Hear the new note fully before you move.','Going up, aim slightly higher than feels right.','Going down, aim slightly lower than feels right.','Bigger leaps need more commitment, not more force.','Learn the interval by a song you know, then aim for that sound.','Practice the move slowly, then at speed.'],
+ drills:[{n:'Steps, all the way',x:[{t:'Full steps',h:'Arrive fully on each new note.',v:[[0,2,0,2],[0,-2,0,-2],[0,1,0,1]],b:[1,2,1,2],bpm:66}]},
+  {n:'Leaps, all the way',x:[{t:'Full leaps',h:'Reach the whole distance.',v:[[0,4,0],[0,5,0],[0,7,0]],b:[1,2,2],bpm:66}]},
+  {n:'Moves from a cue',x:[{t:'Moves',h:'Starting note only.',v:[[0,3,7,3,0],[0,5,2,7,0]],b:[1,1,1,1,2],bpm:72,l:'cue'}]}],
+ curve:null,two:{prev:-400,land:-70}},
+{id:'over',g:'move',name:'Overshooting moves',min:0.15,
+ look:'When the melody moves, your line goes past the new note: above it going up, below it going down.',
+ why:'Moving with too much push, or expecting a bigger interval than it is. Often seen on small steps.',
+ tips:['Small steps are small. Aim closer than you think.','Move with less force; let the ear guide the distance.','Half steps especially: barely move.','Slow the move down and land gently.'],
+ drills:[{n:'Tiny steps',x:[{t:'Half and whole steps',h:'Small, exact moves.',v:[[0,1,0],[0,2,0],[0,1,2,1,0]],b:[1,1,2],bpm:66}]},
+  {n:'Gentle landings',x:[{t:'Gentle landings',h:'Arrive softly on each note.',p:[0,2,4,2,0],b:[1.5,1.5,2,1.5,2],bpm:60}]},
+  {n:'Steps from a cue',x:[{t:'Steps',h:'Starting note only.',v:[[0,2,3,2,0],[0,1,3,1,0]],b:[1,1,2,1,2],bpm:72,l:'cue'}]}],
+ curve:null,two:{prev:-400,land:70}},
+{id:'slide',g:'move',name:'Sliding between notes',min:0.15,
+ look:'Between notes your line smears through the space instead of stepping cleanly.',
+ why:'Connecting notes with a glide out of habit. Teachers of chant warn against swooping: plain, clean steps are the tradition.',
+ tips:['Move instantly: one note, then the next.','Think "click" between notes, not "slide".','Practice the steps short and separate, then join them without the smear.','Keep the vowel the same; changing it while moving causes slides.','Save glides for where the music asks for them.'],
+ drills:[{n:'Separate steps',x:[{t:'Detached steps',h:'Short, separate notes, clean jumps.',p:[0,null,2,null,4,null,2,null,0],b:[.75,.25,.75,.25,.75,.25,.75,.25,1.5],bpm:72}]},
+  {n:'Clean legato',x:[{t:'Clean legato',h:'Connected but no smear between notes.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:72}]},
+  {n:'Leaps without smear',x:[{t:'Clean leaps',h:'Jump straight from one note to the next.',v:[[0,5,0],[0,7,0],[0,4,7,4,0]],b:[1,1,2],bpm:66}]}],
+ curve:null,two:{prev:-400,land:0,slide:true}},
+{id:'rush',g:'move',name:'Moving too early',min:0.18,
+ look:'Your line reaches the next note before its bar begins.',
+ why:'Anticipating the next note, often from nerves or rushing the beat. It shortens the note you are on.',
+ tips:['Stay on the note until its bar ends.','Feel the beat; move exactly on it.','Long notes are not waiting time. Sing them all the way.','In chant, the text sets the pace. Don\'t hurry it.'],
+ drills:[{n:'Hold, then move',x:[{t:'Hold, then move',h:'Move exactly on the beat, not before.',v:[[0,2],[0,4],[2,0]],b:[3,2],bpm:60}]},
+  {n:'Even steps',x:[{t:'Even steps',h:'Each note full length.',p:[0,2,4,5,4,2,0],b:1,bpm:66}]},
+  {n:'Long-short',x:[{t:'Long-short',h:'Keep the long notes long.',p:[0,2,4,2,0],b:[2,1,2,1,3],bpm:66}]}],
+ curve:null,two:{prev:-400,land:0,rush:true}},
+{id:'riseflat',g:'move',name:'Flat on rising lines',min:0.2,
+ look:'When the melody climbs, your notes land below the bars; going down they are fine.',
+ why:'The most common pattern in singing data: rising lines go flat far more often than falling ones.',
+ tips:['Going up, aim for the top of each bar.','Think "up and over" as you climb.','Lighten as you rise; weight pulls pitch down.','Keep breath energy rising with the line.','Practice rising scales as their own skill.'],
+ drills:[{n:'Rising steps',x:[{t:'Rising steps',h:'Each step up lands fully.',v:[[0,2,4],[0,2,4,5],[0,2,3,5]],b:[1,1,2],bpm:66,k:'climb'}]},
+  {n:'Rising scale',x:[{t:'Rising scale',h:'Up the scale, every note on top.',p:[0,2,4,5,7],b:[1,1,1,1,3],bpm:72,k:'climb'}]},
+  {n:'Rising over the ison',x:[{t:'Rising over the ison',h:'The ison shows any sag as you climb.',p:[0,2,4,5,7],b:[1,1,1,1,3],bpm:66,ison:0,k:'none'}]}],
+ curve:null,two:{prev:-200,land:-50}},
+/* ---------- phrases ---------- */
+{id:'phrasesag',g:'phrase',name:'Whole phrase sinks flat',min:0.2,
+ look:'Notes early in a phrase are on target, later ones sit lower and lower.',
+ why:'Gradual pitch drift: the tonal center sinks during unaccompanied singing. A well-known problem for choirs and chanters alike.',
+ tips:['Keep hearing the home note through the whole phrase.','Think each new note slightly higher than the last time.','Energy and support stay up to the last note of the phrase.','Breathe well before long phrases.','Singing over an ison or checking against home stops drift.'],
+ drills:[{n:'Phrase over the ison',x:[{t:'Phrase over the ison',h:'The ison anchors the phrase. Stay with it.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:66,ison:0}]},
+  {n:'Return home',x:[{t:'Home again',h:'Start and end on home. The ending must match the start.',v:[[0,2,4,2,0],[0,3,5,3,0],[0,-2,-3,-2,0]],b:[2,1,1,1,3],bpm:66}]},
+  {n:'Recite on one note',x:[{t:'Reciting tone',h:'Many syllables on one pitch. Don\'t let it sink.',p:[0,0,0,0,0,0,0,0,0,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:66,w:['The','Lord','is','my','shep-','herd;','I','shall','not','want.']}]}],
+ curve:null,phrase:true},
+{id:'repeat',g:'phrase',name:'Repeated notes land in different places',min:0.2,
+ look:'The same note sung several times in an exercise lands at different heights.',
+ why:'A not-yet-stable pitch memory: each return to a note is found fresh instead of remembered.',
+ tips:['Remember exactly where the note felt last time.','Return to home often and compare.','Repeated notes are anchors. Make them identical.','Recitation on one pitch builds this memory.'],
+ drills:[{n:'Back to the same note',x:[{t:'Same note again',h:'Leave home and come back to the exact same place.',v:[[0,2,0,4,0],[0,-2,0,3,0]],b:[1,1,1,1,2],bpm:66}]},
+  {n:'Recitation',x:[{t:'Reciting',h:'Even, identical repeated notes.',p:[0,0,0,0,0,0,0,0],b:.5,bpm:72}]},
+  {n:'Anchor over the ison',x:[{t:'Anchor',h:'Home keeps returning over the ison.',p:[0,2,0,4,0,5,0],b:[1,1,1,1,1,1,2],bpm:66,ison:0}]}],
+ curve:null,repeat:true},
+/* ---------- range ---------- */
+{id:'topflat',g:'range',name:'Flat on high notes',min:0.25,
+ look:'Your higher notes land consistently below their bars.',
+ why:'High notes go flat, especially above your comfortable top, and more so with force. The voice needs to lighten, not push.',
+ tips:['Lighter and softer as you go higher.','Don\'t reach up with the chin.','"oo" and "ee" help the voice lighten up high.','Approach high notes from above sometimes, sliding down onto them.','Keep the jaw relaxed and the mouth a bit more open.'],
+ drills:[{n:'Light high notes',x:[{t:'Light highs',h:'Higher notes, soft and centered.',v:[[5],[7],[8]],b:3,bpm:60}]},
+  {n:'High from above',x:[{t:'Down onto high notes',h:'Start just above and land on the high note.',v:[[9,7],[8,7],[7,5]],b:[1,3],bpm:60}]},
+  {n:'Climb lightly',x:[{t:'Light climb',h:'Up to the top, lighter as you rise.',p:[0,2,4,5,7,9,7,5,4,2,0],b:[1,1,1,1,1,2,1,1,1,1,2],bpm:72,w:['oo']}]}],
+ curve:null,two:{prev:-500,land:-60}},
+{id:'lowsharp',g:'range',name:'Sharp on low notes',min:0.25,
+ look:'Your lower notes land consistently above their bars.',
+ why:'Below the comfortable range the voice drifts back up toward its comfort zone.',
+ tips:['Low notes: relax, drop the jaw, sing quieter.','Don\'t press down with the chin.','Let the low notes be soft; they will still be heard.','Approach low notes from below sometimes.'],
+ drills:[{n:'Relaxed lows',x:[{t:'Relaxed lows',h:'Quiet, relaxed low notes.',v:[[-4],[-5],[-3]],b:3,bpm:60}]},
+  {n:'Down the scale',x:[{t:'Down and settle',h:'Walk down and settle on the low note.',p:[0,-2,-4,-5],b:[1,1,1,3],bpm:66}]},
+  {n:'Low over the ison',x:[{t:'Low notes over the ison',h:'Below home, against the drone.',p:[0,-2,-4,-2,0],b:[1.5,1.5,2,1.5,2],bpm:60,ison:0}]}],
+ curve:null,two:{prev:400,land:60}},
+{id:'pullhome',g:'range',name:'Notes pulled toward your comfortable pitch',min:0.25,
+ look:'Notes far from your home note land a little closer to home than they should.',
+ why:'The voice prefers its comfort zone, so distant notes get "pulled" toward it.',
+ tips:['Distant notes need a committed aim.','Practice wide-range matching; it widens your comfortable zone.','Hear the distance from home before you sing.'],
+ drills:[{n:'Wide matching',x:[{t:'Wide match',h:'Notes far from home.',v:[[7],[-5],[9],[-7]],b:3,bpm:60,k:'none'}]},
+  {n:'Home and away',x:[{t:'Home, then away',h:'From home to a far note and back.',v:[[0,7,0],[0,-5,0],[0,9,0]],b:[1,3,2],bpm:60,k:'none'}]},
+  {n:'Far notes from a cue',x:[{t:'Far notes',h:'Starting note only.',v:[[0,8],[0,-6],[0,10]],b:[1,3],bpm:60,l:'cue',k:'none'}]}],
+ curve:null,two:{prev:0,land:-60}},
+/* ---------- ear and memory ---------- */
+{id:'streak',g:'ear',name:'Misses come in streaks',min:0.15,
+ look:'Once one note is off, the next few are off in the same direction.',
+ why:'After a miss, the next miss tends to lean the same way. Without a reset, errors snowball.',
+ tips:['After a miss, reset: re-hear home before the next note.','Don\'t chase the last note. Hear the new one fresh.','Short pauses between phrases help you reset.','If several notes are off, stop and restart the phrase.'],
+ drills:[{n:'Reset to home',x:[{t:'Away and home',h:'Every other note is home, your reset point.',v:[[0,4,0,5,0,7,0],[0,-2,0,-3,0,2,0]],b:1,bpm:66}]},
+  {n:'Fresh starts',x:[{t:'Fresh starts',h:'Separate notes with rests to reset between them.',v:[[0,null,4,null,2,null,5],[0,null,-3,null,2,null,0]],b:1,bpm:66}]},
+  {n:'Phrase, then reset',x:[{t:'Phrase and reset',h:'A phrase, a breath, home, then the phrase again.',p:[0,2,4,2,null,0,null,0,2,4,2],b:1,bpm:72}]}],
+ curve:null,streak:true},
+{id:'guided',g:'ear',name:'Relying on the guide',min:0.4,
+ look:'Your scores drop noticeably when the guide is hidden or only a cue is given.',
+ why:'Feedback that is always visible can become a crutch. The skill is building an inner sense of pitch that works without it.',
+ tips:['On guided exercises, glance less and listen more.','Try singing once with your eyes closed, then check.','Hear-think-sing drills build the inner reference.','Memory work feels harder. That difficulty is what makes it stick.'],
+ drills:[{n:'Think then sing',x:[{t:'Hear, think, sing',h:'Silent gap, then sing from memory.',v:[[0,2,4],[0,4,2],[0,-2,0]],b:[1,1,2],bpm:60,think:2,l:'full'}]},
+  {n:'From memory',x:[{t:'From memory',h:'Guide hidden while you sing.',v:[[0,2,4,2,0],[0,3,5,3,0]],b:[1,1,1,1,2],bpm:66,blind:true,l:'full'}]},
+  {n:'Cue only',x:[{t:'From a cue',h:'Only the first note is given.',v:[[0,2,4,5,4,2,0],[0,4,7,4,0]],b:1,bpm:66,l:'cue',blind:true}]}],
+ curve:null},
+/* ---------- stamina and confidence ---------- */
+{id:'fatigue',g:'stamina',name:'Accuracy fades late in a session',min:0.4,
+ look:'Your scores in the last part of long sessions are clearly lower than in the first part.',
+ why:'Voice fatigue shows up as wobble and lower accuracy, especially after many notes in a row.',
+ tips:['Two shorter sessions beat one long one.','Take a 2-minute break halfway through long sessions.','Sip water between exercises.','End on a warm-down before you are exhausted.'],
+ drills:[{n:'Easy maintenance',x:[{t:'Easy hum',h:'Gentle and short. Quality over quantity.',v:[[0],[2],[-2]],b:4,bpm:60,w:['mm']}]},
+  {n:'Straw recovery',x:[{t:'Straw siren',h:'Through a straw: the gentlest way to keep working.',p:[0,4,7,4,0],b:[1.5,1.5,2,1.5,2],bpm:60,w:['brrr']}]},
+  {n:'Short focused set',x:[{t:'Focused set',h:'A few clean notes, then rest.',v:[[0,2,4,2,0]],b:[1,1,1,1,2],bpm:66}]}],
+ curve:null},
+{id:'timid',g:'voice',name:'Singing too quietly',min:0.2,
+ look:'Your line keeps disappearing: the microphone can\'t hear enough voice.',
+ why:'Holding back from shyness or uncertainty. A confident, moderate volume is easier to tune.',
+ tips:['Sing at a normal speaking volume or a little more.','A confident tone is easier to keep in tune than a timid one.','Hold the phone a bit closer.','Nobody is listening but the app. Let it out.'],
+ drills:[{n:'Speak, then sing',x:[{t:'Speak to sing',h:'Say "hey!" on the note, then sing it at that energy.',p:[0,0],b:[1,3],bpm:60,w:['hey!','ah']}]},
+  {n:'Confident holds',x:[{t:'Confident hold',h:'Full, comfortable volume.',v:[[0],[2],[4]],b:4,bpm:60}]},
+  {n:'Calling phrases',x:[{t:'Calling phrase',h:'Like calling across a room, but musical.',p:[0,4,2,0],b:[1,1,1,3],bpm:66,w:['hel-','lo','there','!']}]}],
+ curve:null}
+];
+const HMAP={};HD.forEach(h=>{HMAP[h.id]=h;TIPS['habit:'+h.id]=h.tips;TIP_LABEL['habit:'+h.id]=h.name;UNIT_TIPS[h.name]=['habit:'+h.id]});
+const habitTrack={id:'habits',name:'Fix-it drills',unit:'Drill',units:HD.map(h=>{const u=buildUnit({name:h.name,tol:[26,72],desc:h.look,why:h.why,L:h.drills},null,null);u.goal=18;u.hid=h.id;return u})};
+/* ---------- detection ---------- */
+function analyzeHabits(it,trace,speed){
+  const H={},O={},hit=(k,n)=>{H[k]=(H[k]||0)+(n||1)},op=(k,n)=>{O[k]=(O[k]||0)+(n||1)};
+  const sung=it.notes.filter(n=>!n.listen);if(sung.length<1||trace.length<10)return{H,O};
+  const T=Math.max(20,Math.min(35,it.tolA||25)),glide=(it.utips||[]).includes('glide'),sp=speed||1;
+  const dts=[];for(let k=1;k<Math.min(trace.length,200);k++){const d=trace[k].t-trace[k-1].t;if(d>0&&d<0.2)dts.push(d)}const dtF=dts.length?med(dts):1/60;
+  const seg=(a,b)=>trace.filter(p=>p.t>=a&&p.t<b);
+  const meds=[];
+  sung.forEach((n,i)=>{
+    const dur=n.t1-n.t0,prev=i>0?sung[i-1]:null,contig=!!(prev&&n.t0-prev.t1<0.25),fr=seg(n.t0-0.05,n.t1+0.05),vo=fr.filter(p=>p.m!=null);
+    if(dur<0.3)return;
+    op('timid');if(vo.length<Math.max(4,fr.length*0.3)){hit('timid');return}
+    const dv=p=>devTo(p.m,n.m),fold=p=>n.m+dv(p)/100;
+    /* is the held part oscillating? (then onset swings are vibrato, not hunting) */
+    let osc=false;{const c2=vo.filter(p=>p.t>=n.t0+0.4&&p.t<=n.t1-0.3).map(dv);if(c2.length>=18){const mu=c2.reduce((a,x)=>a+x,0)/c2.length;let z=0;for(let k=1;k<c2.length;k++)if((c2[k-1]-mu<0)!==(c2[k]-mu<0))z++;const sd2=Math.sqrt(c2.reduce((a,x)=>a+(x-mu)*(x-mu),0)/c2.length);osc=sd2>=18&&z>=4}}
+    /* starts */
+    let preSettle=[];
+    if(dur>=0.45){op('late');const fv=vo[0];if(fv.t>n.t0+Math.max(0.28,dur*0.22))hit('late');
+      const on=vo.filter(p=>p.t<n.t0+Math.min(0.9,dur*0.6));
+      if(on.length>=5&&fv.t<=n.t0+0.35){let si=-1;for(let k=0;k<on.length;k++){const w=on.slice(k,k+5);if(w.length>=4&&w.every(p=>Math.abs(dv(p))<=T)){si=k;break}}
+        const pre=si<0?on:on.slice(0,si),d0=dv(on[0]),thr=Math.max(T,30);let sw=0,sg=0;for(const p of pre){const d=dv(p),s=d>thr?1:d<-thr?-1:0;if(s&&s!==sg){if(sg)sw++;sg=s}}
+        const prevLow=contig&&prev.m<n.m-0.4,prevHigh=contig&&prev.m>n.m+0.4;op('hunt');op('scoop');op('fallin');op('settle');
+        preSettle=si>=0&&!osc?pre:[];
+        if(sw>=2&&si>=0&&!osc)hit('hunt');
+        else if(d0<-45&&d0>-400&&!prevLow&&!glide&&si>0)hit('scoop');
+        else if(d0>45&&d0<400&&!prevHigh&&!glide&&si>0)hit('fallin');
+        else if(si>=0&&!osc&&(on[si].t-fv.t)>0.55)hit('settle')}}
+    /* holds */
+    const core=vo.filter(p=>p.t>=n.t0+0.4&&p.t<=n.t1-0.3);
+    if(dur>=1.2&&core.length>=Math.max(18,0.6/dtF)){
+      const xs=core.map(p=>p.t),ys=core.map(dv),N=xs.length,mx=xs.reduce((a,x)=>a+x,0)/N,my=ys.reduce((a,y)=>a+y,0)/N;
+      let sxy=0,sxx=0;for(let k=0;k<N;k++){sxy+=(xs[k]-mx)*(ys[k]-my);sxx+=(xs[k]-mx)*(xs[k]-mx)}const slope=sxx?sxy/sxx*sp:0,span=xs[N-1]-xs[0],tot=slope*span/sp;
+      op('sag');op('creep');if(slope<=-22&&tot<=-30)hit('sag');else if(slope>=22&&tot>=30)hit('creep');
+      const win=Math.max(3,Math.round(0.3/dtF)),det=ys.map((y,k)=>{let s=0,c=0;for(let j=Math.max(0,k-win);j<=Math.min(N-1,k+win);j++){s+=ys[j];c++}return y-s/c});
+      const sd=Math.sqrt(det.reduce((a,x)=>a+x*x,0)/N),amp=sd*1.414;let zc=0;for(let k=1;k<N;k++)if((det[k-1]<0)!==(det[k]<0))zc++;
+      const freq=span>0?zc/2/span*sp:0;op('wobble');op('tremolo');op('vibrato');op('unsteady');
+      if(amp>=30&&freq>=2.5&&freq<=9){if(freq<4.5||amp>=95)hit('wobble');else if(freq>7.3)hit('tremolo');else hit('vibrato')}
+      else if(sd>=13)hit('unsteady')}
+    if(dur>=1){op('dropout');const a0=vo[0].t,a1=vo[vo.length-1].t;let g=0,mxg=0;for(const p of fr.filter(p=>p.t>Math.max(n.t0+0.3,a0)&&p.t<Math.min(n.t1-0.3,a1))){if(p.m==null){g+=dtF;mxg=Math.max(mxg,g)}else g=0}if(mxg>=0.15&&vo.length>10)hit('dropout')}
+    if(dur>=0.6){op('crack');for(let k=1;k<vo.length;k++){const j=Math.abs(vo[k].m-vo[k-1].m);if(j>=4&&Math.abs(j-12)>1.5&&Math.abs(j-24)>1.5&&vo[k].t-vo[k-1].t<0.1&&vo[k].t>n.t0+0.25){hit('crack');break}}}
+    /* endings */
+    const nextC=sung[i+1]&&sung[i+1].t0-n.t1<0.25;
+    if(dur>=0.8){const tail=vo.filter(p=>p.t>=n.t1-0.3&&p.t<n.t1+0.05),body=vo.filter(p=>p.t>=n.t0+Math.min(0.4,dur*0.3)&&p.t<n.t1-0.3);
+      if(!nextC&&tail.length>=5&&body.length>=5){op('taildrop');op('tailrise');const dd=med(tail.map(dv))-med(body.map(dv));if(dd<=-40)hit('taildrop');else if(dd>=40)hit('tailrise')}
+      op('short');if(vo[vo.length-1].t<n.t1-Math.max(0.25,dur*0.2))hit('short')}
+    /* body pitch */
+    const bodyV=vo.filter(p=>p.t>=n.t0+Math.min(0.3,dur*0.3)&&p.t<=n.t1-0.12).map(dv),md=bodyV.length>=5?med(bodyV):null;
+    if(md!=null){meds.push({t:n.t0,md,m:n.m});
+      if(n.m>=S.home+5){op('topflat');if(md<=-25)hit('topflat')}
+      if(n.m<=S.home-4){op('lowsharp');if(md>=25)hit('lowsharp')}
+      if(Math.abs(n.m-S.home)>=5&&Math.abs(n.m-S.home)<=12){op('pullhome');if(md*Math.sign(S.home-n.m)>=25)hit('pullhome')}}
+    /* moves */
+    if(contig&&Math.abs(n.m-prev.m)>=0.9){
+      if(md!=null){const dir=Math.sign(n.m-prev.m);op('under');op('over');if(md*dir<=-25)hit('under');else if(md*dir>=25)hit('over');
+        if(dir>0){op('riseflat');if(md<=-25)hit('riseflat')}}
+      if(!glide){op('slide');const lo=Math.min(prev.m,n.m)+0.3,hi=Math.max(prev.m,n.m)-0.3;
+        if(hi>lo&&preSettle.length){const btw=preSettle.filter(p=>{const f=fold(p);return f>lo&&f<hi}).length;if(btw*dtF/sp>0.22)hit('slide')}
+        op('rush');const pre2=trace.filter(p=>p.t>=n.t0-0.25&&p.t<n.t0-0.06&&p.m!=null);if(pre2.length>=4&&pre2.filter(p=>Math.abs(devTo(p.m,n.m))<=40).length>=pre2.length*0.6&&Math.abs(n.m-prev.m)>=0.9)hit('rush')}}
+  });
+  /* across the exercise */
+  if(meds.length>=5&&meds[meds.length-1].t-meds[0].t>=4){op('phrasesag');const k=Math.max(2,Math.floor(meds.length/3)),a=med(meds.slice(0,k).map(x=>x.md)),b=med(meds.slice(-k).map(x=>x.md));if(b-a<=-25)hit('phrasesag')}
+  const byNote={};meds.forEach(x=>{const r=Math.round(x.m*3)/3;(byNote[r]=byNote[r]||[]).push(x.md)});
+  Object.values(byNote).forEach(a=>{if(a.length>=3){op('repeat');if(Math.max(...a)-Math.min(...a)>=40)hit('repeat')}});
+  if(meds.length>=4){op('streak');let run=0,sg=0,got=false;for(const x of meds){const s=x.md>=30?1:x.md<=-30?-1:0;if(s&&s===sg)run++;else{run=s?1:0;sg=s}if(run>=3)got=true}if(got)hit('streak')}
+  return{H,O}}
+/* ---------- tracking across sessions ---------- */
+const HAB=(()=>{try{const v=JSON.parse(localStorage.getItem('ison-habits')||'null');if(v&&v.h)return v}catch(e){}return{h:{},g:{guided:[],plain:[]}}})();
+function saveHab(){try{localStorage.setItem('ison-habits',JSON.stringify(HAB))}catch(e){}}
+function recordHabits(res){const d=todayKey();Object.keys(res.O).forEach(id=>{const e=HAB.h[id]||(HAB.h[id]={opp:0,hits:0,days:{},last:0});const o=res.O[id],k=res.H[id]||0;
+    e.opp+=o;e.hits+=k;const dd=e.days[d]||(e.days[d]=[0,0]);dd[0]+=o;dd[1]+=k;if(k)e.last=Date.now();
+    const ks=Object.keys(e.days).sort();if(ks.length>40)delete e.days[ks[0]]});saveHab()}
+function recordGuide(it,R){if(!R||R.cov<0.3||it.kind)return;const memory=it.blind||it.notes.filter(n=>n.listen).length===1&&it.notes.filter(n=>!n.listen).length>1;
+  const a=memory?HAB.g.guided:HAB.g.plain;a.push(R.score);if(a.length>40)a.shift();
+  if(HAB.g.guided.length>=6&&HAB.g.plain.length>=10){const e=HAB.h.guided||(HAB.h.guided={opp:0,hits:0,days:{},last:0}),d=todayKey(),gap=wavg(HAB.g.plain)-wavg(HAB.g.guided),dd=e.days[d]||(e.days[d]=[0,0]);
+    if(memory){e.opp++;dd[0]++;if(gap>=15&&R.score<wavg(HAB.g.plain)-10){e.hits++;dd[1]++;e.last=Date.now()}}}saveHab()}
+function recordFatigue(results){const r=results.filter(Boolean).map(x=>x.score);if(r.length<12)return;const k=Math.floor(r.length/3),a=r.slice(0,k).reduce((x,y)=>x+y,0)/k,b=r.slice(-k).reduce((x,y)=>x+y,0)/k;
+  const e=HAB.h.fatigue||(HAB.h.fatigue={opp:0,hits:0,days:{},last:0}),d=todayKey(),dd=e.days[d]||(e.days[d]=[0,0]);e.opp++;dd[0]++;if(a-b>=12){e.hits++;dd[1]++;e.last=Date.now()}saveHab()}
+/* rank: recent rate (last 14 days), weighted by how many separate days it showed up */
+function habitList(){const now=Date.now(),out=[];
+  HD.forEach(h=>{const e=HAB.h[h.id];if(!e)return;let o=0,k=0,daysHit=0,recent=[];Object.keys(e.days).sort().forEach(dk=>{const age=(now-new Date(dk+'T12:00').getTime())/864e5;if(age>14)return;const[a,b]=e.days[dk];o+=a;k+=b;if(b>=2||(b>=1&&a<=3))daysHit++;if(a>=3)recent.push(b/a)});
+    const minOpp=['fatigue','guided'].includes(h.id)?2:8;if(o<minOpp||k<(['fatigue','guided'].includes(h.id)?2:3))return;const rate=k/o;if(rate<h.min)return;
+    let trend=0;if(recent.length>=4){const half=Math.floor(recent.length/2),x=recent.slice(0,half),y=recent.slice(half);trend=y.reduce((a,b)=>a+b,0)/y.length-x.reduce((a,b)=>a+b,0)/x.length}
+    const level=rate>=h.min*2.4&&daysHit>=3?'Consistent':rate>=h.min*1.6?'Frequent':'Occasional';
+    out.push({h,rate,hits:k,opp:o,daysHit,trend,level,score:rate/h.min*(1+0.3*Math.min(daysHit,6)),last:e.last})});
+  return out.sort((a,b)=>b.score-a.score)}
+/* the small picture of each habit */
+function habitSVG(h){const W=240,H=70,y=c=>H/2-c*(H/2-6)/230,band=26;let path='',pen=false,extra='';
+  const tgt=(x0,x1,c)=>'<rect x="'+x0+'" y="'+(y(c+band)).toFixed(1)+'" width="'+(x1-x0)+'" height="'+(y(c-band)-y(c+band)).toFixed(1)+'" rx="2" fill="#D6A64F" opacity=".5"/>';
+  const add=(x,c)=>{if(c==null){pen=false;return}path+=(pen?'L':'M')+x.toFixed(1)+' '+y(Math.max(-290,Math.min(290,c))).toFixed(1)+' ';pen=true};
+  if(h.curve){extra+=tgt(10,W-10,0);for(let i=0;i<=120;i++){const t=i/120;add(10+t*(W-20),h.curve(t))}}
+  else if(h.two){const tw=h.two,sw=0.42;extra+=tgt(10,10+(W-20)*sw,tw.prev)+tgt(10+(W-20)*sw,W-10,0);
+    for(let i=0;i<=120;i++){const t=i/120;let c;if(tw.rush){c=t<0.33?tw.prev:0}else if(t<sw)c=tw.prev;else if(tw.slide&&t<sw+0.22)c=tw.prev+(0-tw.prev)*((t-sw)/0.22);else c=tw.land+(t<sw+0.06?(tw.prev-tw.land)*(1-(t-sw)/0.06):0);add(10+t*(W-20),c)}}
+  else if(h.phrase){for(let k=0;k<6;k++){const x0=10+k*(W-20)/6,x1=x0+(W-20)/6-4,c=[0,100,0,-100,0,0][k];extra+=tgt(x0,x1,c);pen=false;for(let i=0;i<=12;i++)add(x0+i/12*(x1-x0),c-k*22)}}
+  else if(h.repeat){const cs=[0,-150,0,150,0];for(let k=0;k<5;k++){const x0=10+k*(W-20)/5,x1=x0+(W-20)/5-4;extra+=tgt(x0,x1,cs[k]);pen=false;const off=cs[k]===0?[0,45,-40][k/2]:0;for(let i=0;i<=10;i++)add(x0+i/10*(x1-x0),cs[k]+off)}}
+  else if(h.streak){const cs=[0,100,200,100,0,100];for(let k=0;k<6;k++){const x0=10+k*(W-20)/6,x1=x0+(W-20)/6-4;extra+=tgt(x0,x1,cs[k]);pen=false;const off=k>=1&&k<=4?-60:0;for(let i=0;i<=10;i++)add(x0+i/10*(x1-x0),cs[k]+off)}}
+  else return '';
+  return '<svg class="hsvg" viewBox="0 0 '+W+' '+H+'" aria-hidden="true">'+extra+'<path d="'+path+'" fill="none" stroke="#5DC690" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>'}
+function renderHabits(){const box=$('habitList');box.innerHTML='';const list=habitList(),P=prog('habits');
+  $('habitEmpty').hidden=list.length>0;
+  list.forEach((x,i)=>{const h=x.h,u=habitTrack.units.findIndex(un=>un.hid===h.id),un=habitTrack.units[u],done=un.lessons.filter((l,j)=>(P.les[u+'.'+j]||0)>=LESSON_PASS).length;
+    const d=document.createElement('details');d.className='habit lvl-'+x.level.toLowerCase();if(i===0)d.open=true;
+    const sm=document.createElement('summary');sm.innerHTML='<span class="hn"></span><span class="hb"></span><small class="hs"></small>';
+    sm.querySelector('.hn').textContent=h.name;sm.querySelector('.hb').textContent=x.level+(x.trend<=-0.08?' · improving':x.trend>=0.08?' · getting worse':'');
+    sm.querySelector('.hs').textContent=HGRP[h.g]+' · '+(['fatigue','guided'].includes(h.id)?x.hits+' of '+x.opp+' times':Math.round(x.rate*100)+'% of chances')+' · '+x.daysHit+(x.daysHit===1?' day':' days')+' in the last 2 weeks'+(x.last?' · last '+daysAgo(x.last):'');
+    const body=document.createElement('div');body.className='hbody';
+    body.innerHTML=habitSVG(h)+'<p><b>On the graph:</b> <span class="t1"></span></p><p><b>Why:</b> <span class="t2"></span></p><ul class="htips"></ul>';
+    body.querySelector('.t1').textContent=h.look;body.querySelector('.t2').textContent=h.why;
+    const ul=body.querySelector('.htips');h.tips.slice().sort(()=>Math.random()-0.5).slice(0,3).forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li)});
+    const row=document.createElement('div');row.className='row';const b=document.createElement('button');b.className='primary';b.textContent='Start fix-it drill · '+selMinH()+' min';
+    b.onclick=()=>startHabitDrill(u);const st=document.createElement('span');st.className='status';st.textContent=done+' of '+un.lessons.length+' drills done';row.append(b,st);body.appendChild(row);
+    d.append(sm,body);box.appendChild(d)});
+  const lib=$('habitLib');if(!lib.children.length){HD.forEach(h=>{const li=document.createElement('li');const b=document.createElement('b');b.textContent=h.name;li.append(b,document.createTextNode(': '+h.look));lib.appendChild(li)})}}
+function selMinH(){return Math.max(3,Math.min(10,selMin||5))}
+function startHabitDrill(u){if(L.active)return;store.set('ison-session',null);const P=prog('habits'),ls=habitTrack.units[u].lessons;let l=ls.findIndex((x,j)=>(P.les[u+'.'+j]||0)<LESSON_PASS);if(l<0)l=0;
+  const items=buildSession(habitTrack,u,l,selMinH());startSessionWith(habitTrack,items,u,l,selMinH(),false);$('plStage').textContent='Fix-it drill · '+habitTrack.units[u].name}
+
 /* ---------- Practice home ---------- */
 function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
-  $('weakPanel').hidden=mode!=='weak'||L.active;
+  $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));
+  $('weakPanel').hidden=mode!=='weak'||L.active;$('habitPanel').hidden=mode!=='habit'||L.active;
+  if(mode==='habit'){['heroPanel','songSetup','songOpts','builder','weakPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderHabits();drawHistory();return}
   if(mode==='weak'){['heroPanel','songSetup','songOpts','builder'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
   $('heroPanel').hidden=false;
   const tr=curTrack(),noSong=mode==='song'&&!tr;
@@ -2687,7 +3094,7 @@ function renderSongSummary(){
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
   protectStorage();L.active=true;L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
-  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('player').hidden=false;$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
+  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function lessonLoad(i,keepPos){
@@ -2729,17 +3136,21 @@ function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
   const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main,lid:it.lid,lname:it.lname}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main,lid:it.lid,lname:it.lname};
   const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
-  recordAttempt(L.track,it,R);
+  recordAttempt(L.track,it,R);recordGuide(it,R);
+  if(R.cov>=0.3&&!it.kind){const hr=analyzeHabits(it,G.trace,1);recordHabits(hr);let best=null,bv=0;
+    Object.keys(hr.H).forEach(id=>{const k=hr.H[id],o=hr.O[id]||1,ex=['phrasesag','streak','repeat'].includes(id);if((ex&&k>=1)||(k>=2&&k/o>=0.34)){L.sessHab[id]=(L.sessHab[id]||0)+1;const v=k/o;if(v>bv){bv=v;best=id}}});
+    if(best)R.habit=best}
   if(R.cov>=0.2){const iu=it.lid&&/^\d+\./.test(it.lid)?+it.lid.split('.')[0]:L.u;const ru=addPractice(L.track.id,iu,it.dur);if(ru)L.rankUp=ru}
   L.streak=R.score>=90?(L.streak||0)+1:0;L.itemPrev=L.itemPrev||{};
   const ctx={streak:L.streak,prev:L.lastScore,prevItem:L.itemPrev[L.idx],tries:L.tries[L.idx],passMark:D.pass,slowPass:!!(it.slowOf&&pass)};
   const say=sayingFor(R,ctx);L.itemPrev[L.idx]=R.score;L.lastScore=R.score;L.lastR=R;
-  let msg=starStr(R.score)+'  '+R.score+' · ',next='advance';
+  let msg=starStr(R.score)+'  '+R.score+' · ',next='advance';const noticed=R.habit&&HMAP[R.habit]?' · Noticed: '+HMAP[R.habit].name.toLowerCase():'';
   if(D.pass==null){msg+=say}
   else if(it.slowOf){if(pass){L.items[L.idx]=it.slowOf;L.fails=0;msg+=say;next='retry'}else{msg+='Need '+D.pass+'. Once more at 75%. '+say;next='retry'}}
   else if(!pass){L.fails=(L.fails||0)+1;if(L.fails>=2){L.items[L.idx]=slowCopy(it);L.fails=0;msg+='Two misses, so this step slows to 75%. '+say}else msg+='Need '+D.pass+' to move on. '+say;next='retry'}
   else{L.fails=0;msg+=say}
-  if(next==='advance'){L.results[L.idx]=R;L.lastR=R.score>=80?null:R}
+  msg+=noticed;
+  if(next==='advance'){L.results[L.idx]=R;L.lastR=R.score>=80&&!R.habit?null:R}
   const celebrate=R.score>=90&&R.cov>=0.3&&(S.celeb==='every'||S.celeb==null||(S.celeb==='milestones'&&(L.streak===3||L.streak===5||L.streak===10)));
   const toast=$('lsToast');toast.textContent=msg;toast.classList.remove('pop');void toast.offsetWidth;if(uiMotion())toast.classList.add('pop');renderSegs();
   if(celebrate)fiveStar(R.score);else if(next==='advance'&&R.score>=85)fxBurst(toast,false);
@@ -2790,12 +3201,13 @@ function finishSession(){
     if(idxs.every(i=>L.results[i])){const s=Math.round(idxs.reduce((a,i)=>a+L.results[i].score,0)/idxs.length);const was=P.les[id]||0;if(s>=LESSON_PASS&&was<LESSON_PASS)(L.justDone=L.justDone||[]).push(id);P.les[id]=Math.max(P.les[id]||0,s);lessonRes.push({id,name:L.items[idxs[0]].lname,score:s})}})}
   saveProg(tr.id,P);
   if(all.length){const Hs=history();Hs.push({d:today(),tr:tr.id,st:L.u,test:L.isTest,min:L.minutes,sung,score,passed:L.isTest?score>=UNIT_PASS:lessonRes.some(x=>x.score>=LESSON_PASS),acc:+agg.acc.toFixed(2),cov:+agg.cov.toFixed(2),steady:+agg.steady.toFixed(2),react:+agg.react.toFixed(2)});store.set('ison-history',Hs.slice(-400))}
-  const nx=nextUp(tr);selU=nx.u;selL=Math.max(0,nx.l);
+  recordFatigue(L.results);
+  if(tr===curTrack()){const nx=nextUp(tr);selU=nx.u;selL=Math.max(0,nx.l)}
   renderPractice();showResults(score,agg,lessonRes);
 }
 function showResults(score,agg,lessonRes){
   const tr=L.track,isT=L.isTest,passT=isT&&score>=UNIT_PASS&&L.results.filter(Boolean).length===L.items.length;
-  $('player').hidden=true;$('builder').hidden=mode==='weak';$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
+  $('player').hidden=true;$('builder').hidden=mode==='weak'||mode==='habit';$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
   const nDone=lessonRes.filter(x=>x.score>=LESSON_PASS).length;
   $('resVerdict').textContent=isT?(passT?'Unit '+L.u+' mastered':'Test not passed yet'):nDone?nDone+(nDone>1?' lessons':' lesson')+' complete':'Keep practicing';
   $('resNote').textContent=isT?(passT?'You scored '+score+'. The next unit is recommended.':'You need '+UNIT_PASS+' to master this unit. You scored '+score+'. Review the lessons with the lowest scores, then try again.'):
@@ -2808,6 +3220,8 @@ function showResults(score,agg,lessonRes){
   const items=$('resItems');items.innerHTML='';
   if(lessonRes.length)lessonRes.forEach(x=>items.appendChild(barEl((x.score>=LESSON_PASS?'✓ ':'')+x.name,x.score/100,x.score)));
   else L.results.forEach(r=>{if(r)items.appendChild(barEl(r.title,r.score/100,r.score))});
+  {const rh=$('resHabits'),ids=Object.keys(L.sessHab||{}).sort((a,b)=>L.sessHab[b]-L.sessHab[a]);rh.hidden=!ids.length;
+   if(ids.length)rh.textContent='Noticed this session: '+ids.slice(0,4).map(id=>HMAP[id].name.toLowerCase()+(L.sessHab[id]>1?' ×'+L.sessHab[id]:'')).join(', ')+'. See Practice → Habits if they keep coming back.'}
   $('results').scrollIntoView({behavior:'smooth',block:'start'});
   requestAnimationFrame(()=>requestAnimationFrame(()=>{const a=sv.querySelector('.arc');if(a)a.setAttribute('stroke-dasharray',(C*f).toFixed(1)+' '+C.toFixed(1))}));
   const won=isT?passT:nDone>0,vd=$('resVerdict');vd.classList.remove('win');
@@ -2832,6 +3246,7 @@ function drawHistory(){
   const last=Hs[Hs.length-1];$('histNote').textContent='Last session: '+last.score+' points, '+fmtT(last.sung||0)+' sung. Labels show the unit (U) or unit test (T). Dashed lines: 70 finishes a lesson, 90 passes a test.';
 }
 /* ---------- buttons ---------- */
+$('mode-habit').onclick=()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);renderPractice()};
 $('mode-weak').onclick=()=>{if(L.active)return;mode='weak';store.set('ison-mode',mode);renderPractice()};
 $('wkFound').onclick=()=>{weakTr='found';renderWeak()};$('wkSong').onclick=()=>{weakTr='song';renderWeak()};
 $('weakStart').onclick=()=>{if(L.active)return;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin)};
@@ -2860,7 +3275,7 @@ $('lsRestart').onclick=()=>{stopSing(true);L.idx=0;L.results=[];lessonLoad(0,fal
 $('lsSave').onclick=()=>{if(G.playing)lessonPause();store.set('ison-session',{tr:L.track.id,items:L.items,idx:L.idx,results:L.results,u:L.u,l:L.l,isTest:L.isTest,minutes:L.minutes});
   L.active=false;G.onFinish=null;clearInterval(L.timer);renderPractice();$('resumeSession').scrollIntoView({behavior:'smooth',block:'center'})};
 $('lsQuit').onclick=()=>{if(L.results.some(Boolean))finishSession();else{stopSing(true);clearInterval(L.timer);L.active=false;G.onFinish=null;renderPractice()}};
-$('resAgain').onclick=()=>{if(mode==='weak'){$('results').hidden=true;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin);return}$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
+$('resAgain').onclick=()=>{if(mode==='habit'&&L.track===habitTrack){$('results').hidden=true;startHabitDrill(L.u);return}if(mode==='weak'){$('results').hidden=true;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin);return}$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('resDone').onclick=()=>{$('results').hidden=true;renderPractice()};
 $('lessonTones').checked=!!S.lessonTones;$('lessonTones').onchange=()=>{S.lessonTones=$('lessonTones').checked;save()};
 (function(){const s=$('homeNote');for(let m=36;m<=72;m++){const o=document.createElement('option');o.value=m;
@@ -2872,7 +3287,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
