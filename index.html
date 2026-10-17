@@ -497,10 +497,10 @@ details.sess summary::-webkit-details-marker{display:none}
       <div class="field"><label class="label" for="guideSrc">Song</label>
         <select id="guideSrc">
           <optgroup label="Chants">
-            <option value="song-trisagion">Trisagion: Holy God (Byzantine Tone 3)</option>
-            <option value="song-trisagion3">Trisagion: Holy God, three times</option>
-            <option value="song-risen">Christ Is Risen (Paschal troparion, Tone 5)</option>
-            <option value="song-meet">It Is Truly Meet (Hymn to the Theotokos)</option>
+            <option value="song-trisagion">Holy God: the Trisagion (Tone 3)</option>
+            <option value="song-trisagion3">Holy God: the Trisagion, three times</option>
+            <option value="song-risen">Christ Is Risen (Easter hymn, Tone 5)</option>
+            <option value="song-meet">It Is Truly Meet (hymn to the Mother of God)</option>
             <option value="song-cross">Before Thy Cross</option>
             <option value="song-praise">Praise the Lord from the Heavens</option>
             <option value="song-blessed">Blessed Be the Name of the Lord</option>
@@ -2510,7 +2510,7 @@ const F2=[
  {n:'Alleluia',x:[{t:'Alleluia',h:'Five syllables on a little step pattern.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:72,w:['Al-','le-','lu-','i-','a']}]},
  {n:'Lord, have mercy',x:[{t:'Lord, have mercy',h:'One note. Every syllable on pitch.',p:[0,0,0,0],b:[1,1,1,2],bpm:72,w:['Lord,','have','mer-','cy']}]},
  {n:'Lord, have mercy, falling',x:[{t:'Lord, have mercy',h:'A small falling ending.',p:[2,2,0,0],b:[1,1,1,2],bpm:72,w:['Lord,','have','mer-','cy']}]},
- {n:'Kyrie eleison',x:[{t:'Kyrie eleison',h:'The same prayer in Greek.',p:[0,2,2,0,-2,0],b:[1,1,1,1,1,2],bpm:72,w:['Ky-','ri-','e','e-','lei-','son']}]},
+ {n:'To Thee, O Lord',x:[{t:'To Thee, O Lord',h:'A response from the litanies. A practice pattern, not a published setting.',p:[0,2,0,-2,0],b:[1,1,1,1,3],bpm:72,w:['To','Thee,','O','','Lord.']}]},
  {n:'Pure vowels',x:[{t:'Vowels on steps',h:'Each note a new vowel. Mouth shape changes, pitch stays on target.',p:[0,2,4,2,0],b:[1,1,1,1,2],bpm:66,w:['ah','eh','ee','oh','oo']}]},
  {n:'Glory to the Father',x:[{t:'Glory',h:'Recited on one note with a small cadence.',p:[0,0,0,0,0,0,0,-2,0],b:[.5,.5,.5,.5,.5,1,.5,.5,2],bpm:66,w:['Glo-','ry','to','the','Fa-','ther,','and','the','Son']}]},
  {n:'Holy God',x:[{t:'Holy God',h:'The opening of the Trisagion.',p:[4,2,0,-1,-3,-5,-3,-1,0],b:[1,1,.5,.5,.5,.5,1,1,2],bpm:80,key:2,w:['Ho-','','','','','','','ly','God']}]}]},
@@ -2557,7 +2557,7 @@ const F3=[
  {n:'Blend on a hold',x:[{t:'Blend',h:'A long note in unison. Listen for one sound.',p:[0,2],b:[4,4],bpm:60,acc:'double'}]},
  {n:'Alone',x:[{t:'Alone',h:'No partner now. Starting note only.',p:[0,2,3,5,3,2,0,-2,0],b:[1,1,1,2,1,1,1,1,2],bpm:72,l:'cue'}]},
  {n:'Alone from memory',x:[{t:'Alone, from memory',h:'Guide hidden too.',p:[0,2,3,5,3,2,0],b:[1,1,1,2,1,1,2],bpm:72,blind:true,l:'full'}]}]},
-{name:'Parallage: chant note names',tol:[22,60],desc:'Sing the Byzantine note names: Ni, Pa, Vou, Ga, Di, Ke, Zo, Ni.',
+{name:'Parallage: chant note names',tol:[22,60],desc:'Sing the Byzantine note names: Ni, Pa, Vou, Ga, Di, Ke, Zo, Ni. They are not words but note names, like do, re, mi.',
  why:'Parallage is the chant equivalent of solfege and one of the oldest teaching methods: learn the melody on note names first, then add the words. Teachers suggest doing it many times for each new piece. (Piano tuning here; chant tuning comes with the tones.)',L:[
  {n:'Ni Pa Vou Ga',x:[{t:'Ni Pa Vou Ga',h:'Up four notes by name.',p:[0,2,4,5,4,2,0],b:[1,1,1,2,1,1,2],bpm:72,k:'none',w:['Ni','Pa','Vou','Ga','Vou','Pa','Ni']}]},
  {n:'Pa Vou Ga Di',x:[{t:'Pa Vou Ga Di',h:'The first-tone tetrachord.',p:[2,4,5,7,5,4,2],b:[1,1,1,2,1,1,2],bpm:72,k:'none',w:['Pa','Vou','Ga','Di','Ga','Vou','Pa']}]},
@@ -2587,7 +2587,7 @@ const F3=[
  {n:'A small shake',x:[{t:'Shake',h:'One common way to sing the omalon: a tiny upper-neighbor shake as a held note begins.',p:[0,2,0,0],b:[.5,.25,.25,2.5],bpm:66}]},
  {n:'Weighted note',x:[{t:'Heavy accent',h:'Lean into the note with weight, then release (one way to sing the vareia\'s emphasis).',p:[2,0,0],b:[1,1,2],bpm:66}]},
  {n:'Linked rise',x:[{t:'Linked rise',h:'A smooth connected rise with a light turn, as the antikenoma is often sung.',p:[0,2,1,2,4],b:[1,.5,.25,.25,2],bpm:66}]},
- {n:'Kratema syllables',x:[{t:'Te-ri-rem',h:'Kratemata are sung on syllables like "te-ri-rem". Quick, even and light.',p:[0,2,0,2,4,2,4,5,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:66,w:['te','ri','rem','te','ri','rem','te','ri','rem','te','rem']}]},
+ {n:'Kratema syllables',x:[{t:'Te-ri-rem',h:'Kratemata (wordless runs) are sung on syllables like "te-ri-rem". They have no meaning in any language; they just keep fast notes clean. Quick, even and light.',p:[0,2,0,2,4,2,4,5,4,2,0],b:[.5,.5,.5,.5,.5,.5,.5,.5,.5,.5,2],bpm:66,w:['te','ri','rem','te','ri','rem','te','ri','rem','te','rem']}]},
  {n:'Ornaments in a phrase',x:[{t:'Ornamented phrase',h:'Gorgon, klasma and a shake together. Starting note only.',p:[0,2,4,2,0,2,0,0],b:[1,.5,.5,2,1,.25,.25,2.5],bpm:66,l:'cue'}]}]}
 ];
 /* The eight tones. Each note is given in piano tuning (w) and chant tuning (c), in half steps above
@@ -3425,7 +3425,7 @@ function renderPractice(){
   if(mode==='song')renderSongSummary();
   drawHistory();
 }
-const BUILTIN=[['song-trisagion','Trisagion: Holy God (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord']];
+const BUILTIN=[['song-trisagion','Holy God: the Trisagion (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord']];
 function fillCourseSongs(){refreshMySongsList().then(list=>{const s=$('courseSong');s.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent='Choose a song';s.appendChild(o0);
   const g1=document.createElement('optgroup');g1.label=list.length?'My songs (recordings)':'My songs: none saved yet';list.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;g1.appendChild(o)});s.appendChild(g1);
   const g2=document.createElement('optgroup');g2.label='Built-in chants';BUILTIN.forEach(([k,n])=>{const o=document.createElement('option');o.value='b:'+k;o.textContent=n;g2.appendChild(o)});s.appendChild(g2)})}
