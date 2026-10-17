@@ -123,6 +123,8 @@ input[type=range]{width:100%;accent-color:var(--accent)}
 .excard{display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:start}
 .excard h3{font-size:1.25rem;color:var(--ink)}
 .excard p{margin:0;color:var(--muted);grid-column:1/-1}
+.exstaff{grid-column:1/-1;overflow-x:auto;background:#F4EDDC;border-radius:10px;padding:6px 4px 2px}
+.exstaff svg{display:block;height:auto}
 .phase{font-family:var(--f-mono);font-size:.8rem;padding:4px 8px;border-radius:999px;background:var(--surface2);border:1px solid var(--line);color:var(--lapis);white-space:nowrap}
 .phase.sing{color:var(--good)}
 .toast{font-family:var(--f-display);font-size:1.1rem;color:var(--accent);min-height:1.6em}
@@ -450,7 +452,7 @@ details.sess summary::-webkit-details-marker{display:none}
   <section class="panel player" id="player" hidden aria-labelledby="exTitle">
     <div class="row" style="justify-content:space-between"><span class="tag" id="plStage"></span><span class="status" id="plCount"></span></div>
     <div class="segs" id="segs"></div>
-    <div class="excard"><h3 id="exTitle">Exercise</h3><span class="phase" id="exPhase">Listen</span><p id="exHow"></p></div>
+    <div class="excard"><h3 id="exTitle">Exercise</h3><span class="phase" id="exPhase">Listen</span><p id="exHow"></p><div class="exstaff" id="exStaff" hidden></div></div>
     <div class="coach" id="coach" hidden><b id="coachTag">Tip</b><span id="coachTxt"></span></div>
     <canvas id="lsCanvas" height="280" aria-label="Notes to sing, scrolling toward the now line, with your voice drawn over them"></canvas>
     <div class="duo">
@@ -1238,7 +1240,7 @@ const UNIT_TIPS={'Breath and first sounds':['breath','onset','sovt'],'Match a no
  'Rhythm and pulse':['rhythm'],'Agility':['agility','rhythm'],'Hearing it inside':['audiation','memory'],'Words and vowels':['diction','vowels'],
  'Volume and long breath':['dynamics','endurance','breath'],'Singing over the ison':['ison'],'Holding the ison':['isonhold'],
  'Singing with the cantor':['unison'],'Parallage: chant note names':['parallage'],'Reciting a psalm':['psalmody','diction'],
- 'Chant signs and ornaments':['ornaments','rhythm'],'First hymns':['hymn','diction'],
+ 'Chant signs and ornaments':['ornaments','rhythm'],'First hymns':['hymn','diction'],'Byzantine-style scales':['tones','chanttune'],
  'Home base':['home','match','sustain'],'One note at a time':['match','sustain'],'Neighbors':['steps'],"The song's moves":['leaps','steps'],
  'Signature turns':['chunk','agility'],'The ison under the song':['isonhold'],'Phrase pieces':['phrase','chunk'],'Whole phrases':['phrase','breath'],
  'Phrase pairs':['phrase','endurance'],'Sections':['endurance','phrase'],'From memory':['memory','audiation'],'The whole song':['performance','endurance']};
@@ -2332,7 +2334,7 @@ function mkItem(o){
   if(o.think)t+=o.think*beat;
   const singFrom=t;
   P.forEach((p,i)=>{if(p!=null)notes.push({t0:t,t1:t+B[i]*beat*0.94,m:o.base+p,w:W[i]||''});t+=B[i]*beat});
-  const dur=t+0.4,it={title:o.title,how:o.how,notes,dur,tolA:o.tolA,tolB:o.tolB,singFrom,blind:!!o.blind,micro:!!o.micro};
+  const dur=t+0.4,it={title:o.title,how:o.how,notes,dur,tolA:o.tolA,tolB:o.tolB,singFrom,blind:!!o.blind,micro:!!o.micro};if(o.staff)it.staff=o.staff;
   if(o.ison!=null)it.ison=[{t0:0,t1:dur,m:o.base+o.ison}];
   if(o.think)it.think=o.think*beat;
   if(o.acc==='double'){it.acc=notes.filter(n=>!n.listen).map(n=>({t0:n.t0,t1:n.t1,m:n.m}));it.accDouble=true;it.accLevel=0.55}
@@ -2348,8 +2350,37 @@ function specItem(sp,r,R,tol,listen){
   const pat=sp.v?sp.v[r%sp.v.length]:sp.p,ks=sp.k==='none'?[0]:sp.k==='climb'?KEYS.climb:KEYS.near;
   const key=(sp.key||0)+(sp.k==='none'?0:Math.max(-R.span,Math.min(R.span,ks[r%ks.length])));
   return mkItem({title:sp.t,how:sp.h,pat,beats:sp.b,bpm:(sp.bpm||72)*R.bpm,base:S.home+key,listen:sp.l||listen,
-    tolA:(sp.tol||tol)[0]*R.tol,tolB:(sp.tol||tol)[1]*R.tol,words:sp.wv?sp.wv[r%sp.wv.length]:sp.w,ison:sp.ison,acc:sp.acc,think:sp.think,blind:sp.blind,micro:sp.micro});
+    tolA:(sp.tol||tol)[0]*R.tol,tolB:(sp.tol||tol)[1]*R.tol,words:sp.sc?pat.map(p=>p==null?'':spellDeg(S.home+key,sp.sc,p).txt):sp.wv?sp.wv[r%sp.wv.length]:sp.w,ison:sp.ison,acc:sp.acc,think:sp.think,blind:sp.blind,micro:sp.micro,
+    staff:sp.sc?{tonic:S.home+key,sc:sp.sc,show:sp.st||sp.sc,cents:sp.cents||null}:null});
 }
+/* Western spelling of a seven-note scale: each degree takes the next letter, the accidental makes up the
+   difference (so the Byzantine scale on D reads D E♭ F♯ G A B♭ C♯ D, never D D♯ ...). */
+const SP_LET=['C','D','E','F','G','A','B'],SP_NAT=[0,2,4,5,7,9,11];
+function tonicSpell(m){const pc=((Math.round(m)%12)+12)%12,pref={1:[1,-1],3:[2,-1],6:[3,1],8:[5,-1],10:[6,-1]};
+  if(pref[pc])return{li:pref[pc][0],acc:pref[pc][1]};return{li:SP_NAT.indexOf(pc),acc:0}}
+function spellDeg(tonic,sc,p){const t=tonicSpell(tonic);let best=0,bd=99;const pr=((p%12)+12)%12,oct=Math.floor((p+0.0001)/12);
+  sc.forEach((v,i)=>{const d=Math.abs((((v%12)+12)%12)-pr);const dd=Math.min(d,12-d);if(dd<bd){bd=dd;best=i}});const deg=best%7+oct*7+Math.floor(best/7)*7*0;
+  const li=(t.li+(best%7))%7,m=Math.round(tonic)+Math.round(p),nat=SP_NAT[li];let acc=((m%12)+12)%12-nat;if(acc>6)acc-=12;if(acc<-6)acc+=12;
+  const step=Math.floor((m-acc)/12)*7+li-7;const sym=acc===0?'':acc===1?'♯':acc===2?'𝄪':acc===-1?'♭':acc===-2?'♭♭':'';
+  return{txt:SP_LET[li]+sym,li,acc,step,m}}
+/* Small staff in Western notation for scale lessons: whole notes, accidentals, ledger lines, letter names below,
+   and for chant tuning the offset in cents above each altered note. */
+function staffSVG(st){const notes=st.show.map(p=>spellDeg(st.tonic,st.sc,p)),avgM=notes.reduce((a,n)=>a+n.m,0)/notes.length,bass=avgM<60;
+  const gap=9,bottomStep=bass?18:30,maxS=Math.max(...notes.map(n=>n.step)),minS=Math.min(...notes.map(n=>n.step)),hasC=st.cents&&st.cents.some(x=>x);
+  const top=Math.max(18,(maxS-(bottomStep+8))*gap/2+(hasC?30:16)),W=56+notes.length*32,H=top+gap*4+Math.max(0,(bottomStep-minS))*gap/2+30,ink='#1E1A14',muted='#6B5F49';
+  const y=step=>top+gap*4-(step-bottomStep)*gap/2;let o='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 '+W+' '+H+'" width="100%" style="max-width:'+(W*1.25)+'px" role="img" aria-label="'+notes.map(n=>n.txt).join(' ')+'">';
+  for(let i=0;i<5;i++)o+='<line x1="4" x2="'+(W-4)+'" y1="'+(top+i*gap)+'" y2="'+(top+i*gap)+'" stroke="'+ink+'" stroke-width="1"/>';
+  o+='<line x1="'+(W-4)+'" x2="'+(W-4)+'" y1="'+top+'" y2="'+(top+gap*4)+'" stroke="'+ink+'" stroke-width="1.4"/>';
+  if(bass){const fy=top+gap;o+='<path d="M14 '+(fy+1)+' c0-9 16-11 20-3 c5 9-4 22-18 30" fill="none" stroke="'+ink+'" stroke-width="2.6" stroke-linecap="round"/><circle cx="15" cy="'+(fy+2)+'" r="3.3" fill="'+ink+'"/><circle cx="40" cy="'+(fy-4)+'" r="2" fill="'+ink+'"/><circle cx="40" cy="'+(fy+5)+'" r="2" fill="'+ink+'"/>'}
+  else{const gy=top+gap*3;o+='<path d="M24 '+(gy+20)+' c-6 2-8-6-2-7 c6 0 6 9-1 9 c-12 0-14-18-2-26 c10-7 15-19 9-26 c-6-4-10 6-8 16 l7 44" fill="none" stroke="'+ink+'" stroke-width="2.2" stroke-linecap="round"/><path d="M22 '+(gy-6)+' c-10 2-10 16 2 16 c8 0 9-12 0-12" fill="none" stroke="'+ink+'" stroke-width="2"/>'}
+  notes.forEach((n,i)=>{const x=60+i*32,yy=y(n.step);
+    for(let s=bottomStep-2;s>=n.step;s-=2)o+='<line x1="'+(x-11)+'" x2="'+(x+11)+'" y1="'+y(s)+'" y2="'+y(s)+'" stroke="'+ink+'" stroke-width="1"/>';
+    for(let s=bottomStep+10;s<=n.step;s+=2)o+='<line x1="'+(x-11)+'" x2="'+(x+11)+'" y1="'+y(s)+'" y2="'+y(s)+'" stroke="'+ink+'" stroke-width="1"/>';
+    o+='<ellipse cx="'+x+'" cy="'+yy+'" rx="6.6" ry="4.6" transform="rotate(-20 '+x+' '+yy+')" fill="none" stroke="'+ink+'" stroke-width="2.2"/>';
+    if(n.acc){const g=n.acc>0?(n.acc>1?'𝄪':'♯'):(n.acc<-1?'♭♭':'♭');o+='<text x="'+(x-11)+'" y="'+(yy+5)+'" font-size="16" text-anchor="end" fill="'+ink+'" font-family="serif">'+g+'</text>'}
+    const ct=st.cents&&st.cents[i]?st.cents[i]:0;if(ct)o+='<text x="'+x+'" y="'+Math.min(top-6,yy-14)+'" font-size="10" text-anchor="middle" fill="#9A5B12" font-family="monospace">'+(ct>0?'+':'−')+Math.abs(ct)+'</text>';
+    o+='<text x="'+x+'" y="'+(H-8)+'" font-size="12" text-anchor="middle" fill="'+muted+'" font-family="sans-serif">'+n.txt+'</text>'});
+  return o+'</svg>'}
 /* A unit: lessons in order, each a small step above the last. A lesson is five to eight exercises (about two minutes)
    from its own material plus one review of the lesson before. Over the unit the tempo rises, the pitch window
    narrows, the key moves further from home, and the played help fades. */
@@ -2650,10 +2681,28 @@ const CAP={name:'First hymns',tol:[20,60],desc:'Short hymn phrases: the Trisagio
  {n:'Blessed Be the Name over the ison',x:[{t:'Blessed Be the Name, with ison',h:'Now over the ison.',p:[0,2,4,4,4,4,2,4,4,4,4,5,4,2,0],b:[1,1,1,1,1,1,1,2,1,1,1,1,2,2,4],bpm:96,ison:0,w:['Bless-','ed','be','the','name','of','the','Lord,','hence-','forth','and','for-','ev-','er-','more.']}]},
  {n:'Before Thy Cross',x:[{t:'Before Thy Cross',h:'Lenten hymn, traditional melody.',p:[-1,0,-1,0,2,4,5,4,5,2],b:[1,2,2,2,1,1,1,1,1,1],bpm:84,w:['Be-','fore','thy','Cross','we','bow','down','','','in']}]},
  {n:'Before Thy Cross from memory',x:[{t:'Before Thy Cross from memory',h:'Guide hidden.',p:[-1,0,-1,0,2,4,5,4,5,2],b:[1,2,2,2,1,1,1,1,1,1],bpm:84,blind:true,l:'full',w:['Be-','fore','thy','Cross','we','bow','down','','','in']}]}]};
+/* Byzantine-style scales in Western notation (piano tuning), each on your home note.
+   The "Byzantine scale" of Western theory is the double harmonic major: half, step-and-a-half, half, whole, half,
+   step-and-a-half, half (on D: D E♭ F♯ G A B♭ C♯ D). It is the piano version of the hard chromatic genre of
+   Tone 6 (Plagal 2nd) on Pa. Variations: Hijaz (Phrygian dominant, same lower half, flat 7th) and the Hungarian
+   minor (fourth mode of the same scale). The last lessons sing the same scale in chant tuning, from the Tone 6 data above. */
+const BYZ=[0,1,4,5,7,8,11,12],HIJ=[0,1,4,5,7,8,10,12],HUN=[0,2,3,6,7,8,11,12];
+const BYZ_C=[0,1,13/3,5,7,8,34/3,12],updn=a=>a.concat(a.slice(0,-1).reverse()),bt=a=>a.map((_,i)=>i===a.length-1?3:1);
+const BYZU={name:'Byzantine-style scales',tol:[20,58],desc:'The famous "Byzantine scale" and its cousins, written in Western notation with letter names, then sung in true chant tuning.',
+ why:'Western theory calls the double harmonic major the Byzantine scale. It is the piano version of Tone 6, the hard chromatic tone: two half steps and two wide steps of a step and a half. A staff above the graph shows every scale; the letters you sing are its note names.',L:[
+ {n:'The wide step',x:[{t:'Byzantine scale: lower half',h:'Half step, then the wide step and a half, then a half step. On D: D, E♭, F♯, G. Feel how the wide step pulls.',p:updn([0,1,4,5]),b:bt(updn([0,1,4,5])),bpm:66,k:'none',sc:BYZ,st:BYZ}]},
+ {n:'Upper half',x:[{t:'Byzantine scale: upper half',h:'The top half has the same shape: A, B♭, C♯, D on D. Two matching halves joined by a whole step.',p:updn([7,8,11,12]),b:bt(updn([7,8,11,12])),bpm:66,k:'none',sc:BYZ,st:BYZ}]},
+ {n:'The whole scale',x:[{t:'The Byzantine scale',h:'The full octave up and back, in piano tuning. Letter names under each note.',p:updn(BYZ),b:bt(updn(BYZ)),bpm:72,k:'none',sc:BYZ,st:BYZ}]},
+ {n:'Over the ison',x:[{t:'Byzantine scale over the ison',h:'The ison holds the first note. The half step above it should feel close and tense, the third bright.',p:updn(BYZ),b:bt(updn(BYZ)),bpm:72,k:'none',sc:BYZ,st:BYZ,ison:0}]},
+ {n:'A Byzantine-style phrase',x:[{t:'Phrase: the classic descent',h:'A practice phrase in the scale: down from the fifth through the wide step to home.',p:[7,8,7,5,4,1,4,1,0],b:[1,1,1,1,1,1,1,1,3],bpm:72,k:'none',sc:BYZ,st:BYZ,ison:0}]},
+ {n:'Hijaz (Phrygian dominant)',x:[{t:'Hijaz: Phrygian dominant',h:'Same lower half, but a flat seventh on top: on D, D E♭ F♯ G A B♭ C D. The sound of much Middle Eastern and Greek music.',p:updn(HIJ),b:bt(updn(HIJ)),bpm:72,k:'none',sc:HIJ,st:HIJ}]},
+ {n:'Hungarian minor',x:[{t:'Hungarian minor',h:'The Byzantine scale\'s minor cousin (its fourth mode): on D, D E F G♯ A B♭ C♯ D. Wide steps after the third and the sixth.',p:updn(HUN),b:bt(updn(HUN)),bpm:72,k:'none',sc:HUN,st:HUN}]},
+ {n:'In chant tuning',x:[{t:'The Byzantine scale in chant tuning',h:'Tone 6 as chanted: both wide steps are wider than on the piano, so the third and seventh notes sit about a third of a half step sharp. The numbers above the staff are cents away from piano tuning.',p:updn(BYZ_C),b:bt(updn(BYZ_C)),bpm:66,k:'none',sc:BYZ,st:BYZ,cents:[0,0,33,0,0,0,33,0],micro:true,ison:0}]},
+ {n:'From memory',x:[{t:'Byzantine scale from memory',h:'Guide hidden. Hear the scale once, then sing it up and back.',p:updn(BYZ),b:bt(updn(BYZ)),bpm:72,k:'none',sc:BYZ,st:BYZ,blind:true,l:'full'}]}]};
 const MOS=[1,1,1,2,2,2,3,3,3, 4,4,4,5,5,6, 7,7,8,8,9,9];
 const foundTrack={id:'found3',name:'Foundations',unit:'Unit',
   units:[...F1.map((U,i)=>buildUnit(U,MOS[i],0)),...F2.map((U,i)=>buildUnit(U,MOS[9+i],1)),...F3.map((U,i)=>buildUnit(U,MOS[15+i],2)),
-    ...TONES.map(T=>buildUnit(toneUnit(T),T.mo,3)),buildUnit(CAP,12,3)]};
+    ...TONES.map(T=>buildUnit(toneUnit(T),T.mo,3)),buildUnit(CAP,12,3),buildUnit(BYZU,12,3)]};
 
 /* ================= Song courses =================
    Analysis (on the phone, from a saved song): drop the drone, find the home note (the pitch it rests on
@@ -3467,6 +3516,7 @@ function lessonLoad(i,keepPos){
   setGuide({notes:it.notes,dur:it.dur,contour:it.contour||null},false,0);if(keepPos){G.pos=L.pos;G.trace=L.trace}
   if(!keepPos)showTip(it,L.lastR||null);
   G.onFinish=lessonItemDone;$('exTitle').textContent=it.title;$('exHow').textContent=(it.lname&&!L.isTest?'Lesson: '+it.lname+'. ':'')+(it.how||'');
+  {const sv=$('exStaff');if(it.staff){sv.innerHTML=staffSVG(it.staff);sv.hidden=false}else{sv.hidden=true;sv.innerHTML=''}}
   $('plCount').textContent='Exercise '+(i+1)+' of '+L.items.length+((L.tries[i]||0)?' · try '+((L.tries[i]||0)+1):'')+(S.diff!=='easy'?' · '+DIFF[S.diff].name:'');renderSegs();drawSing();updatePhase();
 }
 function renderSegs(){const sg=$('segs');sg.innerHTML='';L.items.forEach((it,i)=>{const e=document.createElement('i');const r=L.results[i];
