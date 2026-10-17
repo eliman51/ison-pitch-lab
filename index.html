@@ -265,6 +265,11 @@ details.habit summary::-webkit-details-marker{display:none}
 .habit.lvl-occasional .hb{color:var(--muted)}
 .hbody{display:grid;gap:8px;margin-top:10px}.hbody p{margin:0;font-size:.92rem}.hbody b{color:var(--accent);font-weight:600}
 .hsvg{width:100%;max-width:320px;height:70px;background:var(--grid);border-radius:8px}
+.passrows{display:flex;flex-direction:column;gap:10px}
+.passrow{display:grid;grid-template-columns:5.6em 40px 1fr 40px 2.4em;gap:8px;align-items:center}
+.passrow .pn{font-size:.92rem}.passrow button{min-height:40px;padding:0;font-size:1.2rem;line-height:1}
+.passrow input[type=range]{width:100%;accent-color:var(--accent)}
+.passrow b{font-family:var(--f-mono);font-weight:400;font-size:1.05rem;color:var(--accent);text-align:right}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin-inline:-4px;padding:2px 4px}
 .chips::-webkit-scrollbar{display:none}
 .chips button{flex:none;font:inherit;font-size:.85rem;border:1px solid var(--line);background:var(--surface2);color:var(--muted);border-radius:999px;padding:7px 13px;font-size:.85rem;min-height:36px;transition:background var(--t-quick),color var(--t-quick)}
@@ -676,6 +681,12 @@ details.sess summary::-webkit-details-marker{display:none}
     <p class="status" id="bkMsg" style="margin:0" aria-live="polite"></p>
     <div class="row" id="bkConfirm" hidden><button class="primary" id="bkYes">Replace my progress with this backup</button><button id="bkNo">Cancel</button></div>
     <p class="status" style="margin:0">A backup is one small file with your lessons, scores, weak-spot data, practice time, rank, settings and saved songs. Keep it in iCloud Drive, and restore it here on any phone or browser.</p>
+  </section>
+  <section class="panel" aria-labelledby="t-pass">
+    <h2 id="t-pass">Difficulty pass marks</h2>
+    <p class="status" style="margin:0">The score each step needs before a session moves on. Raise them as you improve. Easy has no pass mark: every step counts once.</p>
+    <div class="passrows" id="passRows"></div>
+    <div class="row"><button id="passReset">Reset to 70 / 82 / 95</button><span class="status" id="passMsg"></span></div>
   </section>
   <section class="panel" aria-labelledby="t-fx">
     <h2 id="t-fx">Coach and animations</h2>
@@ -3517,9 +3528,24 @@ function slowCopy(it){const f=0.75,sc=t=>t/f;return{...it,slowOf:it,title:it.tit
   ison:it.ison?it.ison.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})):null,acc:it.acc?it.acc.map(n=>({...n,t0:sc(n.t0),t1:sc(n.t1)})):null,
   singFrom:sc(it.singFrom||0),think:it.think?it.think/f:0}}
 const DIFF={easy:{name:'Easy',pass:null,note:'Every step counts once and the session ends on time.'},
-  medium:{name:'Medium',pass:70,note:'Pass each step with 70 to move on.'},
-  hard:{name:'Hard',pass:82,note:'Pass each step with 82 to move on.'},
-  extra:{name:'Extra hard',pass:95,note:'Pass each step with 95 to move on. Precision work.'}};
+  medium:{name:'Medium',pass:70,note:''},hard:{name:'Hard',pass:82,note:''},extra:{name:'Extra hard',pass:95,note:''}};
+/* Pass marks are the singer's own: Settings > Difficulty pass marks. Kept in order (Medium below Hard below Extra hard). */
+const PASS_DEF={medium:70,hard:82,extra:95},PASS_KEYS=['medium','hard','extra'];
+function applyPass(){const pm=Object.assign({},PASS_DEF,S.passMarks||{});PASS_KEYS.forEach(k=>{const v=Math.max(40,Math.min(100,Math.round(+pm[k]||PASS_DEF[k])));DIFF[k].pass=v;
+    DIFF[k].note='Pass each step with '+v+' to move on.'+(k==='extra'?' Precision work.':'')})}
+applyPass();
+function setPass(k,v){const pm=Object.assign({},PASS_DEF,S.passMarks||{});v=Math.max(40,Math.min(100,Math.round(v)));pm[k]=v;const i=PASS_KEYS.indexOf(k);
+  for(let j=i+1;j<3;j++)if(pm[PASS_KEYS[j]]<=pm[PASS_KEYS[j-1]])pm[PASS_KEYS[j]]=Math.min(100,pm[PASS_KEYS[j-1]]+1);
+  for(let j=i-1;j>=0;j--)if(pm[PASS_KEYS[j]]>=pm[PASS_KEYS[j+1]])pm[PASS_KEYS[j]]=Math.max(40,pm[PASS_KEYS[j+1]]-1);
+  S.passMarks=pm;save();applyPass();renderPass();if(typeof renderDiff==='function'){$('songDiff').innerHTML='';renderDiff()}}
+function renderPass(){const box=$('passRows');if(!box.children.length)PASS_KEYS.forEach(k=>{const row=document.createElement('div');row.className='passrow';row.dataset.k=k;
+    const nm=document.createElement('span');nm.className='pn';nm.textContent=DIFF[k].name;
+    const mi=document.createElement('button');mi.textContent='−';mi.setAttribute('aria-label','Lower '+DIFF[k].name+' pass mark');mi.onclick=()=>setPass(k,DIFF[k].pass-1);
+    const rg=document.createElement('input');rg.type='range';rg.min=40;rg.max=100;rg.step=1;rg.setAttribute('aria-label',DIFF[k].name+' pass mark');rg.oninput=()=>setPass(k,+rg.value);
+    const pl=document.createElement('button');pl.textContent='+';pl.setAttribute('aria-label','Raise '+DIFF[k].name+' pass mark');pl.onclick=()=>setPass(k,DIFF[k].pass+1);
+    const v=document.createElement('b');row.append(nm,mi,rg,pl,v);box.appendChild(row)});
+  [...box.children].forEach(r=>{const k=r.dataset.k;r.querySelector('input').value=DIFF[k].pass;r.querySelector('b').textContent=DIFF[k].pass});
+  const d=PASS_KEYS.every(k=>DIFF[k].pass===PASS_DEF[k]);$('passMsg').textContent=d?'Using the starting marks.':'Your marks: '+PASS_KEYS.map(k=>DIFF[k].pass).join(' / ')+'.'}
 function starStr(s){return s>=88?'★★★':s>=75?'★★☆':s>=60?'★☆☆':'☆☆☆'}
 function praise(r){const s=r.score;if(r.cov<0.3)return'I barely heard you. Sing out a little more';if(s>=88)return'Excellent';if(s>=75)return'Good';
   if(r.bias>15)return'Close. You were a little sharp';if(r.bias<-15)return'Close. You were a little flat';
@@ -3651,6 +3677,8 @@ function renderDiff(){const c=$('diffChips');if(!c.children.length){Object.keys(
   [...c.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===S.diff)));
   $('diffNote').textContent=DIFF[S.diff].note+(S.diff!=='easy'?' Two misses in a row slow a step to 75%; pass it, then sing it once more at full speed. Sessions may run past the time you picked.':'');
   const sd=$('songDiff');if(!sd.children.length)Object.keys(DIFF).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=DIFF[k].name+(DIFF[k].pass?' (pass '+DIFF[k].pass+')':'');sd.appendChild(o)});sd.value=S.diff}
+$('passReset').onclick=()=>{S.passMarks=Object.assign({},PASS_DEF);save();applyPass();renderPass();$('songDiff').innerHTML='';renderDiff()};
+renderPass();
 $('songDiff').onchange=()=>{S.diff=$('songDiff').value;save();G.fails=0;G.slowRun=false;renderDiff()};
 renderDiff();
 
