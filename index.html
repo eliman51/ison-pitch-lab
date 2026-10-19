@@ -270,6 +270,39 @@ details.habit summary::-webkit-details-marker{display:none}
 .habit.lvl-occasional .hb{color:var(--muted)}
 .hbody{display:grid;gap:8px;margin-top:10px}.hbody p{margin:0;font-size:.92rem}.hbody b{color:var(--accent);font-weight:600}
 .hsvg{width:100%;max-width:320px;height:70px;background:var(--grid);border-radius:8px}
+header{position:relative}
+.helpbtn{position:absolute;right:0;top:14px;width:36px;height:36px;border-radius:50%;padding:0;font-family:var(--f-display);font-size:1.15rem;color:var(--accent);border:1px solid var(--line);background:var(--surface)}
+.placecard{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px dashed var(--gridC);border-radius:12px;padding:10px 12px;background:rgba(111,143,224,.06)}
+.placecard b{display:block;font-size:.92rem}.placecard span{display:block;font-size:.8rem;color:var(--muted)}.placecard button{flex:none}
+.stop.placed .seal{border-color:var(--good);color:var(--good);background:rgba(93,198,144,.08)}
+.placebody{display:flex;flex-direction:column;gap:12px}
+.pltips{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.plhome{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.plhead{display:flex;align-items:center;gap:14px}.plhead small{display:block;color:var(--muted);font-size:.8rem;text-transform:uppercase;letter-spacing:.06em}.plhead h2{margin:2px 0}
+.plseal{flex:none;width:64px;height:64px;border-radius:50%;display:grid;place-items:center;font-family:var(--f-display);font-size:1.7rem;color:var(--accentInk);background:radial-gradient(circle at 35% 30%,#F3D48E,#B98429 70%);box-shadow:0 0 24px var(--glow)}
+.plladder{display:grid;grid-template-columns:repeat(31,1fr);gap:3px}
+.plladder i{height:16px;border-radius:3px;background:var(--surface2);outline:1px solid var(--line);font-style:normal;font-size:.62rem;display:grid;place-items:center;color:var(--accentInk)}
+.plladder i.past{background:var(--good);outline:0}.plladder i.here{background:var(--accent);outline:0;transform:scale(1.25)}
+.plwhy{margin:0;font-size:.92rem;line-height:1.55}
+.plskills{display:flex;flex-direction:column;gap:7px}
+.plsk{display:grid;grid-template-columns:8.6em 1fr 6.6em;gap:8px;align-items:center;font-size:.84rem}
+.plsk b{font-family:var(--f-mono);font-weight:400;font-size:.76rem;text-align:right}
+.plsk b.st-secure{color:var(--good)}.plsk b.st-close{color:var(--warn)}.plsk b.st-notyet{color:var(--bad)}
+.pltl{display:flex;flex-direction:column;border-left:2px solid var(--gridC);margin-left:6px;padding-left:14px;gap:12px}
+.plms{position:relative;display:grid;grid-template-columns:5.4em 1fr;gap:10px;font-size:.88rem}
+.plms::before{content:"";position:absolute;left:-21px;top:5px;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 3px var(--surface)}
+.plms b{font-family:var(--f-mono);font-weight:400;color:var(--accent)}.plms small{display:block;color:var(--muted);font-size:.8rem;margin-top:2px}
+.tour{position:fixed;inset:0;z-index:60}
+.tourhole{position:fixed;border-radius:12px;box-shadow:0 0 0 9999px rgba(6,5,10,.78),0 0 0 2px var(--accent),0 0 24px var(--glow);transition:all .32s var(--e-out);pointer-events:none}
+.tourcard{box-sizing:border-box;position:fixed;background:var(--surface);border:1px solid var(--gridC);border-radius:14px;padding:14px 16px;box-shadow:0 12px 40px rgba(0,0,0,.55);opacity:0;transform:translateY(6px);transition:opacity .25s,transform .25s}
+.tourcard.in{opacity:1;transform:none}
+.tourcard small{color:var(--muted);font-family:var(--f-mono);font-size:.72rem}.tourcard h3{margin:4px 0 6px;font-family:var(--f-display);font-weight:400;color:var(--gold);font-size:1.2rem}.tourcard p{margin:0 0 12px;font-size:.92rem;line-height:1.5}
+html.touring .tabs{z-index:4}
+.sheetwrap{position:fixed;inset:0;z-index:55;background:rgba(6,5,10,.7);display:flex;align-items:flex-end;justify-content:center;padding:16px}
+.sheet{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--gridC);border-radius:18px;padding:20px 18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 -10px 40px rgba(0,0,0,.5);margin-bottom:env(safe-area-inset-bottom,0px)}
+.sheet h2{font-family:var(--f-display);font-weight:400;margin:0;font-size:1.45rem}.sheet p{margin:0 0 6px;color:var(--muted);font-size:.92rem;line-height:1.5}
+.sheetseal{width:46px;height:46px;border-radius:50%;display:grid;place-items:center;font-size:1.3rem;color:var(--accentInk);background:radial-gradient(circle at 35% 30%,#F3D48E,#B98429 70%)}
+
 .passrows{display:flex;flex-direction:column;gap:10px}
 .passrow{display:grid;grid-template-columns:5.6em 40px 1fr 40px 2.4em;gap:8px;align-items:center}
 .passrow .pn{font-size:.92rem}.passrow button{min-height:40px;padding:0;font-size:1.2rem;line-height:1}
@@ -342,9 +375,14 @@ details.sess summary::-webkit-details-marker{display:none}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
+<div class="tour" id="tour" hidden><div class="tourhole" id="tourHole"></div>
+  <div class="tourcard" id="tourCard" role="dialog" aria-live="polite" aria-labelledby="tourT"><small id="tourStep"></small><h3 id="tourT"></h3><p id="tourB"></p>
+    <div class="row"><button id="tourSkip">Skip</button><span style="flex:1"></span><button id="tourBack">Back</button><button class="primary" id="tourNext">Next</button></div></div></div>
+<div class="sheetwrap" id="welcome" hidden><div class="sheet" role="dialog" aria-labelledby="wT"><div class="sheetseal">♪</div><h2 id="wT">Welcome</h2><p id="wP"></p>
+  <button class="primary big" id="wTour">Show me around (1 minute)</button><button class="big" id="wPlace">Take the placement test (10 minutes)</button><button class="big" id="wView" hidden>See my last placement</button><button id="wClose">Maybe later</button></div></div>
 <div class="wrap">
   <header>
-    <h1>Ison <span>Pitch Lab</span></h1>
+    <h1>Ison <span>Pitch Lab</span></h1><button class="helpbtn" id="helpBtn" aria-label="Help: tour and placement test">?</button>
     <p>Learn to sing, one note at a time.</p>
   </header>
   <nav class="tabs" role="tablist" aria-label="Sections"><span class="tabink" id="tabInk" aria-hidden="true"></span>
@@ -380,6 +418,7 @@ details.sess summary::-webkit-details-marker{display:none}
     <h3>Skills, weakest first</h3>
     <div class="bars" id="weakSkills"></div>
   </section>
+  <section class="panel" id="placePanel" hidden><div id="placeBody" class="placebody"></div></section>
   <section class="panel" id="warmPanel" hidden aria-labelledby="t-warm">
     <div class="row" style="justify-content:space-between"><h2 id="t-warm">Byzantine scale workout</h2><span class="tag" id="byzLevel"></span></div>
     <p class="status" style="margin:0">A complete warm-up and practice on the Byzantine scale, built on your home note. It moves from straw and hum work, to the two half steps and the wide step, to the open voice, to patterns, to the whole scale over the ison and in chant tuning, then a phrase and the scale from memory. It gets a little faster and stricter every few workouts.</p>
@@ -425,6 +464,7 @@ details.sess summary::-webkit-details-marker{display:none}
       <canvas id="songMap" height="120" aria-label="Overview of the song's melody, phrase by phrase"></canvas>
       <div class="chipline" id="songFacts"></div>
     </div>
+    <div class="placecard" id="placeCard" hidden><div><b id="placeCardT"></b><span id="placeCardS"></span></div><button id="placeCardBtn"></button></div>
     <div class="map" id="map" role="list" aria-label="Stages"></div>
     <div class="stageinfo"><h3 id="stTitle"></h3><p id="stDesc"></p></div>
     <div class="unitbar"><span id="unitProg"></span><span id="unitTest"></span></div>
@@ -708,6 +748,11 @@ details.sess summary::-webkit-details-marker{display:none}
   <div class="stip" id="statTip" role="status" hidden></div>
   </div>
   <div class="view" id="v-settings" hidden>
+  <section class="panel" aria-labelledby="t-help">
+    <h2 id="t-help">Help and placement</h2>
+    <p class="status" style="margin:0" id="helpPlaceTxt">A one-minute tour of the app, and a 10-minute placement test that finds the right unit for you to start at.</p>
+    <div class="row"><button class="primary" id="setTour">Take the tour</button><button id="setPlace">Placement test</button><button id="setPlaceView" hidden>My placement</button></div>
+  </section>
   <section class="panel" aria-labelledby="t-safe">
     <h2 id="t-safe">Keep your progress safe</h2>
     <p class="status" id="safeStatus" style="margin:0"></p>
@@ -2391,7 +2436,7 @@ function showTab(k){
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
   if(k==='songs'&&!G.playing)drawSing();if(k==='tuner'&&!live){drawLive(0);drawTake(null)}
   if(k==='stats')renderStats();
-  if(k==='settings'){renderSafety();prepBackup().catch(()=>{})}
+  if(k==='settings'){$('setPlaceView').hidden=!store.get('ison-place-last',null);renderSafety();prepBackup().catch(()=>{})}
   if(k==='practice'){renderPractice();if(L.active&&!G.playing)lessonLoad(L.idx,true)}
 }
 TABS.forEach(t=>$('tab-'+t).onclick=()=>showTab(t));
@@ -2965,7 +3010,7 @@ function prog(id){const all=store.get('ison-prog2',{});return all[id]||{les:{},t
 function saveProg(id,p){const all=store.get('ison-prog2',{});all[id]=p;store.set('ison-prog2',all)}
 function history(){return store.get('ison-history',[])}
 function curTrack(){return mode==='song'?songT:foundTrack}
-function nextUp(tr){const P=prog(tr.id);for(let u=0;u<tr.units.length;u++){const passed=(P.test[u]||0)>=UNIT_PASS,timeOk=unitMin(tr,u)>=unitGoal(tr,u);
+function nextUp(tr){const P=prog(tr.id),ps=tr.id==='found3'?placeStart():0;for(let u=ps;u<tr.units.length;u++){const passed=(P.test[u]||0)>=UNIT_PASS,timeOk=unitMin(tr,u)>=unitGoal(tr,u);
   if(passed&&timeOk)continue;
   if(passed){const ls=tr.units[u].lessons;let w=0;ls.forEach((x,j)=>{if((P.les[u+'.'+j]||0)<(P.les[u+'.'+w]||0))w=j});return{u,l:w,more:true}}
   const l=tr.units[u].lessons.findIndex((x,j)=>(P.les[u+'.'+j]||0)<LESSON_PASS);return l<0?{u,l:-1}:{u,l}}return{u:tr.units.length-1,l:-1}}
@@ -3564,6 +3609,155 @@ function renderWarm(){const {level,n,toNext}=byzLevel();$('byzLevel').textConten
   $('byzWarmChk').checked=!!S.byzWarm;$('byzWarmNote').textContent=S.byzWarm?'On: sessions open with '+byzWarmBlock(store.get('ison-min',5)).length+' Byzantine warm-up exercises at your usual length.':''}
 function startByz(){if(L.active)return;store.set('ison-session',null);const m=store.get('ison-byzmin',10);startSessionWith(byzTrack,buildByzWorkout(m),0,0,m,false);$('plStage').textContent='Byzantine scale workout · level '+byzLevel().level}
 
+/* ================= Placement test =================
+   About 10 minutes, 20 exercises, one or two per skill of the Foundations course, from a single hummed note to the
+   chromatic tones. Built on the Seattle Singing Accuracy Protocol idea (comfortable pitch, single pitches, short
+   patterns, then real music), extended to everything the course teaches. Each exercise plays first, then the singer
+   echoes it; nothing repeats and nothing is gated, so a miss simply shows where things get hard.
+   Placement: each unit needs certain skills. Start at the first unit whose skills are not yet secure (78+).
+   A skill that is close (62 to 77) does not hold you back if the next three units are all secure: it goes to review. */
+const PL_SECURE=78,PL_DEV=62;
+const PL_SK={home:'Easy first sound',match:'Matching a note',steady:'Holding steady',steps:'Whole and half steps',scale5:'Five-note scale',landing:'Clean landings',
+ thirds:'Thirds',fifths:'Fourths and fifths',range:'The octave',modes:'Modes and the wide step',rhythm:'Rhythm',agility:'Agility',inner:'Singing from memory',
+ words:'Words',breath:'Long breath',ison:'Over the ison',isonhold:'Holding the ison',chanttune:'Chant tuning',chromatic:'Chromatic tones',hymn:'A hymn phrase'};
+const PL_NEEDS={0:['home'],1:['match'],2:['steady'],3:['steps'],4:['scale5'],5:['landing'],6:['thirds'],7:['fifths'],8:['range'],9:['modes'],10:['rhythm'],11:['agility'],
+ 12:['inner'],13:['words'],14:['breath'],15:['ison'],16:['isonhold'],17:['ison','inner'],18:['steps','scale5','inner'],19:['words','rhythm','ison'],20:['agility','rhythm'],
+ 21:['chanttune'],22:['chanttune'],23:['chanttune'],24:['chanttune'],25:['chanttune'],26:['chanttune'],27:['chromatic','chanttune'],28:['chromatic','chanttune'],29:['hymn','inner'],30:['chromatic']};
+const PL_SECTIONS=['Voice and matching','Steps and scales','Leaps and range','Musicianship','Chant skills','Tones and hymns'];
+const PART_DONE={8:'match any note you hear, hold it steady, and move cleanly by steps, thirds, fourths, fifths and octaves across your range',
+ 14:'sing in the old modes, keep rhythm, run quick notes, sing from memory, keep words clear and hold long phrases on one breath',
+ 20:'sing over the ison and hold it yourself, blend with a cantor, chant the note names, recite a psalm and read the time signs',
+ 28:'sing all eight tones in true chant tuning, with their cadences and model melodies',
+ 30:'sing real hymns from memory and the Byzantine scales in chant tuning'};
+function plItem(sec,skill,title,how,pat,beats,bpm,o){o=o||{};const it=mkItem({title,how,pat,beats,bpm,base:S.home+(o.key||0),listen:o.listen||'full',tolA:o.tol?o.tol[0]:25,tolB:o.tol?o.tol[1]:70,
+  words:o.w,ison:o.ison,acc:o.acc,blind:o.blind,micro:o.micro});return Object.assign(it,{pl:skill,lid:'0.'+sec,lname:PL_SECTIONS[sec],main:true,utips:o.tips||['general']})}
+function buildPlacement(){const T=[];const P=(...a)=>T.push(plItem(...a));
+  P(0,'home','Hum your home note','An easy hum on one comfortable note, four beats.',[0],[4],60,{w:['mm'],tips:['breath']});
+  P(0,'match','Match single notes','Four separate notes, each with a rest after. Sing each one back.',[2,null,-3,null,5,null,-5],[1.5,1,1.5,1,1.5,1,1.5],66,{w:['ah','','ah','','ah','','ah'],tips:['match']});
+  P(0,'steady','Hold one note steady','Eight beats on "ah" without wobbling or sagging.',[0],[8],60,{w:['ah'],tips:['sustain']});
+  P(1,'steps','Whole steps','Up three whole steps and back.',[0,2,4,2,0],[1,1,1,1,2],72,{tips:['steps']});
+  P(1,'steps','Half steps','The smallest step, above and below home.',[0,1,0,-1,0],[1,1,1,1,2],66,{tips:['steps']});
+  P(1,'scale5','Five-note scale','Do re mi fa sol and back.',[0,2,4,5,7,5,4,2,0],[1,1,1,1,2,1,1,1,2],76,{w:['do','re','mi','fa','sol','fa','mi','re','do'],tips:['scale']});
+  P(1,'landing','Clean jumps','Jump straight to each note with no slide in.',[0,5,0,7,0],[1,1,1,1,2],66,{tips:['onset']});
+  P(2,'thirds','Major third and chord','Do mi sol mi do.',[0,4,7,4,0],[1,1,1,1,2],72,{w:['do','mi','sol','mi','do'],tips:['leaps']});
+  P(2,'thirds','Minor chord','La do mi do la: the darker third.',[0,3,7,3,0],[1,1,1,1,2],72,{tips:['leaps']});
+  P(2,'fifths','Fifths and fourths','Up a fifth, down, up a fourth, down, and a fifth below.',[0,7,0,5,0,-5,0],[1,1,1,1,1,1,2],66,{tips:['leaps']});
+  P(2,'range','The octave scale','All eight notes up and back.',[0,2,4,5,7,9,11,12,11,9,7,5,4,2,0],[1,1,1,1,1,1,1,2,1,1,1,1,1,1,2],84,{tips:['range']});
+  P(3,'modes','The wide step','A half step, then a step and a half: the sound of the chromatic tones.',[0,1,4,5,4,1,0],[1,1,1,2,1,1,2],66,{tips:['modes']});
+  P(3,'rhythm','Long and short notes','Dotted and quick notes: keep the rhythm exact.',[0,0,2,4,4,2,0],[1.5,.5,1,.5,.5,1,2],72,{tips:['rhythm']});
+  P(3,'agility','A quick run','Two notes to a beat, up and down. Light and clean.',[0,2,4,5,7,5,4,2,0],[.5,.5,.5,.5,.5,.5,.5,.5,2],92,{tips:['agility']});
+  P(3,'inner','From memory','Hear the melody once. Then the guide hides and you sing it on your own.',[0,4,2,5,4,2,0],[1,1,1,1,1,1,2],72,{blind:true,tips:['audiation']});
+  P(3,'words','Lord, have mercy','Keep the pitch steady through the words.',[2,2,4,2,0],[1,1,1,1,2],72,{w:['Lord,','have','mer-','','cy'],tips:['diction']});
+  P(3,'breath','One long breath','About 13 seconds on one breath. Pace your air.',[0,2,4,5,4,2,4,5,7,5,4,2,0],[1,1,1,1,1,1,1,1,1,1,1,1,1],60,{w:['ah'],tips:['breath']});
+  P(4,'ison','Over the ison','An ison holds home while you sing the five-note scale over it.',[0,2,4,5,7,5,4,2,0],[1,1,1,1,2,1,1,1,2],72,{ison:0,tol:[22,62],tips:['ison']});
+  P(4,'isonhold','Hold the ison','You hold home steady while a melody moves above you. Do not follow it.',[0],[10],60,{listen:'cue',acc:{p:[0,2,4,5,4,2,4,2,0],b:[1,1,1,1,1,1,1,1,2]},tips:['isonhold']});
+  P(5,'chanttune','Chant tuning (Tone 1)','Pa, Vou, Ga, Di in chant tuning over the ison. Vou sits a little low.',[0,5/3,3,5,3,5/3,0],[1,1,1,2,1,1,2],66,{ison:0,micro:true,tol:[18,55],w:['Pa','Vou','Ga','Di','Ga','Vou','Pa'],tips:['chanttune']});
+  P(5,'chromatic','Chromatic (Tone 6)','The hard chromatic: a half step, then a very wide step, in chant tuning.',[0,1,13/3,5,13/3,1,0],[1,1,1,2,1,1,2],66,{ison:0,micro:true,tol:[18,55],tips:['chanttune']});
+  P(5,'hymn','Holy God (Trisagion)','The opening of the Trisagion with its words.',[4,2,0,-1,-3,-5,-3,-1,0],[1,1,.5,.5,.5,.5,1,1,2],84,{key:2,w:['Ho-','','','','','','','ly','God'],tips:['hymn']});
+  return T}
+const placeTrack={id:'place',name:'Placement test',unit:'Test',noGate:true,units:[{name:'Placement test',lessons:PL_SECTIONS.map(n=>({name:n,items:()=>[]})),test:()=>[]}]};
+let placeView=null,placeRes=null;
+function computePlacement(items,results){const raw={};let heard=0,done=0,lo=[],hi=[];
+  items.forEach((it,i)=>{const r=results[i];if(!it.pl||!r)return;done++;let v=r.score;if(r.cov>=0.25){heard++;if(it.pl==='steady')v=0.5*r.score+50*(r.steady||0);if(it.pl==='landing')v=0.5*r.score+50*(r.react||0)}
+    (raw[it.pl]=raw[it.pl]||[]).push(Math.round(v));if(r.plLo!=null){lo.push(r.plLo);hi.push(r.plHi)}});
+  const sk={};Object.keys(raw).forEach(k=>sk[k]=Math.round(avg(raw[k])));
+  const units=foundTrack.units.length,low=k=>sk[k]==null?0:sk[k],reviews=new Set();let start=units-1,gap=null;
+  for(let u=0;u<units;u++){const need=PL_NEEDS[u]||[],mn=Math.min(...need.map(low));if(mn>=PL_SECURE)continue;
+    if(mn>=PL_DEV){const ahead=[u+1,u+2,u+3].filter(x=>x<units).map(x=>Math.min(...(PL_NEEDS[x]||[]).map(low)));if(ahead.length&&ahead.every(v=>v>=PL_SECURE)){need.filter(k=>low(k)<PL_SECURE).forEach(k=>reviews.add(k));continue}}
+    start=u;gap=need.filter(k=>low(k)<PL_SECURE).sort((a,b)=>low(a)-low(b));break}
+  const valid=done>=Math.ceil(items.length*0.6)&&heard>=Math.ceil(done*0.5);if(!valid){start=0;gap=null}
+  lo.sort((a,b)=>a-b);hi.sort((a,b)=>a-b);
+  return{date:Date.now(),start,gap,reviews:[...reviews],skills:sk,valid,done,total:items.length,lo:lo.length?lo[Math.floor(lo.length*0.1)]:null,hi:hi.length?hi[Math.floor(hi.length*0.9)]:null,home:S.home}}
+function placeStart(){const p=store.get('ison-place',null);return p&&p.applied&&p.valid?p.start:0}
+function startPlacement(){if(L.active)return;store.set('ison-session',null);placeView=null;mode='found';store.set('ison-mode',mode);showTab('practice');
+  startSessionWith(placeTrack,buildPlacement(),0,0,10,false);$('plStage').textContent='Placement test · '+PL_SECTIONS[0]}
+function plFinish(){placeRes=computePlacement(L.items,L.results);store.set('ison-place-last',placeRes);placeView='result';renderPractice();$('placePanel').scrollIntoView({behavior:'smooth',block:'start'});
+  if(placeRes.valid)setTimeout(()=>fxBurst($('placePanel'),true),300)}
+/* panel */
+function mkEl(tag,cls,txt){const e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+function renderPlace(){const box=$('placeBody');box.innerHTML='';
+  if(placeView==='intro'){box.append(mkEl('h2',null,'Placement test'),
+    mkEl('p','status','About 8 to 10 minutes: 22 short exercises across the whole Foundations course, from one hummed note to the chromatic tones. Each one plays first, then you sing it back. At the end you get the unit to start at, why, and what the road ahead looks like.'));
+    const ul=mkEl('ul','pltips');['Use headphones if you have them, in a quiet room.','Try every exercise, even ones that look beyond you. A miss is useful: it shows where things get hard.','Nothing repeats and nothing has to pass. Just do your best once.','Your home note sets the pitch of every exercise. Check it first.'].forEach(t=>ul.appendChild(mkEl('li',null,t)));box.appendChild(ul);
+    const hr=mkEl('div','plhome');const hb=mkEl('b',null,'Home note: '+nameOf(S.home));const fb=mkEl('button',null,'Hum to find it');const fs=mkEl('span','status','');
+    fb.onclick=()=>findHomeNote(fs,fb,()=>{hb.textContent='Home note: '+nameOf(S.home)});hr.append(hb,fb,fs);box.appendChild(hr);
+    const go=mkEl('button','primary big','Begin the test');go.onclick=startPlacement;const cx=mkEl('button','big','Not now');cx.onclick=()=>{placeView=null;renderPractice()};box.append(go,cx);return}
+  const R=placeRes||store.get('ison-place-last',null);if(!R){placeView=null;renderPractice();return}
+  const tr=foundTrack,un=tr.units[R.start],applied=(store.get('ison-place',null)||{}).date===R.date;
+  box.appendChild(mkEl('span','tag','Placement · '+new Date(R.date).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})));
+  if(!R.valid){box.append(mkEl('h2',null,'Not enough singing heard'),mkEl('p','status','The test finished '+R.done+' of '+R.total+' exercises but heard too little singing to place you. Check that the microphone is allowed, sing a little louder, and try again. Until then, Unit 0 is the safe start.'));
+    const again=mkEl('button','primary big','Retake the test');again.onclick=()=>{placeView='intro';renderPractice()};const cl=mkEl('button','big','Close');cl.onclick=()=>{placeView=null;renderPractice()};box.append(again,cl);return}
+  const head=mkEl('div','plhead');const seal=mkEl('div','plseal',String(R.start));const ht=mkEl('div');ht.append(mkEl('small',null,'Start at'),mkEl('h2',null,'Unit '+R.start+' · '+un.name),mkEl('span','status','Part '+(un.part+1)+': '+PART[un.part]));head.append(seal,ht);box.appendChild(head);
+  /* ladder */
+  const lad=mkEl('div','plladder');tr.units.forEach((u,i)=>{const c=mkEl('i',i<R.start?'past':i===R.start?'here':'');c.title='Unit '+i+': '+u.name;if(i===R.start)c.textContent='★';lad.appendChild(c)});
+  const lg=mkEl('div','legend');lg.innerHTML='<span><i style="background:var(--good)"></i>placed out</span><span><i style="background:var(--accent)"></i>start here</span><span><i style="background:var(--surface2);outline:1px solid var(--line)"></i>ahead</span>';box.append(lad,lg);
+  /* why */
+  const secure=Object.keys(R.skills).filter(k=>R.skills[k]>=PL_SECURE).sort((a,b)=>R.skills[b]-R.skills[a]);
+  let why='';if(R.start===0)why='Unit 0 builds the base everything else stands on: an easy hum, low breath and clean starts. '+(R.gap&&R.gap.length?'Your '+PL_SK[R.gap[0]].toLowerCase()+' scored '+R.skills[R.gap[0]]+', under the secure mark of '+PL_SECURE+'. ':'')+'Starting at the beginning goes quickly when things feel easy, and the unit test lets you move on as soon as you are ready.';
+  else{why='You were secure in '+secure.slice(0,6).map(k=>PL_SK[k].toLowerCase()+' ('+R.skills[k]+')').join(', ')+(secure.length>6?' and '+(secure.length-6)+' more':'')+'. ';
+    if(R.gap&&R.gap.length)why+='The first skill that is not yet secure is '+R.gap.map(k=>PL_SK[k].toLowerCase()+' ('+R.skills[k]+')').join(' and ')+', which Unit '+R.start+' teaches. ';
+    else why+='Every skill the test checks was secure, so you start at the last unit. ';
+    why+='Units 0 to '+(R.start-1)+' are marked as placed out: you can still open any of them, and their lessons count if you do.'}
+  if(R.reviews.length)why+=' Close but not quite: '+R.reviews.map(k=>PL_SK[k].toLowerCase()+' ('+R.skills[k]+')').join(', ')+'. These did not hold you back; Weak spots will bring them up for review.';
+  box.append(mkEl('h3',null,'Why this unit'),mkEl('p','plwhy',why));
+  if(R.lo!=null)box.appendChild(mkEl('p','status','Range heard in the test: '+nameOf(R.lo)+' to '+nameOf(R.hi)+', home '+nameOf(R.home)+'.'));
+  /* skills */
+  box.appendChild(mkEl('h3',null,'Every skill tested'));const sl=mkEl('div','plskills');
+  Object.keys(PL_SK).forEach(k=>{const v=R.skills[k];if(v==null)return;const row=mkEl('div','plsk');const st=v>=PL_SECURE?'secure':v>=PL_DEV?'close':'notyet';
+    const nm=mkEl('span',null,PL_SK[k]);const trk=mkEl('span','vt');const ii=mkEl('i');ii.style.width=Math.max(2,v)+'%';ii.style.background=st==='secure'?'var(--good)':st==='close'?'var(--warn)':'var(--bad)';trk.appendChild(ii);
+    const lab=mkEl('b','st-'+st,v+' · '+(st==='secure'?'secure':st==='close'?'close':'not yet'));row.append(nm,trk,lab);sl.appendChild(row)});box.appendChild(sl);
+  box.appendChild(mkEl('p','stake','Secure is '+PL_SECURE+' or more, close is '+PL_DEV+' to '+(PL_SECURE-1)+'. Scores use the same scale as lessons (70 completes a lesson).'));
+  /* the road ahead */
+  const goals=tr.units.map((_,u)=>unitGoal(tr,u)),remain=goals.slice(R.start).reduce((a,b)=>a+b,0),full=goals.reduce((a,b)=>a+b,0);
+  box.appendChild(mkEl('h3',null,'The road ahead'));
+  box.appendChild(mkEl('p','plwhy','The course from here is about '+fmtHM(remain)+' of practice'+(R.start?' (the whole course is '+fmtHM(full)+'; placing out saves about '+fmtHM(full-remain)+')':'')+'. At 20 minutes a day, 5 days a week, that is about '+Math.ceil(remain/100)+' weeks; at 30 minutes every day, about '+Math.ceil(remain/210)+' weeks.'));
+  const tl=mkEl('div','pltl');let cum=0;const marks=[];const reach=h=>{let c=0;for(let u=R.start;u<goals.length;u++){c+=goals[u];if(c>=h*60)return u}return goals.length-1};
+  [5,10,25,50,100].filter(h=>h*60<remain).forEach(h=>marks.push({h,u:reach(h)}));marks.push({h:remain/60,u:goals.length,end:true});
+  let shown=null;marks.forEach(m=>{const row=mkEl('div','plms');const hh=mkEl('b',null,m.end?'Course done':m.h+' h');const tx=mkEl('div');
+    const doneParts=Object.keys(PART_DONE).map(Number).filter(e=>e<(m.end?99:m.u)&&e>=R.start);const last=doneParts.length?PART_DONE[doneParts[doneParts.length-1]]:null;
+    tx.append(mkEl('span',null,m.end?'All '+goals.length+' units finished, about '+fmtHM(remain)+' from now.':'Working on Unit '+m.u+': '+tr.units[m.u].name+'.'));
+    if(last&&last!==shown){tx.appendChild(mkEl('small',null,'By then you can '+last+'.'));shown=last}row.append(hh,tx);tl.appendChild(row)});
+  box.appendChild(tl);
+  box.appendChild(mkEl('p','stake','Hours are practice time actually singing, using each unit\'s research-based time goal. Faster progress is fine: pass a unit test and move on.'));
+  const ap=mkEl('button','primary big',applied?'Placement in use: Unit '+R.start:'Start at Unit '+R.start);ap.disabled=applied;
+  ap.onclick=()=>{store.set('ison-place',{...R,applied:true});selU=R.start;selL=0;placeView=null;renderPractice();setTimeout(()=>$('map').scrollIntoView({behavior:'smooth',block:'center'}),100)};
+  const keep=mkEl('button','big','Keep my current position');keep.onclick=()=>{placeView=null;renderPractice()};
+  const re=mkEl('button',null,'Retake the test');re.onclick=()=>{placeView='intro';renderPractice()};box.append(ap,keep,re)}
+function findHomeNote(statusEl,btn,done){(async()=>{if(!live)await startLive();if(!live){statusEl.textContent='The microphone is needed for this.';return}
+  const got=[];btn.disabled=true;let n=0;statusEl.textContent='Listening... hum now';
+  const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);statusEl.textContent='Listening... '+(4-Math.floor(n/10))+' s';
+    if(n>=40){clearInterval(iv);btn.disabled=false;if(got.length<8){statusEl.textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
+      S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);statusEl.textContent='Your home note is '+nameOf(S.home)+'.';if(done)done()}},100)})()}
+
+/* ================= Tour ================= */
+const TOUR=[
+ {tab:'practice',sel:'.tabs',t:'Five sections',b:'Practice holds the lessons. Songs is for singing along with chants or your own recordings. Tuner shows your pitch live. Stats tracks your progress. Settings holds your voice, pass marks and backups.'},
+ {tab:'practice',mode:'found',sel:'#v-practice>.seg',t:'Ways to practice',b:'Foundations is the main course. Song turns any song into lessons. Weak spots drills your lowest scores. Habits fixes mistakes the coach keeps noticing. Warm-up is the Byzantine scale workout.'},
+ {tab:'practice',mode:'found',sel:'#map',t:'Your course map',b:'Each circle is a unit. Gold means mastered. Swipe sideways and tap a unit to see its lessons and its unit test.'},
+ {tab:'practice',mode:'found',sel:'#builder',t:'Start a session',b:'Pick the time you have and a challenge level, then press Start session. The app fills the time with lessons, reviews and extra practice.'},
+ {tab:'practice',mode:'found',sel:'.rank',t:'Rank and practice time',b:'Every minute you sing counts. Ranks run from 1 to 100 and get slower to earn, like real skill.'},
+ {tab:'practice',sel:null,t:'While you sing',b:'Each exercise plays first. Gold bars are the notes, and your voice draws a line through them. When the playhead reaches the bars, sing. A coach tip sits above the graph and your score appears after each exercise.'},
+ {tab:'songs',sel:'#sing',t:'Songs',b:'Sing along with the built-in chants or load your own recording; the app finds the melody for you. Drag the chart to look through the whole song.'},
+ {tab:'tuner',sel:'#v-tuner .panel',t:'Tuner',b:'Sing or play any note and see exactly how sharp or flat you are.'},
+ {tab:'stats',sel:'#v-stats .panel',t:'Stats',b:'Your history by calendar time or by chunks of practice, with charts and the coach\'s read on what to work on next.'},
+ {tab:'settings',sel:'#t-help',t:'Help is always here',b:'Replay this tour or take the placement test from here or from the ? at the top. Settings also holds pass marks, animations and backups.',end:true}];
+let TS=null;
+function tourStart(){closeWelcome();if(L.active&&G.playing)lessonPause();TS={i:0,mode};$('tour').hidden=false;document.documentElement.classList.add('touring');tourShow()}
+function tourEnd(){$('tour').hidden=true;document.documentElement.classList.remove('touring');store.set('ison-toured',1);if(TS&&TS.mode&&mode!==TS.mode&&!L.active){mode=TS.mode;store.set('ison-mode',mode)}TS=null;showTab('practice')}
+function tourShow(){const st=TOUR[TS.i];if(st.mode&&mode!==st.mode&&!L.active){mode=st.mode;renderPractice()}showTab(st.tab);
+  $('tourStep').textContent=(TS.i+1)+' of '+TOUR.length;$('tourT').textContent=st.t;$('tourB').textContent=st.b;$('tourBack').hidden=TS.i===0;$('tourNext').textContent=st.end?'Done':'Next';
+  $('tourCard').classList.remove('in');
+  setTimeout(()=>{const e=st.sel&&document.querySelector(st.sel);if(e&&e.offsetParent){const r=e.getBoundingClientRect();if(r.top<70||r.bottom>innerHeight-200)e.scrollIntoView({block:r.height>innerHeight*0.5?'start':'center'})}setTimeout(tourPlace,280)},60)}
+function tourPlace(){if(!TS)return;const st=TOUR[TS.i],e=st.sel&&document.querySelector(st.sel),hole=$('tourHole'),card=$('tourCard');
+  const cw=Math.min(360,innerWidth-32);card.style.width=cw+'px';card.style.left=Math.round((innerWidth-cw)/2)+'px';
+  if(!e||!e.offsetParent){hole.style.left=innerWidth/2+'px';hole.style.top=innerHeight/2+'px';hole.style.width='0px';hole.style.height='0px';card.style.top=Math.max(16,innerHeight/2-card.offsetHeight/2)+'px';card.classList.add('in');return}
+  const r=e.getBoundingClientRect(),pad=6,top=Math.max(4,r.top-pad),bot=Math.min(innerHeight-4,r.bottom+pad);
+  hole.style.left=(r.left-pad)+'px';hole.style.top=top+'px';hole.style.width=(r.width+pad*2)+'px';hole.style.height=Math.max(0,bot-top)+'px';
+  const ch=card.offsetHeight;let y;if(bot+12+ch<innerHeight-8)y=bot+12;else if(top-12-ch>8)y=top-12-ch;else y=innerHeight-ch-16;card.style.top=Math.round(y)+'px';card.classList.add('in')}
+function openWelcome(first){$('wT').textContent=first?'Welcome to Ison Pitch Lab':'Help';$('wP').textContent=first?'A singing coach for learning to sing on pitch, from your first note to Byzantine chant. Start with a one-minute tour, or take the placement test to find where to begin.':'Take the one-minute tour of the app, or take the 10-minute placement test to see where you should be in the course.';
+  const pr=store.get('ison-place-last',null);$('wView').hidden=!pr;$('welcome').hidden=false}
+function closeWelcome(){$('welcome').hidden=true;store.set('ison-welcomed',1)}
+
 /* ================= Keep the screen awake =================
    A locked or sleeping screen pauses the microphone, so during a session, a sing-along or the tuner
    the app asks the phone to keep the screen on (Screen Wake Lock), and also plays a tiny silent,
@@ -3584,6 +3778,8 @@ function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
   $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));$('mode-warm').setAttribute('aria-selected',String(mode==='warm'));
   $('weakPanel').hidden=mode!=='weak'||L.active;$('habitPanel').hidden=mode!=='habit'||L.active;$('warmPanel').hidden=mode!=='warm'||L.active;
+  $('placePanel').hidden=!placeView||L.active;
+  if(placeView&&!L.active){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel','warmPanel','results'].forEach(i=>$(i).hidden=true);$('player').hidden=true;renderPlace();return}
   if(mode==='warm'){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;if(!L.active)renderWarm();drawHistory();return}
   if(mode==='habit'){['heroPanel','songSetup','songOpts','builder','weakPanel','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderHabits();drawHistory();return}
   if(mode==='weak'){['heroPanel','songSetup','songOpts','builder','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
@@ -3596,11 +3792,15 @@ function renderPractice(){
   const P=prog(tr.id);$('t-today').textContent=mode==='song'?tr.name:'Foundations';
   const totalL=tr.units.reduce((a,x)=>a+x.lessons.length,0),doneL=Object.keys(P.les).filter(k=>P.les[k]>=LESSON_PASS).length;
   $('kPassedLbl').textContent='Lessons done';$('kPassed').textContent=doneL+'/'+totalL;
+  {const pc=$('placeCard'),pl=store.get('ison-place',null),last=store.get('ison-place-last',null);pc.hidden=mode!=='found';
+    if(pl&&pl.applied){$('placeCardT').textContent='Placed at Unit '+pl.start+' · '+(foundTrack.units[pl.start]||{}).name;$('placeCardS').textContent='Placement test, '+new Date(pl.date).toLocaleDateString([], {month:'short',day:'numeric'})+'. See why and the road ahead.';$('placeCardBtn').textContent='View';$('placeCardBtn').onclick=()=>{placeRes=pl;placeView='result';renderPractice()}}
+    else if(last){$('placeCardT').textContent='Your test placed you at Unit '+last.start;$('placeCardS').textContent='Not applied yet. Open it to start there.';$('placeCardBtn').textContent='View';$('placeCardBtn').onclick=()=>{placeRes=last;placeView='result';renderPractice()}}
+    else{$('placeCardT').textContent='Not sure where to start?';$('placeCardS').textContent='A 10-minute placement test finds your unit.';$('placeCardBtn').textContent='Take the test';$('placeCardBtn').onclick=()=>{placeView='intro';renderPractice()}}}
   const nx=nextUp(tr);$('heroStage').textContent='Next: unit '+nx.u+(nx.more?', more practice':nx.l<0?', test':', lesson '+(nx.l+1));
   if(selU>=tr.units.length)selU=0;
   const map=$('map');map.innerHTML='';
   tr.units.forEach((s,i)=>{const n=s.lessons.length,d=s.lessons.filter((x,j)=>(P.les[i+'.'+j]||0)>=LESSON_PASS).length,mastered=(P.test[i]||0)>=UNIT_PASS;
-    const b=document.createElement('button');b.className='stop'+(mastered?' done':'')+(i===selU?' sel':'');b.setAttribute('role','listitem');
+    const b=document.createElement('button');b.className='stop'+(mastered?' done':'')+(!mastered&&tr.id==='found3'&&i<placeStart()?' placed':'')+(i===selU?' sel':'');b.setAttribute('role','listitem');
     b.setAttribute('aria-label',tr.unit+' '+i+': '+s.name+', '+d+' of '+n+' lessons'+(mastered?', mastered':''));
     const seal=document.createElement('span');seal.className='seal';seal.textContent=String(i);
     if(!mastered&&d)seal.style.background='conic-gradient(var(--accent) '+Math.round(d/n*360)+'deg, var(--surface2) 0)';
@@ -3670,7 +3870,7 @@ function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
   if(S.byzWarm&&!isTest&&tr.id!=='byz'&&idx==null&&!results)items=byzWarmBlock(minutes||5).concat(items.filter(it=>it.kind!=='Warm-up'));
   protectStorage();L.active=true;L.sessId=Date.now();setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
-  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('warmPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
+  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('warmPanel').hidden=true;$('placePanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function lessonLoad(i,keepPos){
@@ -3712,7 +3912,8 @@ function lessonPause(){if(!G.playing)return;stopSing(true);L.pos=G.pos;L.trace=G
 function lessonItemDone(){
   clearInterval(L.timer);if(!gAudio.paused)gAudio.pause();const it=L.items[L.idx],r=scoreItem(it,G.trace);
   const R=r?{...r,title:it.title.replace(/ \(75% speed\)$/,''),dur:it.dur,main:it.main,lid:it.lid,lname:it.lname}:{score:0,acc:0,cov:0,steady:0,react:0,title:it.title,dur:it.dur,main:it.main,lid:it.lid,lname:it.lname};
-  const D=DIFF[S.diff]||DIFF.easy,pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
+  const D=L.track&&L.track.noGate?DIFF.easy:(DIFF[S.diff]||DIFF.easy),pass=D.pass==null||R.score>=D.pass;L.tries[L.idx]=(L.tries[L.idx]||0)+1;
+  if(L.track&&L.track.noGate){const ms=G.trace.filter(p=>p.m!=null&&p.t>=(it.singFrom||0)).map(p=>p.m).sort((a,b)=>a-b);if(ms.length>=20){R.plLo=ms[Math.floor(ms.length*0.05)];R.plHi=ms[Math.floor(ms.length*0.95)]}}
   recordAttempt(L.track,it,R);recordGuide(it,R);let hrL=null;
   if(R.cov>=0.3&&!it.kind){const hr=analyzeHabits(it,G.trace,1);hrL=hr;recordHabits(hr);let best=null,bv=0;
     Object.keys(hr.H).forEach(id=>{const k=hr.H[id],o=hr.O[id]||1,ex=['phrasesag','streak','repeat'].includes(id);if((ex&&k>=1)||(k>=2&&k/o>=0.34)){L.sessHab[id]=(L.sessHab[id]||0)+1;const v=k/o;if(v>bv){bv=v;best=id}}});
@@ -3795,6 +3996,7 @@ function finishSession(){
   saveProg(tr.id,P);
   if(all.length){const Hs=history();Hs.push({d:today(),tr:tr.id,st:L.u,test:L.isTest,min:L.minutes,sung,score,passed:L.isTest?score>=UNIT_PASS:lessonRes.some(x=>x.score>=LESSON_PASS),acc:+agg.acc.toFixed(2),cov:+agg.cov.toFixed(2),steady:+agg.steady.toFixed(2),react:+agg.react.toFixed(2)});store.set('ison-history',Hs.slice(-400))}
   recordFatigue(L.results);
+  if(tr===placeTrack){plFinish();return}
   if(tr===byzTrack&&all.length>=Math.ceil(L.items.length*0.6)){const st=store.get('ison-byz',{n:0});st.n=(st.n||0)+1;st.last=Date.now();store.set('ison-byz',st)}
   if(tr===curTrack()){const nx=nextUp(tr);selU=nx.u;selL=Math.max(0,nx.l)}
   renderPractice();showResults(score,agg,lessonRes);
@@ -3843,6 +4045,13 @@ function drawHistory(){
 $('mode-habit').onclick=()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);renderPractice()};
 $('mode-warm').onclick=()=>{if(L.active)return;mode='warm';store.set('ison-mode',mode);renderPractice()};
 $('byzStart').onclick=startByz;
+$('helpBtn').onclick=()=>openWelcome(false);$('wClose').onclick=closeWelcome;$('wTour').onclick=tourStart;
+$('wPlace').onclick=()=>{closeWelcome();showTab('practice');placeView='intro';renderPractice();$('placePanel').scrollIntoView({block:'start'})};
+$('wView').onclick=()=>{closeWelcome();showTab('practice');placeRes=store.get('ison-place-last',null);placeView='result';renderPractice()};
+$('setTour').onclick=tourStart;$('setPlace').onclick=()=>{showTab('practice');placeView='intro';renderPractice();$('placePanel').scrollIntoView({block:'start'})};
+$('setPlaceView').onclick=()=>{showTab('practice');placeRes=store.get('ison-place-last',null);placeView='result';renderPractice()};
+$('tourNext').onclick=()=>{if(!TS)return;if(TS.i>=TOUR.length-1){tourEnd();return}TS.i++;tourShow()};$('tourBack').onclick=()=>{if(TS&&TS.i>0){TS.i--;tourShow()}};$('tourSkip').onclick=tourEnd;
+window.addEventListener('resize',()=>{if(TS)tourPlace()});window.addEventListener('scroll',()=>{if(TS)tourPlace()},{passive:true});
 $('byzWarmChk').onchange=()=>{S.byzWarm=$('byzWarmChk').checked;save();renderWarm()};
 $('mode-weak').onclick=()=>{if(L.active)return;mode='weak';store.set('ison-mode',mode);renderPractice()};
 $('wkFound').onclick=()=>{weakTr='found';renderWeak()};$('wkSong').onclick=()=>{weakTr='song';renderWeak()};
@@ -3863,6 +4072,7 @@ $('useSinger').checked=S.useSinger!==false;$('useSinger').onchange=()=>{S.useSin
 $('startSession').onclick=()=>{const tr=curTrack();if(!tr)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('startTest').onclick=()=>startTest();
 $('resumeSession').onclick=async()=>{const s=store.get('ison-session',null);if(!s)return;
+  if(s.tr==='place'){mode='found';startSessionWith(placeTrack,s.items,0,0,10,false,s.idx,s.results);return}
   if(s.tr==='byz'){mode='warm';startSessionWith(byzTrack,s.items,0,0,s.minutes,false,s.idx,s.results);return}
   if(s.tr.startsWith('song3:')){mode='song';if(!songT||songT.id!==s.tr){const sid=s.tr.slice(6);await openSongCourse(sid.startsWith('b:')?sid:+sid)}}else mode='found';
   const tr=curTrack();if(!tr){$('resumeSession').hidden=true;return}startSessionWith(tr,s.items,s.u||0,s.l||0,s.minutes,s.isTest,s.idx,s.results)};
@@ -3885,9 +4095,10 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
+if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
 selMin=store.get('ison-min',5);mode=store.get('ison-mode','found');{const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l)}
 if(mode==='song'){const id=store.get('ison-course',null);if(id!=null)openSongCourse(id)}
 function renderDiff(){const c=$('diffChips');if(!c.children.length){Object.keys(DIFF).forEach(k=>{const b=document.createElement('button');b.textContent=DIFF[k].name;b.dataset.k=k;
