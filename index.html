@@ -256,6 +256,9 @@ html.nomo .stars i{opacity:1}
 .nc.warn{border-color:color-mix(in srgb,var(--warn) 60%,var(--line))}.nc.bad{border-color:color-mix(in srgb,var(--bad) 70%,var(--line));color:#F3B4AA}
 .backupnag{display:grid;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:rgba(214,166,79,.08);font-size:.9rem}
 .seg button{font-size:.9rem;padding:10px 4px}
+#v-practice>.seg{grid-auto-columns:auto}#v-practice>.seg button{font-size:.8rem;padding:10px 2px;white-space:nowrap}
+.byzplan{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.88rem}
+.byzplan li span{color:var(--muted);font-size:.8rem}.byzplan li b{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}
 .habits{display:grid;gap:10px}
 details.habit{border:1px solid var(--line);border-radius:12px;background:var(--surface2);padding:10px 12px}
 details.habit summary{cursor:pointer;list-style:none;display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:baseline}
@@ -307,6 +310,11 @@ details.habit summary::-webkit-details-marker{display:none}
 .vgauge::after{content:"";position:absolute;left:50%;top:-3px;bottom:-3px;width:1px;background:var(--muted)}
 .vgauge i{position:absolute;top:-5px;width:6px;height:24px;margin-left:-3px;background:var(--ink);border-radius:3px;box-shadow:0 0 0 2px var(--bg)}
 .stcharts{display:flex;flex-direction:column;gap:18px}
+.ctable{overflow-x:auto;margin-inline:-4px}.ctable table{border-collapse:collapse;width:100%;font-size:.82rem;font-variant-numeric:tabular-nums}
+.ctable th{font-weight:400;color:var(--muted);text-align:right;padding:4px 4px;font-size:.75rem;white-space:nowrap}.ctable th:first-child{text-align:left}
+.ctable td{padding:7px 4px;border-top:1px solid var(--line);text-align:right;white-space:nowrap;font-family:var(--f-mono)}
+.ctable td:first-child{text-align:left;font-family:var(--f-body);white-space:normal}.ctable td b{display:block;font-weight:600}.ctable td small{color:var(--muted);font-size:.72rem}
+.ctable td small.up{color:var(--good)}.ctable td small.down{color:var(--bad)}
 .scard{gap:10px}.scard canvas{display:block;max-width:100%;touch-action:pan-y}
 .smgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
 .smcell{min-width:0}.smcell span{font-size:.8rem;color:var(--muted)}.smcell b{float:right;font-family:var(--f-mono);font-weight:400;font-size:.85rem}
@@ -353,6 +361,7 @@ details.sess summary::-webkit-details-marker{display:none}
     <button role="tab" id="mode-song" aria-selected="false">Song</button>
     <button role="tab" id="mode-weak" aria-selected="false">Weak spots</button>
     <button role="tab" id="mode-habit" aria-selected="false">Habits</button>
+    <button role="tab" id="mode-warm" aria-selected="false">Warm-up</button>
   </div>
 
   <section class="panel" id="weakPanel" hidden aria-labelledby="t-weak">
@@ -370,6 +379,27 @@ details.sess summary::-webkit-details-marker{display:none}
     <div class="bars" id="weakDir"></div>
     <h3>Skills, weakest first</h3>
     <div class="bars" id="weakSkills"></div>
+  </section>
+  <section class="panel" id="warmPanel" hidden aria-labelledby="t-warm">
+    <div class="row" style="justify-content:space-between"><h2 id="t-warm">Byzantine scale workout</h2><span class="tag" id="byzLevel"></span></div>
+    <p class="status" style="margin:0">A complete warm-up and practice on the Byzantine scale, built on your home note. It moves from straw and hum work, to the two half steps and the wide step, to the open voice, to patterns, to the whole scale over the ison and in chant tuning, then a phrase and the scale from memory. It gets a little faster and stricter every few workouts.</p>
+    <div class="exstaff" id="byzStaff"></div>
+    <div class="bars" id="byzProg"></div>
+    <div class="field"><span class="label">Time I have</span><div class="chips" id="byzChips"></div></div>
+    <button class="primary big" id="byzStart">Start the workout</button>
+    <h3>Today's routine</h3>
+    <ol class="byzplan" id="byzPlan"></ol>
+    <label class="check"><input type="checkbox" id="byzWarmChk"> Start every practice session with a short Byzantine-scale warm-up (replaces the plain straw warm-up)</label>
+    <p class="status" id="byzWarmNote" style="margin:0"></p>
+    <details class="opts"><summary>Why it is built this way</summary>
+      <ul class="hlib">
+        <li><b>Straw and hum first.</b> Semi-occluded singing (straw, lip trill, hum) makes the folds vibrate with less effort; a few minutes of straw work measurably eased voices in a 2013 study (Guzman et al.), and it is the standard opener in voice science (Titze).</li>
+        <li><b>Small before wide.</b> The scale is learned the way Byzantine theory teaches it: by tetrachords (four-note halves), and inside them interval by interval, so the half steps and the wide step are each solid before the full octave.</li>
+        <li><b>Middle voice before range.</b> Everything starts on your home note and widens gradually, low effort first.</li>
+        <li><b>Patterns.</b> Groups of three and broken thirds make you hear every corner of the scale, not just the run up and down.</li>
+        <li><b>Over the ison.</b> Singing against a held tonic exposes small tuning errors as a slow wobble, which is why chanters and string players practice with a drone.</li>
+        <li><b>From memory last.</b> Taking the guide away tests the inner ear, after the scale is warm.</li>
+      </ul></details>
   </section>
   <section class="panel" id="habitPanel" hidden aria-labelledby="t-habit">
     <h2 id="t-habit">Habits</h2>
@@ -662,6 +692,10 @@ details.sess summary::-webkit-details-marker{display:none}
     <h2 id="t-stats">Your stats</h2>
     <div class="chips" id="statRange" role="group" aria-label="Time period"></div>
     <div class="custom" id="statCustom" hidden><label>From<input type="date" id="stFrom"></label><label>To<input type="date" id="stTo"></label></div>
+    <div class="field"><span class="label">Compare by</span>
+      <div class="seg" id="statView" role="tablist" aria-label="Compare by"><button role="tab" id="svCal" aria-selected="true">Calendar time</button><button role="tab" id="svPrac" aria-selected="false">Practice time</button></div></div>
+    <div class="field" id="statChunkRow" hidden><span class="label">Equal chunks of practice</span><div class="chips" id="statChunks"></div>
+      <span class="status" id="statChunkNote"></span></div>
     <div class="stiles" id="statTiles"></div>
     <p class="stake" id="statSince"></p>
   </section>
@@ -1187,6 +1221,19 @@ performance:[
  'Energy at the end. The last phrase deserves your best breath.',
  'Precision comes from the small pieces you already practiced. Trust them.',
  'Full speed is the goal, but steady is the means.'],
+byzscale:[
+ 'The Byzantine scale is two matching halves: half step, wide step, half step. Learn one half, and you know the other.',
+ 'The wide step is a step and a half. Most singers land it short. Aim a little further than feels natural.',
+ 'The half steps sit very close. Think of leaning on the next note rather than jumping to it.',
+ 'Over the ison, the half step above home rubs. That tension is the color, not a mistake.',
+ 'In chant tuning the wide steps get even wider: the third and the seventh rise about a third of a half step.',
+ 'Say the letter names in rhythm before you sing them. Names first, then pitch.',
+ 'Groups of three teach your ear each corner of the scale. Keep every group the same speed.',
+ 'Light and quiet on the way up, warm and steady on the way down.',
+ 'Hijaz keeps the same lower half but lowers the top: listen for the change at the seventh.',
+ 'The Hungarian minor is the same notes as the Byzantine scale, started from its fourth note.',
+ 'If a wide step feels hard, sing the note in between first, then leave it out.',
+ 'Short, regular scale work beats long, rare sessions. A few minutes every day builds the ear.'],
 warmup:[
  'Warm-up: gentle, quiet and easy. Don\'t aim for perfect, aim for loose.',
  'Straw or lip trill first. It warms the voice with the least strain.',
@@ -1249,7 +1296,7 @@ const TIP_LABEL={general:'Practice',health:'Voice care',breath:'Breath',onset:'S
  dynamics:'Volume',steps:'Steps',scale:'Scale',glide:'Glides',leaps:'Leaps',range:'Range',modes:'Modes',rhythm:'Rhythm',agility:'Agility',audiation:'Inner ear',
  memory:'From memory',diction:'Words',endurance:'Stamina',ison:'Ison',isonhold:'Holding the ison',unison:'Blend',parallage:'Parallage',psalmody:'Psalmody',
  ornaments:'Ornaments',chanttune:'Chant tuning',tones:'The tones',hymn:'Hymns',home:'Home note',phrase:'Phrases',chunk:'Patterns',performance:'Whole song',
- warmup:'Warm-up',cooldown:'Cool-down',sharp:'Coach',flat:'Coach',wobble:'Coach',late:'Coach',quiet:'Coach',reset:'Coach'};
+ warmup:'Warm-up',cooldown:'Cool-down',byzscale:'Byzantine scale',sharp:'Coach',flat:'Coach',wobble:'Coach',late:'Coach',quiet:'Coach',reset:'Coach'};
 /* recently shown tips are remembered across sessions so they don't come back too soon */
 const tipSeen=new Set(store0('ison-tips-seen',[]));
 function store0(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}}
@@ -2057,7 +2104,22 @@ function logAttempt(it,R,trace,o){if(!R)return;const sung=it.notes.filter(n=>!n.
 /* ================= Stats tab ================= */
 const fmtDur=min=>min<1?Math.round(min*60)+' s':fmtHM(min);
 const catName=k=>TIP_LABEL[k]||(k==='songs'?'Songs':String(k).charAt(0).toUpperCase()+String(k).slice(1));
-const STATR={key:'7d',from:null,to:null};
+const STATR={key:'7d',from:null,to:null,view:'cal',chunk:60};
+try{const sv=JSON.parse(localStorage.getItem('ison-statview')||'null');if(sv){STATR.view=sv.view==='prac'?'prac':'cal';STATR.chunk=+sv.chunk||60}}catch(e){}
+const CHUNKS=[15,30,60,120,300,600,1440];
+const chunkLab=m=>m<60?Math.round(m)+'m':m%60?Math.floor(m/60)+'h'+String(Math.round(m%60)).padStart(2,'0'):(m/60)+'h';
+const chunkName=m=>m<60?m+' min':m===60?'1 hour':(m/60)+' hours';
+/* Sessions from before the detailed history: the session summaries kept since the start (score and its four parts),
+   used so every chart and comparison reaches back to the very first session. */
+function legacyRecs(firstT){const Hs=history(),cut=firstT?new Date(new Date(firstT).toDateString()).getTime():Infinity,out=[];
+  Hs.forEach((h,i)=>{if(!h||!h.d||!(h.sung>0))return;const t=new Date(h.d.length>10?h.d:h.d+'T12:00').getTime();if(!isFinite(t)||t>=cut)return;
+    out.push({t,legacy:true,sess:'L'+i,kind:h.test?'test':'lesson',tr:h.tr,title:'Session',cats:[],dur:h.sung,sec:h.sung,score:h.score,acc:h.acc||0,cov:h.cov||0,steady:h.steady||0,react:h.react||0,notes:[],H:{},O:{}})});return out}
+/* Split records, in order, into chunks of equal practice time (the last one may still be filling). */
+function chunkize(recs,min){const lim=min*60,out=[];let cur=null;
+  recs.forEach(r=>{if(!cur||cur.sec>=lim){cur={recs:[],sec:0,t0:r.t,t1:r.t};out.push(cur)}cur.recs.push(r);cur.sec+=(r.sec||r.dur||0);cur.t1=r.t});
+  let acc=0;out.forEach((c,i)=>{acc+=c.sec;c.endMin=acc/60;c.full=c.sec>=lim*0.98;c.label=chunkLab(Math.round(acc/60));
+    const d=x=>new Date(x).toLocaleDateString([], {month:'short',day:'numeric'});c.dates=d(c.t0)+(d(c.t0)!==d(c.t1)?' to '+d(c.t1):'');
+    c.tip=chunkLab(Math.round((acc-c.sec)/60))+' to '+c.label+' of practice · '+c.dates+(c.full?'':' (still filling)')});return out}
 const RANGES=[['24h','24 hours',864e5],['48h','48 hours',1728e5],['7d','7 days',6048e5],['30d','30 days',2592e6],['90d','90 days',7776e6],['1y','Year',31536e6],['all','All',0],['custom','Custom',0]];
 function statWindow(){const now=Date.now();if(STATR.key==='custom'&&STATR.from&&STATR.to){const a=new Date(STATR.from+'T00:00').getTime(),b=new Date(STATR.to+'T23:59:59').getTime();return[a,Math.max(a+36e5,b)]}
   const r=RANGES.find(x=>x[0]===STATR.key);if(!r||!r[2])return[0,now];return[now-r[2],now]}
@@ -2099,13 +2161,13 @@ function lineChart(cv,buckets,o){const w=cw(cv),h=o.h||170,g=fitCanvas(cv,w,h),c
   g.strokeStyle=o.color||c.accent;g.lineWidth=2;g.lineJoin='round';g.beginPath();let pen=false;const hits=[];
   buckets.forEach((b,i)=>{if(b.v==null)return;const X=xs(i),Y=y(b.v);if(pen)g.lineTo(X,Y);else{g.moveTo(X,Y);pen=true}});g.stroke();
   const nn=buckets.filter(b=>b.v!=null).length,lastI=buckets.map(b=>b.v!=null).lastIndexOf(true);
-  buckets.forEach((b,i)=>{b.x=xs(i);if(b.v==null)return;if(nn<=24||i===lastI){g.fillStyle=o.color||c.accent;g.beginPath();g.arc(b.x,y(b.v),i===lastI?4:3.2,0,7);g.fill();g.strokeStyle=c.bg;g.lineWidth=1.5;g.stroke()}hits.push({x:b.x,py:y(b.v),v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(b.v),l:b.label})});
+  buckets.forEach((b,i)=>{b.x=xs(i);if(b.v==null)return;if(nn<=24||i===lastI){g.fillStyle=o.color||c.accent;g.beginPath();g.arc(b.x,y(b.v),i===lastI?4:3.2,0,7);g.fill();g.strokeStyle=c.bg;g.lineWidth=1.5;g.stroke()}hits.push({x:b.x,py:y(b.v),v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(b.v),l:b.tip||b.label})});
   xLabels(g,buckets,h,c);setupTip(cv,hits)}
 function barChart(cv,buckets,o){const w=cw(cv),h=o.h||170,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const pl=38,pb=26,pt=10;
   const vals=buckets.map(b=>b.v||0),hi=Math.max(o.minHi||1,...vals);if(!vals.some(v=>v>0)){emptyChart(g,w,h,c);setupTip(cv,[]);return}
   const y=axes(g,w,h,pl,pb,pt,0,hi,o.fmt||(v=>Math.round(v)),c,[0,hi/2,hi]);const bw=Math.max(2,(w-pl-10)/buckets.length-2),hits=[];
   buckets.forEach((b,i)=>{const X=pl+(w-pl-10)*(i+0.5)/buckets.length;b.x=X;const v=b.v||0;if(v>0){g.fillStyle=(o.colorFn&&o.colorFn(b))||o.color||c.accent;const top=y(v),bh=y(0)-top;g.beginPath();if(g.roundRect)g.roundRect(X-bw/2,top,bw,bh,[Math.min(4,bw/2),Math.min(4,bw/2),0,0]);else g.rect(X-bw/2,top,bw,bh);g.fill()}
-    hits.push({x:X,v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(v),l:b.label})});xLabels(g,buckets,h,c);setupTip(cv,hits)}
+    hits.push({x:X,v:(o.fmtTip||o.fmt||(v=>Math.round(v)))(v),l:b.tip||b.label})});xLabels(g,buckets,h,c);setupTip(cv,hits)}
 function emptyChart(g,w,h,c){g.fillStyle=c.muted;g.font='14px '+getComputedStyle(document.body).fontFamily;g.textAlign='center';g.fillText('No practice in this period',w/2,h/2);g.textAlign='left'}
 function spark(cv,vals,o){o=o||{};const w=o.w||110,h=o.h||32,g=fitCanvas(cv,w,h),c=colors();g.clearRect(0,0,w,h);const v=vals.filter(x=>x!=null);if(v.length<2){g.fillStyle=c.muted;g.font='11px sans-serif';g.fillText('not enough data',2,h/2+4);return}
   let lo=o.lo!=null?o.lo:Math.min(...v),hi=o.hi!=null?o.hi:Math.max(...v);const ms=o.minSpan||10;if(hi-lo<ms){const m=(hi+lo)/2;lo=m-ms/2;hi=m+ms/2;if(o.floor!=null&&lo<o.floor){hi+=o.floor-lo;lo=o.floor}if(o.ceil!=null&&hi>o.ceil){lo-=hi-o.ceil;hi=o.ceil}}
@@ -2191,28 +2253,40 @@ function insights(cur,prev,recs,prevRecs){const out=[],P=(t,txt,vis,w,act)=>out.
       P('Watch: '+h.name.toLowerCase(),h.look+' It happened in '+Math.round(b*100)+'% of chances this period. '+h.tips[0],(()=>{const d=document.createElement('div');d.innerHTML=habitSVG(h);return d})(),6,{label:'Start fix-it drill',fn:()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);showTab('practice');startHabitDrill(u)}})}});
   /* consistency */
   const [t0,t1]=statWindow(),spanDays=Math.max(1,Math.round((t1-t0)/864e5));
-  if(spanDays>=7&&STATR.key!=='all'){const dd=cur.days;P(dd>=spanDays*0.7?'Wonderfully consistent':'Consistency',('You practiced on '+dd+' of '+spanDays+' days. ')+(dd>=spanDays*0.7?'Regular short sessions are exactly what builds a voice.':'Short daily sessions (10 to 20 minutes) build more than occasional long ones.'),visBars([{l:'Days',v:dd,t:dd+'/'+spanDays}],{max:spanDays}),dd>=spanDays*0.7?3:6)}
+  if(spanDays>=7&&STATR.key!=='all'&&STATR.view!=='prac'){const dd=cur.days;P(dd>=spanDays*0.7?'Wonderfully consistent':'Consistency',('You practiced on '+dd+' of '+spanDays+' days. ')+(dd>=spanDays*0.7?'Regular short sessions are exactly what builds a voice.':'Short daily sessions (10 to 20 minutes) build more than occasional long ones.'),visBars([{l:'Days',v:dd,t:dd+'/'+spanDays}],{max:spanDays}),dd>=spanDays*0.7?3:6)}
   return out.sort((a,b)=>b.w-a.w)}
 /* ---------- render ---------- */
 let statBusy=false;
 async function renderStats(){if(statBusy)return;statBusy=true;try{
   const chips=$('statRange');if(!chips.children.length)RANGES.forEach(([k,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.k=k;b.onclick=()=>{STATR.key=k;$('statCustom').hidden=k!=='custom';if(k==='custom'&&!STATR.from){const d=new Date();STATR.to=d.toISOString().slice(0,10);d.setDate(d.getDate()-14);STATR.from=d.toISOString().slice(0,10);$('stFrom').value=STATR.from;$('stTo').value=STATR.to}renderStats()};chips.appendChild(b)});
   [...chips.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===STATR.key)));
-  const [t0,t1]=statWindow(),recs=await ATT.range(t0,t1),span=t1-t0||1,prevRecs=STATR.key==='all'?[]:await ATT.range(t0-span,t0-1),first=await ATT.first();
+  const [t0,t1]=statWindow(),first=await ATT.first(),leg=legacyRecs(first),inW=(a,b)=>leg.filter(r=>r.t>=a&&r.t<=b),bySort=a=>a.sort((x,y)=>x.t-y.t);
+  let recs=bySort((await ATT.range(t0,t1)).concat(inW(t0,t1))),span=t1-t0||1,prevRecs=STATR.key==='all'?[]:bySort((await ATT.range(t0-span,t0-1)).concat(inW(t0-span,t0-1)));
+  /* practice-time view: compare the latest chunk of practice with the chunk before it */
+  const PV=STATR.view==='prac',chunks=PV?chunkize(recs,STATR.chunk):null;let cmpTxt='';
+  $('svCal').setAttribute('aria-selected',String(!PV));$('svPrac').setAttribute('aria-selected',String(PV));$('statChunkRow').hidden=!PV;
+  {const cc=$('statChunks');if(!cc.children.length)CHUNKS.forEach(m=>{const b=document.createElement('button');b.textContent=chunkLab(m);b.dataset.m=m;b.onclick=()=>{STATR.chunk=m;try{localStorage.setItem('ison-statview',JSON.stringify({view:STATR.view,chunk:m}))}catch(e){}renderStats()};cc.appendChild(b)});
+   [...cc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===STATR.chunk)))}
+  if(PV){const totMin=sum(recs.map(r=>r.sec||r.dur||0))/60;let a=chunks.length-1;if(a>=2&&!chunks[a].full&&chunks[a].sec<STATR.chunk*60*0.4)a--;
+    const A=chunks[a],Bc=a>0?chunks[a-1]:null;const latest=recs;recs=A?A.recs:[];prevRecs=Bc?Bc.recs:[];
+    $('statChunkNote').textContent=fmtDur(totMin)+' of practice in this period: '+chunks.filter(c=>c.full).length+' full '+chunkName(STATR.chunk)+' chunk'+(chunks.filter(c=>c.full).length===1?'':'s')+(chunks.length&&!chunks[chunks.length-1].full?' plus one still filling':'')+'.'+(chunks.length<2?' Pick a smaller chunk to compare.':'');
+    cmpTxt=A?(Bc?'Numbers below are your latest '+chunkName(STATR.chunk)+' of practice ('+A.dates+(A.full?'':', still filling')+'), and the arrows compare it with the '+chunkName(STATR.chunk)+' before it ('+Bc.dates+'). ':'Numbers below are your first '+chunkName(STATR.chunk)+' of practice. '):'';
+    STATR._all=latest}
   const cur=summarize(recs),prev=summarize(prevRecs);
-  const rl=(RANGES.find(x=>x[0]===STATR.key)||[])[1];$('statSince').textContent=(STATR.key!=='all'?'Arrows compare with the '+(STATR.key==='custom'?'same length of time':rl.toLowerCase())+' before. ':'')+(first?'Detailed history since '+new Date(first).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})+'. Your total practice time ('+fmtHM(TIME.raw)+') and rank include everything before that too.':'Detailed history starts with your next exercise.');
+  const rl=(RANGES.find(x=>x[0]===STATR.key)||[])[1];$('statSince').textContent=(PV?cmpTxt:STATR.key!=='all'?'Arrows compare with the '+(STATR.key==='custom'?'same length of time':rl.toLowerCase())+' before. ':'')+(leg.length?'Sessions from before '+(first?new Date(first).toLocaleDateString([], {month:'short',day:'numeric'}):'today')+' count by their session scores; note-by-note detail starts then. ':'')+(first?'Detailed history since '+new Date(first).toLocaleDateString([], {month:'short',day:'numeric',year:'numeric'})+'. Your total practice time ('+fmtHM(TIME.raw)+') and rank include everything before that too.':'Detailed history starts with your next exercise.');
   /* tiles */
   const tl=$('statTiles');tl.innerHTML='';const tile=(label,val,delta,good,fd)=>{const d=document.createElement('div');d.className='stile';const a=document.createElement('span');a.textContent=label;const b=document.createElement('b');b.textContent=val;d.append(a,b);
-    if(delta!=null&&isFinite(delta)&&Math.abs(delta)>=0.5&&STATR.key!=='all'){const s=document.createElement('small');const up=delta>0;s.textContent=(up?'▲ ':'▼ ')+(fd?fd(Math.abs(delta)):Math.abs(Math.round(delta)));s.className=(up===good)?'up':'down';d.appendChild(s)}tl.appendChild(d)};
+    if(delta!=null&&isFinite(delta)&&Math.abs(delta)>=0.5&&(STATR.key!=='all'||STATR.view==='prac')){const s=document.createElement('small');const up=delta>0;s.textContent=(up?'▲ ':'▼ ')+(fd?fd(Math.abs(delta)):Math.abs(Math.round(delta)));s.className=(up===good)?'up':'down';d.appendChild(s)}tl.appendChild(d)};
   const R2=v=>v==null?'--':String(Math.round(v));
-  tile('Practice time',fmtDur(cur.min),cur.min-prev.min,true,v=>fmtDur(v));
-  tile('Sessions',String(cur.sess),cur.sess-prev.sess,true);
-  tile('Exercises',String(cur.n),cur.n-prev.n,true);
+  const PVx=STATR.view==='prac';
+  tile('Practice time',fmtDur(cur.min),PVx?null:cur.min-prev.min,true,v=>fmtDur(v));
+  tile('Sessions',String(cur.sess),PVx?null:cur.sess-prev.sess,true);
+  tile('Exercises',String(cur.n),PVx?null:cur.n-prev.n,true);
   tile('Average score',R2(cur.score),cur.score!=null&&prev.score!=null?cur.score-prev.score:null,true);
   tile('Notes on target',cur.inTune==null?'--':Math.round(cur.inTune*100)+'%',cur.inTune!=null&&prev.inTune!=null?(cur.inTune-prev.inTune)*100:null,true,v=>Math.round(v)+' pts');
   tile('Average miss',cur.cents==null?'--':Math.round(cur.cents)+'¢',cur.cents!=null&&prev.cents!=null?cur.cents-prev.cents:null,false,v=>Math.round(v)+'¢');
   tile('Range',cur.lo==null?'--':nameOf(cur.lo)+'–'+nameOf(cur.hi),cur.lo!=null&&prev.lo!=null?(cur.hi-cur.lo)-(prev.hi-prev.lo):null,true,v=>Math.round(v)+(Math.round(v)===1?' half step':' half steps'));
-  tile('Days practiced',String(cur.days),cur.days-prev.days,true);
+  tile(PVx?'Days it took':'Days practiced',String(cur.days),PVx?null:cur.days-prev.days,true);
   /* insights */
   const ins=insights(cur,prev,recs,prevRecs),ib=$('statInsights');ib.innerHTML='';
   if(!recs.length){const p=document.createElement('p');p.className='status';p.textContent='No exercises in this period yet. Pick a longer range, or practice and come back.';ib.appendChild(p)}
@@ -2220,8 +2294,24 @@ async function renderStats(){if(statBusy)return;statBusy=true;try{
     if(x.act){const bt=document.createElement('button');bt.textContent=x.act.label;bt.onclick=x.act.fn;c.appendChild(bt)}ib.appendChild(c)});
   /* charts */
   const box=$('statCharts');box.innerHTML='';const add=(id,title,take)=>{const o=chartBox(id,title,take);box.appendChild(o.card);return o};
-  const B=fn=>bucketize(recs,t0===0&&recs.length?recs[0].t:t0,t1,fn);
-  const c1=add('chTime','Practice time','Minutes of exercises sung in each '+(bucketSpec(t0,t1).ms===36e5?'hour':bucketSpec(t0,t1).ms===864e5?'day':'week')+'.');barChart(c1.cv,B(rs=>sum(rs.map(r=>r.sec||r.dur))/60),{fmt:v=>v>=10?Math.round(v)+'m':(Math.round(v*10)/10)+'m'});
+  if(PV)recs=STATR._all;
+  const B=PV?fn=>chunks.map(c=>({label:c.label,tip:c.tip,t:c.t0,recs:c.recs,v:fn(c.recs)})):fn=>bucketize(recs,t0===0&&recs.length?recs[0].t:t0,t1,fn);
+  if(PV){const c1=add('chTime','How long each chunk took','Calendar days it took you to sing each '+chunkName(STATR.chunk)+' of practice. Shorter bars mean more practice packed into fewer days.');
+    barChart(c1.cv,B(rs=>rs.length?new Set(rs.map(r=>new Date(r.t).toDateString())).size:0),{fmt:v=>Math.round(v)+'d',minHi:2,colorFn:b=>null});
+    /* every chunk side by side */
+    const tb=document.createElement('section');tb.className='panel scard';const th=document.createElement('h3');th.textContent='Every '+chunkName(STATR.chunk)+' of practice';tb.appendChild(th);
+    const wrap=document.createElement('div');wrap.className='ctable';const tbl=document.createElement('table');const hd=document.createElement('tr');['Practice','Score','On target','Miss','Steady'].forEach(x=>{const e=document.createElement('th');e.textContent=x;hd.appendChild(e)});tbl.appendChild(hd);
+    let prevS=null;chunks.forEach(c=>{const m=summarize(c.recs);c.m=m});
+    chunks.slice().reverse().forEach((c,ri)=>{const m=c.m,i=chunks.length-1-ri,pm=i>0?chunks[i-1].m:null,tr=document.createElement('tr');
+      const cell=(txt,d,good)=>{const td=document.createElement('td');td.textContent=txt;if(d!=null&&isFinite(d)&&Math.abs(d)>=1){const sm=document.createElement('small');sm.textContent=(d>0?' ▲':' ▼');sm.className=(d>0)===good?'up':'down';td.appendChild(sm)}tr.appendChild(td)};
+      const f=document.createElement('td');const fb=document.createElement('b');fb.textContent=c.label;const fs=document.createElement('small');fs.textContent=c.dates+(c.full?'':' · filling');const fr=document.createElement('small');fr.textContent=m.lo==null?'':'Range '+nameOf(m.lo)+' to '+nameOf(m.hi);fs.style.display=fr.style.display='block';f.append(fb,fs,fr);tr.appendChild(f);
+      cell(m.score==null?'--':String(Math.round(m.score)),pm&&m.score!=null&&pm.score!=null?m.score-pm.score:null,true);
+      cell(m.inTune==null?'--':Math.round(m.inTune*100)+'%',pm&&m.inTune!=null&&pm.inTune!=null?(m.inTune-pm.inTune)*100:null,true);
+      cell(m.cents==null?'--':Math.round(m.cents)+'¢',pm&&m.cents!=null&&pm.cents!=null?m.cents-pm.cents:null,false);
+      cell(m.steady==null?'--':String(Math.round(m.steady*100)),pm&&m.steady!=null&&pm.steady!=null?(m.steady-pm.steady)*100:null,true);
+      tbl.appendChild(tr)});
+    wrap.appendChild(tbl);tb.appendChild(wrap);const tp=document.createElement('p');tp.className='stake';tp.textContent='Newest first. Arrows compare each chunk with the one before it. "Practice" is how much total practice you had reached by the end of that chunk.';tb.appendChild(tp);box.appendChild(tb)}
+  else{const c1=add('chTime','Practice time','Minutes of exercises sung in each '+(bucketSpec(t0,t1).ms===36e5?'hour':bucketSpec(t0,t1).ms===864e5?'day':'week')+'.');barChart(c1.cv,B(rs=>sum(rs.map(r=>r.sec||r.dur))/60),{fmt:v=>v>=10?Math.round(v)+'m':(Math.round(v*10)/10)+'m'})}
   const c2=add('chScore','Average score','Tap a point for its value. 70 completes a lesson, 90 passes a test.');lineChart(c2.cv,B(rs=>{const a=rs.filter(r=>r.cov>=0.2);return a.length?avg(a.map(r=>r.score)):null}),{lo:0,hi:100,ticks:[0,50,70,90,100],band:[70,90]});
   const c3=add('chTune','Notes on target','Share of notes sung within the pitch window.');lineChart(c3.cv,B(rs=>{const ns=[];rs.forEach(r=>r.notes.forEach(n=>{if(n[3]!=null)ns.push(n[3])}));return ns.length?ns.filter(a=>a>=0.8).length/ns.length*100:null}),{lo:0,hi:100,fmt:v=>Math.round(v)+'%',ticks:[0,50,100]});
   const c4=add('chBias','Sharp or flat','Average lean of your notes in cents. Above the line is sharp, below is flat.');lineChart(c4.cv,B(rs=>{const d=[];rs.forEach(r=>r.notes.forEach(n=>{if(n[4]!=null)d.push(n[4])}));return d.length>=4?med(d):null}),{zero:true,zeroLabel:'on pitch',minSpan:30,fmt:v=>(v>0?'+':'')+Math.round(v)+'¢'});
@@ -2262,7 +2352,7 @@ async function renderStats(){if(statBusy)return;statBusy=true;try{
   const pk=Object.keys(pos).map(Number).sort((a,b)=>a-b);lineChart(c8.cv,pk.map(k=>({label:'#'+(k+1),v:pos[k].length>=2?avg(pos[k]):null})),{lo:0,hi:100,ticks:[0,50,100]});
   /* recent sessions with replay */
   const rsBox=document.createElement('section');rsBox.className='panel scard';const rh=document.createElement('h3');rh.textContent='Sessions';rsBox.appendChild(rh);
-  const sessions={};recs.forEach(r=>{(sessions[r.sess]=sessions[r.sess]||[]).push(r)});const sl=Object.values(sessions).sort((a,b)=>b[0].t-a[0].t).slice(0,25);
+  const sessions={};recs.filter(r=>!r.legacy).forEach(r=>{(sessions[r.sess]=sessions[r.sess]||[]).push(r)});const sl=Object.values(sessions).sort((a,b)=>b[0].t-a[0].t).slice(0,25);
   if(!sl.length){const p=document.createElement('p');p.className='status';p.textContent='No sessions in this period.';rsBox.appendChild(p)}
   sl.forEach(a=>{a.sort((x,y)=>x.t-y.t);const d=document.createElement('details');d.className='sess';const s=document.createElement('summary');const sc=a.filter(r=>r.cov>=0.2);
     {const L1=document.createElement('span'),b=document.createElement('b'),sm=document.createElement('small'),av=sc.length?Math.round(avg(sc.map(r=>r.score))):null,e=document.createElement('em');
@@ -2277,10 +2367,11 @@ function rangeChart(cv,buckets){const w=cw(cv),h=190,g=fitCanvas(cv,w,h),c=color
   let lo=Math.min(S.home,...v.map(b=>b.v.lo))-2,hi=Math.max(S.home,...v.map(b=>b.v.hi))+2;const pl=40,pb=26,pt=8,y=m=>pt+(h-pt-pb)*(1-(m-lo)/(hi-lo));g.font='11px '+getComputedStyle(document.body).getPropertyValue('--f-mono');
   for(let m=Math.ceil(lo);m<=hi;m++){if(((m%12)+12)%12===0||(m===Math.ceil(lo)&&((m%12)+12)%12>2&&((m%12)+12)%12<10)){g.strokeStyle=c.grid;g.beginPath();g.moveTo(pl,y(m));g.lineTo(w-6,y(m));g.stroke();g.fillStyle=c.muted;g.fillText(nameOf(m),2,y(m)+4)}}
   g.strokeStyle=c.gold;g.globalAlpha=0.6;g.beginPath();g.moveTo(pl,y(S.home));g.lineTo(w-6,y(S.home));g.stroke();g.globalAlpha=1;
-  const bw=Math.max(2,Math.min(14,(w-pl-10)/buckets.length-2)),hits=[];buckets.forEach((b,i)=>{const X=pl+(w-pl-10)*(i+0.5)/buckets.length;b.x=X;if(!b.v)return;g.fillStyle=c.accent;g.beginPath();if(g.roundRect)g.roundRect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi),4);else g.rect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi));g.fill();hits.push({x:X,v:nameOf(b.v.lo)+' to '+nameOf(b.v.hi),l:b.label})});
+  const bw=Math.max(2,Math.min(14,(w-pl-10)/buckets.length-2)),hits=[];buckets.forEach((b,i)=>{const X=pl+(w-pl-10)*(i+0.5)/buckets.length;b.x=X;if(!b.v)return;g.fillStyle=c.accent;g.beginPath();if(g.roundRect)g.roundRect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi),4);else g.rect(X-bw/2,y(b.v.hi),bw,y(b.v.lo)-y(b.v.hi));g.fill();hits.push({x:X,v:nameOf(b.v.lo)+' to '+nameOf(b.v.hi),l:b.tip||b.label})});
   g.strokeStyle=c.gold;g.lineWidth=1.5;g.beginPath();g.moveTo(pl,y(S.home));g.lineTo(w-6,y(S.home));g.stroke();
   xLabels(g,buckets,h,c);setupTip(cv,hits)}
 
+$('svCal').onclick=$('svPrac').onclick=e=>{STATR.view=e.currentTarget.id==='svPrac'?'prac':'cal';try{localStorage.setItem('ison-statview',JSON.stringify({view:STATR.view,chunk:STATR.chunk}))}catch(x){}renderStats()};
 $('stFrom').onchange=$('stTo').onchange=()=>{STATR.from=$('stFrom').value;STATR.to=$('stTo').value;if(STATR.from&&STATR.to){if(STATR.from>STATR.to){const t=STATR.from;STATR.from=STATR.to;STATR.to=t;$('stFrom').value=STATR.from;$('stTo').value=STATR.to}renderStats()}};
 window.addEventListener('scroll',()=>{const t=$('statTip');if(t&&!t.hidden)t.hidden=true},{passive:true});
 {let rz=0,lw=innerWidth;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth!==lw&&!$('v-stats').hidden){lw=innerWidth;renderStats()}},300)})}
@@ -3403,6 +3494,76 @@ function selMinH(){return Math.max(3,Math.min(10,selMin||5))}
 function startHabitDrill(u){if(L.active)return;store.set('ison-session',null);const P=prog('habits'),ls=habitTrack.units[u].lessons;let l=ls.findIndex((x,j)=>(P.les[u+'.'+j]||0)<LESSON_PASS);if(l<0)l=0;
   const items=buildSession(habitTrack,u,l,selMinH());startSessionWith(habitTrack,items,u,l,selMinH(),false);$('plStage').textContent='Fix-it drill · '+habitTrack.units[u].name}
 
+/* ================= Byzantine scale workout =================
+   One routine on the Byzantine scale (double harmonic major) at the home note, in six phases:
+   A release (straw, hum), B the intervals (two half steps, the wide step), C open voice (vowels, ison, upper half),
+   D patterns (groups of three, thirds, turns), E whole scale (letters, ison, chant tuning), F music and memory.
+   Drills are picked by priority to fit the time, then played in phase order. Every 4 workouts the level rises
+   (a little faster, a narrower pitch window, less played help). From level 2 a variation scale (Hijaz or the
+   Hungarian minor) joins on alternate days. */
+const BYZ_SCALES={byz:{n:'Byzantine scale',sc:BYZ},hij:{n:'Hijaz',sc:HIJ},hun:{n:'Hungarian minor',sc:HUN}};
+const BYZ_PHASES=['Release','The wide step','Open voice','Patterns','Whole scale','Music and memory'];
+const dg=(sc,i)=>sc[((i%7)+7)%7]+12*Math.floor(i/7);
+const BYZ_DRILLS=[
+ {id:'A1',ph:0,pr:1,t:'Straw glide on the lower half',h:'Through a straw or with a lip trill, slide gently through the lower half of the scale and back. Easy and quiet.',d:[0,1,2,3,2,1,0],b:1.5,bpm:56,w:'brrr',tol:[45,110],full:1},
+ {id:'A2',ph:0,pr:5,t:'Hum the lower half',h:'Lips closed, teeth apart, a light buzz at the front of the face.',d:[0,1,2,3,2,1,0],b:1.25,bpm:60,w:'mm',tol:[36,90],full:1},
+ {id:'B1',ph:1,pr:6,t:'The half step above home',h:'Home and the note just above it. Lean into the upper note; it sits very close.',d:[0,1,0,1,0],bb:[1,1,1,1,2],bpm:66,w:'oo',tol:[26,66]},
+ {id:'B2',ph:1,pr:2,t:'The wide step',h:'A step and a half, back and forth. Most singers land it short: reach a little further than feels natural.',d:[1,2,1,2,1],bb:[1,1,1,1,2],bpm:66,w:'L',tol:[26,66]},
+ {id:'B3',ph:1,pr:7,t:'The half step under the fourth',h:'The third and fourth notes, close together again. Now you know all three steps of the lower half.',d:[2,3,2,3,2],bb:[1,1,1,1,2],bpm:66,w:'L',tol:[26,66]},
+ {id:'B4',ph:1,pr:3,t:'The lower half on letter names',h:'Half step, wide step, half step, and back. Say the names in rhythm in your head as you sing.',d:[0,1,2,3,2,1,0],bpm:72,w:'L',tol:[24,62]},
+ {id:'C1',ph:2,pr:8,t:'Five notes on "ah" over the ison',h:'Open "ah", easy volume. The ison holds home: listen for the rub of the half step and the brightness of the third.',d:[0,1,2,3,4,3,2,1,0],bpm:72,w:'ah',tol:[24,62],ison:1},
+ {id:'C2',ph:2,pr:13,t:'The upper half',h:'The top half has the same shape as the bottom: half step, wide step, half step.',d:[4,5,6,7,6,5,4],bpm:72,w:'L',tol:[24,62]},
+ {id:'D1',ph:3,pr:9,t:'Groups of three, going up',h:'Three notes from each step of the scale. Keep every group the same speed and size.',d:[0,1,2,1,2,3,2,3,4,3,4,5,4,5,6,5,6,7],bpm:88,w:'L',tol:[26,66],end:2},
+ {id:'D2',ph:3,pr:10,t:'Groups of three, coming down',h:'The same idea from the top. Keep the pitch up as you descend.',d:[7,6,5,6,5,4,5,4,3,4,3,2,3,2,1,2,1,0],bpm:88,w:'L',tol:[26,66],end:2},
+ {id:'D3',ph:3,pr:14,t:'Skipping in thirds',h:'Every other note: a skip up, a step back. The skips that cross the wide step are the tricky ones.',d:[0,2,1,3,2,4,3,5,4,6,5,7],bpm:80,w:'L',tol:[26,66],end:2},
+ {id:'D4',ph:3,pr:15,t:'A turn around the wide step',h:'A little chant-style turn: up to the fourth, back through the wide step to home.',d:[2,3,2,1,2,1,0],bb:[1,1,1,1,1,1,2.5],bpm:72,w:'L',tol:[24,62]},
+ {id:'E1',ph:4,pr:4,t:'The whole scale on letter names',h:'The full octave up and back in piano tuning. The staff shows every note.',d:[0,1,2,3,4,5,6,7,6,5,4,3,2,1,0],bpm:76,w:'L',tol:[24,62]},
+ {id:'E2',ph:4,pr:11,t:'The whole scale on "ah" over the ison',h:'One vowel, one long line, the ison holding home underneath.',d:[0,1,2,3,4,5,6,7,6,5,4,3,2,1,0],bpm:76,w:'ah',tol:[24,62],ison:1},
+ {id:'E3',ph:4,pr:16,t:'In chant tuning (Tone 6)',h:'As chanted in Tone 6: both wide steps a little wider, so the third and seventh sit about 33 cents above the piano.',d:[0,1,2,3,4,5,6,7,6,5,4,3,2,1,0],bpm:66,w:'L',tol:[20,56],ison:1,chant:1},
+ {id:'F1',ph:5,pr:12,t:'Byzantine phrase: the classic descent',h:'A practice phrase: from the fifth down through the wide step to home, over the ison.',d:[4,5,4,3,2,1,2,1,0],bb:[1,1,1,1,1,1,1,1,3],bpm:72,w:'L',tol:[24,62],ison:1},
+ {id:'F2',ph:5,pr:17,t:'The whole scale from memory',h:'Hear it once, then the guide hides. Trust your ear.',d:[0,1,2,3,4,5,6,7,6,5,4,3,2,1,0],bpm:76,w:'L',tol:[24,62],blind:1,full:1}];
+function byzLevel(){const st=store.get('ison-byz',{n:0});const n=st.n||0;return{n,level:Math.min(6,1+Math.floor(n/4)),toNext:n>=20?0:4-(n%4)}}
+function byzItem(D,sc,lv,o){o=o||{};const pat=D.d.map(i=>D.chant?BYZ_C[((i%7)+7)%7]+12*Math.floor(i/7):dg(sc,i)),sp=1+0.05*(lv-1),tl=Math.max(0.72,1-0.055*(lv-1)),tonic=S.home;
+  const beats=D.bb||pat.map((_,i)=>i===pat.length-1?(D.end||3):(D.b||1));
+  const words=D.w==='L'?D.d.map(i=>spellDeg(tonic,sc,dg(sc,i)).txt):pat.map((_,i)=>i===0||D.w==='ah'||D.w==='oo'?D.w:'');
+  const listen=D.full||D.blind?'full':lv>=4&&!D.chant?'cue':'full';
+  const it=mkItem({title:(o.pre||'')+D.t,how:D.h,pat,beats,bpm:Math.round(D.bpm*(o.warm?1:sp)),base:tonic,listen,tolA:D.tol[0]*(o.warm?1:tl),tolB:D.tol[1]*(o.warm?1:tl),words,ison:D.ison?0:undefined,blind:!!D.blind&&!o.warm,micro:!!D.chant,
+    staff:{tonic,sc,show:sc,cents:D.chant?[0,0,33,0,0,0,33,0]:null}});
+  return Object.assign(it,{utips:['byzscale','warmup'],byz:D.id})}
+/* the workout for a time budget */
+function buildByzWorkout(minutes){const {level,n}=byzLevel(),budget=minutes*60,sc=BYZ;let pool=BYZ_DRILLS.slice().sort((a,b)=>a.pr-b.pr),picked=[],t=0;
+  const est=D=>{const it=byzItem(D,sc,level);return it.dur+5};
+  for(const D of pool){const d=est(D);if(picked.length>=3&&t+d>budget)continue;picked.push(D);t+=d}
+  picked.sort((a,b)=>a.ph-b.ph||a.id.localeCompare(b.id));
+  const items=picked.map(D=>{const it=byzItem(D,sc,level);it.lid='0.'+D.ph;it.lname=BYZ_PHASES[D.ph];it.main=true;return it});
+  /* variation round: alternate Hijaz and the Hungarian minor from level 2, or whenever time is left over */
+  const vk=n%2?'hun':'hij',V=BYZ_SCALES[vk];
+  if(level>=2||t<budget-60){for(const id of ['B4','E1','D1']){const D=BYZ_DRILLS.find(x=>x.id===id),it=byzItem(D,V.sc,level,{pre:V.n+': '});if(t+it.dur+5>budget+30&&id!=='B4')break;
+    it.lid='0.6';it.lname='Variation: '+V.n;it.main=true;items.push(it);t+=it.dur+5}}
+  /* fill any remaining time with the hardest drills again, a step faster */
+  let k=0;const hard=['D1','D2','E1','F1','D3','D4','C2','E2'];while(t<budget-40&&k<40){const D=BYZ_DRILLS.find(x=>x.id===hard[k%hard.length]),it=byzItem(D,sc,Math.min(6,level+1),{pre:'Again, faster: '});
+    it.lid=null;it.main=false;it.kind='Extra practice';items.push(it);t+=it.dur+5;k++}
+  if(minutes>=10){const cd=mkItem({title:'Cool-down: hum the lower half down',how:'Soft and easy, from the fourth down to home.',pat:[3,2,1,0].map(i=>dg(BYZ,i)),beats:[2,2,2,4],bpm:56,base:S.home,listen:'full',tolA:45,tolB:110,words:['mm','','','']});
+    items.push(Object.assign(cd,{lid:null,main:false,kind:'Cool-down',utips:['cooldown']}))}
+  return items}
+/* the short warm-up block that can open any session */
+function byzWarmBlock(minutes){const ids=minutes>=15?['A1','A2','B2','B4','E1','F1']:minutes>=10?['A1','B2','B4','E1']:['A1','B4'];
+  return ids.map(id=>{const D=BYZ_DRILLS.find(x=>x.id===id),it=byzItem(D,BYZ,1,{warm:1,pre:'Warm-up: '});return Object.assign(it,{lid:null,main:false,kind:'Warm-up'})})}
+const byzTrack={id:'byz',name:'Byzantine scale workout',unit:'Workout',units:[{name:'Byzantine scale workout',lessons:BYZ_PHASES.concat(['Variation']).map(n=>({name:n,items:()=>[]})),test:()=>[]}]};
+function renderWarm(){const {level,n,toNext}=byzLevel();$('byzLevel').textContent='Level '+level+' of 6';
+  $('byzStaff').innerHTML=staffSVG({tonic:S.home,sc:BYZ,show:BYZ,cents:null});
+  const P=prog('byz'),pb=$('byzProg');pb.innerHTML='';
+  const st=document.createElement('p');st.className='status';st.style.margin='0';st.textContent=n?(n+(n===1?' workout':' workouts')+' done. '+(toNext?toNext+' more to reach level '+(level+1)+'.':'Top level reached.')):'Your first workout starts at level 1: slower, with a wider pitch window.';pb.appendChild(st);
+  BYZ_PHASES.concat(['Variation']).forEach((nm,i)=>{const v=P.les['0.'+i];if(v!=null)pb.appendChild(barEl(nm,v/100,v))});
+  const wc=$('byzChips');if(!wc.children.length)[5,10,15,20].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{store.set('ison-byzmin',m);renderWarm()};wc.appendChild(b)});
+  const bm=store.get('ison-byzmin',10);[...wc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===bm)));
+  const items=buildByzWorkout(bm),ol=$('byzPlan');ol.innerHTML='';let last=null,tot=0,num=0;
+  items.forEach(it=>{tot+=it.dur+5;const ph=it.kind||it.lname;if(ph!==last){const h=document.createElement('li');h.style.marginTop='6px';const b=document.createElement('b');b.textContent=ph;h.appendChild(b);ol.appendChild(h);last=ph}
+    const li=document.createElement('li');li.textContent=(++num)+'. '+it.title.replace(/^(Warm-up|Cool-down): /,'')+' ';const sp=document.createElement('span');sp.textContent=Math.round(it.dur)+' s';li.appendChild(sp);ol.appendChild(li)});
+  $('byzStart').textContent='Start the workout ('+Math.max(1,Math.round(tot/60))+' min)';
+  $('byzWarmChk').checked=!!S.byzWarm;$('byzWarmNote').textContent=S.byzWarm?'On: sessions open with '+byzWarmBlock(store.get('ison-min',5)).length+' Byzantine warm-up exercises at your usual length.':''}
+function startByz(){if(L.active)return;store.set('ison-session',null);const m=store.get('ison-byzmin',10);startSessionWith(byzTrack,buildByzWorkout(m),0,0,m,false);$('plStage').textContent='Byzantine scale workout · level '+byzLevel().level}
+
 /* ================= Keep the screen awake =================
    A locked or sleeping screen pauses the microphone, so during a session, a sing-along or the tuner
    the app asks the phone to keep the screen on (Screen Wake Lock), and also plays a tiny silent,
@@ -3421,10 +3582,11 @@ document.addEventListener('visibilitychange',()=>{updateAwake()});
 /* ---------- Practice home ---------- */
 function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
-  $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));
-  $('weakPanel').hidden=mode!=='weak'||L.active;$('habitPanel').hidden=mode!=='habit'||L.active;
-  if(mode==='habit'){['heroPanel','songSetup','songOpts','builder','weakPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderHabits();drawHistory();return}
-  if(mode==='weak'){['heroPanel','songSetup','songOpts','builder'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
+  $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));$('mode-warm').setAttribute('aria-selected',String(mode==='warm'));
+  $('weakPanel').hidden=mode!=='weak'||L.active;$('habitPanel').hidden=mode!=='habit'||L.active;$('warmPanel').hidden=mode!=='warm'||L.active;
+  if(mode==='warm'){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;if(!L.active)renderWarm();drawHistory();return}
+  if(mode==='habit'){['heroPanel','songSetup','songOpts','builder','weakPanel','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderHabits();drawHistory();return}
+  if(mode==='weak'){['heroPanel','songSetup','songOpts','builder','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
   $('heroPanel').hidden=false;
   const tr=curTrack(),noSong=mode==='song'&&!tr;
   $('songSetup').hidden=!noSong;$('songOpts').hidden=mode!=='song'||!tr;$('songSummary').hidden=mode!=='song'||!tr;
@@ -3506,8 +3668,9 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
+  if(S.byzWarm&&!isTest&&tr.id!=='byz'&&idx==null&&!results)items=byzWarmBlock(minutes||5).concat(items.filter(it=>it.kind!=='Warm-up'));
   protectStorage();L.active=true;L.sessId=Date.now();setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
-  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
+  $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('warmPanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
   if(!live)startLive();lessonLoad(L.idx,false);lessonPlay();$('player').scrollIntoView({behavior:'smooth',block:'start'});
 }
 function lessonLoad(i,keepPos){
@@ -3632,12 +3795,13 @@ function finishSession(){
   saveProg(tr.id,P);
   if(all.length){const Hs=history();Hs.push({d:today(),tr:tr.id,st:L.u,test:L.isTest,min:L.minutes,sung,score,passed:L.isTest?score>=UNIT_PASS:lessonRes.some(x=>x.score>=LESSON_PASS),acc:+agg.acc.toFixed(2),cov:+agg.cov.toFixed(2),steady:+agg.steady.toFixed(2),react:+agg.react.toFixed(2)});store.set('ison-history',Hs.slice(-400))}
   recordFatigue(L.results);
+  if(tr===byzTrack&&all.length>=Math.ceil(L.items.length*0.6)){const st=store.get('ison-byz',{n:0});st.n=(st.n||0)+1;st.last=Date.now();store.set('ison-byz',st)}
   if(tr===curTrack()){const nx=nextUp(tr);selU=nx.u;selL=Math.max(0,nx.l)}
   renderPractice();showResults(score,agg,lessonRes);
 }
 function showResults(score,agg,lessonRes){
   const tr=L.track,isT=L.isTest,passT=isT&&score>=UNIT_PASS&&L.results.filter(Boolean).length===L.items.length;
-  $('player').hidden=true;$('builder').hidden=mode==='weak'||mode==='habit';$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
+  $('player').hidden=true;$('builder').hidden=mode==='weak'||mode==='habit'||mode==='warm';$('results').hidden=false;countUp($('resScore'),score,1000);{const se=$('resStars');se.innerHTML='';[...starStr(score)].forEach((ch,i)=>{const e=document.createElement('i');e.textContent=ch;e.style.animationDelay=(0.35+i*0.18)+'s';se.appendChild(e)})}
   const nDone=lessonRes.filter(x=>x.score>=LESSON_PASS).length;
   $('resVerdict').textContent=isT?(passT?'Unit '+L.u+' mastered':'Test not passed yet'):nDone?nDone+(nDone>1?' lessons':' lesson')+' complete':'Keep practicing';
   $('resNote').textContent=isT?(passT?'You scored '+score+'. The next unit is recommended.':'You need '+UNIT_PASS+' to master this unit. You scored '+score+'. Review the lessons with the lowest scores, then try again.'):
@@ -3677,6 +3841,9 @@ function drawHistory(){
 }
 /* ---------- buttons ---------- */
 $('mode-habit').onclick=()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);renderPractice()};
+$('mode-warm').onclick=()=>{if(L.active)return;mode='warm';store.set('ison-mode',mode);renderPractice()};
+$('byzStart').onclick=startByz;
+$('byzWarmChk').onchange=()=>{S.byzWarm=$('byzWarmChk').checked;save();renderWarm()};
 $('mode-weak').onclick=()=>{if(L.active)return;mode='weak';store.set('ison-mode',mode);renderPractice()};
 $('wkFound').onclick=()=>{weakTr='found';renderWeak()};$('wkSong').onclick=()=>{weakTr='song';renderWeak()};
 $('weakStart').onclick=()=>{if(L.active)return;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin)};
@@ -3696,6 +3863,7 @@ $('useSinger').checked=S.useSinger!==false;$('useSinger').onchange=()=>{S.useSin
 $('startSession').onclick=()=>{const tr=curTrack();if(!tr)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('startTest').onclick=()=>startTest();
 $('resumeSession').onclick=async()=>{const s=store.get('ison-session',null);if(!s)return;
+  if(s.tr==='byz'){mode='warm';startSessionWith(byzTrack,s.items,0,0,s.minutes,false,s.idx,s.results);return}
   if(s.tr.startsWith('song3:')){mode='song';if(!songT||songT.id!==s.tr){const sid=s.tr.slice(6);await openSongCourse(sid.startsWith('b:')?sid:+sid)}}else mode='found';
   const tr=curTrack();if(!tr){$('resumeSession').hidden=true;return}startSessionWith(tr,s.items,s.u||0,s.l||0,s.minutes,s.isTest,s.idx,s.results)};
 $('lsPause').onclick=()=>{if(G.playing)lessonPause();else lessonPlay()};
@@ -3705,7 +3873,7 @@ $('lsRestart').onclick=()=>{stopSing(true);L.idx=0;L.results=[];lessonLoad(0,fal
 $('lsSave').onclick=()=>{if(G.playing)lessonPause();store.set('ison-session',{tr:L.track.id,items:L.items,idx:L.idx,results:L.results,u:L.u,l:L.l,isTest:L.isTest,minutes:L.minutes});
   L.active=false;G.onFinish=null;clearInterval(L.timer);renderPractice();$('resumeSession').scrollIntoView({behavior:'smooth',block:'center'})};
 $('lsQuit').onclick=()=>{if(L.results.some(Boolean))finishSession();else{stopSing(true);clearInterval(L.timer);L.active=false;G.onFinish=null;renderPractice()}};
-$('resAgain').onclick=()=>{if(mode==='habit'&&L.track===habitTrack){$('results').hidden=true;startHabitDrill(L.u);return}if(mode==='weak'){$('results').hidden=true;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin);return}$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
+$('resAgain').onclick=()=>{if(L.track===byzTrack){$('results').hidden=true;startByz();return}if(mode==='habit'&&L.track===habitTrack){$('results').hidden=true;startHabitDrill(L.u);return}if(mode==='weak'){$('results').hidden=true;const l=weakList(weakTrack());if(l.length)startWeak(l,selMin);return}$('results').hidden=true;const tr=curTrack();if(tr)startSessionWith(tr,buildSession(tr,selU,selL,selMin),selU,selL,selMin,false)};
 $('resDone').onclick=()=>{$('results').hidden=true;renderPractice()};
 $('lessonTones').checked=!!S.lessonTones;$('lessonTones').onchange=()=>{S.lessonTones=$('lessonTones').checked;save()};
 (function(){const s=$('homeNote');for(let m=36;m<=72;m++){const o=document.createElement('option');o.value=m;
