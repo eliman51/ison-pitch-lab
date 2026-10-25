@@ -256,7 +256,7 @@ html.nomo .stars i{opacity:1}
 .nc.warn{border-color:color-mix(in srgb,var(--warn) 60%,var(--line))}.nc.bad{border-color:color-mix(in srgb,var(--bad) 70%,var(--line));color:#F3B4AA}
 .backupnag{display:grid;gap:8px;padding:10px 12px;border-radius:10px;border:1px solid color-mix(in srgb,var(--accent) 45%,var(--line));background:rgba(214,166,79,.08);font-size:.9rem}
 .seg button{font-size:.9rem;padding:10px 4px}
-#v-practice>.seg{grid-auto-columns:auto}#v-practice>.seg button{font-size:.8rem;padding:10px 2px;white-space:nowrap}
+#v-practice>.seg{grid-auto-flow:row;grid-template-columns:repeat(3,1fr)}#v-practice>.seg button{font-size:.85rem;padding:9px 2px;white-space:nowrap}
 .byzplan{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:4px;font-size:.88rem}
 .byzplan li span{color:var(--muted);font-size:.8rem}.byzplan li b{font-weight:600;color:var(--accent);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}
 .habits{display:grid;gap:10px}
@@ -270,6 +270,29 @@ details.habit summary::-webkit-details-marker{display:none}
 .habit.lvl-occasional .hb{color:var(--muted)}
 .hbody{display:grid;gap:8px;margin-top:10px}.hbody p{margin:0;font-size:.92rem}.hbody b{color:var(--accent);font-weight:600}
 .hsvg{width:100%;max-width:320px;height:70px;background:var(--grid);border-radius:8px}
+.earsetup,.earrun{display:flex;flex-direction:column;gap:12px}
+.earflow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.earflow span{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--muted)}
+.earflow b{display:block;font-size:.95rem;font-weight:600}
+.earunits{display:flex;flex-direction:column;gap:8px}
+.earunit{text-align:left;display:flex;flex-direction:column;gap:4px;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--surface2)}
+.earunit.sel{border-color:var(--accent);box-shadow:inset 0 0 0 1px var(--accent)}
+.earunit b{font-size:.98rem}.earunit>span{font-size:.82rem;color:var(--muted);line-height:1.4}.earunit small{font-family:var(--f-mono);font-size:.72rem;color:var(--muted)}
+.eartr{display:block;height:6px;border-radius:3px;background:var(--grid);overflow:hidden;margin-top:4px}.eartr i{display:block;height:100%;background:var(--accent);border-radius:3px}
+.earnotes{display:flex;flex-direction:column;gap:10px}.earnotes select{width:auto}
+.earchips button{font-size:.85rem;padding:7px 10px}.earchips button.auto{border-color:var(--lapis);color:var(--lapis)}
+.eardots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.eardots i{font-style:normal;text-align:center;font-size:.75rem;padding:6px 2px;border-radius:999px;border:1px solid var(--line);color:var(--muted);transition:all .25s}
+.eardots i.on{color:var(--accentInk);background:var(--accent);border-color:var(--accent)}
+#earDotL.on{background:var(--lapis);border-color:var(--lapis)}#earDotA.on{background:var(--good);border-color:var(--good)}#earDotC.on{background:#E7C26A;border-color:#E7C26A}
+.earphase{text-align:center;font-family:var(--f-display);font-size:2rem;padding:18px 8px;border:2px solid var(--line);border-radius:16px;min-height:1.5em;transition:color .25s,border-color .25s}
+.earnote{text-align:center;font-family:var(--f-display);font-size:3.2rem;line-height:1;color:var(--ink);min-height:1em}
+.eardrill{margin:0;text-align:center;color:var(--muted)}.earclock{margin:0;text-align:center;font-family:var(--f-mono);font-size:1.1rem}
+.earbtns button{flex:1}
+.earpocket{position:fixed;inset:0;z-index:70;background:#000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;color:#555;touch-action:none;user-select:none;-webkit-user-select:none;transition:background .3s}
+.earpocket.hold{background:#151515}
+.epphase{font-family:var(--f-display);font-size:2.4rem}.epdrill{font-size:1rem;color:#444}.epclock{font-family:var(--f-mono);font-size:1.2rem;color:#444}.earpocket small{position:absolute;bottom:40px;color:#333}
+
 header{position:relative}
 .helpbtn{position:absolute;right:0;top:14px;width:36px;height:36px;border-radius:50%;padding:0;font-family:var(--f-display);font-size:1.15rem;color:var(--accent);border:1px solid var(--line);background:var(--surface)}
 .placecard{display:flex;align-items:center;gap:12px;justify-content:space-between;border:1px dashed var(--gridC);border-radius:12px;padding:10px 12px;background:rgba(111,143,224,.06)}
@@ -375,6 +398,7 @@ details.sess summary::-webkit-details-marker{display:none}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
+<div class="earpocket" id="earPocket" hidden><div class="epphase" id="epPhase"></div><div class="epdrill" id="epDrill"></div><div class="epclock" id="epClock"></div><small>Hold anywhere for one second to unlock</small></div>
 <div class="tour" id="tour" hidden><div class="tourhole" id="tourHole"></div>
   <div class="tourcard" id="tourCard" role="dialog" aria-live="polite" aria-labelledby="tourT"><small id="tourStep"></small><h3 id="tourT"></h3><p id="tourB"></p>
     <div class="row"><button id="tourSkip">Skip</button><span style="flex:1"></span><button id="tourBack">Back</button><button class="primary" id="tourNext">Next</button></div></div></div>
@@ -400,6 +424,7 @@ details.sess summary::-webkit-details-marker{display:none}
     <button role="tab" id="mode-weak" aria-selected="false">Weak spots</button>
     <button role="tab" id="mode-habit" aria-selected="false">Habits</button>
     <button role="tab" id="mode-warm" aria-selected="false">Warm-up</button>
+    <button role="tab" id="mode-ears" aria-selected="false">Ears only</button>
   </div>
 
   <section class="panel" id="weakPanel" hidden aria-labelledby="t-weak">
@@ -417,6 +442,56 @@ details.sess summary::-webkit-details-marker{display:none}
     <div class="bars" id="weakDir"></div>
     <h3>Skills, weakest first</h3>
     <div class="bars" id="weakSkills"></div>
+  </section>
+  <section class="panel" id="earsPanel" hidden aria-labelledby="t-ears">
+    <div class="row" style="justify-content:space-between"><h2 id="t-ears">Ears only</h2><span class="tag">Headphones · no screen</span></div>
+    <div id="earSetup" class="earsetup">
+      <p class="status" style="margin:0">Practice while you work. No microphone and no scores: the tone guides you, you hum with it, and only your practice time is saved. Every drill runs the same four parts, announced out loud, so you always know what is coming:</p>
+      <div class="earflow"><span><b style="color:var(--lapis)">Listen</b>the tone plays alone</span><span><b style="color:var(--accent)">With me</b>hum with it until the buzz smooths out</span><span><b style="color:var(--good)">On your own</b>the tone drops out; keep going</span><span><b style="color:#E7C26A">Check</b>the tone comes back: still locked in?</span></div>
+      <h3>Choose a program</h3>
+      <div id="earUnits" class="earunits"></div>
+      <div id="earNotes" class="earnotes" hidden>
+        <h3>Your notes</h3>
+        <div class="row"><label class="label" for="earLo">From</label><select id="earLo"></select><label class="label" for="earHi">to</label><select id="earHi"></select></div>
+        <div class="chips earchips" id="earNoteChips"></div>
+        <p class="status" id="earFocusTxt" style="margin:0"></p>
+        <button id="earClear" hidden>Back to automatic</button>
+      </div>
+      <div class="field"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
+      <details class="opts"><summary>Sound and voice</summary>
+        <div class="grid2">
+          <div class="field"><label class="label" for="earTimbre">Tone</label><select id="earTimbre"><option value="warm">Warm hum (easiest to match)</option><option value="organ">Organ (cuts through noise)</option><option value="pure">Pure</option></select></div>
+          <div class="field"><label class="label" for="earVol">Tone volume</label><input type="range" id="earVol" min="0.2" max="1" step="0.05"></div>
+          <div class="field"><label class="label" for="earCues">Spoken guide</label><select id="earCues"><option value="words">Spoken words</option><option value="tones">Short beeps only</option><option value="none">Silent</option></select></div>
+        </div>
+        <label class="check"><input type="checkbox" id="earNames"> Say note names (Note explorer)</label>
+        <label class="check"><input type="checkbox" id="earTicks"> Soft beat ticks while you sing alone</label>
+        <button id="earTest">Play my home note</button>
+      </details>
+      <button class="primary big" id="earStart">Start</button>
+      <p class="status" id="earsMsg" style="margin:0"></p><p class="status" id="earTotal" style="margin:0"></p>
+      <details class="opts"><summary>How to practice this way, and at work</summary><ul class="hlib">
+        <li><b>Hear the lock.</b> When your hum and the tone are a little apart you hear a slow wobble, a "wah-wah" called beating. The closer you get, the slower it wobbles; when it stops, you are in tune. Hum rather than sing words: it is much easier to hear.</li>
+        <li><b>Slide slowly.</b> If you hear beating, move your pitch very slowly up or down. If the wobble gets faster, go the other way.</li>
+        <li><b>Feel it too.</b> In a loud shop you may hear yourself mostly inside your head. Notice the buzz in your face and chest when you lock in; that feeling becomes your memory of the note.</li>
+        <li><b>Safety first.</b> Keep your hearing protection. Use protective headphones or isolating earbuds with sound, and never turn the tone up to compete with a saw. Pause before any cut that needs your full attention: one press on the headphone button.</li>
+        <li><b>Short and often.</b> Your voice learns best in regular sessions of 10 to 30 minutes with breaks, not one long one. Sip water.</li>
+        <li><b>Keep the screen on.</b> The app keeps it awake. Put the phone in your pocket in Pocket mode. If the screen locks, the sound stops and the session pauses; open the app and tap Resume.</li>
+        <li><b>The order.</b> Start with Unit 0 until locking onto home feels natural, then 1, 2 and 3. Each unit shows a time goal; the level rises as your minutes grow. Use the Note explorer any time, and come back to the screen lessons now and then to see your real scores.</li>
+      </ul></details>
+    </div>
+    <div id="earRun" class="earrun" hidden>
+      <div class="eardots"><i id="earDotL">Listen</i><i id="earDotW">With me</i><i id="earDotA">Alone</i><i id="earDotC">Check</i></div>
+      <div class="earphase" id="earPhase"></div>
+      <div class="earnote" id="earNote"></div>
+      <p class="eardrill" id="earDrill"></p>
+      <p class="earclock" id="earClock"></p>
+      <button class="primary big" id="earPause">Pause</button>
+      <div class="row earbtns"><button id="earRepeat">Repeat drill</button><button id="earSkip">Next drill</button></div>
+      <button class="big" id="earPocketBtn">Pocket mode (black screen)</button>
+      <button id="earStop">End session</button>
+      <p class="status" style="margin:0">Headphone button: press once to pause or resume. On most headphones a double press skips to the next drill and a triple press repeats it.</p>
+    </div>
   </section>
   <section class="panel" id="placePanel" hidden><div id="placeBody" class="placebody"></div></section>
   <section class="panel" id="warmPanel" hidden aria-labelledby="t-warm">
@@ -3732,7 +3807,7 @@ function findHomeNote(statusEl,btn,done){(async()=>{if(!live)await startLive();i
 /* ================= Tour ================= */
 const TOUR=[
  {tab:'practice',sel:'.tabs',t:'Five sections',b:'Practice holds the lessons. Songs is for singing along with chants or your own recordings. Tuner shows your pitch live. Stats tracks your progress. Settings holds your voice, pass marks and backups.'},
- {tab:'practice',mode:'found',sel:'#v-practice>.seg',t:'Ways to practice',b:'Foundations is the main course. Song turns any song into lessons. Weak spots drills your lowest scores. Habits fixes mistakes the coach keeps noticing. Warm-up is the Byzantine scale workout.'},
+ {tab:'practice',mode:'found',sel:'#v-practice>.seg',t:'Ways to practice',b:'Foundations is the main course. Song turns any song into lessons. Weak spots drills your lowest scores. Habits fixes mistakes the coach keeps noticing. Warm-up is the Byzantine scale workout. Ears only is for practicing with headphones while you work, without looking.'},
  {tab:'practice',mode:'found',sel:'#map',t:'Your course map',b:'Each circle is a unit. Gold means mastered. Swipe sideways and tap a unit to see its lessons and its unit test.'},
  {tab:'practice',mode:'found',sel:'#builder',t:'Start a session',b:'Pick the time you have and a challenge level, then press Start session. The app fills the time with lessons, reviews and extra practice.'},
  {tab:'practice',mode:'found',sel:'.rank',t:'Rank and practice time',b:'Every minute you sing counts. Ranks run from 1 to 100 and get slower to earn, like real skill.'},
@@ -3758,28 +3833,241 @@ function openWelcome(first){$('wT').textContent=first?'Welcome to Ison Pitch Lab
   const pr=store.get('ison-place-last',null);$('wView').hidden=!pr;$('welcome').hidden=false}
 function closeWelcome(){$('welcome').hidden=true;store.set('ison-welcomed',1)}
 
+/* ================= Ears only =================
+   Practice with headphones and no screen: nothing is recorded, nothing is scored, only the time is saved.
+   Every drill follows the same call-and-response shape, so you always know what comes next without looking:
+     LISTEN   the tone plays alone
+     WITH ME  the tone plays again and you hum with it; nudge your pitch until the slow "wah-wah" beating
+              between you and the tone smooths out (that is the sound of being in tune)
+     ALONE    the tone drops out and you carry the note or pattern by yourself (soft ticks keep the beat)
+     CHECK    the tone comes back: if you are still locked in, there is no beating; if you hear it, slide back
+   A spoken cue names each part. As your minutes in a unit grow, the level rises: more singing alone, less help,
+   wider notes, a little faster. Units mirror Foundations 0 to 3, plus a Note explorer for every note in your range. */
+const EAR_UNITS=[
+ {id:0,name:'Home and the lock',goal:60,desc:'Find your home note and learn what "in tune" feels like: the buzz between your hum and the tone melting into one sound.'},
+ {id:1,name:'Match any note',goal:120,desc:'Hear a note, lock onto it, keep it alone, check it. Near notes first, then low, high and further away.'},
+ {id:2,name:'Hold it steady',goal:90,desc:'Long notes that stay put while the tone drops out under you, through vowel changes and volume swells.'},
+ {id:3,name:'Next-door notes',goal:120,desc:'Whole steps and half steps, up and down, then three in a row, plus a by-ear quiz: half step or whole step?'},
+ {id:4,name:'Note explorer',goal:0,desc:'Every note in your range, a few at a time: meet each note by name, travel between it and home, and switch between your notes until you know them.'}];
+const EAR_DEF={unit:0,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true};
+function earSet(){return Object.assign({},EAR_DEF,store.get('ison-ears-set',{}))}
+function earSave(o){store.set('ison-ears-set',Object.assign(earSet(),o))}
+function earState(){return Object.assign({rot:0,sessions:0},store.get('ison-ears',{}))}
+function earMin(u){return TIME.unit['ears:'+u]||0}
+function earLevel(u){const U=EAR_UNITS[u];if(!U.goal)return Math.min(3,1+Math.floor(earMin(u)/60));const f=earMin(u)/U.goal;return f<1/3?1:f<2/3?2:3}
+const SPOKEN={'C':'C','C♯':'C sharp','D':'D','E♭':'E flat','E':'E','F':'F','F♯':'F sharp','G':'G','G♯':'G sharp','A':'A','B♭':'B flat','B':'B'};
+const spokenName=m=>SPOKEN[nameOf(m).replace(/-?\d+$/,'')]||nameOf(m);
+const REL={0:'home',1:'a half step',2:'a whole step',3:'a minor third',4:'a major third',5:'a fourth',6:'a tritone',7:'a fifth',8:'a minor sixth',9:'a major sixth',10:'a minor seventh',11:'a major seventh',12:'an octave'};
+const relTo=r=>r===0?'your home note':(REL[Math.abs(r)]||Math.abs(r)+' half steps')+(r>0?' above home':' below home');
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
+function earRange(){const s=earSet(),H=S.home;return{lo:s.lo!=null?s.lo:H-7,hi:s.hi!=null?s.hi:H+9}}
+/* ---- building blocks: each returns a list of steps ---- */
+const seq=(pat,beats,bpm,base)=>{const b=60/bpm;return pat.map((p,i)=>({m:p==null?null:base+p,d:(Array.isArray(beats)?beats[i]:beats)*b}))};
+const seqDur=s=>s.reduce((a,x)=>a+x.d,0);
+/* listen, with, alone, check; the level decides how much help */
+function lwac(sq,lv,o){o=o||{};const out=[],bt=o.beat||sq[0].d;
+  out.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:sq});
+  if(lv<3||o.always)out.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:sq});
+  if(lv===1&&!o.once)out.push({k:'play',ph:'W',seq:sq});
+  out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(sq),beat:bt});
+  out.push({k:'cue',ph:'C'},{k:'play',ph:'C',seq:sq},{k:'gap',d:1});return out}
+/* a held note with the tone dropping out in the middle */
+function hold(m,lv,o){o=o||{};const L0=o.listen||3,W=o.with||(lv===1?8:lv===2?6:4),A=o.alone||(lv===1?4:lv===2?6:8),C=o.check||4;
+  return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0}]},{k:'cue',ph:'W',say:o.withSay},{k:'hold',m,w:W,a:A,c:C,swell:o.swell},{k:'gap',d:1.2}]}
+const say=t=>({k:'say',text:t});
+/* ---- the units ---- */
+function earDrills(u,lv){const H=S.home,R=earRange(),D=[],add=(name,intro,steps)=>D.push({name,intro,steps});
+  const inR=r=>H+r>=R.lo&&H+r<=R.hi;
+  if(u===0){
+    add('Lock onto home','Hum along with your home note. Slide your hum up or down until the buzz between you and the tone smooths out. Then keep it when the tone drops away.',[].concat(hold(H,lv),hold(H,lv)));
+    add('Lip trill or straw on home','Lip trill, or hum through a straw, on the same note. Easy and quiet.',[].concat(hold(H,lv,{withSay:'Trill with me'}),hold(H,lv,{withSay:'Again'})));
+    add('Clean starts','Short hums that start right on the note. No sliding in.',lwac(seq([0,null,0,null,0,null,0],1,60,H),lv));
+    add('Home from silence','Hum your home note from memory first. Then the tone comes in so you can hear if you were right.',[].concat(...[1,2,3].map(()=>[{k:'cue',ph:'A',say:'Hum home now'},{k:'quiet',ph:'A',d:lv===1?3:4,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H,d:4}]},{k:'gap',d:1.5}])));
+    add('Home on "ah"','Open to "ah" on home, easy volume. Same lock, open mouth.',[].concat(hold(H,lv,{withSay:'Ah with me'}),hold(H,lv,{withSay:'Again, ah'})));
+    add('Home moves a little','Home drifts up or down a little each time. Find each new note and lock it.',[].concat(...shuffle([1,-1,2,-2]).map(r=>[say(r>0?'A little higher':'A little lower')].concat(hold(H+r,lv,{with:6})))));
+  }
+  if(u===1){const near=[1,-1,2,-2,3,-3],far=[4,-4,5,-5,7,-7].filter(inR),low=[-3,-5,-7,-8,-10].filter(inR),high=[4,5,7,9,10].filter(inR);
+    const notes=(rs,n)=>{const out=[];for(let i=0;i<n;i++){const r=pick(rs);out.push(...lwac(seq([r],lv===1?3:2.5,60,H),lv,{once:true}))}return out};
+    add('Near notes','A single note near home each time. Lock on, keep it alone, check it.',notes(near,lv===1?4:5));
+    add('A little further','Notes up to a fifth away from home.',notes(lv===1?near.concat([4,-4]):far.length?far:near,5));
+    if(low.length)add('Low notes','Notes below home. Relax and let them be quiet, never pushed.',notes(lv===1?low.slice(0,2):low,4));
+    if(high.length)add('High notes','Notes above home. Lighter and softer as you go up.',notes(lv===1?high.slice(0,2):high,4));
+    add('Two notes','Two notes, one after the other. Sing both back.',[].concat(...[0,1,2,3].map(()=>{const a=pick([0,2,-2,4]),b=pick([-3,5,3,-5,7].filter(x=>x!==a&&inR(x)));return lwac(seq([a,b],2,60,H),lv)})));
+    add('Hold it in your head','Hear the note, then a moment of silence to think it, then sing it alone.',[].concat(...[0,1,2,3].map(()=>{const r=pick(near.concat(far));return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m:H+r,d:2.5}]},say('Think it'),{k:'quiet',ph:'T',d:3,beat:0},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:3,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H+r,d:3}]},{k:'gap',d:1}]})));
+  }
+  if(u===2){const lvW=lv===1?8:lv===2?10:14;
+    add('Long "ah"','A long "ah" on home. The tone drops out halfway: keep the pitch exactly where it is.',[].concat(hold(H,lv,{with:lvW*0.5,alone:lvW*0.5}),hold(H,lv,{with:lvW*0.5,alone:lvW*0.5})));
+    add('Change vowels, not pitch','Ah, then oo, then ee, all on one pitch. Only your mouth moves.',[].concat(...['ah','oo','ee'].map(v=>[say(v)].concat(hold(H,lv,{with:4,alone:4,withSay:v+' with me'})))));
+    add('Swell and fade','The tone grows and fades. Grow and fade with it, and keep the pitch level.',[].concat(hold(H,lv,{with:8,alone:4,swell:true}),hold(H+2,lv,{with:8,alone:4,swell:true})));
+    add('Hold, step, hold','Hold home, step up a whole step and hold, then back home.',lwac(seq([0,2,0],[4,4,4],60,H),lv));
+    add('The long hold','The tone drops out for longer each level. Keep it rock steady.',hold(H,lv,{with:4,alone:lv===1?8:lv===2?12:16,check:4}));
+    if(inR(5))add('A light higher hold','A hold a fourth above home. Light and easy, never pushed.',hold(H+5,lv,{with:6,alone:lv===1?4:6}));
+  }
+  if(u===3){const bpm=lv===1?54:lv===2?60:72;
+    add('Whole step up and back','Home, a whole step up, and home.',[].concat(lwac(seq([0,2,0],[2,2,3],bpm,H),lv),lwac(seq([0,2,0],[2,2,3],bpm,H),lv)));
+    add('Whole step down and back','Home, a whole step down, and home.',lwac(seq([0,-2,0],[2,2,3],bpm,H),lv));
+    add('The half step','The smallest step: very close. Up, back, down, back.',[].concat(lwac(seq([0,1,0],[2,2,3],bpm,H),lv),lwac(seq([0,-1,0],[2,2,3],bpm,H),lv)));
+    add('Three going up','Do, re, mi, and back.',lwac(seq([0,2,4,2,0],[1,1,2,1,2],bpm,H),lv));
+    add('Whole, whole, half','Do re mi fa: two whole steps and a half step. Feel how close mi and fa are.',lwac(seq([0,2,4,5,4,2,0],[1,1,1,2,1,1,2],bpm,H),lv));
+    add('Half step or whole step?','A quiz by ear. Two notes play, then a pause to decide, then the answer.',[].concat(...[0,1,2,3,4,5].map(()=>{const st=pick([1,2]),dir=pick([1,-1]),a=pick([0,2,-2]);return[{k:'play',ph:'L',seq:[{m:H+a,d:1.2},{m:H+a+st*dir,d:1.6}]},{k:'quiet',ph:'Q',d:2.5,beat:0},say((st===1?'Half step':'Whole step')+(dir>0?', up.':', down.')),{k:'gap',d:0.8}]})));
+    if(lv>=2)add('Quicker steps','The same steps at a quicker pace.',lwac(seq([0,2,4,5,4,2,0],0.5,bpm+12,H),lv,{beat:60/(bpm+12)}));
+  }
+  if(u===4){const st=earState(),f=earFocus(st),names=earSet().names;
+    D.push({name:'Today\'s notes',intro:'Today\'s notes are '+f.map(m=>names?spokenName(m):'').join(', ')+'.',steps:[]});
+    f.forEach(m=>{const r=m-H;
+      add('Meet '+spokenName(m),(names?'This is '+spokenName(m)+', ':'This note is ')+relTo(r)+'. Hum it and lock on.',[].concat(hold(m,lv,{with:6}),hold(m,lv,{with:4})));
+      if(r!==0)add('Home to '+spokenName(m)+' and back','From home to '+spokenName(m)+' and back home.',[].concat(lwac(seq([0,r,0],[2,2,3],60,H),lv),lwac(seq([0,r,0],[2,2,3],60,H),lv)));
+      add(spokenName(m)+' and its neighbors','A whole step above it and back, then a whole step below it and back.',[].concat(lwac(seq([0,2,0],[2,2,3],60,m),lv),lwac(seq([0,-2,0],[2,2,3],60,m),lv)))});
+    if(f.length>=2){const pairs=[];for(let i=0;i<f.length;i++)for(let j=i+1;j<f.length;j++)pairs.push([f[i],f[j]]);
+      add('Between your notes','Back and forth between today\'s notes: one, the other, and back.',[].concat(...shuffle(pairs).map(([a,b])=>[say(names?spokenName(a)+', '+spokenName(b)+', '+spokenName(a):'')].concat(lwac(seq([0,b-a,0],[2,2,3],60,a),lv)))));
+      add('Name that note','A note plays, then a pause: say or think its name. Then you hear the answer.',[].concat(...shuffle(f.concat(f)).map(m=>[{k:'play',ph:'L',seq:[{m,d:2}]},{k:'quiet',ph:'Q',d:3,beat:0},say(spokenName(m)),{k:'play',ph:'C',seq:[{m,d:2}]},{k:'gap',d:0.8}])))}
+  }
+  return D}
+/* rotation through every note in range: home first, then the scale around it, then the in-between notes */
+function earOrder(){const R=earRange(),H=S.home,o=[0,2,4,-1,5,-3,7,-5,9,-7,11,12,1,3,6,8,10,-2,-4,-6,-8,-9,-10,13,14,15,16];return o.map(r=>H+r).filter(m=>m>=R.lo&&m<=R.hi)}
+function earFocus(st){const s=earSet();if(s.focus&&s.focus.length)return s.focus.slice(0,4);const o=earOrder();if(!o.length)return[S.home];const k=(st.rot||0)%o.length,out=[o[k]];
+  for(let i=1;out.length<3&&i<o.length;i++){const m=o[(k+i)%o.length];if(!out.includes(m))out.push(m)}return out}
+/* ---- sound ---- */
+const EARS={run:false,paused:false,u:0,lv:1,drills:[],di:0,si:0,timers:[],voices:[],el:0,goal:0,last:0,logged:0,iv:null,ph:'',note:null,spk:null};
+function earTimbre(){const t=earSet().timbre;return t==='pure'?{h:[1],lp:3000}:t==='organ'?{h:[1,.7,.5,.35,.25,.15],lp:5000}:{h:[1,.5,.25,.12],lp:2200}}
+function earNote(m,t0,d,gain,swell){const c=ensureCtx(),f=m2f(m),T=earTimbre(),g=c.createGain(),lp=c.createBiquadFilter(),vol=(earSet().vol||0.8)*0.32*(gain||1);
+  lp.type='lowpass';lp.frequency.value=Math.min(T.lp,f*14);g.gain.setValueAtTime(0,t0);
+  if(swell){g.gain.linearRampToValueAtTime(vol*0.25,t0+0.08);g.gain.linearRampToValueAtTime(vol,t0+d*0.5);g.gain.linearRampToValueAtTime(vol*0.25,t0+d-0.1)}
+  else{g.gain.linearRampToValueAtTime(vol,t0+0.04);g.gain.setValueAtTime(vol,Math.max(t0+0.05,t0+d-0.09))}
+  g.gain.linearRampToValueAtTime(0,t0+d);g.connect(lp);lp.connect(c.destination);
+  const os=T.h.map((a,i)=>{const o=c.createOscillator(),og=c.createGain();o.type='sine';o.frequency.value=f*(i+1);og.gain.value=a/T.h.reduce((x,y)=>x+y,0)*1.6;o.connect(og);og.connect(g);o.start(t0);o.stop(t0+d+0.05);return o});
+  EARS.voices.push({os,g});}
+function earTick(t0,lvl){const c=ensureCtx(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1600;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime((earSet().vol||0.8)*0.05*(lvl||1),t0+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.05);o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+0.06);EARS.voices.push({os:[o],g})}
+function earChime(t0,up){[0,1].forEach(i=>{earTick(t0+i*0.12,2)})}
+function earSilence(){EARS.voices.forEach(v=>{try{v.g.gain.cancelScheduledValues(0);v.g.gain.value=0;v.os.forEach(o=>{try{o.stop()}catch(e){}})}catch(e){}});EARS.voices=[];EARS.timers.forEach(clearTimeout);EARS.timers=[];try{speechSynthesis.cancel()}catch(e){}}
+function earSay(text,done){const s=earSet();if(!text){done();return}
+  if(s.cues==='none'||!('speechSynthesis' in window)){done();return}
+  let fin=false;const end=()=>{if(fin)return;fin=true;done()};
+  try{const u=new SpeechSynthesisUtterance(text);u.rate=1.02;u.volume=1;u.onend=end;u.onerror=end;speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){end();return}
+  EARS.timers.push(setTimeout(end,1200+text.length*85))}
+const PH_WORD={L:'Listen',W:'With me',A:'On your own',C:'Check',T:'Think it',Q:'Which one?'};
+const PH_LONG={L:'Listen',W:'Hum with the tone',A:'On your own',C:'Check: still locked in?',T:'Think it',Q:'Which one?'};
+/* ---- runner ---- */
+function earStep(){if(!EARS.run||EARS.paused)return;const dr=EARS.drills[EARS.di];
+  if(!dr){EARS.drills=earDrills(EARS.u,EARS.lv);EARS.di=0;EARS.si=-1;earSay('Round again.',()=>earNext());return}
+  if(EARS.si<0){EARS.si=0;earUI();const intro='Drill '+(EARS.di+1)+' of '+EARS.drills.length+'. '+dr.name+'. '+(earSet().cues==='words'?dr.intro:'');earMedia(dr.name);earSay(intro,()=>earGo());return}
+  earGo()}
+function earGo(){if(!EARS.run||EARS.paused)return;const dr=EARS.drills[EARS.di],st=dr&&dr.steps[EARS.si];
+  if(!st){EARS.di++;EARS.si=-1;if(earDone())return;EARS.timers.push(setTimeout(earStep,600));return}
+  const c=ensureCtx(),next=()=>{EARS.si++;earGo()},s=earSet();
+  if(st.k==='say'){earUI();earSay(st.text,next);return}
+  if(st.k==='gap'){EARS.ph='';earUI();EARS.timers.push(setTimeout(next,st.d*1000));return}
+  if(st.k==='cue'){EARS.ph=st.ph;EARS.note=null;earUI();if(s.cues==='words'){earSay(st.say||PH_WORD[st.ph],()=>EARS.timers.push(setTimeout(next,120)))}else{if(s.cues==='tones'){const t=c.currentTime+0.02;if(st.ph==='A')earChime(t);else earTick(t,1.5)}EARS.timers.push(setTimeout(next,450))}return}
+  if(st.k==='play'){EARS.ph=st.ph;let t=c.currentTime+0.06;const t00=t;st.seq.forEach(n=>{if(n.m!=null){earNote(n.m,t,n.d*0.96);const at=(t-t00)*1000;EARS.timers.push(setTimeout(()=>{EARS.note=n.m;earUI()},at))}t+=n.d});
+    earUI();EARS.timers.push(setTimeout(()=>{EARS.note=null;next()},(t-c.currentTime)*1000+80));return}
+  if(st.k==='quiet'){EARS.ph=st.ph;EARS.note=null;earUI();const t0=c.currentTime+0.05;if(s.ticks&&st.beat)for(let x=0;x<st.d-0.01;x+=st.beat)earTick(t0+x,x===0?1.2:0.8);EARS.timers.push(setTimeout(next,st.d*1000+60));return}
+  if(st.k==='hold'){const t0=c.currentTime+0.05,tot=st.w+st.a+st.c;EARS.ph='W';EARS.note=st.m;earUI();
+    /* one tone that dips out for the alone part and returns for the check */
+    const f=m2f(st.m),T=earTimbre(),g=c.createGain(),lp=c.createBiquadFilter(),vol=(s.vol||0.8)*0.32;lp.type='lowpass';lp.frequency.value=Math.min(T.lp,f*14);
+    g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime(st.swell?vol*0.3:vol,t0+0.05);
+    if(st.swell){g.gain.linearRampToValueAtTime(vol,t0+st.w*0.5);g.gain.linearRampToValueAtTime(vol*0.25,t0+st.w-0.05)}else g.gain.setValueAtTime(vol,t0+st.w-0.6);
+    g.gain.linearRampToValueAtTime(0,t0+st.w);g.gain.setValueAtTime(0,t0+st.w+st.a);g.gain.linearRampToValueAtTime(vol,t0+st.w+st.a+0.25);g.gain.setValueAtTime(vol,t0+tot-0.1);g.gain.linearRampToValueAtTime(0,t0+tot);
+    g.connect(lp);lp.connect(c.destination);const os=T.h.map((a,i)=>{const o=c.createOscillator(),og=c.createGain();o.frequency.value=f*(i+1);og.gain.value=a/T.h.reduce((x,y)=>x+y,0)*1.6;o.connect(og);og.connect(g);o.start(t0);o.stop(t0+tot+0.05);return o});EARS.voices.push({os,g});
+    if(s.ticks)for(let x=1;x<st.a-0.2;x+=1)earTick(t0+st.w+x,0.6);
+    EARS.timers.push(setTimeout(()=>{EARS.ph='A';earUI();if(s.cues==='words')earSay('On your own',()=>{})},st.w*1000));
+    EARS.timers.push(setTimeout(()=>{EARS.ph='C';earUI();if(s.cues==='words')earSay('Check',()=>{})},(st.w+st.a)*1000-200));
+    EARS.timers.push(setTimeout(next,tot*1000+120));return}
+  next()}
+function earDone(){if(EARS.el>=EARS.goal){earFinish(true);return true}return false}
+function earTickClock(){if(!EARS.run)return;const now=Date.now();if(!EARS.paused)EARS.el+=(now-EARS.last)/1000;EARS.last=now;
+  if(EARS.el-EARS.logged>=30){const ru=addPractice('ears',EARS.u,EARS.el-EARS.logged);EARS.logged=EARS.el;if(ru)setTimeout(()=>fiveStar('Rank '+ru),200)}
+  earUI(true)}
+function earStart(){if(EARS.run)return;if(L.active){$('earsMsg').textContent='Finish or end your current session first.';return}
+  const s=earSet();ensureCtx();EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.drills=earDrills(EARS.u,EARS.lv);EARS.di=0;EARS.si=-1;EARS.el=0;EARS.logged=0;EARS.goal=s.min*60;EARS.last=Date.now();EARS.run=true;EARS.paused=false;
+  if(G.playing)stopSing(true);earMediaStart();clearInterval(EARS.iv);EARS.iv=setInterval(earTickClock,1000);updateAwake();renderEars();setTimeout(()=>$('earsPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
+  earSay('Ears only. '+EAR_UNITS[EARS.u].name+', level '+EARS.lv+'. '+s.min+' minutes. Put your headphones on and keep the phone in your pocket.',()=>{EARS.timers.push(setTimeout(earStep,500))})}
+function earPause(){if(!EARS.run)return;if(EARS.paused){EARS.paused=false;EARS.last=Date.now();EARS.si=Math.max(0,EARS.si);earSay('Resuming.',()=>earGo())}else{EARS.paused=true;earSilence();
+  /* back up to the start of the current listen-with-alone-check block so nothing is half-heard */
+  const dr=EARS.drills[EARS.di];if(dr&&EARS.si>0){let k=EARS.si;while(k>0&&!(dr.steps[k].k==='cue'&&dr.steps[k].ph==='L')&&dr.steps[k].k!=='hold')k--;EARS.si=k}}earUI();earMediaState()}
+function earSkip(){if(!EARS.run)return;earSilence();EARS.paused=false;EARS.di++;EARS.si=-1;if(!earDone())earStep();earUI()}
+function earRepeat(){if(!EARS.run)return;earSilence();EARS.paused=false;EARS.si=-1;earStep();earUI()}
+function earFinish(complete){if(!EARS.run)return;earSilence();clearInterval(EARS.iv);const left=EARS.el-EARS.logged;if(left>1)addPractice('ears',EARS.u,left);EARS.logged=EARS.el;
+  const st=earState();st.sessions=(st.sessions||0)+1;if(EARS.u===4&&EARS.el>=480&&!(earSet().focus||[]).length)st.rot=(st.rot||0)+3;st.last=Date.now();store.set('ison-ears',st);
+  const mins=Math.round(EARS.el/60);EARS.run=false;EARS.paused=false;earMediaStop();updateAwake();earPocket(false);
+  if(complete){try{const u=new SpeechSynthesisUtterance('Session complete. '+mins+' minutes. Nice work.');speechSynthesis.speak(u)}catch(e){}}
+  $('earsMsg').textContent=(complete?'Session complete: ':'Stopped after ')+fmtHM(EARS.el/60)+' of ears-only practice saved to your practice time.';renderEars()}
+/* ---- headphone buttons and lock-screen controls (Media Session); best effort ---- */
+let earAudio=null;
+function earSilentWav(){const sr=8000,n=sr,b=new ArrayBuffer(44+n*2),v=new DataView(b),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+function earMediaStart(){try{if(!earAudio){earAudio=new Audio(earSilentWav());earAudio.loop=true;earAudio.volume=0.01}earAudio.play().catch(()=>{});
+  if('mediaSession' in navigator){const ms=navigator.mediaSession;ms.setActionHandler('play',()=>{if(EARS.paused)earPause()});ms.setActionHandler('pause',()=>{if(!EARS.paused)earPause()});
+    try{ms.setActionHandler('nexttrack',earSkip);ms.setActionHandler('previoustrack',earRepeat)}catch(e){}earMedia(EAR_UNITS[EARS.u].name)}}catch(e){}}
+function earMedia(title){try{if('mediaSession' in navigator)navigator.mediaSession.metadata=new MediaMetadata({title:title||'Ears only',artist:'Ison Pitch Lab · Ears only',album:EAR_UNITS[EARS.u].name})}catch(e){}}
+function earMediaState(){try{if('mediaSession' in navigator)navigator.mediaSession.playbackState=EARS.paused?'paused':'playing'}catch(e){}}
+function earMediaStop(){try{if(earAudio)earAudio.pause();if('mediaSession' in navigator){['play','pause','nexttrack','previoustrack'].forEach(a=>{try{navigator.mediaSession.setActionHandler(a,null)}catch(e){}});navigator.mediaSession.metadata=null}}catch(e){}}
+/* ---- pocket mode: a black screen that ignores stray touches; hold to unlock ---- */
+function earPocket(on){$('earPocket').hidden=!on;document.documentElement.classList.toggle('pocket',!!on)}
+/* ---- UI ---- */
+const PH_COL={L:'var(--lapis)',W:'var(--accent)',A:'var(--good)',C:'#E7C26A',T:'var(--muted)',Q:'var(--lapis)'};
+function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');const tt=fmt(EARS.el)+' / '+fmt(EARS.goal);
+  if($('earClock'))$('earClock').textContent=tt;$('epClock').textContent=tt;if(clockOnly)return;
+  const dr=EARS.drills[EARS.di];$('earDrill').textContent=dr?'Drill '+(EARS.di+1)+' of '+EARS.drills.length+' · '+dr.name:'';
+  const ph=EARS.paused?'Paused':EARS.ph?PH_LONG[EARS.ph]:'';$('earPhase').textContent=ph;$('earPhase').style.borderColor=$('earPhase').style.color=EARS.paused?'var(--muted)':(PH_COL[EARS.ph]||'var(--muted)');
+  $('earNote').textContent=EARS.note!=null?nameOf(EARS.note):'';$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
+  $('earPause').textContent=EARS.paused?'Resume':'Pause';
+  ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
+function renderEars(){const s=earSet(),box=$('earUnits');$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
+  if(EARS.run){earUI();return}
+  box.innerHTML='';EAR_UNITS.forEach((U,i)=>{const b=document.createElement('button');b.className='earunit'+(s.unit===i?' sel':'');b.setAttribute('aria-pressed',String(s.unit===i));
+    const h=document.createElement('b');h.textContent=(i<4?'Unit '+i+' · ':'')+U.name;const p=document.createElement('span');p.textContent=U.desc;
+    const m=earMin(i),bar=document.createElement('i');const lv=earLevel(i);const t=document.createElement('small');
+    t.textContent=U.goal?fmtHM(m)+' of '+fmtHM(U.goal)+' · level '+lv+' of 3'+(m>=U.goal?' · goal met':''):fmtHM(m)+' practiced · level '+lv;
+    bar.style.width=U.goal?Math.min(100,m/U.goal*100)+'%':'0';const tr=document.createElement('span');tr.className='eartr';tr.appendChild(bar);
+    b.append(h,p,tr,t);b.onclick=()=>{earSave({unit:i});renderEars()};box.appendChild(b)});
+  /* note explorer options */
+  $('earNotes').hidden=s.unit!==4;if(s.unit===4){const R=earRange(),nc=$('earNoteChips');nc.innerHTML='';const foc=s.focus||[],auto=earFocus(earState());
+    for(let m=R.lo;m<=R.hi;m++){const b=document.createElement('button');b.textContent=nameOf(m)+(m===S.home?' ⌂':'');b.setAttribute('aria-pressed',String(foc.includes(m)));if(!foc.length&&auto.includes(m))b.className='auto';
+      b.onclick=()=>{let f=(earSet().focus||[]).slice();if(f.includes(m))f=f.filter(x=>x!==m);else{f.push(m);if(f.length>4)f.shift()}earSave({focus:f});renderEars()};nc.appendChild(b)}
+    $('earFocusTxt').textContent=foc.length?'Your picks: '+foc.map(nameOf).join(', ')+'. Tap again to remove, or clear them to go back to automatic.':'Automatic: '+auto.map(nameOf).join(', ')+' today. After each session of 8 minutes or more it moves on to the next notes, until you have covered every note from '+nameOf(R.lo)+' to '+nameOf(R.hi)+'. Or tap up to 4 notes to choose your own.';
+    $('earClear').hidden=!foc.length;$('earLo').value=String(R.lo);$('earHi').value=String(R.hi)}
+  const mc=$('earMins');if(!mc.children.length)[10,20,30,45,60,90].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{earSave({min:m});renderEars()};mc.appendChild(b)});
+  [...mc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===s.min)));
+  $('earTimbre').value=s.timbre;$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earTicks').checked=!!s.ticks;
+  const U=EAR_UNITS[s.unit];$('earStart').textContent='Start '+s.min+' minutes · '+U.name;
+  const tot=[0,1,2,3,4].reduce((a,i)=>a+earMin(i),0);$('earTotal').textContent=tot?'Ears-only practice so far: '+fmtHM(tot)+'.':''}
+function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo,hi].forEach(sel=>{const o=document.createElement('option');o.value=m;o.textContent=nameOf(m);sel.appendChild(o)})}
+  lo.onchange=()=>{earSave({lo:+lo.value});renderEars()};hi.onchange=()=>{earSave({hi:+hi.value});renderEars()};
+  $('earClear').onclick=()=>{earSave({focus:[]});renderEars()};
+  $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
+  $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
+  $('earTest').onclick=()=>{ensureCtx();const c=ctx.currentTime+0.05;earNote(S.home,c,1.5);earSay('This is your home note, '+spokenName(S.home)+'.',()=>{})};
+  $('earStart').onclick=earStart;$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
+  $('earPocketBtn').onclick=()=>earPocket(true);
+  let ht=null;const ep=$('earPocket'),down=e=>{e.preventDefault();ep.classList.add('hold');ht=setTimeout(()=>{ep.classList.remove('hold');earPocket(false)},1200)},up=()=>{clearTimeout(ht);ep.classList.remove('hold')};
+  ep.addEventListener('pointerdown',down);ep.addEventListener('pointerup',up);ep.addEventListener('pointercancel',up);ep.addEventListener('pointerleave',up)}
+
 /* ================= Keep the screen awake =================
    A locked or sleeping screen pauses the microphone, so during a session, a sing-along or the tuner
    the app asks the phone to keep the screen on (Screen Wake Lock), and also plays a tiny silent,
    invisible video, the long-standing way to stop iPhones (including Low Power Mode) from dimming.
    Both stop as soon as you are done. */
 let wakeLock=null,nsVid=null;
-function needAwake(){return S.awake!==false&&(L.active||G.playing||live)&&document.visibilityState==='visible'}
+function needAwake(){return S.awake!==false&&(L.active||G.playing||live||EARS.run)&&document.visibilityState==='visible'}
 async function updateAwake(){const want=needAwake();
   if(want){if(!wakeLock&&navigator.wakeLock){try{wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}catch(e){wakeLock=null}}
     if(!nsVid){nsVid=document.createElement('video');nsVid.setAttribute('playsinline','');nsVid.setAttribute('muted','');nsVid.muted=true;nsVid.loop=true;nsVid.setAttribute('aria-hidden','true');
       nsVid.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMsbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlZ0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHObWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeW1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATlzdGJsAAAAuXN0c2QAAAAAAAAAAQAAAKlhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAAL2F2Y0MBQsAK/+EAFmdCwArZHsBEAAADAAQAAAMACDxImSABAAZoy4BlEyAAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAAKRAAACkQAAAAYc3R0cwAAAAAAAAABAAAAAgAAQAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAgAAAAEAAAAcc3RzegAAAAAAAAAAAAAAAgAAAoYAAAALAAAAFHN0Y28AAAAAAAAAAQAAA1wAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMAAAAAhmcmVlAAACmW1kYXQAAAJyBgX//27cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTA4IDMxZTE5ZjkgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDIzIC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MyBkZWJsb2NrPTE6LTM6LTMgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTIuMDA6MC43MCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTQgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTUxLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjIwAIAAAAAMZYiEBnOcmKAAIeeAAAAAB0GaOAxnOoA=';nsVid.style.cssText='position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1';document.body.appendChild(nsVid)}
     if(nsVid.paused)nsVid.play().catch(()=>{})}
   else{if(wakeLock){try{await wakeLock.release()}catch(e){}wakeLock=null}if(nsVid&&!nsVid.paused)nsVid.pause()}}
-document.addEventListener('visibilitychange',()=>{updateAwake()});
+document.addEventListener('visibilitychange',()=>{updateAwake();if(document.visibilityState==='hidden'&&EARS.run&&!EARS.paused)earPause()});
 
 /* ---------- Practice home ---------- */
 function renderPractice(){
   $('mode-found').setAttribute('aria-selected',String(mode==='found'));$('mode-song').setAttribute('aria-selected',String(mode==='song'));$('mode-weak').setAttribute('aria-selected',String(mode==='weak'));
-  $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));$('mode-warm').setAttribute('aria-selected',String(mode==='warm'));
+  $('mode-habit').setAttribute('aria-selected',String(mode==='habit'));$('mode-warm').setAttribute('aria-selected',String(mode==='warm'));$('mode-ears').setAttribute('aria-selected',String(mode==='ears'));
+  $('earsPanel').hidden=mode!=='ears'||L.active||!!placeView;
   $('weakPanel').hidden=mode!=='weak'||L.active;$('habitPanel').hidden=mode!=='habit'||L.active;$('warmPanel').hidden=mode!=='warm'||L.active;
   $('placePanel').hidden=!placeView||L.active;
   if(placeView&&!L.active){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel','warmPanel','results'].forEach(i=>$(i).hidden=true);$('player').hidden=true;renderPlace();return}
+  if(mode==='ears'){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;if(!L.active)renderEars();drawHistory();return}
   if(mode==='warm'){['heroPanel','songSetup','songOpts','builder','weakPanel','habitPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;if(!L.active)renderWarm();drawHistory();return}
   if(mode==='habit'){['heroPanel','songSetup','songOpts','builder','weakPanel','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderHabits();drawHistory();return}
   if(mode==='weak'){['heroPanel','songSetup','songOpts','builder','warmPanel'].forEach(i=>$(i).hidden=true);$('player').hidden=!L.active;renderWeak();drawHistory();return}
@@ -3868,6 +4156,7 @@ function renderSongSummary(){
 }
 function startTest(){const tr=curTrack();if(!tr||L.active)return;store.set('ison-session',null);startSessionWith(tr,buildSession(tr,selU,0,selMin,true),selU,0,selMin,true)}
 function startSessionWith(tr,items,u,l,minutes,isTest,idx,results){
+  if(EARS.run)earFinish(false);
   if(S.byzWarm&&!isTest&&tr.id!=='byz'&&idx==null&&!results)items=byzWarmBlock(minutes||5).concat(items.filter(it=>it.kind!=='Warm-up'));
   protectStorage();L.active=true;L.sessId=Date.now();setTimeout(updateAwake,0);L.tries=[];L.fails=0;L.streak=0;L.rankUp=null;L.lastScore=null;L.lastR=null;L.itemPrev={};L.track=tr;L.items=items;L.u=u;L.l=l;L.isTest=!!isTest;L.minutes=minutes;L.idx=idx||0;L.results=results||[];
   $('results').hidden=true;$('builder').hidden=true;$('weakPanel').hidden=true;$('habitPanel').hidden=true;$('warmPanel').hidden=true;$('placePanel').hidden=true;$('player').hidden=false;L.sessHab={};$('plStage').textContent=tr.unit+' '+u+' · '+tr.units[u].name+(isTest?' · Unit test':'');
@@ -4044,6 +4333,8 @@ function drawHistory(){
 /* ---------- buttons ---------- */
 $('mode-habit').onclick=()=>{if(L.active)return;mode='habit';store.set('ison-mode',mode);renderPractice()};
 $('mode-warm').onclick=()=>{if(L.active)return;mode='warm';store.set('ison-mode',mode);renderPractice()};
+$('mode-ears').onclick=()=>{if(L.active)return;mode='ears';store.set('ison-mode',mode);renderPractice()};
+earInit();
 $('byzStart').onclick=startByz;
 $('helpBtn').onclick=()=>openWelcome(false);$('wClose').onclick=closeWelcome;$('wTour').onclick=tourStart;
 $('wPlace').onclick=()=>{closeWelcome();showTab('practice');placeView='intro';renderPractice();$('placePanel').scrollIntoView({block:'start'})};
@@ -4095,7 +4386,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__ears={EARS,earDrills,earStart,earFinish,earSkip,earLevel};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
