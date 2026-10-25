@@ -289,6 +289,7 @@ details.habit summary::-webkit-details-marker{display:none}
 .earnote{text-align:center;font-family:var(--f-display);font-size:3.2rem;line-height:1;color:var(--ink);min-height:1em}
 .eardrill{margin:0;text-align:center;color:var(--muted)}.earclock{margin:0;text-align:center;font-family:var(--f-mono);font-size:1.1rem}
 .earbtns button{flex:1}
+.voicerow{display:flex;gap:8px;align-items:center}.voicerow input{width:4.5em;text-align:center;font-size:1.1rem}.voicerow button{min-width:44px}
 .earmix{text-align:center;font-size:.9rem;color:var(--muted);min-height:1.2em;margin-top:2px}
 .earlock{border:1px solid var(--gold);border-radius:10px;padding:10px;margin:8px 0}
 .earlock .row{display:flex;gap:8px;flex-wrap:wrap}.earlock input{flex:1;min-width:150px}
@@ -475,7 +476,7 @@ details.sess summary::-webkit-details-marker{display:none}
         <p class="status" id="earSongInfo" style="margin:0"></p>
         <button id="earSongPlay">Play this part</button>
         <details class="opts"><summary>How the song lesson works</summary><ul class="hlib">
-          <li><b>The singer underneath.</b> Every time a tone plays, the real singer plays under it at the volume you pick below, slowed to the same timing without changing pitch. On held notes the singer's vowel is held steady with the tone. "On your own" is always silent, so you find out what you can do alone.</li>
+          <li><b>The singer underneath.</b> Every time a tone plays, the real singer plays under it at the volume you pick below (1 to 10), slowed to the same timing without changing pitch. On held notes the singer's vowel is held steady with the tone. "On your own" is always silent, so you find out what you can do alone.</li>
           <li><b>1. The notes in this part.</b> Each different note, by name, held and locked one at a time.</li>
           <li><b>2. The moves.</b> Every move between two notes in the part, named and sized: "D, up a whole step, E".</li>
           <li><b>3. Piece by piece.</b> Three or four notes at a time, slowly, then pieces joined together.</li>
@@ -485,7 +486,9 @@ details.sess summary::-webkit-details-marker{display:none}
           <li>As your minutes on this part grow (level 2 after 20 minutes, level 3 after 50), the early steps shrink and the tempo moves closer to the real song. Then move the part forward to the next phrase.</li>
           <li>The parts come from the pauses the app finds in the recording, so pick the From and To that match what you hear.</li>
         </ul></details>
-        <div class="field"><span class="label">Singer's voice under the tones</span><div class="chips earchips" id="earVoiceChips"></div></div>
+        <div class="field"><label class="label" for="earVoiceN">Singer's voice under the tones: pick 1 to 10</label>
+          <div class="row voicerow"><button id="earVoiceDn" aria-label="Quieter">−</button><input type="number" id="earVoiceN" inputmode="numeric" min="0" max="10" step="1"><button id="earVoiceUp" aria-label="Louder">+</button></div>
+          <p class="status" id="earVoiceTxt" style="margin:4px 0 0"></p></div>
       </div>
       <div class="field"><span class="label">Pace: how long each note plays</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt"></span></div>
       <div class="field"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
@@ -528,6 +531,7 @@ details.sess summary::-webkit-details-marker{display:none}
       <div class="row earbtns"><button id="earSlower">More time per note</button><button id="earFaster">Less time</button></div>
       <p class="status" id="earPaceNow" style="margin:0;text-align:center"></p>
       <label class="check"><input type="checkbox" id="earAnnLive"> Say the notes and steps before each pattern</label>
+      <div class="row voicerow" id="earVoiceLive" hidden style="justify-content:center"><span class="label" style="margin:0">Singer volume</span><button id="earVoiceDn2" aria-label="Quieter">−</button><input type="number" id="earVoiceN2" inputmode="numeric" min="0" max="10" step="1" aria-label="Singer volume, 0 to 10"><button id="earVoiceUp2" aria-label="Louder">+</button></div>
       <p class="status" id="earPending" style="margin:0;text-align:center" hidden></p>
       <button class="big" id="earPocketBtn">Pocket mode (black screen)</button>
       <button id="earStop">End session</button>
@@ -4098,8 +4102,9 @@ function earStepsSec(st){return st.reduce((a,x)=>a+(x.k==='play'?seqDur(x.seq):x
    pitch, so you hear the real voice on the exact note you are aiming for. "On your own" stays silent.
    Longer sessions add deeper steps (long-note holds, mixed-order review, think-then-sing, a faster whole part)
    before the recording, instead of only repeating the same round. */
-const SONG_VOICE=[[0,'Off'],[0.15,'Very quiet'],[0.3,'Quiet'],[0.5,'Medium'],[0.8,'Loud']];
-function songVoiceGain(){const v=earSet().songVoice;return v==null?0.3:+v}
+/* singer volume 0 to 10: 1 is barely there, 10 is full volume; each step is about 4 dB, so the low end stays usable */
+function songVoiceLvl(){const n=earSet().songVoiceLvl;return n==null?3:Math.max(0,Math.min(10,Math.round(+n)||0))}
+function songVoiceGain(){const n=songVoiceLvl();return n<=0?0:0.02*Math.pow(50,(n-1)/9)}
 /* pitch-preserving time map (WSOLA): A is a list of [output seconds, input seconds] points; slices of the voice
    are laid out at the output times, each nudged to line up with the waveform before it. A long output over a
    short input holds the vowel steady (used for held notes). */
@@ -4147,7 +4152,10 @@ function earSongDrills(lv,o){o=Object.assign({notes:7,pairs:10,joins:true,wholeT
   else{const real=mk(ES.full,1);steps.push(...lwac(real,lv,{always:true}))}
   add(ES.seg?'With the recording':'The whole part at full speed',[ES.seg?'st_rec':'st_whole'],steps);
   return D}
-async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s.unit!==5;if(s.unit!==5)return;{const vc=$('earVoiceChips'),g=songVoiceGain();if(!vc.children.length)SONG_VOICE.forEach(([v,n])=>{const b=document.createElement('button');b.textContent=n;b.dataset.v=v;b.onclick=()=>{earSave({songVoice:v});renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Singer '+n.toLowerCase())};vc.appendChild(b)});[...vc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===g)))}
+const VOICE_WORDS=['off','barely there','very, very quiet','very quiet','quiet','soft','medium soft','medium','medium loud','loud','full volume'];
+function earVoiceShow(){const n=songVoiceLvl();$('earVoiceN').value=String(n);$('earVoiceN2').value=String(n);$('earVoiceTxt').textContent=n+' of 10: '+VOICE_WORDS[n]+'. 1 is barely there, 10 is full volume, 0 turns the singer off.'}
+function earVoiceSet(n){n=Math.max(0,Math.min(10,Math.round(+n)||0));const was=songVoiceLvl();earSave({songVoiceLvl:n});earVoiceShow();if(n!==was&&EARS.run&&EARS.bg){clearTimeout(earVoiceSet.t);earVoiceSet.t=setTimeout(()=>bgReplanFromNext('Singer volume '+n),700)}}
+async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s.unit!==5;if(s.unit!==5)return;earVoiceShow();
   const sel=$('earSong'),list=await earSongList(),mine=list.filter(x=>x.id.startsWith('my-')).length;
   $('earSongWhere').textContent=mine?mine+' of your own recording'+(mine>1?'s':'')+' saved in this browser, plus the built-in songs. Psalm 23 is built in, so it stays through every update.':'No recordings of your own are saved in this browser yet. Recordings live in the browser you added them in (the home-screen app, Safari and Chrome each keep their own), so add it again here with "Add a recording". Psalm 23 is built in and never needs adding.';sel.innerHTML='';list.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.audio?' · with recording':'');sel.appendChild(o)});
   if(!list.length){$('earSongInfo').textContent='No songs yet.';return}
@@ -4169,7 +4177,7 @@ async function bgReplanFromNext(why){if(!EARS.run||!EARS.bg||BG.prep||BG.replan)
   try{const at=BG.starts[ns],el=BG.offset+at,s=earSet();const tl=bgTimeline(EARS.u,EARS.lv,Math.max(30,EARS.goal-el),{start:ns,prev:EARS.drills});
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
     const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:VO_SR,vol:s.vol||0.8,vo:voUsed,rec:tl.rec||null,recs},()=>{});if(!EARS.run||!EARS.bg){BG.replan=false;return}
-    BG.pending={url:URL.createObjectURL(blob),at,tl,offset:el};$('earPending').textContent=why+' from the next drill.'}catch(e){BG.replan=false;$('earPending').hidden=true}}
+    BG.pending={url:URL.createObjectURL(blob),at,tl,offset:el};$('earPending').textContent=why+' from the next drill.'}catch(e){console.warn('replan failed',e);BG.replan=false;$('earPending').hidden=true}}
 function bgSwapCheck(){const P=BG.pending;if(!P||!earAudio)return;if(bgPos()>=P.at-0.05){bgLog();const was=!earAudio.paused;BG.pending=null;BG.replan=false;
   if(BG.url)URL.revokeObjectURL(BG.url);BG.url=P.url;BG.marks=P.tl.marks;BG.starts=P.tl.starts;BG.dur=P.tl.dur;BG.offset=P.offset;EARS.drills=P.tl.drills;BG.logPos=0;
   earAudio.src=P.url;if(was)earAudio.play().catch(()=>{});$('earPending').hidden=true;bgSync()}}
@@ -4349,7 +4357,7 @@ function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%
   const dr=EARS.drills[EARS.di];$('earDrill').textContent=dr?'Drill '+(EARS.di+1)+' of '+EARS.drills.length+' · '+dr.name:'';
   const ph=EARS.paused?'Paused':EARS.ph?PH_LONG[EARS.ph]:'';$('earPhase').textContent=ph;$('earPhase').style.borderColor=$('earPhase').style.color=EARS.paused?'var(--muted)':(PH_COL[EARS.ph]||'var(--muted)');
   $('earNote').textContent=EARS.note!=null?nameOf(EARS.note):'';$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
-  $('earPause').textContent=EARS.paused?'Resume':'Pause';$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earPaceNow').textContent='Pace: '+earPace().n;
+  $('earPause').textContent=EARS.paused?'Resume':'Pause';$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earVoiceLive').hidden=!(EARS.bg&&EARS.u===5);if(document.activeElement!==$('earVoiceN2'))$('earVoiceN2').value=String(songVoiceLvl());$('earPaceNow').textContent='Pace: '+earPace().n;
   ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
 function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
 function earPaceShift(d){const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
@@ -4385,7 +4393,8 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earStart').onclick=earStart;
   $('earAnnSet').onchange=()=>earSave({ann:$('earAnnSet').checked});
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
-  $('earSong').onchange=()=>{earSave({song:$('earSong').value});ES.id=null;renderEars()};
+  $('earVoiceN').onchange=()=>earVoiceSet($('earVoiceN').value);$('earVoiceN2').onchange=()=>earVoiceSet($('earVoiceN2').value);$('earVoiceDn2').onclick=()=>earVoiceSet(songVoiceLvl()-1);$('earVoiceUp2').onclick=()=>earVoiceSet(songVoiceLvl()+1);$('earVoiceDn').onclick=()=>earVoiceSet(songVoiceLvl()-1);$('earVoiceUp').onclick=()=>earVoiceSet(songVoiceLvl()+1);
+$('earSong').onchange=()=>{earSave({song:$('earSong').value});ES.id=null;renderEars()};
 $('earPwGo').onclick=async()=>{const pw=$('earPw').value;if(!pw.trim())return;$('earPwGo').disabled=true;const ok=await unlockPriv('psalm23',pw,$('earPwMsg'));$('earPwGo').disabled=false;if(ok){P23A=await privAudio('psalm23');ES.id=null;$('earPw').value='';renderEars()}};
 $('earPw').onkeydown=e=>{if(e.key==='Enter')$('earPwGo').click()};
   $('earPartFrom').onchange=()=>{ES.from=+$('earPartFrom').value;if(ES.to<ES.from)ES.to=ES.from;earSongCut();earSongSavePart();renderEarSong()};
@@ -4742,7 +4751,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__ears={aud:()=>earAudio,ES,wsola,BG,EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__ears={replan:w=>bgReplanFromNext(w),aud:()=>earAudio,ES,wsola,BG,EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
