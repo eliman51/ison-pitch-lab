@@ -462,6 +462,7 @@ details.sess summary::-webkit-details-marker{display:none}
         <div class="grid2">
           <div class="field"><label class="label" for="earTimbre">Tone</label><select id="earTimbre"><option value="warm">Warm hum (easiest to match)</option><option value="organ">Organ (cuts through noise)</option><option value="pure">Pure</option></select></div>
           <div class="field"><label class="label" for="earVol">Tone volume</label><input type="range" id="earVol" min="0.2" max="1" step="0.05"></div>
+          <div class="field"><label class="label" for="earEngine">Sound engine</label><select id="earEngine"><option value="media">Media player (plays with the silent switch on)</option><option value="live">Live synth</option></select><span class="status">Try the other one if you hear the voice but no tone.</span></div>
           <div class="field"><label class="label" for="earCues">Spoken guide</label><select id="earCues"><option value="words">Spoken words</option><option value="tones">Short beeps only</option><option value="none">Silent</option></select></div>
         </div>
         <label class="check"><input type="checkbox" id="earNames"> Say note names (Note explorer)</label>
@@ -3849,7 +3850,7 @@ const EAR_UNITS=[
  {id:2,name:'Hold it steady',goal:90,desc:'Long notes that stay put while the tone drops out under you, through vowel changes and volume swells.'},
  {id:3,name:'Next-door notes',goal:120,desc:'Whole steps and half steps, up and down, then three in a row, plus a by-ear quiz: half step or whole step?'},
  {id:4,name:'Note explorer',goal:0,desc:'Every note in your range, a few at a time: meet each note by name, travel between it and home, and switch between your notes until you know them.'}];
-const EAR_DEF={unit:0,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true};
+const EAR_DEF={unit:0,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true,engine:'media'};
 function earSet(){return Object.assign({},EAR_DEF,store.get('ison-ears-set',{}))}
 function earSave(o){store.set('ison-ears-set',Object.assign(earSet(),o))}
 function earState(){return Object.assign({rot:0,sessions:0},store.get('ison-ears',{}))}
@@ -3874,7 +3875,7 @@ function lwac(sq,lv,o){o=o||{};const out=[],bt=o.beat||sq[0].d;
   out.push({k:'cue',ph:'C'},{k:'play',ph:'C',seq:sq},{k:'gap',d:1});return out}
 /* a held note with the tone dropping out in the middle */
 function hold(m,lv,o){o=o||{};const L0=o.listen||3,W=o.with||(lv===1?8:lv===2?6:4),A=o.alone||(lv===1?4:lv===2?6:8),C=o.check||4;
-  return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0}]},{k:'cue',ph:'W',say:o.withSay},{k:'hold',m,w:W,a:A,c:C,swell:o.swell},{k:'gap',d:1.2}]}
+  return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0}]},{k:'cue',ph:'W',say:o.withSay},{k:'play',ph:'W',seq:[{m,d:W}],swell:o.swell},{k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m,d:C}]},{k:'gap',d:1.2}]}
 const say=t=>({k:'say',text:t});
 /* ---- the units ---- */
 function earDrills(u,lv){const H=S.home,R=earRange(),D=[],add=(name,intro,steps)=>D.push({name,intro,steps});
@@ -3940,7 +3941,7 @@ function earNote(m,t0,d,gain,swell){const c=ensureCtx(),f=m2f(m),T=earTimbre(),g
   EARS.voices.push({os,g});}
 function earTick(t0,lvl){const c=ensureCtx(),o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1600;g.gain.setValueAtTime(0,t0);g.gain.linearRampToValueAtTime((earSet().vol||0.8)*0.05*(lvl||1),t0+0.005);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.05);o.connect(g);g.connect(c.destination);o.start(t0);o.stop(t0+0.06);EARS.voices.push({os:[o],g})}
 function earChime(t0,up){[0,1].forEach(i=>{earTick(t0+i*0.12,2)})}
-function earSilence(){EARS.voices.forEach(v=>{try{v.g.gain.cancelScheduledValues(0);v.g.gain.value=0;v.os.forEach(o=>{try{o.stop()}catch(e){}})}catch(e){}});EARS.voices=[];EARS.timers.forEach(clearTimeout);EARS.timers=[];try{speechSynthesis.cancel()}catch(e){}}
+function earSilence(){try{if(earAudio&&EARS.clip){earAudio.onended=null;earAudio.pause()}}catch(e){}EARS.clip=null;EARS.voices.forEach(v=>{try{v.g.gain.cancelScheduledValues(0);v.g.gain.value=0;v.os.forEach(o=>{try{o.stop()}catch(e){}})}catch(e){}});EARS.voices=[];EARS.timers.forEach(clearTimeout);EARS.timers=[];try{speechSynthesis.cancel()}catch(e){}}
 function earSay(text,done){const s=earSet();if(!text){done();return}
   if(s.cues==='none'||!('speechSynthesis' in window)){done();return}
   let fin=false;const end=()=>{if(fin)return;fin=true;done()};
@@ -3948,6 +3949,32 @@ function earSay(text,done){const s=earSet();if(!text){done();return}
   EARS.timers.push(setTimeout(end,1200+text.length*85))}
 const PH_WORD={L:'Listen',W:'With me',A:'On your own',C:'Check',T:'Think it',Q:'Which one?'};
 const PH_LONG={L:'Listen',W:'Hum with the tone',A:'On your own',C:'Check: still locked in?',T:'Think it',Q:'Which one?'};
+/* ---- sound out through a media player ----
+   iPhones mute Web Audio when the ring/silent switch is on, and spoken prompts can interrupt it. So each tone or tick
+   pattern is rendered to a short sound file on the phone and played through an ordinary audio player, which plays
+   through the silent switch and alongside the spoken guide. If that ever fails, it falls back to live Web Audio. */
+const EAR_SR=22050;
+function earEv(c,e){const vol=(earSet().vol||0.8)*0.32;
+  if(e.type==='tick'){const o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=1600;g.gain.setValueAtTime(0,e.t);g.gain.linearRampToValueAtTime(vol*0.16*(e.lvl||1),e.t+0.005);g.gain.exponentialRampToValueAtTime(0.0001,e.t+0.05);o.connect(g);g.connect(c.destination);o.start(e.t);o.stop(e.t+0.06);return}
+  const f=m2f(e.m),T=earTimbre(),g=c.createGain(),lp=c.createBiquadFilter(),t0=e.t,d=e.d;lp.type='lowpass';lp.frequency.value=Math.min(T.lp,f*14);g.gain.setValueAtTime(0,t0);
+  if(e.swell){g.gain.linearRampToValueAtTime(vol*0.25,t0+0.08);g.gain.linearRampToValueAtTime(vol,t0+d*0.5);g.gain.linearRampToValueAtTime(vol*0.25,t0+d-0.1)}
+  else{g.gain.linearRampToValueAtTime(vol,t0+0.04);g.gain.setValueAtTime(vol,Math.max(t0+0.05,t0+d-0.09))}
+  g.gain.linearRampToValueAtTime(0,t0+d);g.connect(lp);lp.connect(c.destination);const sum=T.h.reduce((x,y)=>x+y,0);
+  T.h.forEach((a,i)=>{const o=c.createOscillator(),og=c.createGain();o.type='sine';o.frequency.value=f*(i+1);og.gain.value=a/sum*1.6;o.connect(og);og.connect(g);o.start(t0);o.stop(t0+d+0.05)})}
+function earWav(buf,norm){const d=buf.getChannelData(0),n=d.length;if(norm){let pk=0;for(let i=0;i<n;i++){const a=Math.abs(d[i]);if(a>pk)pk=a}if(pk>0.001){const k=Math.min(6,0.95*(earSet().vol||0.8)/pk);for(let i=0;i<n;i++)d[i]*=k}}const b=new ArrayBuffer(44+n*2),v=new DataView(b),w=(o,x)=>{for(let i=0;i<x.length;i++)v.setUint8(o+i,x.charCodeAt(i))};
+  w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,buf.sampleRate,true);v.setUint32(28,buf.sampleRate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
+  for(let i=0;i<n;i++){const x=Math.max(-1,Math.min(1,d[i]));v.setInt16(44+i*2,x<0?x*0x8000:x*0x7FFF,true)}return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
+function earRender(ev,dur){return new Promise((res,rej)=>{try{const OC=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new OC(1,Math.ceil((dur+0.25)*EAR_SR),EAR_SR);
+  ev.forEach(e=>earEv(oc,{...e,t:e.t+0.05}));const nm=ev.some(e=>e.type==='note'),r=oc.startRendering();if(r&&r.then)r.then(b=>res(earWav(b,nm)),rej);else oc.oncomplete=x=>res(earWav(x.renderedBuffer,nm))}catch(e){rej(e)}})}
+function earLive(ev,dur,onStart,onEnd){const c=ensureCtx();if(c.state!=='running')c.resume().catch(()=>{});const t0=c.currentTime+0.06;
+  ev.forEach(e=>{if(e.type==='tick')earTick(t0+e.t,e.lvl);else earNote(e.m,t0+e.t,e.d,1,e.swell)});if(onStart)onStart();EARS.timers.push(setTimeout(onEnd,(dur+0.15)*1000))}
+let earLastUrl=null;
+function earPlayEvents(ev,dur,onStart,onEnd){const tok={};EARS.clip=tok;let fin=false;const end=()=>{if(fin||EARS.clip!==tok)return;fin=true;EARS.clip=null;if(earAudio)earAudio.onended=null;onEnd()};
+  if(earSet().engine==='live'||!earAudio){earLive(ev,dur,onStart,end);return}
+  earRender(ev,dur).then(url=>{if(EARS.clip!==tok){URL.revokeObjectURL(url);return}if(earLastUrl)URL.revokeObjectURL(earLastUrl);earLastUrl=url;
+    earAudio.loop=false;earAudio.volume=1;earAudio.onended=end;earAudio.src=url;let started=false;earAudio.onplaying=()=>{if(started)return;started=true;if(onStart)onStart()};
+    const p=earAudio.play();if(p&&p.catch)p.catch(()=>{if(EARS.clip!==tok)return;EARS.ears_fallback=true;earLive(ev,dur,onStart,end)});
+    EARS.timers.push(setTimeout(end,(dur+2.5)*1000))}).catch(()=>{if(EARS.clip===tok)earLive(ev,dur,onStart,end)})}
 /* ---- runner ---- */
 function earStep(){if(!EARS.run||EARS.paused)return;const dr=EARS.drills[EARS.di];
   if(!dr){EARS.drills=earDrills(EARS.u,EARS.lv);EARS.di=0;EARS.si=-1;earSay('Round again.',()=>earNext());return}
@@ -3959,9 +3986,10 @@ function earGo(){if(!EARS.run||EARS.paused)return;const dr=EARS.drills[EARS.di],
   if(st.k==='say'){earUI();earSay(st.text,next);return}
   if(st.k==='gap'){EARS.ph='';earUI();EARS.timers.push(setTimeout(next,st.d*1000));return}
   if(st.k==='cue'){EARS.ph=st.ph;EARS.note=null;earUI();if(s.cues==='words'){earSay(st.say||PH_WORD[st.ph],()=>EARS.timers.push(setTimeout(next,120)))}else{if(s.cues==='tones'){const t=c.currentTime+0.02;if(st.ph==='A')earChime(t);else earTick(t,1.5)}EARS.timers.push(setTimeout(next,450))}return}
-  if(st.k==='play'){EARS.ph=st.ph;let t=c.currentTime+0.06;const t00=t;st.seq.forEach(n=>{if(n.m!=null){earNote(n.m,t,n.d*0.96);const at=(t-t00)*1000;EARS.timers.push(setTimeout(()=>{EARS.note=n.m;earUI()},at))}t+=n.d});
-    earUI();EARS.timers.push(setTimeout(()=>{EARS.note=null;next()},(t-c.currentTime)*1000+80));return}
-  if(st.k==='quiet'){EARS.ph=st.ph;EARS.note=null;earUI();const t0=c.currentTime+0.05;if(s.ticks&&st.beat)for(let x=0;x<st.d-0.01;x+=st.beat)earTick(t0+x,x===0?1.2:0.8);EARS.timers.push(setTimeout(next,st.d*1000+60));return}
+  if(st.k==='play'){EARS.ph=st.ph;earUI();const ev=[];let t=0;st.seq.forEach(n=>{if(n.m!=null)ev.push({type:'note',m:n.m,t,d:n.d*0.96,swell:st.swell});t+=n.d});
+    const marks=[];t=0;st.seq.forEach(n=>{marks.push([t,n.m]);t+=n.d});
+    earPlayEvents(ev,t,()=>{marks.forEach(([at,m])=>EARS.timers.push(setTimeout(()=>{if(m!=null){EARS.note=m;earUI()}},at*1000)))},()=>{EARS.note=null;next()});return}
+  if(st.k==='quiet'){EARS.ph=st.ph;EARS.note=null;earUI();if(s.ticks&&st.beat){const ev=[];for(let x=0;x<st.d-0.01;x+=st.beat)ev.push({type:'tick',t:x,lvl:x===0?1.2:0.8});earPlayEvents(ev,st.d,null,next)}else EARS.timers.push(setTimeout(next,st.d*1000+60));return}
   if(st.k==='hold'){const t0=c.currentTime+0.05,tot=st.w+st.a+st.c;EARS.ph='W';EARS.note=st.m;earUI();
     /* one tone that dips out for the alone part and returns for the check */
     const f=m2f(st.m),T=earTimbre(),g=c.createGain(),lp=c.createBiquadFilter(),vol=(s.vol||0.8)*0.32;lp.type='lowpass';lp.frequency.value=Math.min(T.lp,f*14);
@@ -3981,7 +4009,7 @@ function earTickClock(){if(!EARS.run)return;const now=Date.now();if(!EARS.paused
 function earStart(){if(EARS.run)return;if(L.active){$('earsMsg').textContent='Finish or end your current session first.';return}
   const s=earSet();ensureCtx();EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.drills=earDrills(EARS.u,EARS.lv);EARS.di=0;EARS.si=-1;EARS.el=0;EARS.logged=0;EARS.goal=s.min*60;EARS.last=Date.now();EARS.run=true;EARS.paused=false;
   if(G.playing)stopSing(true);earMediaStart();clearInterval(EARS.iv);EARS.iv=setInterval(earTickClock,1000);updateAwake();renderEars();setTimeout(()=>$('earsPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
-  earSay('Ears only. '+EAR_UNITS[EARS.u].name+', level '+EARS.lv+'. '+s.min+' minutes. Put your headphones on and keep the phone in your pocket.',()=>{EARS.timers.push(setTimeout(earStep,500))})}
+  earSay('Ears only. '+EAR_UNITS[EARS.u].name+', level '+EARS.lv+'. '+s.min+' minutes. Here is your home note.',()=>{EARS.ph='L';EARS.note=S.home;earUI();earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>{EARS.note=null;EARS.timers.push(setTimeout(earStep,500))})})}
 function earPause(){if(!EARS.run)return;if(EARS.paused){EARS.paused=false;EARS.last=Date.now();EARS.si=Math.max(0,EARS.si);earSay('Resuming.',()=>earGo())}else{EARS.paused=true;earSilence();
   /* back up to the start of the current listen-with-alone-check block so nothing is half-heard */
   const dr=EARS.drills[EARS.di];if(dr&&EARS.si>0){let k=EARS.si;while(k>0&&!(dr.steps[k].k==='cue'&&dr.steps[k].ph==='L')&&dr.steps[k].k!=='hold')k--;EARS.si=k}}earUI();earMediaState()}
@@ -3997,7 +4025,10 @@ let earAudio=null;
 function earSilentWav(){const sr=8000,n=sr,b=new ArrayBuffer(44+n*2),v=new DataView(b),w=(o,s)=>{for(let i=0;i<s.length;i++)v.setUint8(o+i,s.charCodeAt(i))};
   w(0,'RIFF');v.setUint32(4,36+n*2,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,sr,true);v.setUint32(28,sr*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,n*2,true);
   return URL.createObjectURL(new Blob([b],{type:'audio/wav'}))}
-function earMediaStart(){try{if(!earAudio){earAudio=new Audio(earSilentWav());earAudio.loop=true;earAudio.volume=0.01}earAudio.play().catch(()=>{});
+function earUnlock(){try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}
+  if(!earAudio){earAudio=new Audio();earAudio.setAttribute('playsinline','');earAudio.preload='auto'}earAudio.loop=false;earAudio.src=earSilentWav();const p=earAudio.play();if(p&&p.catch)p.catch(()=>{});
+  const c=ensureCtx();if(c.state!=='running')c.resume().catch(()=>{})}
+function earMediaStart(){try{earUnlock();
   if('mediaSession' in navigator){const ms=navigator.mediaSession;ms.setActionHandler('play',()=>{if(EARS.paused)earPause()});ms.setActionHandler('pause',()=>{if(!EARS.paused)earPause()});
     try{ms.setActionHandler('nexttrack',earSkip);ms.setActionHandler('previoustrack',earRepeat)}catch(e){}earMedia(EAR_UNITS[EARS.u].name)}}catch(e){}}
 function earMedia(title){try{if('mediaSession' in navigator)navigator.mediaSession.metadata=new MediaMetadata({title:title||'Ears only',artist:'Ison Pitch Lab · Ears only',album:EAR_UNITS[EARS.u].name})}catch(e){}}
@@ -4030,15 +4061,15 @@ function renderEars(){const s=earSet(),box=$('earUnits');$('earSetup').hidden=EA
     $('earClear').hidden=!foc.length;$('earLo').value=String(R.lo);$('earHi').value=String(R.hi)}
   const mc=$('earMins');if(!mc.children.length)[10,20,30,45,60,90].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{earSave({min:m});renderEars()};mc.appendChild(b)});
   [...mc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===s.min)));
-  $('earTimbre').value=s.timbre;$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earTicks').checked=!!s.ticks;
+  $('earTimbre').value=s.timbre;$('earEngine').value=s.engine||'media';$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earTicks').checked=!!s.ticks;
   const U=EAR_UNITS[s.unit];$('earStart').textContent='Start '+s.min+' minutes · '+U.name;
   const tot=[0,1,2,3,4].reduce((a,i)=>a+earMin(i),0);$('earTotal').textContent=tot?'Ears-only practice so far: '+fmtHM(tot)+'.':''}
 function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo,hi].forEach(sel=>{const o=document.createElement('option');o.value=m;o.textContent=nameOf(m);sel.appendChild(o)})}
   lo.onchange=()=>{earSave({lo:+lo.value});renderEars()};hi.onchange=()=>{earSave({hi:+hi.value});renderEars()};
   $('earClear').onclick=()=>{earSave({focus:[]});renderEars()};
-  $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
+  $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earEngine').onchange=()=>earSave({engine:$('earEngine').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
   $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
-  $('earTest').onclick=()=>{ensureCtx();const c=ctx.currentTime+0.05;earNote(S.home,c,1.5);earSay('This is your home note, '+spokenName(S.home)+'.',()=>{})};
+  $('earTest').onclick=()=>{earUnlock();setTimeout(()=>earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>earSay('That was your home note, '+spokenName(S.home)+'.',()=>{})),150)};
   $('earStart').onclick=earStart;$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
   $('earPocketBtn').onclick=()=>earPocket(true);
   let ht=null;const ep=$('earPocket'),down=e=>{e.preventDefault();ep.classList.add('hold');ht=setTimeout(()=>{ep.classList.remove('hold');earPocket(false)},1200)},up=()=>{clearTimeout(ht);ep.classList.remove('hold')};
@@ -4386,7 +4417,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__ears={EARS,earDrills,earStart,earFinish,earSkip,earLevel};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__ears={EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
