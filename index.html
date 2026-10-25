@@ -457,6 +457,7 @@ details.sess summary::-webkit-details-marker{display:none}
         <p class="status" id="earFocusTxt" style="margin:0"></p>
         <button id="earClear" hidden>Back to automatic</button>
       </div>
+      <div class="field"><span class="label">Pace: how long each note plays</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt"></span></div>
       <div class="field"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
       <details class="opts"><summary>Sound and voice</summary>
         <div class="grid2">
@@ -489,6 +490,8 @@ details.sess summary::-webkit-details-marker{display:none}
       <p class="earclock" id="earClock"></p>
       <button class="primary big" id="earPause">Pause</button>
       <div class="row earbtns"><button id="earRepeat">Repeat drill</button><button id="earSkip">Next drill</button></div>
+      <div class="row earbtns"><button id="earSlower">More time per note</button><button id="earFaster">Less time</button></div>
+      <p class="status" id="earPaceNow" style="margin:0;text-align:center"></p>
       <button class="big" id="earPocketBtn">Pocket mode (black screen)</button>
       <button id="earStop">End session</button>
       <p class="status" style="margin:0">Headphone button: press once to pause or resume. On most headphones a double press skips to the next drill and a triple press repeats it.</p>
@@ -3850,7 +3853,7 @@ const EAR_UNITS=[
  {id:2,name:'Hold it steady',goal:90,desc:'Long notes that stay put while the tone drops out under you, through vowel changes and volume swells.'},
  {id:3,name:'Next-door notes',goal:120,desc:'Whole steps and half steps, up and down, then three in a row, plus a by-ear quiz: half step or whole step?'},
  {id:4,name:'Note explorer',goal:0,desc:'Every note in your range, a few at a time: meet each note by name, travel between it and home, and switch between your notes until you know them.'}];
-const EAR_DEF={unit:0,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true,engine:'media'};
+const EAR_DEF={pace:'gentle',unit:0,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true,engine:'media'};
 function earSet(){return Object.assign({},EAR_DEF,store.get('ison-ears-set',{}))}
 function earSave(o){store.set('ison-ears-set',Object.assign(earSet(),o))}
 function earState(){return Object.assign({rot:0,sessions:0},store.get('ison-ears',{}))}
@@ -3867,14 +3870,22 @@ function earRange(){const s=earSet(),H=S.home;return{lo:s.lo!=null?s.lo:H-7,hi:s
 const seq=(pat,beats,bpm,base)=>{const b=60/bpm;return pat.map((p,i)=>({m:p==null?null:base+p,d:(Array.isArray(beats)?beats[i]:beats)*b}))};
 const seqDur=s=>s.reduce((a,x)=>a+x.d,0);
 /* listen, with, alone, check; the level decides how much help */
-function lwac(sq,lv,o){o=o||{};const out=[],bt=o.beat||sq[0].d;
-  out.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:sq});
-  if(lv<3||o.always)out.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:sq});
-  if(lv===1&&!o.once)out.push({k:'play',ph:'W',seq:sq});
-  out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(sq),beat:bt});
-  out.push({k:'cue',ph:'C'},{k:'play',ph:'C',seq:sq},{k:'gap',d:1});return out}
+/* Pace: how long you get with each note. Gentle gives a single note 9 seconds of humming with the tone, twice,
+   before you go alone; Hard gives you a few seconds and expects you to find it fast. Patterns slow down too. */
+const EAR_PACE={gentle:{n:'Gentle',l:1.5,w:3,hw:1.8,a:1.2,c:1.6,tempo:1.45,reps:2},easy:{n:'Easy',l:1.25,w:2,hw:1.4,a:1.1,c:1.3,tempo:1.2,reps:1},
+ medium:{n:'Medium',l:1,w:1.3,hw:1,a:1,c:1,tempo:1,reps:1},hard:{n:'Hard',l:0.8,w:0.8,hw:0.8,a:1,c:0.9,tempo:0.85,reps:1}};
+const EAR_PACES=['gentle','easy','medium','hard'];
+function earPace(){return EAR_PACE[earSet().pace]||EAR_PACE.gentle}
+const stretch=(sq,k)=>sq.map(n=>({...n,d:n.d*k}));
+function lwac(sq,lv,o){o=o||{};const P=earPace(),out=[],single=sq.filter(n=>n.m!=null).length===1,T=stretch(sq,P.tempo);
+  const Ls=single?stretch(sq,P.l):T,Ws=single?stretch(sq,P.w):T,Cs=single?stretch(sq,P.c):T,bt=(o.beat||sq[0].d)*P.tempo;
+  out.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:Ls});
+  let reps=(lv<3||o.always||earSet().pace!=='hard')?P.reps:0;if(lv===1&&!o.once&&reps)reps++;
+  for(let i=0;i<reps;i++)out.push({k:'cue',ph:'W',say:i?'Again':null},{k:'play',ph:'W',seq:Ws});
+  out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(T)*(single?P.a:1),beat:bt});
+  out.push({k:'cue',ph:'C'},{k:'play',ph:'C',seq:Cs},{k:'gap',d:1});return out}
 /* a held note with the tone dropping out in the middle */
-function hold(m,lv,o){o=o||{};const L0=o.listen||3,W=o.with||(lv===1?8:lv===2?6:4),A=o.alone||(lv===1?4:lv===2?6:8),C=o.check||4;
+function hold(m,lv,o){o=o||{};const P=earPace(),L0=(o.listen||3)*P.l,W=(o.with||(lv===1?8:lv===2?6:4))*P.hw,A=(o.alone||(lv===1?4:lv===2?6:8))*P.a,C=(o.check||4)*P.c;
   return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0}]},{k:'cue',ph:'W',say:o.withSay},{k:'play',ph:'W',seq:[{m,d:W}],swell:o.swell},{k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m,d:C}]},{k:'gap',d:1.2}]}
 const say=t=>({k:'say',text:t});
 /* ---- the units ---- */
@@ -3884,7 +3895,7 @@ function earDrills(u,lv){const H=S.home,R=earRange(),D=[],add=(name,intro,steps)
     add('Lock onto home','Hum along with your home note. Slide your hum up or down until the buzz between you and the tone smooths out. Then keep it when the tone drops away.',[].concat(hold(H,lv),hold(H,lv)));
     add('Lip trill or straw on home','Lip trill, or hum through a straw, on the same note. Easy and quiet.',[].concat(hold(H,lv,{withSay:'Trill with me'}),hold(H,lv,{withSay:'Again'})));
     add('Clean starts','Short hums that start right on the note. No sliding in.',lwac(seq([0,null,0,null,0,null,0],1,60,H),lv));
-    add('Home from silence','Hum your home note from memory first. Then the tone comes in so you can hear if you were right.',[].concat(...[1,2,3].map(()=>[{k:'cue',ph:'A',say:'Hum home now'},{k:'quiet',ph:'A',d:lv===1?3:4,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H,d:4}]},{k:'gap',d:1.5}])));
+    add('Home from silence','Hum your home note from memory first. Then the tone comes in so you can hear if you were right.',[].concat(...[1,2,3].map(()=>[{k:'cue',ph:'A',say:'Hum home now'},{k:'quiet',ph:'A',d:lv===1?3:4,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H,d:4*earPace().c}]},{k:'gap',d:1.5}])));
     add('Home on "ah"','Open to "ah" on home, easy volume. Same lock, open mouth.',[].concat(hold(H,lv,{withSay:'Ah with me'}),hold(H,lv,{withSay:'Again, ah'})));
     add('Home moves a little','Home drifts up or down a little each time. Find each new note and lock it.',[].concat(...shuffle([1,-1,2,-2]).map(r=>[say(r>0?'A little higher':'A little lower')].concat(hold(H+r,lv,{with:6})))));
   }
@@ -3895,7 +3906,7 @@ function earDrills(u,lv){const H=S.home,R=earRange(),D=[],add=(name,intro,steps)
     if(low.length)add('Low notes','Notes below home. Relax and let them be quiet, never pushed.',notes(lv===1?low.slice(0,2):low,4));
     if(high.length)add('High notes','Notes above home. Lighter and softer as you go up.',notes(lv===1?high.slice(0,2):high,4));
     add('Two notes','Two notes, one after the other. Sing both back.',[].concat(...[0,1,2,3].map(()=>{const a=pick([0,2,-2,4]),b=pick([-3,5,3,-5,7].filter(x=>x!==a&&inR(x)));return lwac(seq([a,b],2,60,H),lv)})));
-    add('Hold it in your head','Hear the note, then a moment of silence to think it, then sing it alone.',[].concat(...[0,1,2,3].map(()=>{const r=pick(near.concat(far));return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m:H+r,d:2.5}]},say('Think it'),{k:'quiet',ph:'T',d:3,beat:0},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:3,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H+r,d:3}]},{k:'gap',d:1}]})));
+    add('Hold it in your head','Hear the note, then a moment of silence to think it, then sing it alone.',[].concat(...[0,1,2,3].map(()=>{const r=pick(near.concat(far));const P=earPace();return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m:H+r,d:2.5*P.l}]},say('Think it'),{k:'quiet',ph:'T',d:3,beat:0},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:3*P.a,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m:H+r,d:3*P.c}]},{k:'gap',d:1}]})));
   }
   if(u===2){const lvW=lv===1?8:lv===2?10:14;
     add('Long "ah"','A long "ah" on home. The tone drops out halfway: keep the pitch exactly where it is.',[].concat(hold(H,lv,{with:lvW*0.5,alone:lvW*0.5}),hold(H,lv,{with:lvW*0.5,alone:lvW*0.5})));
@@ -4043,8 +4054,12 @@ function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%
   const dr=EARS.drills[EARS.di];$('earDrill').textContent=dr?'Drill '+(EARS.di+1)+' of '+EARS.drills.length+' · '+dr.name:'';
   const ph=EARS.paused?'Paused':EARS.ph?PH_LONG[EARS.ph]:'';$('earPhase').textContent=ph;$('earPhase').style.borderColor=$('earPhase').style.color=EARS.paused?'var(--muted)':(PH_COL[EARS.ph]||'var(--muted)');
   $('earNote').textContent=EARS.note!=null?nameOf(EARS.note):'';$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
-  $('earPause').textContent=EARS.paused?'Resume':'Pause';
+  $('earPause').textContent=EARS.paused?'Resume':'Pause';$('earPaceNow').textContent='Pace: '+earPace().n;
   ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
+function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
+function earPaceShift(d){const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
+  earSave({pace:EAR_PACES[j]});if(EARS.run){const keep=EARS.di;EARS.drills=earDrills(EARS.u,EARS.lv);EARS.di=Math.min(keep,EARS.drills.length-1);earSilence();EARS.paused=false;EARS.si=-1;
+    earSay('Pace: '+EAR_PACE[EAR_PACES[j]].n+'. Starting this drill again.',()=>earStep())}earUI();renderEars()}
 function renderEars(){const s=earSet(),box=$('earUnits');$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
   if(EARS.run){earUI();return}
   box.innerHTML='';EAR_UNITS.forEach((U,i)=>{const b=document.createElement('button');b.className='earunit'+(s.unit===i?' sel':'');b.setAttribute('aria-pressed',String(s.unit===i));
@@ -4059,6 +4074,8 @@ function renderEars(){const s=earSet(),box=$('earUnits');$('earSetup').hidden=EA
       b.onclick=()=>{let f=(earSet().focus||[]).slice();if(f.includes(m))f=f.filter(x=>x!==m);else{f.push(m);if(f.length>4)f.shift()}earSave({focus:f});renderEars()};nc.appendChild(b)}
     $('earFocusTxt').textContent=foc.length?'Your picks: '+foc.map(nameOf).join(', ')+'. Tap again to remove, or clear them to go back to automatic.':'Automatic: '+auto.map(nameOf).join(', ')+' today. After each session of 8 minutes or more it moves on to the next notes, until you have covered every note from '+nameOf(R.lo)+' to '+nameOf(R.hi)+'. Or tap up to 4 notes to choose your own.';
     $('earClear').hidden=!foc.length;$('earLo').value=String(R.lo);$('earHi').value=String(R.hi)}
+  {const pc=$('earPaceChips');if(!pc.children.length)EAR_PACES.forEach(k=>{const b=document.createElement('button');b.textContent=EAR_PACE[k].n;b.dataset.k=k;b.onclick=()=>{earSave({pace:k});renderEars()};pc.appendChild(b)});
+   [...pc.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===(s.pace||'gentle'))));$('earPaceTxt').textContent=earPaceDesc(s.pace||'gentle')}
   const mc=$('earMins');if(!mc.children.length)[10,20,30,45,60,90].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{earSave({min:m});renderEars()};mc.appendChild(b)});
   [...mc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===s.min)));
   $('earTimbre').value=s.timbre;$('earEngine').value=s.engine||'media';$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earTicks').checked=!!s.ticks;
@@ -4070,7 +4087,7 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earEngine').onchange=()=>earSave({engine:$('earEngine').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
   $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
   $('earTest').onclick=()=>{earUnlock();setTimeout(()=>earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>earSay('That was your home note, '+spokenName(S.home)+'.',()=>{})),150)};
-  $('earStart').onclick=earStart;$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
+  $('earStart').onclick=earStart;$('earSlower').onclick=()=>earPaceShift(-1);$('earFaster').onclick=()=>earPaceShift(1);$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
   $('earPocketBtn').onclick=()=>earPocket(true);
   let ht=null;const ep=$('earPocket'),down=e=>{e.preventDefault();ep.classList.add('hold');ht=setTimeout(()=>{ep.classList.remove('hold');earPocket(false)},1200)},up=()=>{clearTimeout(ht);ep.classList.remove('hold')};
   ep.addEventListener('pointerdown',down);ep.addEventListener('pointerup',up);ep.addEventListener('pointercancel',up);ep.addEventListener('pointerleave',up)}
