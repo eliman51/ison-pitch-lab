@@ -463,6 +463,8 @@ details.sess summary::-webkit-details-marker{display:none}
       <div id="earSongBox" class="earnotes" hidden>
         <h3>Your song</h3>
         <select id="earSong" aria-label="Song"></select>
+        <p class="status" id="earSongWhere" style="margin:0"></p>
+        <div class="field"><label class="label" for="earSongFile">Add a recording</label><input class="file" type="file" id="earSongFile" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/*,video/mp4,video/quicktime"></div>
         <div class="grid2"><div class="field"><label class="label" for="earPartFrom">From</label><select id="earPartFrom"></select></div><div class="field"><label class="label" for="earPartTo">To</label><select id="earPartTo"></select></div></div>
         <p class="earparts" id="earParts"></p>
         <p class="status" id="earSongInfo" style="margin:0"></p>
@@ -4085,7 +4087,8 @@ function earSongDrills(lv,o){o=o||{notes:7,pairs:10,joins:true,wholeTwice:true};
   add(ES.seg?'With the recording':'The whole part at full speed',[ES.seg?'st_rec':'st_whole'],steps);
   return D}
 async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s.unit!==5;if(s.unit!==5)return;
-  const sel=$('earSong'),list=await earSongList();sel.innerHTML='';list.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.audio?' · with recording':'');sel.appendChild(o)});
+  const sel=$('earSong'),list=await earSongList(),mine=list.filter(x=>x.id.startsWith('my-')).length;
+  $('earSongWhere').textContent=mine?mine+' of your own recording'+(mine>1?'s':'')+' saved in this browser, plus the built-in chants.':'No recordings of your own are saved in this browser yet. Recordings live in the browser you added them in (the home-screen app, Safari and Chrome each keep their own), so add it again here with "Add a recording".';sel.innerHTML='';list.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.audio?' · with recording':'');sel.appendChild(o)});
   if(!list.length){$('earSongInfo').textContent='No songs yet.';return}
   const want=s.song&&list.some(x=>x.id===s.song)?s.song:(list.find(x=>/psalm|23/i.test(x.name))||list[0]).id;sel.value=want;if(s.song!==want)earSave({song:want});
   const ok=await earSongLoad(want);const pf=$('earPartFrom'),pt=$('earPartTo');pf.innerHTML='';pt.innerHTML='';
@@ -4629,12 +4632,17 @@ $('weakStart').onclick=()=>{if(L.active)return;const l=weakList(weakTrack());if(
 $('mode-found').onclick=()=>{if(L.active)return;mode='found';store.set('ison-mode',mode);const nx=nextUp(foundTrack);selU=nx.u;selL=Math.max(0,nx.l);renderPractice()};
 $('mode-song').onclick=async()=>{if(L.active)return;mode='song';store.set('ison-mode',mode);const id=store.get('ison-course',null);if(id!=null&&!songT)await openSongCourse(id);renderPractice()};
 $('courseSong').onchange=()=>{const v=$('courseSong').value;if(v)openSongCourse(v.startsWith('b:')?v:+v)};
-$('courseFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;ensureCtx();const st=$('courseStatus');st.textContent='Reading the recording';
-  try{const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
-    const an=await analyzeSong(ab,st);const off=tuningOffset(an.pts),notes=melodyNotes(an.pts,0.14,off);
-    const rec={name:f.name.replace(/\.[^.]+$/,''),notes,dur:an.dur,contour:an.pts.map(p=>[+p.t.toFixed(3),p.m==null?null:+p.m.toFixed(2)]),off,audio:f,created:Date.now()};
-    let id;try{id=await MyDB.put(rec)}catch(e1){rec.audio=null;id=await MyDB.put(rec)}
-    refreshMySongs();st.textContent='Saved to My songs. Building the course...';await openSongCourse(id)}
+/* read a recording file, find its melody, and save it to My songs (with its audio when it fits) */
+async function importRecording(f,st){ensureCtx();st.textContent='Reading the recording';
+  const arr=await f.arrayBuffer();const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(arr,res,rej);if(p&&p.then)p.then(res,rej)});
+  const an=await analyzeSong(ab,st);const off=tuningOffset(an.pts),notes=melodyNotes(an.pts,0.14,off);
+  const rec={name:f.name.replace(/\.[^.]+$/,''),notes,dur:an.dur,contour:an.pts.map(p=>[+p.t.toFixed(3),p.m==null?null:+p.m.toFixed(2)]),off,audio:f,created:Date.now()};
+  let id;try{id=await MyDB.put(rec)}catch(e1){rec.audio=null;id=await MyDB.put(rec)}refreshMySongs();return id}
+$('courseFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const st=$('courseStatus');
+  try{const id=await importRecording(f,st);st.textContent='Saved to My songs. Building the course...';await openSongCourse(id)}
+  catch(err){st.textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
+$('earSongFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const st=$('earSongInfo');
+  try{const id=await importRecording(f,st);earSave({song:'my-'+id});ES.id=null;st.textContent='Saved. Building the lesson...';renderEars()}
   catch(err){st.textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
 $('changeSong').onclick=()=>{songT=null;store.set('ison-course',null);renderPractice()};
 $('songKey').onchange=()=>{if(!songT)return;const m=store.get('ison-songkey',{});m[songT.rec.id]=+$('songKey').value;store.set('ison-songkey',m);songT=songTrack(songT.rec);renderPractice()};
