@@ -4206,7 +4206,7 @@ function earSongDrills(lv,o){o=Object.assign({notes:7,pairs:10,joins:true,wholeT
   const pace=earSet().pace||'gentle',bump=(lv-1)*0.05,spd=[...new Set((SONG_SPEED[pace]||SONG_SPEED.gentle).map(x=>Math.round(Math.min(1,x<1?x+bump:1)*20)/20))],slow=1/spd[0],hardish=pace==='hard'||pace==='extra',NT={noTempo:true},
     atSpeed=x=>({k:'say',text:'',vo:['pct_'+Math.round(x*100)]});
   /* each tone carries the stretch of the recording it came from, so the singer can play under it */
-  const mk=(ns,k)=>ns.map((n,i)=>{const e=ns[i+1]&&ns[i+1].t0-n.t1<0.35?ns[i+1].t0:n.t1;return{m:n.m,d:Math.max(0.35,(e-n.t0)*k),src:[n.t0,e]}});
+  const mk=(ns,k)=>songTimeline(ns,k,n=>n.m);
   const mid=n=>{if(n.hs)return n.hs;const w=n.t1-n.t0;return[n.t0+w*0.22,n.t1-w*0.22]};
   const uniq=[];ES.core.forEach(n=>{const u=uniq.find(x=>Math.round(x.m)===Math.round(n.m));if(!u)uniq.push(n);else if(n.t1-n.t0>u.t1-u.t0)uniq[uniq.indexOf(u)]=n});
   const uOrder=[];ES.core.forEach(n=>{const u=uniq.find(x=>Math.round(x.m)===Math.round(n.m));if(!uOrder.includes(u))uOrder.push(u)});
@@ -4376,7 +4376,10 @@ function smM(n){const ps=smPitchMode(),d=SM.deg[n.deg];if(ps==='exact'||!d)retur
 function smFineM(n){const ps=smPitchMode();if(ps==='exact')return n.mX;let b=null,bd=0.6;SM.deg.forEach(d=>{const e=Math.abs(d.m-n.mX);if(e<bd){bd=e;b=d}});if(!b)return ps==='western'?Math.round(n.mX-SM.off)+SM.off:n.mX;return ps==='western'?b.mR:b.m}
 function smSpeeds(){return SONG_SPEED[earSet().pace||'gentle']||SONG_SPEED.gentle}
 function smSpeed(s){const sp=smSpeeds();return s<=1?sp[0]:s===2?sp[Math.min(1,sp.length-1)]:1}
-function smSeq(ns,speed,fine){const k=1/Math.min(1,speed);return ns.map((n,i)=>{const nx=ns[i+1],e=nx&&nx.t0-n.t1<0.35?nx.t0:n.t1;return{m:fine?smFineM(n):smM(n),d:Math.max(0.3,(e-n.t0)*k),src:[n.t0,e]}})}
+/* timing follows the recording exactly: each note lasts as long as he sings it, and every pause between notes
+   (his breaths) is kept as a silent rest, with his own audio under it; slowing down stretches everything evenly */
+function songTimeline(ns,k,mOf){const out=[];ns.forEach((n,i)=>{const nx=ns[i+1],gap=nx?nx.t0-n.t1:0,e=nx&&gap<0.1?nx.t0:n.t1;out.push({m:mOf(n),d:Math.max(0.05,(e-n.t0)*k),src:[n.t0,e]});if(nx&&gap>=0.1)out.push({m:null,d:gap*k,src:[n.t1,nx.t0]})});return out}
+function smSeq(ns,speed,fine){return songTimeline(ns,1/Math.min(1,speed),n=>fine?smFineM(n):smM(n))}
 function smIsonM(){const d=SM.deg[SM.isonD];return d?(smPitchMode()==='western'?d.mR:d.m):null}
 function smDrone(kind){const m=earSet().smDrone||'drills';if(m==='off')return null;if(m==='always'||kind==='drill')return smIsonM();return null}
 const smMid=n=>n.hs||[n.t0+(n.t1-n.t0)*0.22,n.t1-(n.t1-n.t0)*0.22];
@@ -5137,7 +5140,7 @@ $('findHome').onclick=async()=>{
   const iv=setInterval(()=>{n++;if(G.youM!=null)got.push(G.youM);$('findStatus').textContent='Listening... '+(4-Math.floor(n/10))+' s';
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
-window.__tracks=()=>({foundTrack,songT,buildSession});window.__sm={SM,smPlan,smDrill,smPractice,smRate,smCur,smStats,smIt,smPut,smSong,smEnsure,smDur};window.__ears={replan:w=>bgReplanFromNext(w),aud:()=>earAudio,ES,wsola,BG,EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+window.__tracks=()=>({foundTrack,songT,buildSession});window.__smSeq=(a,b,c)=>smSeq(a,b,c);window.__sm={SM,smPlan,smDrill,smPractice,smRate,smCur,smStats,smIt,smPut,smSong,smEnsure,smDur};window.__ears={replan:w=>bgReplanFromNext(w),aud:()=>earAudio,ES,wsola,BG,EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
