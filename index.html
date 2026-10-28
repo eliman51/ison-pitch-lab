@@ -409,6 +409,145 @@ details.sess summary::-webkit-details-marker{display:none}
 .htips{margin:0;padding-left:1.1em;font-size:.9rem;display:grid;gap:4px}
 .hlib{margin:8px 0 0;padding-left:1.1em;font-size:.88rem;display:grid;gap:6px;color:var(--muted)}.hlib b{color:var(--ink)}
 .resh{font-size:.9rem;color:var(--muted)}
+
+/* ==== Liquid glass appearance (layered over the original styles) ====
+   Layers: base color, then #amb (three soft light pools + grain, moved only by transform), then content cards
+   (translucent, so the light shows through without live blur), then glass controls with real backdrop blur
+   (tab bar, Ears only hero and orb, sheets). All colors and strengths come from the Appearance sliders, which
+   write the --lk-* variables below. */
+:root{
+  --spring-snappy:linear(0,0.044,0.145,0.27,0.399,0.52,0.627,0.717,0.79,0.849,0.894,0.928,0.953,0.971,0.983,0.991,0.997,1,1.002,1.003,1.003,1.003,1.003,1.002,1);
+  --spring-smooth:linear(0,0.047,0.157,0.293,0.434,0.564,0.678,0.772,0.846,0.903,0.944,0.973,0.992,1.004,1.01,1.013,1.014,1.013,1.011,1.009,1.007,1.006,1.004,1.003,1);
+  --spring-gentle:linear(0,0.049,0.158,0.285,0.412,0.526,0.624,0.706,0.772,0.825,0.867,0.899,0.924,0.943,0.957,0.968,0.976,0.983,0.987,0.991,0.993,0.995,0.996,0.997,1);
+  --d-snappy:340ms;--d-smooth:500ms;--d-gentle:890ms;
+  --lk-bg:#0E0C18;--lk-l1:rgba(255,190,110,.42);--lk-l2:rgba(96,128,240,.36);--lk-l3:rgba(255,140,80,.24);
+  --lk-card:rgba(26,22,40,.58);--lk-card2:rgba(255,255,255,.055);--lk-chrome:rgba(24,20,36,.5);--lk-lens:rgba(24,20,36,.34);
+  --lk-rim:rgba(255,240,220,.2);--lk-rim2:rgba(255,255,255,.09);--lk-sheen:rgba(255,255,255,.07);--lk-grain:.05;
+  --lk-amp:1;--lk-dur:1;--lk-shim:.3;--lk-tx:0px;--lk-ty:0px;--lk-lx:30%;
+  --muted:#ABA4BC;--r-xl:28px;--r-lg:20px;--r-md:14px;--r-sm:10px;
+}
+html{background:var(--lk-bg)!important}
+body{background:transparent!important}
+/* ---- the living background ---- */
+#amb{position:fixed;inset:-12vmax;z-index:-1;pointer-events:none;overflow:hidden;transform:translate3d(var(--lk-tx),var(--lk-ty),0);transition:transform .9s var(--spring-gentle)}
+#amb i{position:absolute;display:block;width:95vmax;height:95vmax;border-radius:50%;will-change:transform,opacity}
+#amb .l1{left:-12vmax;top:-22vmax;background:radial-gradient(closest-side,var(--lk-l1),transparent);animation:amb1 calc(54s*var(--lk-dur)) ease-in-out infinite alternate,shim1 calc(13s*var(--lk-dur)) ease-in-out infinite alternate}
+#amb .l2{right:-30vmax;bottom:-18vmax;background:radial-gradient(closest-side,var(--lk-l2),transparent);animation:amb2 calc(67s*var(--lk-dur)) ease-in-out infinite alternate,shim2 calc(17s*var(--lk-dur)) ease-in-out infinite alternate}
+#amb .l3{left:10vmax;bottom:-58vmax;width:110vmax;height:80vmax;background:radial-gradient(closest-side,var(--lk-l3),transparent);animation:amb3 calc(43s*var(--lk-dur)) ease-in-out infinite alternate,shim3 calc(11s*var(--lk-dur)) ease-in-out infinite alternate}
+#amb b{position:absolute;inset:0;opacity:var(--lk-grain);background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");mix-blend-mode:overlay}
+#amb::after{content:"";position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 40%,transparent 55%,rgba(0,0,0,.55))}
+@keyframes amb1{from{transform:translate3d(0,0,0) scale(1)}to{transform:translate3d(calc(9vmax*var(--lk-amp)),calc(7vmax*var(--lk-amp)),0) scale(calc(1 + .12*var(--lk-amp)))}}
+@keyframes amb2{from{transform:translate3d(0,0,0) scale(1.05)}to{transform:translate3d(calc(-11vmax*var(--lk-amp)),calc(-6vmax*var(--lk-amp)),0) scale(calc(1.05 - .1*var(--lk-amp)))}}
+@keyframes amb3{from{transform:translate3d(0,0,0)}to{transform:translate3d(calc(-8vmax*var(--lk-amp)),calc(-5vmax*var(--lk-amp)),0)}}
+@keyframes shim1{from{opacity:1}to{opacity:calc(1 - var(--lk-shim))}}
+@keyframes shim2{from{opacity:calc(1 - var(--lk-shim))}to{opacity:1}}
+@keyframes shim3{from{opacity:1}to{opacity:calc(1 - .8*var(--lk-shim))}}
+html.lk-still #amb i{animation-play-state:paused}
+html.lowfx #amb i{animation:none}
+/* ---- surfaces ---- */
+.panel{background:linear-gradient(180deg,var(--lk-sheen),transparent 38%),var(--lk-card);border:1px solid var(--lk-rim2);border-radius:var(--r-lg);
+  box-shadow:inset 0 1px 0 var(--lk-rim),inset 0 -1px 0 rgba(0,0,0,.35),0 22px 44px -24px rgba(0,0,0,.75)}
+.earunit,.seg,.earnotes .earlock,.dyphase,.raterow,.smrate,.earflow span,.icard{background:var(--lk-card2);border-color:var(--lk-rim2);box-shadow:inset 0 1px 0 var(--lk-rim)}
+.earunit{border-radius:var(--r-md);transition:transform var(--d-smooth) var(--spring-smooth),box-shadow .3s,border-color .3s}
+.earunit.sel{border-color:var(--accent);box-shadow:inset 0 1px 0 var(--lk-rim),0 0 0 1px var(--accent),0 10px 30px -12px var(--glow);transform:translateY(-1px)}
+button{background:rgba(255,255,255,.06);border-color:var(--lk-rim2);box-shadow:inset 0 1px 0 var(--lk-rim);border-radius:12px;
+  transition:transform var(--d-snappy) var(--spring-snappy),background .2s,box-shadow .25s,color .2s}
+button:active:not(:disabled){transform:scale(.96);transition-duration:90ms}
+button.primary,.chips button[aria-pressed="true"],button[aria-pressed="true"]{background:linear-gradient(180deg,#F0C878,var(--accent));color:var(--accentInk);border-color:rgba(255,230,180,.55);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 8px 22px -8px rgba(226,178,92,.65)}
+button.primary{border-radius:999px}
+.chips button{border-radius:999px}
+select,input[type=number],input[type=text]{background:rgba(0,0,0,.28);border-color:var(--lk-rim2);border-radius:12px}
+input[type=range]{accent-color:var(--accent)}
+.sheet{background:linear-gradient(180deg,var(--lk-sheen),transparent 40%),var(--lk-chrome);-webkit-backdrop-filter:blur(26px) saturate(170%);backdrop-filter:blur(26px) saturate(170%);
+  border:1px solid var(--lk-rim2);border-radius:var(--r-xl);box-shadow:inset 0 1px 0 var(--lk-rim),0 -10px 50px rgba(0,0,0,.55);animation:sheetIn var(--d-smooth) var(--spring-smooth)}
+.sheetwrap{background:rgba(5,4,10,.45);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+@keyframes sheetIn{from{transform:translateY(40px) scale(.98);opacity:0;filter:blur(6px)}to{transform:none;opacity:1;filter:none}}
+.view.enter{animation:viewRise var(--d-smooth) var(--spring-smooth)}
+@keyframes viewRise{from{opacity:0;transform:translateY(14px);filter:blur(3px)}to{opacity:1;transform:none;filter:none}}
+.view.enter .panel{animation:cardIn var(--d-smooth) var(--spring-smooth) both}
+.view.enter .panel:nth-child(2){animation-delay:30ms}.view.enter .panel:nth-child(3){animation-delay:60ms}.view.enter .panel:nth-child(4){animation-delay:90ms}.view.enter .panel:nth-child(n+5){animation-delay:120ms}
+@keyframes cardIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+details[open]>:not(summary){animation:detIn var(--d-smooth) var(--spring-smooth)}
+@keyframes detIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.helpbtn{background:var(--lk-chrome);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);border-color:var(--lk-rim2);box-shadow:inset 0 1px 0 var(--lk-rim)}
+/* ---- floating glass tab bar ---- */
+.tabs{position:fixed;top:auto;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);transform:translateX(-50%);z-index:40;width:min(520px,calc(100% - 24px));margin:0;
+  padding:6px;gap:2px;border-radius:999px;border:1px solid var(--lk-rim2);background:linear-gradient(180deg,var(--lk-sheen),transparent 60%),var(--lk-chrome);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
+  box-shadow:inset 0 1px 0 var(--lk-rim),inset 0 -1px 0 rgba(0,0,0,.3),0 16px 40px -12px rgba(0,0,0,.7);transition:transform var(--d-smooth) var(--spring-smooth),opacity .3s,padding .3s}
+.tabs::before{inset:6px auto 6px 0;border-radius:999px;background:radial-gradient(120% 140% at 50% 0%,rgba(255,220,160,.28),rgba(226,178,92,.12) 60%,rgba(226,178,92,.06));
+  box-shadow:inset 0 1px 0 rgba(255,240,210,.35),0 0 18px -4px var(--glow);transition:transform var(--d-smooth) var(--spring-smooth),width var(--d-smooth) var(--spring-smooth)}
+.tabs.liq::before{transition:transform 170ms ease-out,width 170ms ease-out}
+.tabs .tabink{display:none}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:1px;padding:7px 2px 5px;border-radius:999px;background:none;border:0;box-shadow:none;font-size:.7rem;font-weight:600;letter-spacing:.01em}
+.tabs button svg{width:22px;height:22px;transition:transform var(--d-snappy) var(--spring-snappy)}
+.tabs button[aria-selected="true"]{color:var(--gold)}
+.tabs button[aria-selected="true"] svg{transform:translateY(-1px) scale(1.06)}
+.tabs button:active svg{transform:scale(.88)}
+.tabs.compact{padding:4px}.tabs.compact button{padding:6px 2px}.tabs.compact button span{display:none}
+html.earsrun .tabs{transform:translate(-50%,140%);opacity:0;pointer-events:none}
+.wrap{padding-bottom:calc(110px + env(safe-area-inset-bottom,0px))}
+/* scroll edge: soft fade above the floating bar */
+body::after{content:"";position:fixed;left:0;right:0;bottom:0;height:calc(90px + env(safe-area-inset-bottom,0px));pointer-events:none;z-index:30;background:linear-gradient(to top,var(--lk-bg),transparent)}
+html.earsrun body::after{opacity:0}
+/* ---- Ears only ---- */
+.earhero{border:1px solid var(--lk-rim2);background:radial-gradient(90% 70% at 50% 0%,rgba(226,178,92,.16),transparent 70%),linear-gradient(180deg,var(--lk-sheen),transparent 50%),var(--lk-lens);
+  -webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);border-radius:var(--r-lg);box-shadow:inset 0 1px 0 var(--lk-rim),0 20px 50px -24px rgba(0,0,0,.8)}
+.earhero #earStart{border-radius:999px;padding:15px 18px}
+.eardots i{background:var(--lk-card2);border-color:var(--lk-rim2);transition:all var(--d-smooth) var(--spring-smooth)}
+.eardots i.on{box-shadow:0 0 16px -2px var(--glow);color:#fff!important;text-shadow:0 1px 4px rgba(0,0,0,.5)}
+#earRun:not([hidden]){animation:runIn var(--d-smooth) var(--spring-smooth)}
+@keyframes runIn{from{opacity:0;transform:scale(.94);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
+.orbwrap{position:relative;width:min(300px,76vw);aspect-ratio:1;margin:6px auto 2px}
+.orbring{position:absolute;inset:-10px;width:calc(100% + 20px);height:calc(100% + 20px);transform:rotate(-90deg);pointer-events:none}
+.orbring circle{fill:none;stroke-width:3}
+.orbring .bgc{stroke:rgba(255,255,255,.08)}
+.orbring .fgc{stroke:var(--gold);stroke-linecap:round;filter:drop-shadow(0 0 4px var(--glow));transition:stroke-dashoffset 1s linear}
+.orb{--pc:111,143,224;position:absolute;inset:0;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;overflow:hidden;
+  background:radial-gradient(circle at 34% 26%,rgba(255,255,255,.22),transparent 34%),radial-gradient(circle at 50% 62%,rgba(var(--pc),.42),transparent 68%),var(--lk-lens);
+  -webkit-backdrop-filter:blur(24px) saturate(190%);backdrop-filter:blur(24px) saturate(190%);border:1px solid rgba(255,255,255,.14);
+  box-shadow:inset 0 2px 1px rgba(255,255,255,.28),inset 0 -14px 30px rgba(0,0,0,.35),inset 0 0 40px rgba(var(--pc),.25),0 0 60px -10px rgba(var(--pc),.55),0 30px 60px -30px rgba(0,0,0,.9);
+  transition:box-shadow .8s ease,background .8s ease;animation:orbIn var(--d-smooth) var(--spring-smooth)}
+.orb::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(60% 40% at var(--lk-lx) 8%,rgba(255,255,255,.18),transparent 70%);pointer-events:none;transition:background .9s}
+.orb[data-ph="L"]{--pc:124,155,240}.orb[data-ph="W"]{--pc:226,178,92}.orb[data-ph="A"]{--pc:99,211,154}.orb[data-ph="C"]{--pc:240,196,106}.orb[data-ph="T"],.orb[data-ph="Q"]{--pc:170,160,200}
+.orb[data-ph="A"]{animation:breathe 10s ease-in-out infinite}
+.orb[data-ph="L"]::before{content:"";position:absolute;inset:14%;border-radius:50%;border:1px solid rgba(var(--pc),.5);animation:ripple 2.6s ease-out infinite}
+.orb[data-paused="1"]{--pc:120,115,135;filter:saturate(.5) brightness(.85)}
+@keyframes orbIn{from{transform:scale(.9);opacity:0}to{transform:none;opacity:1}}
+@keyframes breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.045)}}
+@keyframes ripple{from{transform:scale(.8);opacity:.9}to{transform:scale(1.25);opacity:0}}
+.orb .earphase{border:0;padding:0;min-height:0;font-size:1.35rem;letter-spacing:.02em;background:none;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.orb .earnote{font-size:3.4rem;text-shadow:0 2px 14px rgba(0,0,0,.45);transition:opacity .4s ease}
+.orb .earnote.swap{animation:noteSwap var(--d-smooth) var(--spring-smooth)}
+@keyframes noteSwap{from{opacity:0;transform:translateY(12px);filter:blur(5px)}to{opacity:1;transform:none;filter:none}}
+.earctl{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 12px;border-radius:999px;border:1px solid var(--lk-rim2);
+  background:linear-gradient(180deg,var(--lk-sheen),transparent 60%),var(--lk-chrome);-webkit-backdrop-filter:blur(20px) saturate(170%);backdrop-filter:blur(20px) saturate(170%);
+  box-shadow:inset 0 1px 0 var(--lk-rim),0 14px 36px -14px rgba(0,0,0,.75)}
+.earctl button{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:52px;padding:6px 4px;border:0;background:none;box-shadow:none;color:var(--ink);font-size:.66rem;font-weight:600;border-radius:16px}
+.earctl button svg{width:24px;height:24px}
+.earctl button.main{width:66px;height:66px;min-width:66px;border-radius:50%;justify-content:center;background:linear-gradient(180deg,#F0C878,var(--accent));color:var(--accentInk);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),0 10px 26px -8px rgba(226,178,92,.7)}
+.earctl button.main svg{width:28px;height:28px}
+.earctl button.main span{display:none}
+.icobtn{display:flex;align-items:center;justify-content:center;gap:8px}
+.icobtn svg{width:20px;height:20px}
+/* ---- appearance settings ---- */
+.lkpre{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.lkpre button{display:flex;flex-direction:column;align-items:stretch;gap:6px;padding:8px;border-radius:var(--r-md);font-size:.8rem}
+.lkpre button i{display:block;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.12)}
+.lkpre button[aria-pressed="true"]{background:rgba(255,255,255,.08);color:var(--ink);box-shadow:0 0 0 2px var(--accent),inset 0 1px 0 var(--lk-rim)}
+.lkrow{display:grid;grid-template-columns:1fr;gap:2px}
+.lkrow .lkh{display:flex;justify-content:space-between;gap:8px;font-size:.84rem;font-weight:600;color:var(--muted)}
+.lkrow .lkh b{font-weight:600;color:var(--ink)}
+.lkrow .lkends{display:flex;justify-content:space-between;font-size:.72rem;color:var(--muted)}
+.lkrow input[type=range]{margin:2px 0}
+.lkwarm{-webkit-appearance:none;appearance:none;height:10px;border-radius:999px;background:linear-gradient(90deg,#5A78E6,#9AA6D8 35%,#F0C27A 65%,#FF8A3A)}
+.lkwarm::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:#F7F1E6;border:2px solid rgba(0,0,0,.35);box-shadow:0 2px 8px rgba(0,0,0,.5)}
+.lkblend{display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center}
+@media (prefers-reduced-motion: reduce){#amb i{animation:none!important}.orb{animation:none!important}.orb::before{display:none}}
+html.nomo .orb::before{display:none}
+html.lowfx .tabs,html.lowfx .earctl,html.lowfx .sheet,html.lowfx .earhero{-webkit-backdrop-filter:none;backdrop-filter:none;background:rgba(22,19,34,.94)}
+html.lowfx .orb{-webkit-backdrop-filter:none;backdrop-filter:none}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -418,6 +557,7 @@ details.sess summary::-webkit-details-marker{display:none}
     <div class="row"><button id="tourSkip">Skip</button><span style="flex:1"></span><button id="tourBack">Back</button><button class="primary" id="tourNext">Next</button></div></div></div>
 <div class="sheetwrap" id="welcome" hidden><div class="sheet" role="dialog" aria-labelledby="wT"><div class="sheetseal">♪</div><h2 id="wT">Welcome</h2><p id="wP"></p>
   <button class="primary big" id="wTour">Show me around (1 minute)</button><button class="big" id="wPlace">Take the placement test (10 minutes)</button><button class="big" id="wView" hidden>See my last placement</button><button id="wClose">Maybe later</button></div></div>
+<div id="amb" aria-hidden="true"><i class="l1"></i><i class="l2"></i><i class="l3"></i><b></b></div>
 <div class="wrap">
   <header>
     <h1>Ison <span>Pitch Lab</span></h1><button class="helpbtn" id="helpBtn" aria-label="Help: tour and placement test">?</button>
@@ -606,21 +746,19 @@ details.sess summary::-webkit-details-marker{display:none}
       <div class="earprep" id="earPrep" hidden><span id="earPrepTxt">Preparing...</span><span class="eartr"><i id="earPrepBar"></i></span></div>
       <button class="primary big" id="earTapPlay" hidden>Tap to begin</button>
       <div class="eardots"><i id="earDotL">Listen</i><i id="earDotW">With me</i><i id="earDotA">Alone</i><i id="earDotC">Check</i></div>
-      <div class="earphase" id="earPhase"></div>
-      <div class="earnote" id="earNote"></div>
+      <div class="orbwrap"><svg class="orbring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bgc" cx="50" cy="50" r="48"/><circle class="fgc" id="earRing" cx="50" cy="50" r="48" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
+        <div class="orb" id="earOrb"><div class="earphase" id="earPhase"></div><div class="earnote" id="earNote"></div></div></div>
       <div class="earann" id="earAnn"></div>
       <div class="earmix" id="earMix"></div>
       <p class="eardrill" id="earDrill"></p>
       <p class="earclock" id="earClock"></p>
-      <button class="primary big" id="earPause">Pause</button>
-      <div class="row earbtns"><button id="earRepeat">Repeat drill</button><button id="earSkip">Next drill</button></div>
-      <div class="row earbtns"><button id="earSlower">More time per note</button><button id="earFaster">Less time</button></div>
+      <div class="earctl"><button id="earRepeat" aria-label="Repeat drill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 5v14"/><path d="M19 5l-10 7 10 7z" fill="currentColor"/></svg><span>Repeat</span></button><button id="earSlower" aria-label="Slower: more time per note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l-5-3.5"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/></svg><span>Slower</span></button><button class="main" id="earPause" aria-label="Pause"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg><span>Pause</span></button><button id="earFaster" aria-label="Faster: less time per note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l5-3.5"/><circle cx="12" cy="17" r="1.3" fill="currentColor"/></svg><span>Faster</span></button><button id="earSkip" aria-label="Next drill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 5v14"/><path d="M5 5l10 7-10 7z" fill="currentColor"/></svg><span>Next</span></button></div>
       <p class="status" id="earPaceNow" style="margin:0;text-align:center"></p>
       <label class="check"><input type="checkbox" id="earAnnLive"> Say the notes and steps before each pattern</label>
       <button id="smShakyLive" hidden>This one felt shaky</button>
       <div class="row voicerow" id="earVoiceLive" hidden style="justify-content:center"><span class="label" style="margin:0">Singer volume</span><button id="earVoiceDn2" aria-label="Quieter">−</button><input type="number" id="earVoiceN2" inputmode="numeric" min="0" max="10" step="1" aria-label="Singer volume, 0 to 10"><button id="earVoiceUp2" aria-label="Louder">+</button></div>
       <p class="status" id="earPending" style="margin:0;text-align:center" hidden></p>
-      <button class="big" id="earPocketBtn">Pocket mode (black screen)</button>
+      <button class="big icobtn" id="earPocketBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Pocket mode (black screen)</span></button>
       <button id="earStop">End session</button>
       <p class="status" style="margin:0">Headphone button: press once to pause or resume. On most headphones a double press skips to the next drill and a triple press repeats it.</p>
     </div>
@@ -955,6 +1093,20 @@ details.sess summary::-webkit-details-marker{display:none}
   <div class="stip" id="statTip" role="status" hidden></div>
   </div>
   <div class="view" id="v-settings" hidden>
+  <section class="panel" aria-labelledby="t-look">
+    <h2 id="t-look">Appearance</h2>
+    <p class="status" style="margin:0">Pick a look, then fine-tune it. Every change shows instantly, all over the app.</p>
+    <div class="lkpre" id="lkPre"></div>
+    <p class="status" id="lkNow" style="margin:0"></p>
+    <div id="lkSliders" style="display:flex;flex-direction:column;gap:12px"></div>
+    <details class="opts"><summary>Blend two looks</summary>
+      <div class="field" style="margin-top:8px"><div class="lkblend"><select id="lkA" aria-label="First look"></select><span class="status">to</span><select id="lkB" aria-label="Second look"></select></div>
+        <input type="range" id="lkMix" min="0" max="100" step="1" aria-label="Blend"><span class="status" id="lkMixTxt"></span></div>
+    </details>
+    <label class="check"><input type="checkbox" id="lkTilt"> Tilt: the light and the glints shift as you tilt your phone</label>
+    <p class="status" id="lkTiltTxt" style="margin:0"></p>
+    <button id="lkReset">Back to Candlelit nave</button>
+  </section>
   <section class="panel" aria-labelledby="t-help">
     <h2 id="t-help">Help and placement</h2>
     <p class="status" style="margin:0" id="helpPlaceTxt">A one-minute tour of the app, and a 10-minute placement test that finds the right unit for you to start at.</p>
@@ -2648,7 +2800,7 @@ window.addEventListener('scroll',()=>{const t=$('statTip');if(t&&!t.hidden)t.hid
 /* ================= Tabs ================= */
 const TABS=['practice','songs','tuner','stats','settings'];
 const SONG_UI={cv:'sing',tgt:'tgt',you:'you',h:260},LESSON_UI={cv:'lsCanvas',tgt:'lsTgt',you:'lsYou',h:280};
-function placeTabInk(){const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
+function placeTabInk(){if(typeof placeTabLiquid==='function'){placeTabLiquid();return}const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
   nav.style.setProperty('--tx',b.offsetLeft+'px');nav.style.setProperty('--tw',b.offsetWidth+'px');ink.style.left=(b.offsetLeft+b.offsetWidth*0.2)+'px';ink.style.width=(b.offsetWidth*0.6)+'px'}
 window.addEventListener('resize',()=>placeTabInk());
 function showTab(k){
@@ -4307,6 +4459,80 @@ function earSongPreview(){if(!ES.an)return;earUnlock();(async()=>{const seg=awai
   if(seg){const url=await (async()=>{const ev=[{type:'rec',t:0,d:seg.length/VO_SR}];return URL.createObjectURL(await bgSynth({ev,dur:seg.length/VO_SR+0.2,sr:VO_SR,vol:earSet().vol||0.8,vo:{},rec:seg},()=>{}))})();earAudio.src=url;earAudio.play().catch(()=>{})}
   else earPlayEvents(ES.full.map((n,i)=>({type:'note',m:n.m,t:n.t0-ES.full[0].t0,d:Math.max(0.2,n.t1-n.t0)*0.96})),ES.full[ES.full.length-1].t1-ES.full[0].t0+0.3,null,()=>{})})()}
 
+/* ==== Appearance: the look of the app, all from a handful of sliders ====
+   Warmth runs from cool lapis to deep amber; Background light from dark to bright; Light motion and Shimmer set
+   how the light pools drift and breathe; Glass runs from clear to solid; Edge light sets the rim and glint
+   (the "refraction" a browser on iPhone can show); Grain adds film texture. The three presets are just slider
+   settings, and any two can be blended. */
+const LK_PRESETS={
+  nave:{n:'Candlelit nave',warm:64,light:70,glass:0,edge:60,motion:45,shimmer:35,grain:35},
+  lapis:{n:'Midnight lapis',warm:16,light:62,glass:10,edge:55,motion:35,shimmer:25,grain:30},
+  obsidian:{n:'Obsidian',warm:48,light:12,glass:20,edge:78,motion:20,shimmer:10,grain:55}};
+const LK_KEYS=['warm','light','motion','shimmer','glass','edge','grain'];
+const LK_SPEC={warm:['Warmth','Cool lapis','Deep amber'],light:['Background light','Dark','Bright'],motion:['Light motion','Still','Flowing'],shimmer:['Shimmer','Steady','Breathing'],
+  glass:['Glass','Clear','Solid'],edge:['Edge light and refraction','Soft','Bright'],grain:['Grain','None','Film']};
+function lkGet(){const d=Object.assign({},LK_PRESETS.nave,{tilt:true,a:'nave',b:'lapis',mix:0});return Object.assign(d,store.get('ison-look',{}))}
+function lkSave(o){const v=Object.assign(lkGet(),o);store.set('ison-look',v);return v}
+const lkClamp=x=>Math.max(0,Math.min(1,x)),lkLerp=(a,b,t)=>a+(b-a)*t;
+const LK_STOPS=[[0,[96,128,240]],[0.35,[150,165,220]],[0.62,[255,192,112]],[1,[255,124,40]]];
+function lkWarmCol(t){t=lkClamp(t);for(let i=1;i<LK_STOPS.length;i++){const[a,ca]=LK_STOPS[i-1],[b,cb]=LK_STOPS[i];if(t<=b){const u=(t-a)/(b-a);return ca.map((x,k)=>Math.round(lkLerp(x,cb[k],u)))}}return LK_STOPS[LK_STOPS.length-1][1]}
+const lkRGBA=(c,a)=>'rgba('+c[0]+','+c[1]+','+c[2]+','+a.toFixed(3)+')';
+function lkColors(v){const w=v.warm/100,L=v.light/100,c1=lkWarmCol(w*1.12),c2=lkWarmCol(w-0.48),c3=lkWarmCol(w+0.22);
+  const b0=[9,11,24].map((x,k)=>lkLerp(x,[18,12,14][k],w)),bg=b0.map((x,k)=>Math.round(lkLerp(x,[8,8,11][k],(1-L)*0.5)));
+  return{bg:'rgb('+bg.join(',')+')',l1:lkRGBA(c1,0.06+0.5*L),l2:lkRGBA(c2,0.05+0.45*L),l3:lkRGBA(c3,0.03+0.32*L),c1,c2,c3,bgc:bg}}
+function lkApply(v){v=v||lkGet();const r=document.documentElement.style,C=lkColors(v),g=v.glass/100,e=v.edge/100,m=v.motion/100,s=v.shimmer/100;
+  r.setProperty('--lk-bg',C.bg);r.setProperty('--lk-l1',C.l1);r.setProperty('--lk-l2',C.l2);r.setProperty('--lk-l3',C.l3);
+  r.setProperty('--lk-card','rgba(22,18,36,'+(0.42+0.52*g).toFixed(3)+')');r.setProperty('--lk-card2','rgba(255,255,255,'+(0.04+0.1*g).toFixed(3)+')');
+  r.setProperty('--lk-chrome','rgba(20,17,32,'+(0.5+0.46*g).toFixed(3)+')');r.setProperty('--lk-lens','rgba(22,19,34,'+(0.26+0.62*g).toFixed(3)+')');
+  r.setProperty('--lk-rim','rgba(255,240,220,'+(0.08+0.3*e).toFixed(3)+')');r.setProperty('--lk-rim2','rgba(255,255,255,'+(0.05+0.1*e).toFixed(3)+')');r.setProperty('--lk-sheen','rgba(255,255,255,'+(0.02+0.09*e).toFixed(3)+')');
+  r.setProperty('--lk-grain',(v.grain/100*0.14).toFixed(3));r.setProperty('--lk-amp',m.toFixed(3));r.setProperty('--lk-dur',(1.7-0.9*m).toFixed(3));r.setProperty('--lk-shim',(0.6*s).toFixed(3));
+  document.documentElement.classList.toggle('lk-still',m<0.02&&s<0.02);
+  const mc=document.querySelector('meta[name="theme-color"]');if(mc)mc.setAttribute('content',C.bg)}
+function lkMatch(v){for(const k of Object.keys(LK_PRESETS)){const p=LK_PRESETS[k];if(LK_KEYS.every(x=>Math.abs(p[x]-v[x])<=1))return k}return null}
+function lkSwatch(p){const C=lkColors(p);return'radial-gradient(70% 90% at 15% 10%,'+C.l1+',transparent 70%),radial-gradient(70% 90% at 90% 100%,'+C.l2+',transparent 70%),'+C.bg}
+function lkWord(k,x){if(k==='warm')return x<18?'Cool lapis':x<40?'Cool':x<58?'Balanced':x<80?'Warm candle':'Deep amber';const[,a,b]=LK_SPEC[k];return x<=5?a:x>=95?b:x<35?'Mostly '+a.toLowerCase():x>65?'Mostly '+b.toLowerCase():'In between'}
+function renderLook(){const v=lkGet(),pre=$('lkPre');if(!pre)return;const cur=lkMatch(v);
+  if(!pre.children.length)Object.keys(LK_PRESETS).forEach(k=>{const b=document.createElement('button'),i=document.createElement('i'),s=document.createElement('span');i.style.background=lkSwatch(LK_PRESETS[k]);s.textContent=LK_PRESETS[k].n;b.dataset.k=k;b.append(i,s);
+    b.onclick=()=>{const p=LK_PRESETS[k];const nv=lkSave(Object.assign({},p,{a:k,mix:0}));delete nv.n;lkApply(nv);renderLook()};pre.appendChild(b)});
+  [...pre.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===cur)));
+  $('lkNow').textContent=cur?'Now: '+LK_PRESETS[cur].n+'.':'Now: your own mix. Tap a look above to go back to a preset.';
+  const sl=$('lkSliders');if(!sl.children.length)LK_KEYS.forEach(k=>{const[lab,a,b]=LK_SPEC[k],row=document.createElement('div');row.className='lkrow';
+    row.innerHTML='<div class="lkh"><span>'+lab+'</span><b id="lkW_'+k+'"></b></div><input type="range" min="0" max="100" step="1" id="lkS_'+k+'" aria-label="'+lab+'"'+(k==='warm'?' class="lkwarm"':'')+'><div class="lkends"><span>'+a+'</span><span>'+b+'</span></div>';sl.appendChild(row);
+    const inp=row.querySelector('input');inp.oninput=()=>{const nv=lkSave({[k]:+inp.value});lkApply(nv);$('lkW_'+k).textContent=lkWord(k,+inp.value);const c=lkMatch(nv);[...pre.children].forEach(bb=>bb.setAttribute('aria-pressed',String(bb.dataset.k===c)));$('lkNow').textContent=c?'Now: '+LK_PRESETS[c].n+'.':'Now: your own mix. Tap a look above to go back to a preset.'}});
+  LK_KEYS.forEach(k=>{$('lkS_'+k).value=String(v[k]);$('lkW_'+k).textContent=lkWord(k,v[k])});
+  const A=$('lkA'),B=$('lkB');if(!A.children.length)[A,B].forEach(sel=>Object.keys(LK_PRESETS).forEach(k=>{const o=document.createElement('option');o.value=k;o.textContent=LK_PRESETS[k].n;sel.appendChild(o)}));
+  A.value=v.a||'nave';B.value=v.b||'lapis';$('lkMix').value=String(v.mix||0);$('lkMixTxt').textContent=Math.round(100-(v.mix||0))+'% '+LK_PRESETS[A.value].n+', '+Math.round(v.mix||0)+'% '+LK_PRESETS[B.value].n;
+  $('lkTilt').checked=v.tilt!==false;$('lkTiltTxt').textContent=v.tilt===false?'':tiltState==='denied'?'Motion access was declined. Allow it in your browser settings, or leave tilt off.':tiltState==='on'?'Tilt is on.':'Your phone asks once for motion access the first time you tap the screen.'}
+function lkBlend(){const A=LK_PRESETS[$('lkA').value],B=LK_PRESETS[$('lkB').value],t=+$('lkMix').value/100,o={a:$('lkA').value,b:$('lkB').value,mix:+$('lkMix').value};LK_KEYS.forEach(k=>o[k]=Math.round(lkLerp(A[k],B[k],t)));const nv=lkSave(o);lkApply(nv);renderLook()}
+/* ---- tilt: the light and the glints follow the phone a little ---- */
+let tiltState='off',tiltRaf=0,tiltG=0,tiltB=0,tiltB0=null;
+function tiltOn(){return lkGet().tilt!==false&&!(typeof reducedMotion==='function'&&reducedMotion())&&S.uimo!==false}
+function tiltHandler(e){if(!tiltOn())return;if(e.gamma==null)return;tiltG=e.gamma;if(tiltB0==null)tiltB0=e.beta;tiltB=e.beta-tiltB0;if(tiltRaf)return;tiltRaf=requestAnimationFrame(()=>{tiltRaf=0;const gx=lkClamp((tiltG+35)/70)*2-1,by=lkClamp((tiltB+30)/60)*2-1,r=document.documentElement.style;
+  r.setProperty('--lk-tx',(-gx*18).toFixed(1)+'px');r.setProperty('--lk-ty',(-by*14).toFixed(1)+'px');r.setProperty('--lk-lx',Math.round(50+gx*30)+'%')})}
+function tiltStart(){if(tiltState==='on'||!tiltOn())return;const D=window.DeviceOrientationEvent;if(!D)return;
+  if(typeof D.requestPermission==='function'){D.requestPermission().then(p=>{if(p==='granted'){window.addEventListener('deviceorientation',tiltHandler);tiltState='on'}else tiltState='denied';renderLook()}).catch(()=>{tiltState='denied'})}
+  else{window.addEventListener('deviceorientation',tiltHandler);tiltState='on'}}
+document.addEventListener('pointerdown',()=>{if(tiltState==='off')tiltStart()},{passive:true});
+/* ---- tab bar: icons, liquid highlight, compact while scrolling down ---- */
+const TAB_ICONS={practice:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',songs:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
+  tuner:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.4"/>',stats:'<path d="M4 20h16M6.5 20v-6M11.5 20V6M16.5 20v-9"/>',
+  settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>'};
+const ICO=(p,fill)=>'<svg viewBox="0 0 24 24" fill="'+(fill?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
+function tabIcons(){TABS.forEach(t=>{const b=$('tab-'+t);if(b.querySelector('svg'))return;const s=document.createElement('span');s.textContent=b.textContent;b.textContent='';b.insertAdjacentHTML('afterbegin',ICO(TAB_ICONS[t]));b.appendChild(s)})}
+let tabPrev=null,tabTimer=0;
+function placeTabLiquid(){const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,x=b.offsetLeft,w=b.offsetWidth;
+  if(tabPrev&&tabPrev.x!==x&&uiMotion()){const x0=Math.min(tabPrev.x,x),x1=Math.max(tabPrev.x+tabPrev.w,x+w);nav.classList.add('liq');nav.style.setProperty('--tx',x0+'px');nav.style.setProperty('--tw',(x1-x0)+'px');
+    clearTimeout(tabTimer);tabTimer=setTimeout(()=>{nav.classList.remove('liq');nav.style.setProperty('--tx',x+'px');nav.style.setProperty('--tw',w+'px')},170)}
+  else{nav.style.setProperty('--tx',x+'px');nav.style.setProperty('--tw',w+'px')}tabPrev={x,w}}
+{let lastY=0;window.addEventListener('scroll',()=>{const y=window.scrollY,n=document.querySelector('.tabs');if(!n)return;if(y>lastY+10&&y>140)n.classList.add('compact');else if(y<lastY-10)n.classList.remove('compact');lastY=y;if(n.classList.contains('compact')!==!!n.dataset.c){n.dataset.c=n.classList.contains('compact')?'1':'';tabPrev=null;placeTabLiquid()}},{passive:true})}
+/* ---- frame-rate guard: if the phone struggles while singing, glass steps down for the session ---- */
+{let fr=0,t0=0,bad=0;const tick=ts=>{const busy=(typeof EARS!=='undefined'&&EARS.run)||(typeof G!=='undefined'&&G.playing);if(busy&&document.visibilityState==='visible'){if(!t0)t0=ts;fr++;if(ts-t0>=2000){const fps=fr*1000/(ts-t0);bad=fps<45?bad+1:0;if(bad>=2)document.documentElement.classList.add('lowfx');fr=0;t0=ts}}else{fr=0;t0=0}requestAnimationFrame(tick)};requestAnimationFrame(tick)}
+function lookInit(){lkApply();tabIcons();
+  LK_KEYS.length&&renderLook();
+  $('lkA').onchange=lkBlend;$('lkB').onchange=lkBlend;$('lkMix').oninput=lkBlend;
+  $('lkTilt').onchange=()=>{const on=$('lkTilt').checked;lkSave({tilt:on});if(!on){const r=document.documentElement.style;r.setProperty('--lk-tx','0px');r.setProperty('--lk-ty','0px');r.setProperty('--lk-lx','30%')}else tiltStart();renderLook()};
+  $('lkReset').onclick=()=>{const p=Object.assign({},LK_PRESETS.nave,{a:'nave',b:'lapis',mix:0,tilt:true});delete p.n;store.set('ison-look',p);lkApply(p);renderLook()}}
+
 /* ==== Ears only, part 2: Leaps, Patterns, Tuning ear, Daily practice ====
    Why these exist (the research is listed under "Why it is built this way" on the Ears only screen):
    - Leaps: people who sing off pitch usually hear fine; the trouble is turning the heard note into the right
@@ -4954,18 +5180,18 @@ function earPocket(on){$('earPocket').hidden=!on;document.documentElement.classL
 /* ---- UI ---- */
 const PH_COL={L:'var(--lapis)',W:'var(--accent)',A:'var(--good)',C:'#E7C26A',T:'var(--muted)',Q:'var(--lapis)'};
 function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');const tt=fmt(EARS.el)+' / '+fmt(EARS.goal);
-  if($('earClock'))$('earClock').textContent=tt;$('epClock').textContent=tt;if(clockOnly)return;
+  if($('earClock'))$('earClock').textContent=tt;$('epClock').textContent=tt;{const rg=$('earRing');if(rg)rg.style.strokeDashoffset=String(100-Math.min(100,EARS.goal?EARS.el/EARS.goal*100:0))}if(clockOnly)return;
   const dr=EARS.drills[EARS.di];$('earDrill').textContent=dr?'Drill '+(EARS.di+1)+' of '+EARS.drills.length+' · '+dr.name:'';
-  const ph=EARS.paused?'Paused':EARS.ph?PH_LONG[EARS.ph]:'';$('earPhase').textContent=ph;$('earPhase').style.borderColor=$('earPhase').style.color=EARS.paused?'var(--muted)':(PH_COL[EARS.ph]||'var(--muted)');
-  $('earNote').textContent=EARS.note!=null?nameOf(EARS.note):'';$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
-  $('earPause').textContent=EARS.paused?'Resume':'Pause';$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earVoiceLive').hidden=!(EARS.bg&&EARS.u>=5);$('smShakyLive').hidden=!(EARS.bg&&EARS.u===6);if(document.activeElement!==$('earVoiceN2'))$('earVoiceN2').value=String(songVoiceLvl());$('earPaceNow').textContent='Pace: '+earPace().n;
+  const ph=EARS.paused?'Paused':EARS.ph?PH_LONG[EARS.ph]:'';$('earPhase').textContent=ph;$('earPhase').style.color='var(--ink)';{const o=$('earOrb');o.dataset.ph=EARS.paused?'':(EARS.ph||'');o.dataset.paused=EARS.paused?'1':'';}
+  {const nn=EARS.note!=null?nameOf(EARS.note):'',ne=$('earNote');if(nn&&ne.textContent!==nn){const prev=ne.dataset.last||'';ne.textContent=nn;ne.dataset.last=nn;if(prev&&prev!==nn&&uiMotion()){ne.classList.remove('swap');void ne.offsetWidth;ne.classList.add('swap')}}else if(!nn)ne.style.opacity='.35';if(nn)ne.style.opacity='1'}$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
+  {const pb=$('earPause'),want=EARS.paused?'play':'pause';if(pb.dataset.st!==want){pb.dataset.st=want;pb.innerHTML=want==='play'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/></svg><span>Resume</span>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg><span>Pause</span>';pb.setAttribute('aria-label',want==='play'?'Resume':'Pause')}}$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earVoiceLive').hidden=!(EARS.bg&&EARS.u>=5);$('smShakyLive').hidden=!(EARS.bg&&EARS.u===6);if(document.activeElement!==$('earVoiceN2'))$('earVoiceN2').value=String(songVoiceLvl());$('earPaceNow').textContent='Pace: '+earPace().n;
   ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
 function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;if(earSet().unit===10)return P.n+': how long each note plays, how long you hold alone, and how slowly the song starts. After each session, "That session felt" nudges this for next time.';if(earSet().unit===6){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';return P.n+': new material at '+pc(sp[0])+' of the singer\'s speed, first reviews at '+pc(sp[Math.min(1,sp.length-1)])+', then real speed once a piece is settled. Pace also sets how long each held note and each "on your own" lasts. Nothing ever goes faster than the singer.'}if(earSet().unit===5){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';
     return P.n+': pieces at '+pc(sp[0])+' of the singer\'s speed'+(k==='hard'||k==='extra'?', each followed by a pass at real speed':'')+'; the whole part works up through '+sp.map(pc).join(', ')+(k==='hard'||k==='extra'?', plus the whole part from memory':'')+'. Each level adds 5%. Nothing ever goes faster than the singer.'}return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
 function earPaceShift(d){const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){if(EARS.run)earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
   earSave({pace:EAR_PACES[j]});if(EARS.run&&EARS.bg){bgReplanFromNext('Pace '+EAR_PACE[EAR_PACES[j]].n);earUI();return}
   if(EARS.run){EARS.drills=EARS.drills.slice(0,EARS.di+1).concat(earDrills(EARS.u,EARS.lv).slice(EARS.di+1))}earUI();renderEars()}
-function renderEars(){const s=earSet(),box=$('earUnits');$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
+function renderEars(){const s=earSet(),box=$('earUnits');document.documentElement.classList.toggle('earsrun',!!EARS.run);$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
   if(EARS.run){earUI();return}
   box.innerHTML='';EAR_ORDER.forEach(i=>{const U=EAR_UNITS[i];if(EAR_GROUP[i]){const g=document.createElement('div');g.className='eargrp';g.textContent=EAR_GROUP[i];box.appendChild(g)}const b=document.createElement('button');b.className='earunit'+(s.unit===i?' sel':'')+(i===10?' daily':'');b.dataset.u=i;b.setAttribute('aria-pressed',String(s.unit===i));
     const h=document.createElement('b');h.textContent=(i<4?'Unit '+i+' · ':'')+U.name;const p=document.createElement('span');p.textContent=U.desc;
@@ -5386,7 +5612,7 @@ $('nagLater').onclick=()=>{store.set('ison-bksnooze',Date.now()+3*864e5);renderN
 $('fxSel').value=S.fx||'full';$('fxSel').onchange=()=>{S.fx=$('fxSel').value;save()};
 $('celebSel').value=S.celeb||'every';$('celebSel').onchange=()=>{S.celeb=$('celebSel').value;save()};
 $('burstChk').checked=S.burst!==false;$('burstChk').onchange=()=>{S.burst=$('burstChk').checked;save();if(S.burst)fxBurst($('burstChk'),false)};
-const applyMo=()=>document.documentElement.classList.toggle('nomo',S.uimo===false);applyMo();
+const applyMo=()=>document.documentElement.classList.toggle('nomo',S.uimo===false);applyMo();lookInit();placeTabInk();
 $('uiChk').checked=S.uimo!==false;$('uiChk').onchange=()=>{S.uimo=$('uiChk').checked;save();applyMo()};
 $('awakeChk').checked=S.awake!==false;$('awakeChk').onchange=()=>{S.awake=$('awakeChk').checked;save();updateAwake()};
 $('tipsChk').checked=S.tips!==false;$('tipsChk').onchange=()=>{S.tips=$('tipsChk').checked;save();if(!S.tips)$('coach').hidden=true};
@@ -5400,5 +5626,4 @@ drawLive(0);loadSource();exampleTake();
 showTab((()=>{try{const t=localStorage.getItem('ison-tab');return TABS.includes(t)?t:'practice'}catch(e){return 'practice'}})());
 })();
 </script>
-
 </body></html>
