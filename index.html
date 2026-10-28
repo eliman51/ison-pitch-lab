@@ -602,8 +602,10 @@ html.lowfx .orb{-webkit-backdrop-filter:none;backdrop-filter:none}
     <div id="earSetup" class="earsetup">
       <p class="status" style="margin:0">Practice while you work. No microphone and no scores: the tone guides you, you hum with it, and only your practice time is saved. Every drill runs the same four parts, announced out loud, so you always know what is coming. <b>Daily practice</b> builds the whole session for you: warm-up, the voice basics that need it most, then the song.</p>
       <div class="earflow"><span><b style="color:var(--lapis)">Listen</b>the tone plays alone</span><span><b style="color:var(--accent)">With me</b>hum with it until the buzz smooths out</span><span><b style="color:var(--good)">On your own</b>the tone drops out; keep going</span><span><b style="color:#E7C26A">Check</b>the tone comes back: still locked in?</span></div>
-      <div class="earhero"><button class="primary big" id="earStart">Start</button>
-        <div class="field" style="margin:8px 0 0"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
+      <div class="earhero">
+        <div class="field" style="margin:0"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
+        <div class="field" style="margin:10px 0 0"><span class="label">Difficulty (pace)</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt" style="font-size:.85rem"></span></div>
+        <button class="primary big" id="earStart" style="margin-top:12px">Start</button>
         <p class="status" id="earHeroTxt" style="margin:6px 0 0"></p>
         <p class="status" id="earsMsg" style="margin:6px 0 0"></p>
       <div id="earRateRow" class="raterow" hidden><span class="status" id="earRateTxt"></span><div class="chips"><button id="earRate_easy">Too easy</button><button id="earRate_ok">About right</button><button id="earRate_hard">Too hard</button></div></div>
@@ -718,7 +720,6 @@ html.lowfx .orb{-webkit-backdrop-filter:none;backdrop-filter:none}
         </ul></details>
         <button id="smReset">Reset progress for this song</button>
       </div>
-      <div class="field"><span class="label">Pace: how long each note plays</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt"></span></div>
       <details class="opts"><summary>Sound and voice</summary>
         <div class="grid2">
           <div class="field"><label class="label" for="earTimbre">Tone</label><select id="earTimbre"><option value="warm">Warm hum (easiest to match)</option><option value="organ">Organ (cuts through noise)</option><option value="pure">Pure</option></select></div>
