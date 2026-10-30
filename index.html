@@ -4696,7 +4696,7 @@ const ES={rec:null,an:null,id:null,parts:[],from:0,to:0,seg:null,segT0:0,core:[]
 async function earSongList(){let mine=[];try{mine=await MyDB.all()}catch(e){}return mine.map(s=>({id:'my-'+s.id,name:s.name,audio:!!s.audio})).concat(BUILTIN.map(([k,n])=>({id:'b:'+k,name:n+' (built in)',audio:k==='psalm23'&&!!P23A})))}
 async function earSongLoad(id){await privReady;const kk=songKey(id);if(ES.id===id&&ES.key===kk&&ES.an&&(ES.rec.audio||!(id==='b:psalm23'&&P23A)))return true;let rec=null;
   if(String(id).startsWith('my-')){try{rec=await MyDB.get(+String(id).slice(3))}catch(e){}}else rec=builtinRec(id);
-  if(!rec)return false;if(kk){let kb=null;if(rec.audio){try{kb=await keyedAudio(id,rec.audio,kk,t=>{const e=$('earSongInfo');if(e)e.textContent=t;const q=$('earPrepTxt');if(q&&EARS.run)q.textContent=t})}catch(e){kb=null}}rec=Object.assign(keyRec(rec,kk),{audio:kb})}ES.key=kk;const an=analyzeSong4Course(rec);if(!an)return false;ES.rec=rec;ES.an=an;ES.id=id;ES.name=rec.name||'';ES.seg=null;ES.st={};
+  if(!rec)return false;if(kk){let kb=null;if(rec.audio){try{kb=await keyedAudio(id,rec.audio,kk,t=>{const e=$('earSongInfo');if(e)e.textContent=t;const q=$('earPrepTxt');if(q&&EARS.run)q.textContent=t})}catch(e){kb=null}}rec=Object.assign(keyRec(rec,kk),{audio:kb})}ES.key=kk;const an=analyzeSong4Course(rec);if(!an)return false;ES.rec=rec;ES.an=an;ES.id=id;ES.name=rec.name||'';ES.seg=null;ES.hq=null;ES.sth={};ES.st={};
   ES.parts=an.phrases.map((p,i)=>({i,t0:p.t0,t1:p.t1,notes:p.notes}));
   const st=earState(),saved=(st.songs||{})[id];if(saved){ES.from=Math.min(saved.from,ES.parts.length-1);ES.to=Math.min(Math.max(saved.to,ES.from),ES.parts.length-1)}
   else{ES.from=0;ES.to=0;while(ES.to+1<ES.parts.length&&ES.parts[ES.to+1].t1-ES.parts[0].t0<=13)ES.to++}
@@ -4706,15 +4706,25 @@ function earSongCut(){const an=ES.an,off=an.off,N=[];for(let i=ES.from;i<=ES.to;
   const core=[];full.forEach(n=>{if(n.t1-n.t0<0.2&&core.length){core[core.length-1].t1=n.t1}else{const l=core[core.length-1];if(l&&r(l)===r(n))l.t1=n.t1;else core.push({...n})}});
   const ms=core.map(n=>r(n)+off),mid=ms.slice().sort((a,b)=>a-b)[ms.length>>1]||S.home;ES.shift=0;/* Learn a song always uses the singer's own pitches and octave, never your home note */
   const pm=n=>r(n)+off+ES.shift;ES.core=core.map(n=>({m:pm(n),t0:n.t0,t1:n.t1}));ES.full=full.map(n=>({m:pm(n),t0:n.t0,t1:n.t1}));
-  ES.tonic=Math.round(an.tonicR)+off+ES.shift;ES.t0=ES.parts[ES.from].t0;ES.t1=ES.parts[ES.to].t1;ES.seg=null;ES.st={};ES.fine=null}
+  ES.tonic=Math.round(an.tonicR)+off+ES.shift;ES.t0=ES.parts[ES.from].t0;ES.t1=ES.parts[ES.to].t1;ES.seg=null;ES.hq=null;ES.sth={};ES.st={};ES.fine=null}
 function earSongKey(){return ES.id+'|'+ES.from+'-'+ES.to}
 function earSongMin(){const st=earState();return((st.chunkMin||{})[earSongKey()]||0)}
 function earSongLevel(){const m=earSongMin();return m<20?1:m<50?2:3}
+/* Playback quality: the singer is analyzed at 11 kHz (plenty for pitch), but what you hear is decoded again at
+   22 kHz, so his voice keeps its brightness (an 11 kHz copy cuts everything above 5.5 kHz and sounds muffled).
+   Sessions render at 22 kHz up to 45 minutes; longer ones step down so the session file stays a size phones handle. */
+const PB_SR=22050;
+function bgSessionSr(dur){return dur<=2760?22050:dur<=3700?16000:11025}
+async function decodeAt(blob,sr){const ab=await blob.arrayBuffer(),OC=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new OC(1,sr,sr);
+  const buf=await new Promise((res,rej)=>{const p=oc.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)});return buf.getChannelData(0)}
+const normPk=seg=>{let pk=0;for(let i=0;i<seg.length;i++)pk=Math.max(pk,Math.abs(seg[i]));if(pk>0.001)for(let i=0;i<seg.length;i++)seg[i]*=0.85/pk;return seg};
 async function earSongAudio(){if(ES.seg)return ES.seg;const a=ES.rec&&ES.rec.audio;if(!a)return null;
   try{const ab=await a.arrayBuffer(),OC=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new OC(1,VO_SR,VO_SR);
     const buf=await new Promise((res,rej)=>{const p=oc.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)});
     const d=buf.getChannelData(0),s0=Math.max(0,Math.floor((ES.t0-0.25)*VO_SR)),s1=Math.min(d.length,Math.ceil((ES.t1+0.4)*VO_SR)),seg=d.slice(s0,s1);ES.segT0=s0/VO_SR;
-    let pk=0;for(const x of seg)pk=Math.max(pk,Math.abs(x));if(pk>0.001)for(let i=0;i<seg.length;i++)seg[i]*=0.85/pk;ES.seg=seg;earSongTune();return seg}catch(e){return null}}
+    let pk=0;for(const x of seg)pk=Math.max(pk,Math.abs(x));if(pk>0.001)for(let i=0;i<seg.length;i++)seg[i]*=0.85/pk;ES.seg=seg;
+    try{const d2=await decodeAt(a,PB_SR),h0=Math.max(0,Math.floor((ES.t0-0.25)*PB_SR)),h1=Math.min(d2.length,Math.ceil((ES.t1+0.4)*PB_SR));ES.hq=normPk(d2.slice(h0,h1));ES.hqT0=h0/PB_SR;ES.sth={}}catch(e){ES.hq=null}
+    earSongTune();return seg}catch(e){return null}}
 /* Exact pitch: the note list from the analysis is rounded, so once the recording is loaded each main note is
    measured again straight from the singer's voice (every 20 ms, searching only near the expected note so it
    cannot jump an octave). Two choices for the tone: the nearest half step in the singer's own key (his overall
@@ -4761,17 +4771,17 @@ function songVoiceGain(){const n=songVoiceLvl();return n<=0?0:0.02*Math.pow(50,(
 /* pitch-preserving time map (WSOLA): A is a list of [output seconds, input seconds] points; slices of the voice
    are laid out at the output times, each nudged to line up with the waveform before it. A long output over a
    short input holds the vowel steady (used for held notes). */
-function wsolaMap(x,A,sr){const N=512,Hs=256,tol=110,len=Math.ceil(A[A.length-1][0]*sr),out=new Float32Array(len+N),nrm=new Float32Array(len+N),win=new Float32Array(N);
+function wsolaMap(x,A,sr){const kq=sr/11025,N=Math.round(512*kq),Hs=N>>1,tol=Math.round(110*kq),stp=Math.max(3,Math.round(3*kq)),cst=Math.max(4,Math.round(4*kq)),len=Math.ceil(A[A.length-1][0]*sr),out=new Float32Array(len+N),nrm=new Float32Array(len+N),win=new Float32Array(N);
   for(let i=0;i<N;i++)win[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);let seg=0;
   const inAt=s=>{while(seg<A.length-2&&A[seg+1][0]<=s)seg++;const a=A[seg],b=A[seg+1]||a,f=b[0]>a[0]?Math.min(1,Math.max(0,(s-a[0])/(b[0]-a[0]))):0;return Math.round((a[1]+(b[1]-a[1])*f)*sr)};
   let prev=-1;const hi=x.length-N-1;if(hi<1)return new Float32Array(len);
   for(let op=0;op<len;op+=Hs){let nom=Math.max(0,Math.min(hi,inAt((op+N/2)/sr)-N/2)),best=nom;
-    if(prev>=0){const ref=prev+Hs;if(ref+N<=x.length){let bc=-Infinity;for(let d=-tol;d<=tol;d+=3){const p=nom+d;if(p<0||p>hi)continue;let c=0;for(let i=0;i<N;i+=4)c+=x[p+i]*x[ref+i];if(c>bc){bc=c;best=p}}}}
+    if(prev>=0){const ref=prev+Hs;if(ref+N<=x.length){let bc=-Infinity;for(let d=-tol;d<=tol;d+=stp){const p=nom+d;if(p<0||p>hi)continue;let c=0;for(let i=0;i<N;i+=cst)c+=x[p+i]*x[ref+i];if(c>bc){bc=c;best=p}}}}
     for(let i=0;i<N;i++){out[op+i]+=x[best+i]*win[i];nrm[op+i]+=win[i]}prev=best}
   for(let i=0;i<len;i++)out[i]=nrm[i]>0.05?out[i]/nrm[i]:0;return out.subarray(0,len)}
 function wsola(x,rate){const d=x.length/VO_SR;return wsolaMap(x,[[0,0],[d/rate,d]],VO_SR)}
-async function earSongVoices(specs,src){const V=src||ES;V.st=V.st||{};if(!V.seg)return{};const o={},z=V.segT0||0;let n=0;
-  for(const k of Object.keys(specs)){if(!V.st[k]){V.st[k]=wsolaMap(V.seg,specs[k].map(([a,b])=>[a,Math.max(0,b-z)]),VO_SR);if(++n%4===0)await new Promise(r=>setTimeout(r,0))}o[k]=V.st[k]}return o}
+async function earSongVoices(specs,src,rates){const V=src||ES;if(!V.seg)return{};const hq=V.hq,x=hq||V.seg,sr=hq?PB_SR:VO_SR,z=hq?(V.hqT0||0):(V.segT0||0),C=hq?(V.sth=V.sth||{}):(V.st=V.st||{}),o={};let n=0;
+  for(const k of Object.keys(specs)){if(!C[k]){C[k]=wsolaMap(x,specs[k].map(([a,b])=>[a,Math.max(0,b-z)]),sr);if(++n%4===0)await new Promise(r=>setTimeout(r,0))}o[k]=C[k];if(rates)rates[k]=sr}return o}
 function earSongFit(lv,budget){const o={notes:7,pairs:lv===1?10:8,joins:true,wholeTwice:lv<3,deep:4,turns:!!earSet().songTurns,turnsWhole:!!earSet().songTurns};let D=earSongDrills(lv,o);const tot=()=>D.reduce((a,d)=>a+earStepsSec(d.steps)+2,0);
   const tries=[()=>o.deep>0&&(o.deep-=1),()=>o.turnsWhole&&!(o.turnsWhole=false),()=>o.pairs>4&&(o.pairs-=2),()=>o.notes>4&&(o.notes-=1),()=>o.wholeTwice&&!(o.wholeTwice=false),()=>o.joins&&!(o.joins=false),()=>o.pairs>2&&(o.pairs-=1),()=>o.notes>2&&(o.notes-=1),()=>o.pairs>0&&(o.pairs=0),()=>o.notes>0&&(o.notes=0)];
   let k=0;while(tot()>budget*0.95&&k<40){let did=false;for(const f of tries){if(f()){did=true;break}}if(!did)break;D=earSongDrills(lv,o);k++}return D}
@@ -4834,7 +4844,7 @@ async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s
   const m=earSongMin();$('earSongInfo').textContent='This part: '+fmtT(ES.t0)+' to '+fmtT(ES.t1)+' ('+Math.round(ES.t1-ES.t0)+' s), '+ES.core.length+' main notes. '+(ES.rec.audio?'The singer plays softly under every tone, then in full at the end. ':want==='b:psalm23'?'The recording is locked, so tones are used until you unlock it. ':'No recording saved with this song, so tones are used throughout. ')+(ES.fine?between+' of '+ES.core.length+' main notes sit between Western notes (25 cents or more away). '+'The singer adds '+Math.max(0,ES.fine.length-ES.core.length)+' little turns inside the words. ':'')+'Practiced: '+fmtHM(m)+', level '+earSongLevel()+' of 3.'+(ES.shift?' Tones are moved '+Math.abs(ES.shift/12)+' octave'+(Math.abs(ES.shift)>12?'s':'')+' '+(ES.shift>0?'up':'down')+' to suit your voice; the note names stay the same.':'')}
 function earSongSavePart(){const st=earState();st.songs=st.songs||{};st.songs[ES.id]={from:ES.from,to:ES.to};store.set('ison-ears',st)}
 function earSongPreview(){if(!ES.an)return;earUnlock();(async()=>{const seg=await earSongAudio();
-  if(seg){const url=await (async()=>{const ev=[{type:'rec',t:0,d:seg.length/VO_SR}];return URL.createObjectURL(await bgSynth({ev,dur:seg.length/VO_SR+0.2,sr:VO_SR,vol:earSet().vol||0.8,vo:{},rec:seg},()=>{}))})();earAudio.src=url;earAudio.play().catch(()=>{})}
+  if(seg){const url=await (async()=>{const x=ES.hq||seg,xs=ES.hq?PB_SR:VO_SR,ev=[{type:'rec',t:0,d:x.length/xs}];return URL.createObjectURL(await bgSynth({ev,dur:x.length/xs+0.2,sr:PB_SR,vol:earSet().vol||0.8,vo:{},rec:x,recRate:xs},()=>{}))})();earAudio.src=url;earAudio.play().catch(()=>{})}
   else earPlayEvents(ES.full.map((n,i)=>({type:'note',m:n.m,t:n.t0-ES.full[0].t0,d:Math.max(0.2,n.t1-n.t0)*0.96})),ES.full[ES.full.length-1].t1-ES.full[0].t0+0.3,null,()=>{})})()}
 
 /* ==== Lesson programs: units made of small lessons you can pick one at a time, or go through in order ====
@@ -5846,7 +5856,8 @@ async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
   const ck='ison-smap-'+SM_VER+'-'+rid+(SM.x?'-a':'-n');let map=store.get(ck,null);
   if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=smAnalyze(an,SM.x);store.set(ck,map)}
   /* the song map is always measured in the original key; a key change moves its pitches and uses the moved recording */
-  if(kk&&SM.x){try{const kb=await keyedAudio(rid,rec.audio,kk,prog);SM.x=await smDecode(kb);SM.seg=SM.x}catch(e){}}
+  let pbBlob=rec.audio||null;if(kk&&SM.x){try{const kb=await keyedAudio(rid,rec.audio,kk,prog);SM.x=await smDecode(kb);SM.seg=SM.x;pbBlob=kb}catch(e){}}
+  SM.hq=null;SM.sth={};if(SM.x&&pbBlob){try{SM.hq=normPk(await decodeAt(pbBlob,PB_SR).then(d=>d.slice()));SM.hqT0=0}catch(e){SM.hq=null}}
   if(SM.id!==rid||SM.key!==kk)return false;smLoadMap(keyMap(map,kk));return true}
 /* ---- curriculum: what each phrase needs, just before that phrase ---- */
 function smRange(){const st=smSong(),n=SM.phr.length,a=st.from!=null?Math.min(st.from,n-1):0,b=st.to!=null?Math.min(Math.max(st.to,a),n-1):n-1;return[a,b]}
@@ -6050,7 +6061,7 @@ async function bgReplanFromNext(why){if(!EARS.run||!EARS.bg||BG.prep||BG.replan)
   BG.replan=true;$('earPending').hidden=false;$('earPending').textContent=why+' from the next drill...';
   try{const at=BG.starts[ns],el=BG.offset+at,s=earSet();const tl=bgTimeline(EARS.u,EARS.lv,Math.max(30,EARS.goal-el),{start:ns,prev:EARS.drills});
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
-    const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:VO_SR,vol:s.vol||0.8,vo:voUsed,rec:tl.rec||null,recs},()=>{});if(!EARS.run||!EARS.bg){BG.replan=false;return}
+    const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:bgSessionSr(tl.dur),voSr:VO_SR,vol:s.vol||0.8,vo:voUsed,rec:tl.rec||null,recRate:tl.recRate,recs,recSr:BG.recSr||{}},()=>{});if(!EARS.run||!EARS.bg){BG.replan=false;return}
     BG.pending={url:URL.createObjectURL(blob),at,tl,offset:el};$('earPending').textContent=why+' from the next drill.'}catch(e){console.warn('replan failed',e);BG.replan=false;$('earPending').hidden=true}}
 function bgSwapCheck(){const P=BG.pending;if(!P||!earAudio)return;if(bgPos()>=P.at-0.05){bgLog();const was=!earAudio.paused;BG.pending=null;BG.replan=false;
   if(BG.url)URL.revokeObjectURL(BG.url);BG.url=P.url;BG.marks=P.tl.marks;BG.starts=P.tl.starts;BG.dur=P.tl.dur;BG.offset=P.offset;EARS.drills=P.tl.drills;BG.logPos=0;
@@ -6110,8 +6121,8 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const s=earSet(),ev=[],marks=[],s
       else if(st.k==='quiet'){marks.push({t,ph:st.ph,note:null});if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t,d:st.d,h:T.h,lp:T.lp,g:0.2});if(s.ticks&&st.beat)for(let x=0;x<st.d-0.01;x+=st.beat)ev.push({type:'tick',t:t+x,lvl:x===0?1.2:0.8});t+=st.d}
       else if(st.k==='gap')t+=st.d})}
   marks.push({t,ph:'',note:null,di:-2});t+=0.4;if(s.cues!=='none')vo(['complete']);
-  return{ev,marks,starts,drills:all,dur:t+0.6,rec:u===5?ES.seg:null,vSpecs}}
-async function bgRecs(tl){const keys=Object.keys(tl.vSpecs||{});if(!keys.length)return null;const by={};keys.forEach(k=>{const v=tl.vSpecs[k];(by[v.src]=by[v.src]||{})[k]=v.map});const out={};for(const sname of Object.keys(by)){Object.assign(out,await earSongVoices(by[sname],sname==='ES'?ES:SM))}return out}
+  return{ev,marks,starts,drills:all,dur:t+0.6,rec:u===5?(ES.hq||ES.seg):null,recRate:u===5&&ES.hq?PB_SR:VO_SR,vSpecs}}
+async function bgRecs(tl){const keys=Object.keys(tl.vSpecs||{});if(!keys.length)return null;const by={};keys.forEach(k=>{const v=tl.vSpecs[k];(by[v.src]=by[v.src]||{})[k]=v.map});const out={};BG.recSr={};for(const sname of Object.keys(by)){Object.assign(out,await earSongVoices(by[sname],sname==='ES'?ES:SM,BG.recSr))}return out}
 /* synthesis and MP3 encoding; runs in a background worker when possible (also works on the page) */
 async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,out=[],ev=D.ev.slice().sort((a,b)=>a.t-b.t),vo=D.vo,G=0.62*D.vol,TW=2*Math.PI;
   const hd=new DataView(new ArrayBuffer(44)),w=(o,x)=>{for(let i=0;i<x.length;i++)hd.setUint8(o+i,x.charCodeAt(i))};
@@ -6119,13 +6130,13 @@ async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,ou
   let ei=0,active=[];
   for(let b0=0;b0<N;b0+=B){const n=Math.min(B,N-b0),buf=new Float32Array(n),t0=b0/sr,t1=(b0+n)/sr;
     while(ei<ev.length&&ev[ei].t<t1){active.push(ev[ei]);ei++}
-    active=active.filter(e=>{const len=e.type==='vo'?(vo[e.k]?vo[e.k].length/sr:0):e.type==='tick'?0.07:e.d;return e.t+len>=t0});
+    const vsr=D.voSr||sr,rsr=D.recRate||sr;active=active.filter(e=>{const len=e.type==='vo'?(vo[e.k]?vo[e.k].length/vsr:0):e.type==='tick'?0.07:e.d;return e.t+len>=t0});
     for(const e of active){const s0=Math.max(b0,Math.round(e.t*sr));
-      if(e.type==='rec'){const c=D.rec;if(!c)continue;const st=Math.round(e.t*sr),lim=Math.min(c.length,Math.round(e.d*sr));for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j>=0)buf[i-b0]+=c[j]*0.9}}
-      else if(e.type==='recx'){const c=D.recs&&D.recs[e.key];if(!c)continue;const st=Math.round(e.t*sr),f0=Math.round(e.from*sr),lim=Math.round(e.d*sr),fd=Math.round(0.03*sr),g=0.9*e.g,r=e.r||1;for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j<0)continue;let v;if(r===1){const q=f0+j;if(q>=c.length)break;v=c[q]}else{const q=f0+j*r,qi=Math.floor(q),fr=q-qi;if(qi+1>=c.length)break;v=c[qi]*(1-fr)+c[qi+1]*fr}buf[i-b0]+=v*g*Math.min(1,j/fd,(lim-j)/fd)}}
+      if(e.type==='rec'){const c=D.rec;if(!c)continue;const st=Math.round(e.t*sr),k=rsr/sr,lim=Math.round(e.d*sr);for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j<0)continue;const q=j*k,qi=Math.floor(q);if(qi+1>=c.length)break;const fr=q-qi;buf[i-b0]+=(c[qi]*(1-fr)+c[qi+1]*fr)*0.9}}
+      else if(e.type==='recx'){const c=D.recs&&D.recs[e.key];if(!c)continue;const csr=(D.recSr&&D.recSr[e.key])||sr,kk=csr/sr,st=Math.round(e.t*sr),f0=Math.round(e.from*csr),lim=Math.round(e.d*sr),fd=Math.round(0.03*sr),g=0.9*e.g,r=(e.r||1)*kk;for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j<0)continue;let v;if(r===1){const q=f0+j;if(q>=c.length)break;v=c[q]}else{const q=f0+j*r,qi=Math.floor(q),fr=q-qi;if(qi+1>=c.length)break;v=c[qi]*(1-fr)+c[qi+1]*fr}buf[i-b0]+=v*g*Math.min(1,j/fd,(lim-j)/fd)}}
       else if(e.type==='glide'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g);if(e.ph==null){e.ph=0;e.li=st}
         for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr,rem=e.d-tt,f=e.f0*Math.pow(e.f1/e.f0,Math.min(1,tt/e.d));e.ph+=TW*f/sr;const env=Math.min(1,tt/0.05,rem/0.1);let v=0;for(let k=0;k<K;k++){const fk=f*(k+1);if(fk<e.lp&&fk<sr/2-300)v+=e.h[k]/sum*Math.sin(e.ph*(k+1))}buf[i-b0]+=g*env*v}e.li=en}
-      else if(e.type==='vo'){const c=vo[e.k];if(!c)continue;const st=Math.round(e.t*sr);for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=c.length)break;if(j>=0)buf[i-b0]+=c[j]*0.9}}
+      else if(e.type==='vo'){const c=vo[e.k];if(!c)continue;const st=Math.round(e.t*sr),k=vsr/sr;for(let i=s0;i<b0+n;i++){const j=i-st;if(j<0)continue;const q=j*k,qi=Math.floor(q);if(qi+1>=c.length)break;const fr=q-qi;buf[i-b0]+=(c[qi]*(1-fr)+c[qi+1]*fr)*0.9}}
       else if(e.type==='tick'){const st=Math.round(e.t*sr),amp=0.16*D.vol*(e.lvl||1);for(let i=s0;i<b0+n;i++){const tt=(i-st)/sr;if(tt>0.07)break;const env=tt<0.005?tt/0.005:Math.exp(-(tt-0.005)/0.012);buf[i-b0]+=amp*env*Math.sin(TW*1600*tt)}}
       else{const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),P=[];
         e.h.forEach((a,k)=>{const f=e.f*(k+1);if(f<Math.min(e.lp,e.f*14)&&f<sr/2-300){const wv=TW*f/sr,ph=wv*(s0-st);P.push({a:a/sum,c:Math.cos(ph),s:Math.sin(ph),cw:Math.cos(wv),sw:Math.sin(wv)})}});
@@ -6151,7 +6162,7 @@ async function bgStart(resumeAt){const s=earSet();if(!resumeAt)BG.total=0;earUnl
     if(EARS.u===6){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();SM.plan=smPlan(Math.max(60,EARS.goal-(resumeAt||0)-25));SM.sess={done:new Set(),ids:[]};SM.lastIds=[];$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     const tl=bgTimeline(EARS.u,EARS.lv,Math.max(60,EARS.goal-(resumeAt||0)));EARS.drills=tl.drills;BG.marks=tl.marks;BG.starts=tl.starts;BG.dur=tl.dur;BG.u=EARS.u;BG.offset=resumeAt||0;
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
-    $('earPrepTxt').textContent='Lining up the singer with the tones...';const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:VO_SR,vol:s.vol||0.8,vo:voUsed,rec:tl.rec||null,recs},p=>{$('earPrepBar').style.width=Math.max(2,Math.round(p*100))+'%';$('earPrepTxt').textContent='Preparing your session... '+Math.round(p*100)+'%'});
+    $('earPrepTxt').textContent='Lining up the singer with the tones...';const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:bgSessionSr(tl.dur),voSr:VO_SR,vol:s.vol||0.8,vo:voUsed,rec:tl.rec||null,recRate:tl.recRate,recs,recSr:BG.recSr||{}},p=>{$('earPrepBar').style.width=Math.max(2,Math.round(p*100))+'%';$('earPrepTxt').textContent='Preparing your session... '+Math.round(p*100)+'%'});
     if(!EARS.run){BG.prep=false;return}
     if(BG.url)URL.revokeObjectURL(BG.url);BG.url=URL.createObjectURL(blob);BG.prep=false;$('earPrep').hidden=true;
     const a=earAudio;a.loop=false;a.onended=()=>earFinish(true);a.ontimeupdate=bgTimeUpdate;a.onpause=()=>{bgLog();EARS.paused=true;earUI();earMediaState()};a.onplay=()=>{EARS.paused=false;earUI();earMediaState()};
