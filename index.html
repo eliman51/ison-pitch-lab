@@ -885,6 +885,8 @@ html.sketch.sk-rm .skdemo .dbox{animation:none}
 .addsong svg{width:18px;height:18px}
 html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:var(--skrb);background:var(--panel)}
 .addst{margin:0}
+.pvrow2{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pvrow2 button{display:inline-flex;align-items:center;gap:6px}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -1026,11 +1028,11 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <p class="status" id="earSongWhere" style="margin:0"></p>
         <div class="earlock" id="earLock" hidden><p class="status" style="margin:0 0 6px">Psalm 23 is built in. Its recording is stored locked, because the app is a public website and the recording is not yours to share. Enter your passphrase once in this browser to unlock the singer.</p>
           <div class="row"><input type="text" id="earPw" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Passphrase" aria-label="Passphrase"><button id="earPwGo">Unlock</button></div><p class="status" id="earPwMsg" style="margin:6px 0 0"></p></div>
-        <div class="field"><label class="label" for="earSongFile">Add a recording</label><input class="file" type="file" id="earSongFile" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/*,video/mp4,video/quicktime"></div>
+        <div class="field"><label class="addsong" for="earSongFile"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Add a new song (a recording from your phone)</label><input class="file" type="file" hidden id="earSongFile" accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/*,video/mp4,video/quicktime"></div>
         <div class="grid2"><div class="field"><label class="label" for="earPartFrom">From</label><select id="earPartFrom"></select></div><div class="field"><label class="label" for="earPartTo">To</label><select id="earPartTo"></select></div></div>
         <p class="earparts" id="earParts"></p>
         <p class="status" id="earSongInfo" style="margin:0"></p>
-        <button id="earSongPlay">Play this part</button>
+        <div class="pvrow2"><button id="earSongPlay">Play this part</button><button id="earSongStop" hidden aria-label="Stop">Stop</button><span class="status" id="earSongTime"></span></div>
         <details class="opts"><summary>How the song lesson works</summary><ul class="hlib">
           <li><b>The singer underneath.</b> Every time a tone plays, the real singer plays under it at the volume you pick below (1 to 10), slowed to the same timing without changing pitch. On held notes the singer's vowel is held steady with the tone. "On your own" is always silent, so you find out what you can do alone.</li>
           <li><b>1. The notes in this part.</b> Each different note, by name, held and locked one at a time.</li>
@@ -4701,7 +4703,7 @@ async function earSongLoad(id){await privReady;const kk=songKey(id);if(ES.id===i
   const st=earState(),saved=(st.songs||{})[id];if(saved){ES.from=Math.min(saved.from,ES.parts.length-1);ES.to=Math.min(Math.max(saved.to,ES.from),ES.parts.length-1)}
   else{ES.from=0;ES.to=0;while(ES.to+1<ES.parts.length&&ES.parts[ES.to+1].t1-ES.parts[0].t0<=13)ES.to++}
   earSongCut();return true}
-function earSongCut(){const an=ES.an,off=an.off,N=[];for(let i=ES.from;i<=ES.to;i++)N.push(...ES.parts[i].notes);
+function earSongCut(){try{pvStop()}catch(e){}const an=ES.an,off=an.off,N=[];for(let i=ES.from;i<=ES.to;i++)N.push(...ES.parts[i].notes);
   const r=n=>Math.round(n.m-off),full=[];N.forEach(n=>{const l=full[full.length-1];if(l&&r(l)===r(n)&&n.t0-l.t1<0.2){l.t1=n.t1}else full.push({...n})});
   const core=[];full.forEach(n=>{if(n.t1-n.t0<0.2&&core.length){core[core.length-1].t1=n.t1}else{const l=core[core.length-1];if(l&&r(l)===r(n))l.t1=n.t1;else core.push({...n})}});
   const ms=core.map(n=>r(n)+off),mid=ms.slice().sort((a,b)=>a-b)[ms.length>>1]||S.home;ES.shift=0;/* Learn a song always uses the singer's own pitches and octave, never your home note */
@@ -4843,9 +4845,27 @@ async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s
   $('earParts').textContent=names.join(' · ');
   const m=earSongMin();$('earSongInfo').textContent='This part: '+fmtT(ES.t0)+' to '+fmtT(ES.t1)+' ('+Math.round(ES.t1-ES.t0)+' s), '+ES.core.length+' main notes. '+(ES.rec.audio?'The singer plays softly under every tone, then in full at the end. ':want==='b:psalm23'?'The recording is locked, so tones are used until you unlock it. ':'No recording saved with this song, so tones are used throughout. ')+(ES.fine?between+' of '+ES.core.length+' main notes sit between Western notes (25 cents or more away). '+'The singer adds '+Math.max(0,ES.fine.length-ES.core.length)+' little turns inside the words. ':'')+'Practiced: '+fmtHM(m)+', level '+earSongLevel()+' of 3.'+(ES.shift?' Tones are moved '+Math.abs(ES.shift/12)+' octave'+(Math.abs(ES.shift)>12?'s':'')+' '+(ES.shift>0?'up':'down')+' to suit your voice; the note names stay the same.':'')}
 function earSongSavePart(){const st=earState();st.songs=st.songs||{};st.songs[ES.id]={from:ES.from,to:ES.to};store.set('ison-ears',st)}
-function earSongPreview(){if(!ES.an)return;earUnlock();(async()=>{const seg=await earSongAudio();
-  if(seg){const url=await (async()=>{const x=ES.hq||seg,xs=ES.hq?PB_SR:VO_SR,ev=[{type:'rec',t:0,d:x.length/xs}];return URL.createObjectURL(await bgSynth({ev,dur:x.length/xs+0.2,sr:PB_SR,vol:earSet().vol||0.8,vo:{},rec:x,recRate:xs},()=>{}))})();earAudio.src=url;earAudio.play().catch(()=>{})}
-  else earPlayEvents(ES.full.map((n,i)=>({type:'note',m:n.m,t:n.t0-ES.full[0].t0,d:Math.max(0.2,n.t1-n.t0)*0.96})),ES.full[ES.full.length-1].t1-ES.full[0].t0+0.3,null,()=>{})})()}
+/* Play this part: play, pause, resume and stop. The rendered part is kept, so resuming and replaying are instant. */
+const PV={st:'idle',url:null,key:null,tone:false,iv:null};
+const PV_ICON={play:'<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>',stop:'<svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="1.5" fill="currentColor"/></svg>'};
+function pvUI(){const b=$('earSongPlay'),x=$('earSongStop'),t=$('earSongTime');if(!b)return;
+  b.innerHTML=PV.st==='loading'?'Preparing...':PV.st==='playing'?(PV.tone?PV_ICON.stop+' Stop':PV_ICON.pause+' Pause'):PV.st==='paused'?PV_ICON.play+' Resume':PV_ICON.play+' Play this part';b.disabled=PV.st==='loading';
+  x.innerHTML=PV_ICON.stop+' Stop';x.hidden=!(PV.st==='paused'||(PV.st==='playing'&&!PV.tone));
+  const a=earAudio;t.textContent=!PV.tone&&a&&(PV.st==='playing'||PV.st==='paused')&&a.duration?fmtT(a.currentTime)+' / '+fmtT(a.duration):''}
+function pvStop(){clearInterval(PV.iv);PV.iv=null;if(PV.st==='idle')return;if(PV.tone)earSilence();else if(earAudio&&!EARS.run){try{earAudio.pause();earAudio.currentTime=0}catch(e){}}PV.st='idle';pvUI()}
+function earSongPreview(){if(!ES.an||EARS.run)return;
+  if(PV.st==='playing'){if(PV.tone){pvStop();return}earAudio.pause();PV.st='paused';pvUI();return}
+  if(PV.st==='paused'){earAudio.play().catch(()=>{});PV.st='playing';pvUI();return}
+  if(PV.st==='loading')return;earUnlock();PV.st='loading';pvUI();
+  (async()=>{const seg=await earSongAudio(),key=earSongKey()+'|'+(ES.key||0)+'|'+(earSet().vol||0.8);
+    if(PV.st!=='loading')return;
+    if(seg){if(PV.key!==key||!PV.url){if(PV.url)URL.revokeObjectURL(PV.url);const x=ES.hq||seg,xs=ES.hq?PB_SR:VO_SR,ev=[{type:'rec',t:0,d:x.length/xs}];
+        PV.url=URL.createObjectURL(await bgSynth({ev,dur:x.length/xs+0.2,sr:PB_SR,vol:earSet().vol||0.8,vo:{},rec:x,recRate:xs},()=>{}));PV.key=key}
+      if(PV.st!=='loading')return;PV.tone=false;const a=earAudio;a.onended=()=>{PV.st='idle';clearInterval(PV.iv);pvUI()};if(a.src!==PV.url)a.src=PV.url;try{a.currentTime=0}catch(e){}a.play().catch(()=>{});
+      PV.st='playing';clearInterval(PV.iv);PV.iv=setInterval(pvUI,250)}
+    else{PV.tone=true;PV.st='playing';const dur=ES.full[ES.full.length-1].t1-ES.full[0].t0+0.3;
+      earPlayEvents(ES.full.map((n,i)=>({type:'note',m:n.m,t:n.t0-ES.full[0].t0,d:Math.max(0.2,n.t1-n.t0)*0.96})),dur,null,()=>{if(PV.st==='playing'&&PV.tone){PV.st='idle';pvUI()}})}
+    pvUI()})()}
 
 /* ==== Lesson programs: units made of small lessons you can pick one at a time, or go through in order ====
    "In order" walks the lessons: a short review of the lesson before, then the current lesson, and once a lesson
@@ -6153,7 +6173,7 @@ function bgRender(D,progress){return new Promise((res,rej)=>{let w=null;
   if(!w){bgSynth(D,progress).then(res,rej);return}
   let gotMsg=false;w.onmessage=e=>{gotMsg=true;if(e.data.p!=null)progress(e.data.p);if(e.data.done){w.terminate();BG.worker=null;res(e.data.blob)}if(e.data.err){w.terminate();BG.worker=null;bgSynth(D,progress).then(res,rej)}};
   w.onerror=()=>{try{w.terminate()}catch(x){}BG.worker=null;if(!gotMsg)bgSynth(D,progress).then(res,rej)};w.postMessage(D)})}
-async function bgStart(resumeAt){const s=earSet();if(!resumeAt)BG.total=0;earUnlock();BG.prep=true;BG.pending=null;BG.replan=false;EARS.bg=true;EARS.run=true;EARS.paused=false;EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.home=null;EARS.goal=s.min*60;EARS.el=resumeAt||0;EARS.ph='';EARS.note=null;
+async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.st='idle';pvUI()}}catch(e){}const s=earSet();if(!resumeAt)BG.total=0;earUnlock();BG.prep=true;BG.pending=null;BG.replan=false;EARS.bg=true;EARS.run=true;EARS.paused=false;EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.home=null;EARS.goal=s.min*60;EARS.el=resumeAt||0;EARS.ph='';EARS.note=null;
   renderEars();$('earPrep').hidden=false;$('earPrepTxt').textContent='Preparing your '+s.min+'-minute session...';$('earPrepBar').style.width='2%';setTimeout(()=>$('earsPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
   try{await voLoad();if(EARS.u===5){if(!(await earSongLoad(s.song||'')))throw new Error('choose a song first');$('earPrepTxt').textContent='Preparing the song...';await earSongAudio();EARS.lv=earSongLevel();EARS.home=ES.tonic}
     LES_PLAN=null;if(EARS.u!==5&&EARS.u!==6){EARS.home=S.home;if(s.model!=='tone'||EARS.u===10||EARS.u===11){$('earPrepTxt').textContent='Loading the song map...';try{await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})}catch(e){}}
@@ -6306,7 +6326,7 @@ $('earPwGo').onclick=async()=>{const pw=$('earPw').value;if(!pw.trim())return;$(
 $('earPw').onkeydown=e=>{if(e.key==='Enter')$('earPwGo').click()};
   $('earPartFrom').onchange=()=>{ES.from=+$('earPartFrom').value;if(ES.to<ES.from)ES.to=ES.from;earSongCut();earSongSavePart();renderEarSong()};
   $('earPartTo').onchange=()=>{ES.to=+$('earPartTo').value;if(ES.to<ES.from)ES.from=ES.to;earSongCut();earSongSavePart();renderEarSong()};
-  $('earSongPlay').onclick=earSongPreview;$('earSlower').onclick=()=>earPaceShift(-1);$('earTapPlay').onclick=()=>{if(earAudio)earAudio.play().then(()=>{$('earTapPlay').hidden=true}).catch(()=>{})};$('earFaster').onclick=()=>earPaceShift(1);$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
+  $('earSongPlay').onclick=earSongPreview;$('earSongStop').onclick=pvStop;pvUI();$('earSlower').onclick=()=>earPaceShift(-1);$('earTapPlay').onclick=()=>{if(earAudio)earAudio.play().then(()=>{$('earTapPlay').hidden=true}).catch(()=>{})};$('earFaster').onclick=()=>earPaceShift(1);$('earPause').onclick=earPause;$('earSkip').onclick=earSkip;$('earRepeat').onclick=earRepeat;$('earStop').onclick=()=>earFinish(false);
   $('earPocketBtn').onclick=()=>earPocket(true);
   let ht=null;const ep=$('earPocket'),down=e=>{e.preventDefault();ep.classList.add('hold');ht=setTimeout(()=>{ep.classList.remove('hold');earPocket(false)},1200)},up=()=>{clearTimeout(ht);ep.classList.remove('hold')};
   ep.addEventListener('pointerdown',down);ep.addEventListener('pointerup',up);ep.addEventListener('pointercancel',up);ep.addEventListener('pointerleave',up)}
