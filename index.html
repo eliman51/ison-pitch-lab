@@ -881,6 +881,10 @@ html.sketch .skdemo{border:calc(var(--skw)*.85) solid var(--ink-soft);border-rad
 .skd-toast.play .dnote{animation:skNoteD calc(.36s*var(--sk-t,1)) var(--sk-spring,ease-out) both}
 @keyframes skNoteD{0%{transform:scale(.4) rotate(-12deg);opacity:0}70%{transform:scale(1.1) rotate(1deg);opacity:1}100%{transform:rotate(-3deg)}}
 html.sketch.sk-rm .skdemo .dbox{animation:none}
+.addsong{display:inline-flex;align-items:center;gap:8px;align-self:flex-start;padding:9px 14px;border-radius:12px;border:1px dashed var(--line);color:var(--ink);font-weight:600;font-size:.92rem;cursor:pointer}
+.addsong svg{width:18px;height:18px}
+html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:var(--skrb);background:var(--panel)}
+.addst{margin:0}
 </style>
 
 <canvas id="fxLayer" aria-hidden="true"></canvas>
@@ -961,7 +965,7 @@ html.sketch.sk-rm .skdemo .dbox{animation:none}
         <div class="field" style="margin:10px 0 0"><span class="label">Difficulty (pace)</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt" style="font-size:.85rem"></span></div>
         <button class="primary big" id="earStart" style="margin-top:12px">Start</button>
         <p class="status" id="earHeroTxt" style="margin:6px 0 0"></p>
-        <p class="status" id="earsMsg" style="margin:6px 0 0"></p>
+        <p class="status" id="earsMsg" style="margin:6px 0 0"></p><input class="file" type="file" id="addSongFile" hidden accept=".mp3,.m4a,.wav,.aac,.aif,.aiff,.caf,.flac,.ogg,.mp4,.mov,.m4v,audio/*,video/mp4,video/quicktime">
       <div id="earRateRow" class="raterow" hidden><span class="status" id="earRateTxt"></span><div class="chips"><button id="earRate_easy">Too easy</button><button id="earRate_ok">About right</button><button id="earRate_hard">Too hard</button></div></div>
       <div id="smRate" class="smrate" hidden><b>How did it go?</b><p class="status" style="margin:4px 0">Ears only can't hear you, so this is how the program learns. Tap anything that felt shaky (it comes back sooner). Tap twice for easy (it waits longer). Leave the rest.</p><div class="chips earchips" id="smRateChips"></div><button id="smRateDone">Save</button></div>
       </div>
@@ -1008,7 +1012,7 @@ html.sketch.sk-rm .skdemo .dbox{animation:none}
       </div>
       <div id="earLesBox" class="earnotes" hidden>
         <h3 id="lesTitle">Song scale</h3>
-        <div id="lesSongRow" class="earnotes" style="gap:8px"><select id="lesSong" aria-label="Song"></select>
+        <div id="lesSongRow" class="earnotes" style="gap:8px"><select id="lesSong" aria-label="Song"></select><label class="addsong" for="addSongFile" data-add-for="ss"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Add a new song (a recording from your phone)</label>
           <div class="keyrow"><span class="label">Key</span><b data-key-for="ss">As sung</b><button data-key-open="ss" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div></div>
         <div class="field" id="lesScaleRow"><span class="label">His scale</span><div class="chips earchips" id="lesScale"></div><p class="status" id="lesScaleTxt" style="margin:4px 0 0"></p></div>
         <div id="bzInfo"></div>
@@ -1049,6 +1053,7 @@ html.sketch.sk-rm .skdemo .dbox{animation:none}
       <div id="earMasterBox" class="earnotes" hidden>
         <h3>Master a song</h3>
         <select id="smSongSel" aria-label="Song"></select>
+        <label class="addsong" for="addSongFile" data-add-for="sm"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Add a new song (a recording from your phone)</label>
         <div class="keyrow"><span class="label">Key</span><b data-key-for="sm">As sung</b><button data-key-open="sm" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
         <div id="smLock" class="status" hidden style="margin:6px 0">The recording is locked in this browser, so lessons use tones only and no exact pitches or turns. <button id="smGoUnlock">Unlock it in Learn a song</button></div>
         <p class="status" id="smStatus" style="margin:4px 0"></p>
@@ -6610,6 +6615,11 @@ async function importRecording(f,st){ensureCtx();st.textContent='Reading the rec
 $('courseFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const st=$('courseStatus');
   try{const id=await importRecording(f,st);st.textContent='Saved to My songs. Building the course...';await openSongCourse(id)}
   catch(err){st.textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
+/* add a new song from Song scale or Master a song: the same import as Learn a song, then that song is picked */
+let ADD_FOR='sm';document.querySelectorAll('[data-add-for]').forEach(l=>l.addEventListener('click',()=>{ADD_FOR=l.dataset.addFor}));
+$('addSongFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const box=ADD_FOR==='ss'?$('lesSongRow'):$('earMasterBox');let st=box.querySelector('.addst');if(!st){st=document.createElement('p');st.className='status addst';box.querySelector('[data-add-for]').after(st)}
+  try{const id=await importRecording(f,st);earSave({smSong:'my-'+id});SM.id=null;st.textContent='Saved. Measuring the new song...';renderEars();setTimeout(()=>{st.textContent='Added. It is now the song here, and it is in every song list.'},4000)}
+  catch(err){st.textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}e.target.value=''};
 $('earSongFile').onchange=async e=>{const f=e.target.files[0];if(!f)return;const st=$('earSongInfo');
   try{const id=await importRecording(f,st);earSave({song:'my-'+id});ES.id=null;st.textContent='Saved. Building the lesson...';renderEars()}
   catch(err){st.textContent='That file could not be read. Try an m4a, mp3 or wav recording.'}};
