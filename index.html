@@ -5909,6 +5909,8 @@ function smSpeed(s){const sp=smSpeeds();return s<=1?sp[0]:s===2?sp[Math.min(1,sp
 function songTimeline(ns,k,mOf){const out=[];ns.forEach((n,i)=>{const nx=ns[i+1],gap=nx?nx.t0-n.t1:0,e=nx&&gap<0.1?nx.t0:n.t1;out.push({m:mOf(n),d:Math.max(0.05,(e-n.t0)*k),src:[n.t0,e]});if(nx&&gap>=0.1)out.push({m:null,d:gap*k,src:[n.t1,nx.t0]})});return out}
 function smSeq(ns,speed,fine){return songTimeline(ns,1/Math.min(1,speed),n=>fine?smFineM(n):smM(n))}
 function smIsonM(){const d=SM.deg[SM.isonD];return d?(smPitchMode()==='western'?d.mR:d.m):null}
+/* the ison under note, scale and memory drills; Off means no drone anywhere in the session */
+function smIsonDr(){return(earSet().smDrone||'drills')==='off'?null:smIsonM()}
 function smDrone(kind){const m=earSet().smDrone||'drills';if(m==='off')return null;if(m==='always'||kind==='drill')return smIsonM();return null}
 const smMid=n=>n.hs||[n.t0+(n.t1-n.t0)*0.22,n.t1-(n.t1-n.t0)*0.22];
 /* listen, with (repeats), on your own, check; each part can carry the ison drone and a voice mode */
@@ -5926,18 +5928,18 @@ function smPhraseVo(p){return['sm_phrase'].concat(smNumVo(p+1))}
 function smDegSeq(d,secs){return[{m:smPitchMode()==='western'?d.mR:d.m,d:secs,src:smDegSrc(d)}]}
 function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s!=null?it.s:smIt(id).s,mode=it.mode||'rev',isNew=mode==='new'||s===0;
   const D=(name,vo,steps,items)=>({name,intro:'',vo,steps,smItems:items||(id?[id]:[]),smMode:mode,vsrc:'SM'});
-  if(it.k==='scale'){const RD=smRangeDegs(),intro=SM.deg.filter(d=>RD.has(d.i)&&(smIt('d'+d.i).s>=1||d.i===SM.isonD)).sort((a,b)=>a.m-b.m),ison=smIsonM(),beat=1.3*P.l;
+  if(it.k==='scale'){const RD=smRangeDegs(),intro=SM.deg.filter(d=>RD.has(d.i)&&(smIt('d'+d.i).s>=1||d.i===SM.isonD)).sort((a,b)=>a.m-b.m),ison=smIsonM(),idr=smIsonDr(),beat=1.3*P.l;
     const up=intro.map(d=>({m:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)})),walk=up.concat(up.slice(0,-1).reverse());
-    const done=intro.length>1&&intro.every(d=>smIt('d'+d.i).s>=3);const st=[{k:'cue',ph:'L',say:'Listen',noAnn:true},{k:'play',ph:'L',seq:[{m:ison,d:3*P.l,src:smDegSrc(SM.deg[SM.isonD])}],drone:ison}];
-    if(walk.length>1){if(!done)st.push({k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:walk,drone:ison});st.push({k:'cue',ph:'W',noAnn:true},{k:'play',ph:'W',seq:walk,drone:ison})}
-    else st.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ison,d:6*P.hw,src:smDegSrc(SM.deg[SM.isonD])}],drone:ison});
+    const done=intro.length>1&&intro.every(d=>smIt('d'+d.i).s>=3);const st=[{k:'cue',ph:'L',say:'Listen',noAnn:true},{k:'play',ph:'L',seq:[{m:ison,d:3*P.l,src:smDegSrc(SM.deg[SM.isonD])}],drone:idr}];
+    if(walk.length>1){if(!done)st.push({k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:walk,drone:idr});st.push({k:'cue',ph:'W',noAnn:true},{k:'play',ph:'W',seq:walk,drone:idr})}
+    else st.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ison,d:6*P.hw,src:smDegSrc(SM.deg[SM.isonD])}],drone:idr});
     st.push({k:'gap',d:0.8});return D('The ison and the scale',['sm_scale'],st,[])}
-  if(t==='d'){const d=SM.deg[+r];if(!d)return null;const isI=d.i===SM.isonD,dr=isI?null:smIsonM(),near=Math.abs(d.c)>=25?[d.c>0?'sm_hi':'sm_lo']:[];
+  if(t==='d'){const d=SM.deg[+r];if(!d)return null;const isI=d.i===SM.isonD,dr=isI?null:smIsonDr(),near=Math.abs(d.c)>=25?[d.c>0?'sm_hi':'sm_lo']:[];
     if(isNew||s<=2){const L0=3*P.l,Wd=(isNew?8:5)*P.hw,A0=(isNew?4:5)*P.a,C0=4*P.c,st=[{k:'say',text:'',vo:[voNote(d.mR)].concat(near)},{k:'cue',ph:'L'},{k:'play',ph:'L',seq:smDegSeq(d,L0),drone:dr},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:smDegSeq(d,Wd),drone:dr,swell:!isNew}];
       if(isNew&&P.reps>1)st.push({k:'cue',ph:'W',say:'Again'},{k:'play',ph:'W',seq:smDegSeq(d,Wd*0.7),drone:dr});
       st.push({k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A0,beat:1,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,C0),drone:dr},{k:'gap',d:1});
       return D(smLabel(id)+(isNew?' (new)':''),['sm_note'],st)}
-    const st=[{k:'say',text:'',vo:['sm_findn',voNote(d.mR)].concat(near)},{k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:4.5*P.a,beat:0,drone:smIsonM()},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,3.5),drone:smIsonM()},{k:'gap',d:1}];
+    const idr=smIsonDr(),st=[{k:'say',text:'',vo:['sm_findn',voNote(d.mR)].concat(near)}];if(idr==null)st.push({k:'play',ph:'L',seq:[{m:smIsonM(),d:2,src:smDegSrc(SM.deg[SM.isonD])}]});st.push({k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:4.5*P.a,beat:0,drone:idr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,3.5),drone:idr},{k:'gap',d:1});
     return D('Find '+smDegName(d)+' from the ison',['sm_find'],st)}
   if(t==='m'){const m=SM.mv.find(x=>x.k===r);if(!m)return null;const o=smOccIn(m.occ)[0],c=SM.phr[o.p].core,A=c[o.j-1],B=c[o.j];
     const seq=[{m:smM(A),d:2,src:[smMid(A)[0],B.t0]},{m:smM(B),d:3,src:[B.t0,smMid(B)[1]]}];
@@ -5970,7 +5972,7 @@ function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s
   if(it.k==='any'){const p=SM.phr[it.p];return D('Start anywhere: phrase '+(p.i+1),['sm_anywhere'].concat(smPhraseVo(p.i)),smCueAlone(smSeq(p.core,1)),['p'+p.i])}
   if(it.k==='run'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);const seq=smSeq(ns,1),dr=smDrone();
     return D('Everything so far: phrases '+(it.a+1)+' to '+(it.b+1),['sm_run'],[{k:'cue',ph:'W',say:'Sing with the singer',noAnn:true},{k:'play',ph:'W',seq,drone:dr},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(seq),beat:0,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq,drone:dr,vMode:'solo'},{k:'gap',d:1.2}],[])}
-  if(it.k==='final'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);return D('From memory over the ison: phrases '+(it.a+1)+' to '+(it.b+1),['sm_isonmem'],smCueAlone(smSeq(ns,1),{drone:smIsonM(),cMode:'solo'}),[])}
+  if(it.k==='final'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);const idr=smIsonDr();return D((idr==null?'From memory':'From memory over the ison')+': phrases '+(it.a+1)+' to '+(it.b+1),idr==null?['dp_memory']:['sm_isonmem'],smCueAlone(smSeq(ns,1),{drone:idr,cMode:'solo'}),[])}
   return null}
 const smDur=it=>{const d=smDrill(it);return d?earStepsSec(d.steps)+3:0};
 /* ---- the session planner ---- */
