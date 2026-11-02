@@ -444,6 +444,10 @@ html:not(.sketch) #amb::after{content:"";position:absolute;inset:0;background:ra
 @keyframes shim3{from{opacity:1}to{opacity:calc(1 - .8*var(--lk-shim))}}
 html.lk-still:not(.sketch) #amb i{animation-play-state:paused}
 html.lowfx:not(.sketch) #amb i{animation:none}
+html.lowpow.sketch body{background-attachment:scroll}
+html.lowpow.sketch.sk-m-live.sk-m-tab .tabs button[aria-selected="true"]::after{animation:skCircle calc(.42s*var(--sk-t)) var(--sk-ease) both}
+html.lowpow.sketch.sk-m-live .earunit.sel,html.lowpow .skdemo .dbox,html.lowpow #amb i{animation:none}
+.powlist{margin:6px 0 0;padding-left:18px}.powlist li{margin:4px 0}.powwhat summary{cursor:pointer}
 /* ---- surfaces ---- */
 html:not(.sketch) .panel{background:linear-gradient(180deg,var(--lk-sheen),transparent 38%),var(--lk-card);border:1px solid var(--lk-rim2);border-radius:var(--r-lg);
   box-shadow:inset 0 1px 0 var(--lk-rim),inset 0 -1px 0 rgba(0,0,0,.35),0 22px 44px -24px rgba(0,0,0,.75)}
@@ -1467,6 +1471,19 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   <div class="stip" id="statTip" role="status" hidden></div>
   </div>
   <div class="view" id="v-settings" hidden>
+  <section class="panel" aria-labelledby="t-pow">
+    <h2 id="t-pow">Battery</h2>
+    <label class="check"><input type="checkbox" id="powChk"> Low power mode</label>
+    <p class="status" id="powTxt" style="margin:0"></p>
+    <details class="powwhat"><summary class="status">What it changes</summary><ul class="status powlist">
+      <li>The microphone turns itself off when nothing is using it: 20 seconds after a song, lesson or recording ends, when the app goes to the background, or after 3 quiet minutes on the Tuner. That also lets the screen sleep again. Anything that needs the mic turns it back on by itself.</li>
+      <li>The sound engine sleeps after 20 silent seconds, and right away in the background, instead of keeping the phone's audio hardware powered. The next sound wakes it.</li>
+      <li>The Tuner graph draws at 30 frames a second instead of 60 (the pitch is still read on every frame).</li>
+      <li>Endless wobble loops stop (the tab circle and the selected unit); one-time animations stay.</li>
+      <li>Liquid glass: no blur behind panels, no drifting light, and the tilt sensor is off.</li>
+      <li>Sessions are not touched: same sound, timing, drone, voice, scoring and screen staying on.</li>
+    </ul></details>
+  </section>
   <section class="panel" aria-labelledby="t-look">
     <h2 id="t-look">Appearance</h2>
     <p class="status" style="margin:0">Pick a style and a look, then fine-tune it. Every change shows instantly, all over the app.</p>
@@ -2192,7 +2209,7 @@ function updateZone(){const z=$('zone');z.style.left=(50-S.thr)+'%';z.style.widt
 /* Live mode */
 let noiseFloor=0,ctx=null,analyser=null,stream=null,live=false,buf=null,half=null,hist=[],lastM=null,t0=0,center=62,rec=null,chunks=[];
 function ensureCtx(){if(!ctx)ctx=new(window.AudioContext||window.webkitAudioContext)();if(ctx.state==='suspended')ctx.resume();return ctx}
-let liveCtx=null;
+let liveCtx=null;const POW={t:0,micIdle:0,heard:0,fx:false};
 function resumeLive(){if(liveCtx&&liveCtx.state!=='running')liveCtx.resume().catch(()=>{})}
 document.addEventListener('touchend',resumeLive,{passive:true});document.addEventListener('click',resumeLive);
 async function startLive(){
@@ -2214,7 +2231,7 @@ async function startLiveInner(){
   const src=liveCtx.createMediaStreamSource(stream);analyser=liveCtx.createAnalyser();analyser.fftSize=4096;analyser.smoothingTimeConstant=0;
   /* iOS fix 2: WebKit only feeds the analyser when it is wired to the output, so route it through a silent gain */
   const mute=liveCtx.createGain();mute.gain.value=0;src.connect(analyser);analyser.connect(mute);mute.connect(liveCtx.destination);
-  buf=new Float32Array(analyser.fftSize);half=new Float32Array(analyser.fftSize/2);live=true;hist=[];t0=performance.now();
+  buf=new Float32Array(analyser.fftSize);half=new Float32Array(analyser.fftSize/2);live=true;hist=[];t0=performance.now();POW.micIdle=Date.now();powArm();
   $('startBtn').textContent='Stop listening';$('status').textContent='Listening';
   $('recBtn').disabled=typeof MediaRecorder==='undefined';
   requestAnimationFrame(loop);
@@ -2244,7 +2261,9 @@ function loop(){
   if(m!=null){if(lastM!=null&&Math.abs(m-lastM)<1)m=lastM*S.smooth+m*(1-S.smooth);lastM=m}else lastM=null;
   const t=(performance.now()-t0)/1000;hist.push({t,m});while(hist.length&&hist[0].t<t-12)hist.shift();
   if(G.playing&&G.pos>=0)G.trace.push({t:G.pos,m});G.youM=m;
-  showReadout(m);drawLive(t);requestAnimationFrame(loop);
+  if(m!=null)POW.heard=Date.now();showReadout(m);
+  if(!$('v-tuner').hidden){const pn=performance.now();if(S.lowpow!==true||!(pn-(loop.dt||0)<31)){loop.dt=pn;drawLive(t)}}
+  requestAnimationFrame(loop);
 }
 function drawLive(now){
   const cv=$('live'),pe=cv.parentElement,pcs=getComputedStyle(pe),w=Math.max(200,pe.clientWidth-parseFloat(pcs.paddingLeft)-parseFloat(pcs.paddingRight)),h=240,g=fitCanvas(cv,w,h),c=colors();
@@ -5600,7 +5619,7 @@ function renderLook(){const v=lkGet(),pre=$('lkPre');if(!pre)return;const cur=lk
 function lkBlend(){const A=LK_PRESETS[$('lkA').value],B=LK_PRESETS[$('lkB').value],t=+$('lkMix').value/100,o={a:$('lkA').value,b:$('lkB').value,mix:+$('lkMix').value};LK_KEYS.forEach(k=>o[k]=Math.round(lkLerp(A[k],B[k],t)));const nv=lkSave(o);lkApply(nv);renderLook()}
 /* ---- tilt: the light and the glints follow the phone a little ---- */
 let tiltState='off',tiltRaf=0,tiltG=0,tiltB=0,tiltB0=null;
-function tiltOn(){return lkGet().tilt!==false&&!(typeof reducedMotion==='function'&&reducedMotion())&&S.uimo!==false}
+function tiltOn(){return S.lowpow!==true&&lkGet().tilt!==false&&!(typeof reducedMotion==='function'&&reducedMotion())&&S.uimo!==false}
 function tiltHandler(e){if(!tiltOn())return;if(e.gamma==null)return;tiltG=e.gamma;if(tiltB0==null)tiltB0=e.beta;tiltB=e.beta-tiltB0;if(tiltRaf)return;tiltRaf=requestAnimationFrame(()=>{tiltRaf=0;const gx=lkClamp((tiltG+35)/70)*2-1,by=lkClamp((tiltB+30)/60)*2-1,r=document.documentElement.style;
   r.setProperty('--lk-tx',(-gx*18).toFixed(1)+'px');r.setProperty('--lk-ty',(-by*14).toFixed(1)+'px');r.setProperty('--lk-lx',Math.round(50+gx*30)+'%')})}
 function tiltStart(){if(tiltState==='on'||!tiltOn())return;const D=window.DeviceOrientationEvent;if(!D)return;
@@ -5620,7 +5639,7 @@ function placeTabLiquid(){const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribut
   else{nav.style.setProperty('--tx',x+'px');nav.style.setProperty('--tw',w+'px')}tabPrev={x,w}}
 {let lastY=0;window.addEventListener('scroll',()=>{const y=window.scrollY,n=document.querySelector('.tabs');if(!n)return;if(y>lastY+10&&y>140)n.classList.add('compact');else if(y<lastY-10)n.classList.remove('compact');lastY=y;if(n.classList.contains('compact')!==!!n.dataset.c){n.dataset.c=n.classList.contains('compact')?'1':'';tabPrev=null;placeTabLiquid()}},{passive:true})}
 /* ---- frame-rate guard: if the phone struggles while singing, glass steps down for the session ---- */
-{let fr=0,t0=0,bad=0;const tick=ts=>{const busy=(typeof EARS!=='undefined'&&EARS.run)||(typeof G!=='undefined'&&G.playing);if(busy&&document.visibilityState==='visible'){if(!t0)t0=ts;fr++;if(ts-t0>=2000){const fps=fr*1000/(ts-t0);bad=fps<45?bad+1:0;if(bad>=2)document.documentElement.classList.add('lowfx');fr=0;t0=ts}}else{fr=0;t0=0}requestAnimationFrame(tick)};requestAnimationFrame(tick)}
+{let fr=0,t0=0,bad=0;const tick=ts=>{const busy=(typeof EARS!=='undefined'&&EARS.run)||(typeof G!=='undefined'&&G.playing);if(busy&&document.visibilityState==='visible'){if(!t0)t0=ts;fr++;if(ts-t0>=2000){const fps=fr*1000/(ts-t0);bad=fps<45?bad+1:0;if(bad>=2)document.documentElement.classList.add('lowfx');fr=0;t0=ts}requestAnimationFrame(tick)}else{fr=0;t0=0;setTimeout(()=>requestAnimationFrame(tick),1000)}};requestAnimationFrame(tick)}
 function lookInit(){lkApply();tabIcons();
   LK_KEYS.length&&renderLook();
   $('lkA').onchange=lkBlend;$('lkB').onchange=lkBlend;$('lkMix').oninput=lkBlend;
@@ -6351,7 +6370,31 @@ async function updateAwake(){const want=needAwake();
       nsVid.src='data:video/mp4;base64,AAAAIGZ0eXBpc29tAAACAGlzb21pc28yYXZjMW1wNDEAAAMsbW9vdgAAAGxtdmhkAAAAAAAAAAAAAAAAAAAD6AAAB9AAAQAAAQAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAgAAAlZ0cmFrAAAAXHRraGQAAAADAAAAAAAAAAAAAAABAAAAAAAAB9AAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAABAAAAAAAAAAAAAAAAAABAAAAAABAAAAAQAAAAAAAkZWR0cwAAABxlbHN0AAAAAAAAAAEAAAfQAAAAAAABAAAAAAHObWRpYQAAACBtZGhkAAAAAAAAAAAAAAAAAABAAAAAgABVxAAAAAAALWhkbHIAAAAAAAAAAHZpZGUAAAAAAAAAAAAAAABWaWRlb0hhbmRsZXIAAAABeW1pbmYAAAAUdm1oZAAAAAEAAAAAAAAAAAAAACRkaW5mAAAAHGRyZWYAAAAAAAAAAQAAAAx1cmwgAAAAAQAAATlzdGJsAAAAuXN0c2QAAAAAAAAAAQAAAKlhdmMxAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAAAABAAEABIAAAASAAAAAAAAAABFUxhdmM2MC4zMS4xMDIgbGlieDI2NAAAAAAAAAAAAAAAGP//AAAAL2F2Y0MBQsAK/+EAFmdCwArZHsBEAAADAAQAAAMACDxImSABAAZoy4BlEyAAAAAQcGFzcAAAAAEAAAABAAAAFGJ0cnQAAAAAAAAKRAAACkQAAAAYc3R0cwAAAAAAAAABAAAAAgAAQAAAAAAUc3RzcwAAAAAAAAABAAAAAQAAABxzdHNjAAAAAAAAAAEAAAABAAAAAgAAAAEAAAAcc3RzegAAAAAAAAAAAAAAAgAAAoYAAAALAAAAFHN0Y28AAAAAAAAAAQAAA1wAAABidWR0YQAAAFptZXRhAAAAAAAAACFoZGxyAAAAAAAAAABtZGlyYXBwbAAAAAAAAAAAAAAAAC1pbHN0AAAAJal0b28AAAAdZGF0YQAAAAEAAAAATGF2ZjYwLjE2LjEwMAAAAAhmcmVlAAACmW1kYXQAAAJyBgX//27cRem95tlIt5Ys2CDZI+7veDI2NCAtIGNvcmUgMTY0IHIzMTA4IDMxZTE5ZjkgLSBILjI2NC9NUEVHLTQgQVZDIGNvZGVjIC0gQ29weWxlZnQgMjAwMy0yMDIzIC0gaHR0cDovL3d3dy52aWRlb2xhbi5vcmcveDI2NC5odG1sIC0gb3B0aW9uczogY2FiYWM9MCByZWY9MyBkZWJsb2NrPTE6LTM6LTMgYW5hbHlzZT0weDE6MHgxMTEgbWU9aGV4IHN1Ym1lPTcgcHN5PTEgcHN5X3JkPTIuMDA6MC43MCBtaXhlZF9yZWY9MSBtZV9yYW5nZT0xNiBjaHJvbWFfbWU9MSB0cmVsbGlzPTEgOHg4ZGN0PTAgY3FtPTAgZGVhZHpvbmU9MjEsMTEgZmFzdF9wc2tpcD0xIGNocm9tYV9xcF9vZmZzZXQ9LTQgdGhyZWFkcz0xIGxvb2thaGVhZF90aHJlYWRzPTEgc2xpY2VkX3RocmVhZHM9MCBucj0wIGRlY2ltYXRlPTEgaW50ZXJsYWNlZD0wIGJsdXJheV9jb21wYXQ9MCBjb25zdHJhaW5lZF9pbnRyYT0wIGJmcmFtZXM9MCB3ZWlnaHRwPTAga2V5aW50PTI1MCBrZXlpbnRfbWluPTEgc2NlbmVjdXQ9NDAgaW50cmFfcmVmcmVzaD0wIHJjX2xvb2thaGVhZD00MCByYz1jcmYgbWJ0cmVlPTEgY3JmPTUxLjAgcWNvbXA9MC42MCBxcG1pbj0wIHFwbWF4PTY5IHFwc3RlcD00IGlwX3JhdGlvPTEuNDAgYXE9MToxLjIwAIAAAAAMZYiEBnOcmKAAIeeAAAAAB0GaOAxnOoA=';nsVid.style.cssText='position:fixed;left:0;bottom:0;width:2px;height:2px;opacity:0.01;pointer-events:none;z-index:-1';document.body.appendChild(nsVid)}
     if(nsVid.paused)nsVid.play().catch(()=>{})}
   else{if(wakeLock){try{await wakeLock.release()}catch(e){}wakeLock=null}if(nsVid&&!nsVid.paused)nsVid.pause()}}
-document.addEventListener('visibilitychange',()=>{updateAwake();if(document.visibilityState==='hidden'&&EARS.run&&!EARS.paused&&!EARS.bg)earPause()});
+document.addEventListener('visibilitychange',()=>{updateAwake();if(document.visibilityState==='hidden'&&EARS.run&&!EARS.paused&&!EARS.bg)earPause();if(document.visibilityState==='hidden'&&S.lowpow===true){clearTimeout(POW.t);POW.t=0;powTick()}});
+/* ================= Low power =================
+   Sessions are never touched. Around them: the mic turns off when nothing uses it, idle audio engines sleep
+   (a running AudioContext keeps the phone's audio hardware powered), endless decorative loops stop, glass drops its blur and tilt. */
+function powOn(){return S.lowpow===true}
+/* count the sounds each audio engine is playing, so an engine only sleeps when it is truly silent */
+(function(){const P=window.AudioScheduledSourceNode&&AudioScheduledSourceNode.prototype;if(!P||P.__pw)return;P.__pw=1;const st0=P.start;
+  P.start=function(){const c=this.context;try{c.__act=(c.__act||0)+1;c.__last=Date.now();this.addEventListener('ended',()=>{c.__act=Math.max(0,(c.__act||1)-1);c.__last=Date.now()},{once:true});
+    if(c.state==='suspended'&&c.__powS){c.__powS=false;c.resume().catch(()=>{})}}catch(e){}if(S.lowpow===true)powArm();return st0.apply(this,arguments)}})();
+function powBusy(){return EARS.run||G.playing||L.active||PV.st==='playing'||!!cap}
+function powArm(){if(!powOn()||POW.t)return;POW.t=setTimeout(powTick,5000)}
+function powMicOff(why){stopLive();$('status').textContent='Microphone off to save battery ('+why+'). Tap Start listening to turn it back on.'}
+function powTick(){POW.t=0;if(!powOn())return;const now=Date.now(),hid=document.visibilityState!=='visible',busy=powBusy();let again=false;
+  [ctx,skAC].forEach(c=>{if(!c||c.state!=='running')return;if(!busy&&!(c.__act>0)&&(hid||now-(c.__last||0)>20000)){c.__powS=true;c.suspend().catch(()=>{})}else again=true});
+  if(live){again=true;
+    if(busy)POW.micIdle=now;
+    else if(hid)powMicOff('the app was in the background');
+    else if(!$('v-tuner').hidden){POW.tuner=now;if(now-Math.max(POW.micIdle||0,POW.heard||0)>180000)powMicOff('3 quiet minutes')}
+    else if(now-Math.max(POW.micIdle||0,POW.tuner||0)>20000)powMicOff('nothing was using it')}
+  if(again)powArm()}
+window.__pow={get live(){return live},get ctx(){return ctx},get busy(){return powBusy()},ensureCtx,powTick,POW};
+function powApply(){const on=powOn(),H=document.documentElement;H.classList.toggle('lowpow',on);
+  if(on){if(!H.classList.contains('lowfx')){H.classList.add('lowfx');POW.fx=true}if(tiltState==='on'){window.removeEventListener('deviceorientation',tiltHandler);tiltState='off'}powArm()}
+  else{if(POW.fx){H.classList.remove('lowfx');POW.fx=false}clearTimeout(POW.t);POW.t=0}
+  const t=$('powTxt');if(t)t.textContent=on?'On: the app saves battery around your sessions. Sessions themselves work and sound exactly the same.':'Off. Turn it on to save battery without changing how sessions work or sound.'}
 
 /* ---------- Practice home ---------- */
 function renderPractice(){
@@ -6726,6 +6769,7 @@ $('celebSel').value=S.celeb||'every';$('celebSel').onchange=()=>{S.celeb=$('cele
 $('burstChk').checked=S.burst!==false;$('burstChk').onchange=()=>{S.burst=$('burstChk').checked;save();if(S.burst)fxBurst($('burstChk'),false)};
 const applyMo=()=>document.documentElement.classList.toggle('nomo',S.uimo===false);applyMo();lookInit();skApply();skInit();placeTabInk();
 $('uiChk').checked=S.uimo!==false;$('uiChk').onchange=()=>{S.uimo=$('uiChk').checked;save();applyMo()};
+$('powChk').checked=S.lowpow===true;$('powChk').onchange=()=>{S.lowpow=$('powChk').checked;save();powApply()};powApply();
 $('awakeChk').checked=S.awake!==false;$('awakeChk').onchange=()=>{S.awake=$('awakeChk').checked;save();updateAwake()};
 $('tipsChk').checked=S.tips!==false;$('tipsChk').onchange=()=>{S.tips=$('tipsChk').checked;save();if(!S.tips)$('coach').hidden=true};
 $('fxPreview').onclick=()=>{const c=S.celeb;if(c==='off'){S.celeb='every'}fiveStar(96);S.celeb=c};
