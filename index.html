@@ -5881,6 +5881,11 @@ async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
   if(SM.id!==rid||SM.key!==kk)return false;smLoadMap(keyMap(map,kk));return true}
 /* ---- curriculum: what each phrase needs, just before that phrase ---- */
 function smRange(){const st=smSong(),n=SM.phr.length,a=st.from!=null?Math.min(st.from,n-1):0,b=st.to!=null?Math.min(Math.max(st.to,a),n-1):n-1;return[a,b]}
+/* the From/To part bounds everything a session uses: notes, moves, formulas, hard spots and the singer's voice samples */
+function smInR(p){const[a,b]=smRange();return p>=a&&p<=b}
+function smRangeDegs(){const[a,b]=smRange(),s=new Set([SM.isonD]);for(let p=a;p<=b;p++)SM.phr[p].core.forEach(n=>s.add(n.deg));return s}
+function smDegSrc(d){if(!d)return null;const[a,b]=smRange(),T0=SM.phr[a].t0,T1=SM.phr[b].t1;if(d.src&&d.src[0]>=T0-0.05&&d.src[1]<=T1+0.05)return d.src;let best=null;for(let p=a;p<=b;p++)SM.phr[p].core.forEach(n=>{if(n.deg===d.i&&(!best||n.t1-n.t0>best.t1-best.t0))best=n});return best?smMid(best):null}
+function smOccIn(occ){const f=occ.filter(o=>smInR(o.p));return f.length?f:occ}
 function smCur(){const[a,b]=smRange(),out=[],seenD={},seenM={},seenF={};const push=id=>{if(!out.includes(id))out.push(id)};
   push('d'+SM.isonD);seenD[SM.isonD]=1;
   for(let p=a;p<=b;p++){const c=SM.phr[p].core;
@@ -5891,7 +5896,7 @@ function smCur(){const[a,b]=smRange(),out=[],seenD={},seenM={},seenF={};const pu
     push('p'+p);SM.hs.filter(h=>h.p===p).forEach(h=>push('h'+h.i))}
   return out}
 function smLabel(id){const t=id[0],r=id.slice(1);if(t==='d'){const d=SM.deg[+r];return'Note '+smDegName(d)+(+r===SM.isonD?' (the ison)':'')}
-  if(t==='m'){const m=SM.mv.find(x=>x.k===r);return m?'Move '+m.name:'Move'}if(t==='f'){const f=SM.fm[+r];return f?f.name+', '+f.occ.length+' times':'Formula'}
+  if(t==='m'){const m=SM.mv.find(x=>x.k===r);return m?'Move '+m.name:'Move'}if(t==='f'){const f=SM.fm[+r];return f?f.name+', '+smOccIn(f.occ).length+' times':'Formula'}
   if(t==='p')return'Phrase '+(+r+1);if(t==='h'){const h=SM.hs[+r];return h?h.name:'Hard spot'}return id}
 /* ---- building the drills ---- */
 function smPitchMode(){return earSet().smPitch||'scale'}
@@ -5918,14 +5923,14 @@ function smPieces(c){const out=[];let cur=[];c.forEach((n,i)=>{cur.push(n);const
   if(out.length>1&&out[out.length-1].length<2){const l=out.pop();out[out.length-1]=out[out.length-1].concat(l)}return out}
 const smNumVo=n=>n>=1&&n<=30?['num_'+n]:[];
 function smPhraseVo(p){return['sm_phrase'].concat(smNumVo(p+1))}
-function smDegSeq(d,secs){return[{m:smPitchMode()==='western'?d.mR:d.m,d:secs,src:d.src}]}
+function smDegSeq(d,secs){return[{m:smPitchMode()==='western'?d.mR:d.m,d:secs,src:smDegSrc(d)}]}
 function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s!=null?it.s:smIt(id).s,mode=it.mode||'rev',isNew=mode==='new'||s===0;
   const D=(name,vo,steps,items)=>({name,intro:'',vo,steps,smItems:items||(id?[id]:[]),smMode:mode,vsrc:'SM'});
-  if(it.k==='scale'){const intro=SM.deg.filter(d=>smIt('d'+d.i).s>=1||d.i===SM.isonD).sort((a,b)=>a.m-b.m),ison=smIsonM(),beat=1.3*P.l;
-    const up=intro.map(d=>({m:smPitchMode()==='western'?d.mR:d.m,d:beat,src:d.src})),walk=up.concat(up.slice(0,-1).reverse());
-    const done=intro.length>1&&intro.every(d=>smIt('d'+d.i).s>=3);const st=[{k:'cue',ph:'L',say:'Listen',noAnn:true},{k:'play',ph:'L',seq:[{m:ison,d:3*P.l,src:SM.deg[SM.isonD].src}],drone:ison}];
+  if(it.k==='scale'){const RD=smRangeDegs(),intro=SM.deg.filter(d=>RD.has(d.i)&&(smIt('d'+d.i).s>=1||d.i===SM.isonD)).sort((a,b)=>a.m-b.m),ison=smIsonM(),beat=1.3*P.l;
+    const up=intro.map(d=>({m:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)})),walk=up.concat(up.slice(0,-1).reverse());
+    const done=intro.length>1&&intro.every(d=>smIt('d'+d.i).s>=3);const st=[{k:'cue',ph:'L',say:'Listen',noAnn:true},{k:'play',ph:'L',seq:[{m:ison,d:3*P.l,src:smDegSrc(SM.deg[SM.isonD])}],drone:ison}];
     if(walk.length>1){if(!done)st.push({k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:walk,drone:ison});st.push({k:'cue',ph:'W',noAnn:true},{k:'play',ph:'W',seq:walk,drone:ison})}
-    else st.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ison,d:6*P.hw,src:SM.deg[SM.isonD].src}],drone:ison});
+    else st.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ison,d:6*P.hw,src:smDegSrc(SM.deg[SM.isonD])}],drone:ison});
     st.push({k:'gap',d:0.8});return D('The ison and the scale',['sm_scale'],st,[])}
   if(t==='d'){const d=SM.deg[+r];if(!d)return null;const isI=d.i===SM.isonD,dr=isI?null:smIsonM(),near=Math.abs(d.c)>=25?[d.c>0?'sm_hi':'sm_lo']:[];
     if(isNew||s<=2){const L0=3*P.l,Wd=(isNew?8:5)*P.hw,A0=(isNew?4:5)*P.a,C0=4*P.c,st=[{k:'say',text:'',vo:[voNote(d.mR)].concat(near)},{k:'cue',ph:'L'},{k:'play',ph:'L',seq:smDegSeq(d,L0),drone:dr},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:smDegSeq(d,Wd),drone:dr,swell:!isNew}];
@@ -5934,11 +5939,11 @@ function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s
       return D(smLabel(id)+(isNew?' (new)':''),['sm_note'],st)}
     const st=[{k:'say',text:'',vo:['sm_findn',voNote(d.mR)].concat(near)},{k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:4.5*P.a,beat:0,drone:smIsonM()},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,3.5),drone:smIsonM()},{k:'gap',d:1}];
     return D('Find '+smDegName(d)+' from the ison',['sm_find'],st)}
-  if(t==='m'){const m=SM.mv.find(x=>x.k===r);if(!m)return null;const o=m.occ[0],c=SM.phr[o.p].core,A=c[o.j-1],B=c[o.j];
+  if(t==='m'){const m=SM.mv.find(x=>x.k===r);if(!m)return null;const o=smOccIn(m.occ)[0],c=SM.phr[o.p].core,A=c[o.j-1],B=c[o.j];
     const seq=[{m:smM(A),d:2,src:[smMid(A)[0],B.t0]},{m:smM(B),d:3,src:[B.t0,smMid(B)[1]]}];
     if(isNew||s<=2)return D(smLabel(id)+(isNew?' (new)':''),['sm_move'],smLWAC(seq,{reps:isNew?P.reps:1}));
     return D('Find the move '+m.name,['sm_move'],[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[seq[0]]},{k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:3,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq},{k:'gap',d:1}])}
-  if(t==='f'){const f=SM.fm[+r];if(!f)return null;const occ=f.occ.map(o=>SM.phr[o.p].core.slice(o.j,o.j+f.n)),vo=['sm_formula'].concat(smNumVo(f.i+1),f.cad?['sm_cadence']:[]);
+  if(t==='f'){const f=SM.fm[+r];if(!f)return null;const occ=smOccIn(f.occ).map(o=>SM.phr[o.p].core.slice(o.j,o.j+f.n)),vo=['sm_formula'].concat(smNumVo(f.i+1),f.cad?['sm_cadence']:[]);
     if(isNew)return D(smLabel(id)+' (new)',vo,smLWAC(smSeq(occ[0],smSpeed(0)),{reps:P.reps}));
     if(s<=2){const st=smLWAC(smSeq(occ[0],smSpeed(s)),{reps:1,noAnn:true});if(occ[1])st.unshift({k:'say',text:'',vo:['sm_same']},{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:smSeq(occ[0],1),vMode:'solo'},{k:'gap',d:0.5},{k:'play',ph:'L',seq:smSeq(occ[1],1),vMode:'solo'},{k:'gap',d:0.8});return D(smLabel(id),vo,st)}
     const k=(smSong().sessions||0)%occ.length;return D(smLabel(id)+' from memory',vo,smCueAlone(smSeq(occ[k],1)))}
@@ -5956,7 +5961,7 @@ function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s
     st.push(...smCueAlone(smSeq(win,1)));
     return D(h.name+(h.why.length?': '+h.why.slice(0,2).join(', '):''),['sm_hot'].concat(smPhraseVo(h.p)),st)}
   if(it.k==='turns'){const p=SM.phr[it.p],f=(p.fine||[]);if(f.length<=p.core.length)return null;return D('Phrase '+(p.i+1)+' with the turns',smPhraseVo(p.i).concat(['dp_turns']),smLWAC(smSeq(f,Math.min(smSpeed(1),0.8),true),{reps:1,noAnn:true}),['p'+p.i])}
-  if(it.k==='quiz'){const nn=it.n?SM.phr[it.n.p].core[it.n.j]:null,d=nn?SM.deg[nn.deg]:SM.deg[it.d];if(!d)return null;const ex=nn?nn.mX:d.m,ro=nn?d.m:d.mR,first=it.flip?ro:ex,second=it.flip?ex:ro,qsrc=nn?smMid(nn):d.src;
+  if(it.k==='quiz'){const nn=it.n?SM.phr[it.n.p].core[it.n.j]:null,d=nn?SM.deg[nn.deg]:SM.deg[it.d];if(!d)return null;const ex=nn?nn.mX:d.m,ro=nn?d.m:d.mR,first=it.flip?ro:ex,second=it.flip?ex:ro,qsrc=nn?smMid(nn):smDegSrc(d);
     return D(nn?'How did he sing this '+d.name+' in phrase '+(it.n.p+1)+'?':'Which is the singer\'s '+d.name+'?',['sm_quiz'],[{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:[{m:first,d:1.6}],vMode:'tone'},{k:'gap',d:0.5},{k:'play',ph:'L',seq:[{m:second,d:1.6}],vMode:'tone'},{k:'cue',ph:'Q'},{k:'quiet',ph:'Q',d:3,beat:0},
       {k:'say',text:'',vo:[it.flip?'sm_second':'sm_first']},{k:'play',ph:'C',seq:[{m:ex,d:2.5,src:qsrc}],vMode:'solo'},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ex,d:4*P.hw,src:qsrc}]},{k:'gap',d:1}],nn?['p'+it.n.p]:['d'+d.i])}
   if(it.k==='join'){const a=SM.phr[it.a],b=SM.phr[it.b];return D('Join phrases '+(a.i+1)+' and '+(b.i+1),['sm_join'],smLWAC(smSeq(a.core.concat(b.core),it.speed||smSpeed(2)),{reps:1,noAnn:true}),[])}
@@ -5973,7 +5978,7 @@ const SM_FOCUS={bal:{n:'Balanced',rev:0.4,new:0.3,int:0.25,hot:1,txt:'Reviews th
   hard:{n:'Hard spots',rev:0.35,new:0.15,int:0.15,hot:3,txt:'More time on the hardest moves and windows of the song, zoomed in, then back in context.'},
   mem:{n:'Memory',rev:0.35,new:0.15,int:0.45,hot:1,txt:'More singing from memory: start anywhere, fill the gap, first note only.'},
   fine:{n:'Fine detail',rev:0.35,new:0.2,int:0.15,hot:1,txt:'The in-between notes and the turns: which is the singer\'s note, singer-only passes, phrases with every turn.'},
-  whole:{n:'Whole song',rev:0.3,new:0.1,int:0.55,hot:0,txt:'Long runs of everything you have learned, with the singer, alone, and from memory over the ison.'}};
+  whole:{n:'Whole song',rev:0.3,new:0.1,int:0.55,hot:0,txt:'Long runs of everything you have learned in your From to To part, with the singer, alone, and from memory over the ison.'}};
 function smPlan(budget){const now=Date.now(),F=SM_FOCUS[earSet().smFocus||'bal']||SM_FOCUS.bal,cur=smCur(),S0=smSong(),I=id=>smIt(id),sess=S0.sessions||0;
   const plan=[],has=new Set();let used=0;const add=(it,force)=>{if(it.id&&it.s==null)it.s=I(it.id).s;const d=smDur(it);if(!d)return false;if(!force&&used+d>budget)return false;plan.push(it);used+=d;if(it.id)has.add(it.id);return true};
   add({k:'scale'},true);
@@ -5986,11 +5991,11 @@ function smPlan(budget){const now=Date.now(),F=SM_FOCUS[earSet().smFocus||'bal']
   let reserve=phrIn.length?budget*F.int:0,learning=cur.filter(id=>id[0]==='p'&&I(id).s===1).length;const cap=smCap(budget);
   for(const id of cur){if(learning>=cap)break;if(I(id).s!==0||has.has(id))continue;const it={id,mode:'new'},d=smDur(it);if(used+d>budget-reserve)break;if(add(it)&&id[0]==='p'){learning++;reserve=Math.max(reserve,budget*F.int*0.6)}}
   /* 3. hard spots, the toughest unlocked ones (shaky ones count double) */
-  const hsU=SM.hs.filter(h=>I('p'+h.p).s>=1&&!has.has('h'+h.i)).sort((a,b)=>b.sc*(1+I('h'+b.i).sh)-a.sc*(1+I('h'+a.i).sh));
+  const hsU=SM.hs.filter(h=>smInR(h.p)&&I('p'+h.p).s>=1&&!has.has('h'+h.i)).sort((a,b)=>b.sc*(1+I('h'+b.i).sh)-a.sc*(1+I('h'+a.i).sh));
   for(const h of hsU.slice(0,F.hot)){add({id:'h'+h.i,mode:I('h'+h.i).s?'rev':'new'})}
   /* 4. fine detail: which is the singer's note, and turns */
   const phrNow=cur.filter(id=>id[0]==='p'&&(I(id).s>=1||has.has(id))).map(id=>+id.slice(1)).sort((a,b)=>a-b);
-  const off=SM.deg.filter(d=>Math.abs(d.c)>=25&&(I('d'+d.i).s>=1||has.has('d'+d.i)));
+  const off=SM.deg.filter(d=>cur.includes('d'+d.i)&&Math.abs(d.c)>=25&&(I('d'+d.i).s>=1||has.has('d'+d.i)));
   const fineN=earSet().smFocus==='fine'?3:(sess%3===2?1:0);off.slice(0,fineN).forEach((d,k)=>add({k:'quiz',d:d.i,flip:((sess+k+d.i)%2)===1}));
   if(!off.length&&fineN&&smPitchMode()==='exact'){const cand=[];phrNow.forEach(p=>SM.phr[p].core.forEach((n,j)=>{const dv=Math.abs(n.mX-SM.deg[n.deg].m);if(dv>=0.25&&n.t1-n.t0>=0.25)cand.push({p,j,dv})}));
     cand.sort((a,b)=>b.dv-a.dv).slice(0,fineN).forEach((c,k)=>add({k:'quiz',n:{p:c.p,j:c.j},flip:((sess+k+c.j)%2)===1}))}
@@ -6007,7 +6012,7 @@ function smPlan(budget){const now=Date.now(),F=SM_FOCUS[earSet().smFocus||'bal']
   /* 7. time left: extra reviews of the youngest items, then more runs */
   const extra=intro.filter(id=>!has.has(id)).sort((a,b)=>I(a).s-I(b).s||I(b).sh-I(a).sh);for(const id of extra){if(used>budget*0.97)break;add({id,mode:'rev'})}
   /* 8. still time: every unlocked hard spot again, then more starts from anywhere (no repeating the whole session) */
-  if(used<budget*0.9){SM.hs.filter(h=>(I('p'+h.p).s>=1||has.has('p'+h.p))&&!has.has('h'+h.i)).sort((a,b)=>b.sc-a.sc).forEach(h=>{if(used<budget*0.95)add({id:'h'+h.i,mode:I('h'+h.i).s?'rev':'new'})});
+  if(used<budget*0.9){SM.hs.filter(h=>smInR(h.p)&&(I('p'+h.p).s>=1||has.has('p'+h.p))&&!has.has('h'+h.i)).sort((a,b)=>b.sc-a.sc).forEach(h=>{if(used<budget*0.95)add({id:'h'+h.i,mode:I('h'+h.i).s?'rev':'new'})});
     settled.forEach(p=>{if(used<budget*0.95&&!plan.some(x=>x.k==='any'&&x.p===p))add({k:'any',p})})}
   const fin=plan.findIndex(x=>x.k==='final');if(fin>=0&&fin<plan.length-1){const f=plan.splice(fin,1)[0];plan.push(f)}
   return plan}
