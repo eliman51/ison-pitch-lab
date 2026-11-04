@@ -443,10 +443,18 @@ html:not(.sketch) #amb::after{content:"";position:absolute;inset:0;background:ra
 @keyframes shim2{from{opacity:calc(1 - var(--lk-shim))}to{opacity:1}}
 @keyframes shim3{from{opacity:1}to{opacity:calc(1 - .8*var(--lk-shim))}}
 html.lk-still:not(.sketch) #amb i{animation-play-state:paused}
+.vxsheet{max-width:980px}
+.vxwrap{position:sticky;top:-12px;z-index:3;border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px;overflow:hidden;touch-action:none;margin:6px 0 4px;background:var(--surface)}
+.vxwrap canvas{display:block;width:100%;cursor:grab}
+#vxPos{width:100%;margin:2px 0 4px}
+.vxbar{flex-wrap:wrap;gap:6px;align-items:center;margin:6px 0}.vxbar .label{margin:0 2px 0 0}
+.vxnote{border-top:1px dashed var(--line,rgba(127,127,127,.4));margin-top:8px;padding-top:4px}
+#vxAtt{flex:1;min-width:120px}
+html.sketch .vxwrap{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}
 .lph{margin:14px 0 4px;font-size:1rem}
 .lpunit{align-self:center;color:var(--muted);font-size:.92rem}
 .lpsub{margin:2px 0 8px 26px;flex-wrap:wrap;gap:6px;align-items:center}.lpsub>.label{flex-basis:100%;margin:0}#lpBox input[type=number]{width:4.6em;text-align:center}.lpsub.dim{opacity:.45}
-.lpplay{padding:6px 12px;font-size:.9rem;white-space:nowrap}.lpplay.on{background:var(--accent);color:#141414}
+.lpplay{padding:6px 12px;font-size:.9rem;white-space:nowrap}.vxopen{display:block;margin:4px 0 10px;white-space:normal;text-align:left}.lpplay.on{background:var(--accent);color:#141414}
 #lpPartPlay{margin:2px 0 10px}
 .lpsteps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
 .lpstep{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px}
@@ -916,6 +924,25 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="row"><button id="tourSkip">Skip</button><span style="flex:1"></span><button id="tourBack">Back</button><button class="primary" id="tourNext">Next</button></div></div></div>
 <div class="sheetwrap" id="welcome" hidden><div class="sheet" role="dialog" aria-labelledby="wT"><div class="sheetseal">♪</div><h2 id="wT">Welcome</h2><p id="wP"></p>
   <button class="primary big" id="wTour">Show me around (1 minute)</button><button class="big" id="wPlace">Take the placement test (10 minutes)</button><button class="big" id="wView" hidden>See my last placement</button><button id="wClose">Maybe later</button></div></div>
+<div class="sheetwrap" id="vxSheet" hidden><div class="sheet vxsheet" role="dialog" aria-labelledby="vxT">
+  <div class="khead"><h2 id="vxT">Song editor</h2><button class="kx" id="vxClose" aria-label="Close">×</button></div>
+  <p class="status" id="vxSong" style="margin:-6px 0 4px"></p>
+  <div class="row vxbar"><select id="vxPhr" aria-label="Jump to a phrase"></select><button id="vxOut" aria-label="Zoom out">− Zoom</button><button id="vxIn" aria-label="Zoom in">+ Zoom</button></div>
+  <div class="vxwrap"><canvas id="vxCv" aria-label="The singer's pitch line with the notes the tone plays"></canvas></div>
+  <input type="range" id="vxPos" min="0" max="1000" value="0" aria-label="Position in the song">
+  <div class="row vxbar"><button id="vxPlay" class="lpplay">&#9654; Play what is on screen</button><div class="chips earchips" id="vxSpd"></div></div>
+  <div class="row vxbar"><label class="check"><input type="checkbox" id="vxVoice" checked> Singer</label><label class="check"><input type="checkbox" id="vxTone" checked> Tone</label><label class="check"><input type="checkbox" id="vxTurns"> Show turns</label></div>
+  <p class="status" style="margin:0">Dark line: the singer, measured every 10 ms. Bars: the notes the tone plays (orange: he slides or sits between his scale notes there, worth a listen; outlined: changed by you). Letters: melodies that come back. Drag to move along, tap a bar to fix it.</p>
+  <div id="vxNote" class="vxnote" hidden>
+    <p id="vxNoteTxt" style="margin:6px 0"></p>
+    <div class="row vxbar"><span class="label">Pitch</span><button id="vxDn">Lower scale note</button><button id="vxUp">Higher scale note</button><button id="vxCm">−10¢</button><button id="vxCp">+10¢</button></div>
+    <div class="row vxbar"><span class="label">Start</span><button id="vxS0">◀ 20 ms</button><button id="vxS1">20 ms ▶</button><span class="label">End</span><button id="vxE0">◀ 20 ms</button><button id="vxE1">20 ms ▶</button></div>
+    <div class="row vxbar"><span class="label">Swell in</span><input type="range" id="vxAtt" min="20" max="400" step="10" aria-label="Swell in, milliseconds"><span id="vxAttTxt"></span></div>
+    <div class="row vxbar"><button id="vxHear" class="lpplay">&#9654; Hear this note</button><button id="vxSplit">Split in two</button><button id="vxJoin">Join with next</button><button id="vxDel">Remove</button><button id="vxReset">Undo my changes in this phrase</button></div>
+  </div>
+  <p class="status" id="vxSum" style="margin:8px 0"></p>
+  <button id="vxResetAll">Undo all my changes to this song</button>
+</div></div>
 <div class="sheetwrap" id="keySheet" hidden><div class="sheet keysheet" role="dialog" aria-labelledby="kT">
   <div class="khead"><h2 id="kT">Song key</h2><button class="kx" id="kClose" aria-label="Close">×</button></div>
   <p class="status" id="kSong" style="margin:-6px 0 0"></p>
@@ -1079,6 +1106,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <div class="keyrow"><span class="label">Key</span><b data-key-for="sm">As sung</b><button data-key-open="sm" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
         <div id="smLock" class="status" hidden style="margin:6px 0">The recording is locked in this browser, so lessons use tones only and no exact pitches or turns. <button id="smGoUnlock">Unlock it in Learn a song</button></div>
         <p class="status" id="smStatus" style="margin:4px 0"></p>
+        <button class="lpplay vxopen" data-vx-open>&#9998; Song editor: see the singer's pitch and fix any note</button>
         <canvas id="smMap" class="smmap" aria-label="Mastery map: one bar per phrase"></canvas>
         <p class="status smlegend"><span class="sw s0"></span>not started <span class="sw s1"></span>learning <span class="sw s3"></span>reviewing <span class="sw s5"></span>mastered · red dot: hard spot · grey line: difficulty</p>
         <p class="status" id="smPhInfo" style="margin:4px 0"></p><button id="smMarkShaky" hidden>Mark this phrase shaky</button>
@@ -1122,6 +1150,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <div class="grid2"><div class="field"><label class="label" for="lpFrom">From</label><select id="lpFrom"></select></div><div class="field"><label class="label" for="lpTo">To</label><select id="lpTo"></select></div></div>
         <p class="status" id="lpPartInfo" style="margin:4px 0"></p>
         <button id="lpPartPlay" class="lpplay">&#9654; Hear the part at this speed</button>
+        <button class="lpplay vxopen" data-vx-open>&#9998; Song editor: see the singer's pitch and fix any note</button>
         <div class="field"><span class="label">Speed, for everything</span>
           <div class="row voicerow"><button id="lpSpDn" aria-label="Slower">−</button><input type="number" id="lpSpN" inputmode="numeric" min="30" max="100" step="5" aria-label="Speed in percent"><span class="lpunit">%</span><button id="lpSpUp" aria-label="Faster">+</button></div>
           <div class="chips earchips" id="lpSpChips"></div></div>
@@ -5871,7 +5900,7 @@ function dailyInit(){$('dyMix').oninput=()=>{earSave({dailyMix:+$('dyMix').value
    5. Ears only can't hear you, so after each session you can tap what felt shaky (it comes back sooner) or
       easy (it waits longer). */
 const SM={id:null,ok:false,x:null,segT0:0,st:{},phr:[],deg:[],mv:[],fm:[],hs:[],isonD:0,off:0,dur:0,name:'',fine:false,plan:null,sess:null};
-const SM_VER=1,SM_INT=[0,10,20,48,96,192,384].map(h=>h*3600e3);
+const SM_VER=6,SM_INT=[0,10,20,48,96,192,384].map(h=>h*3600e3);
 function smAll(){return store.get('ison-sm',{})}
 function smSong(id){return Object.assign({items:{},sessions:0,ison:null,from:null,to:null,minutes:0},smAll()[id||SM.id]||{})}
 function smPut(o){const a=smAll();a[SM.id]=Object.assign(smSong(SM.id),o);store.set('ison-sm',a)}
@@ -5881,7 +5910,123 @@ async function smDecode(blob){const ab=await blob.arrayBuffer(),OC=window.Offlin
 function smCoreOf(N,off){const r=n=>Math.round(n.m-off),full=[];N.forEach(n=>{const l=full[full.length-1];if(l&&r(l)===r(n)&&n.t0-l.t1<0.2)l.t1=n.t1;else full.push({t0:n.t0,t1:n.t1,m:n.m})});
   const core=[];full.forEach(n=>{if(n.t1-n.t0<0.2&&core.length)core[core.length-1].t1=n.t1;else{const l=core[core.length-1];if(l&&r(l)===r(n))l.t1=n.t1;else core.push({t0:n.t0,t1:n.t1,m:r(n)+off})}});return core}
 /* measure the whole song once (cached): exact pitch and steadiest stretch of every main note, plus the fine line of turns */
-function smAnalyze(an,x){const off=an.off||0,f2m=f=>69+12*Math.log2(f/440),med=a=>{const s=a.slice().sort((p,q)=>p-q);return s[s.length>>1]},key=m=>Math.round(m-off)+off;
+/* ---- voice measuring v2 (see vxTrack) replaces the old per-note measuring for songs with a recording ---- */
+/* ===== Voice measuring, version 2 =====
+   1. Pitch every 5 ms (YIN difference function, every lag), several candidates per moment, and a path through them
+      that never jumps an octave unless the voice really does (octave slips are the classic tracker error).
+   2. The singer's own scale from where his steady pitch lingers.
+   3. Which of his notes he is on at every moment: a best path over his scale notes, where vibrato stays inside one
+      note but a real move, even a quick one, becomes its own note. Notes are never averaged across a move.
+   4. Breaths versus consonants: a gap is a breath only when it is long and quiet; otherwise the note carries on. */
+async function vxTrack(x,sr,prog){const hop=Math.max(1,Math.round(sr*0.005)),W=Math.round(sr*0.03),tmin=Math.max(2,Math.floor(sr/1000)),tmax=Math.ceil(sr/60),
+    N=Math.max(0,Math.floor((x.length-W-tmax-2)/hop));const m=new Float32Array(N).fill(NaN),ap=new Float32Array(N).fill(1),rms=new Float32Array(N),cand=new Array(N);
+  const E=new Float64Array(x.length+1);for(let i=0;i<x.length;i++)E[i+1]=E[i]+x[i]*x[i];const d=new Float64Array(tmax+2);
+  for(let f=0;f<N;f++){const i0=f*hop,e0=E[i0+W]-E[i0];rms[f]=Math.sqrt(e0/W);if(e0<1e-7){cand[f]=null;continue}
+    d[0]=0;let run=0;const cs=[];
+    for(let t=1;t<=tmax+1;t++){let r=0;for(let j=0;j<W;j++)r+=x[i0+j]*x[i0+j+t];const et=E[i0+t+W]-E[i0+t];d[t]=e0+et-2*r}
+    for(let t=1;t<=tmax+1;t++){run+=d[t];d[t]=run>0?d[t]*t/run:1}
+    for(let t=tmin;t<=tmax;t++){if(d[t]<0.45&&d[t]<=d[t-1]&&d[t]<=d[t+1]){const a=d[t-1],b=d[t],c=d[t+1],den=a-2*b+c,sh=den>0?0.5*(a-c)/den:0,tt=t+Math.max(-0.5,Math.min(0.5,sh));
+        cs.push({m:69+12*Math.log2(sr/tt/440),c:b})}}
+    cs.sort((p,q)=>p.c-q.c);cand[f]=cs.slice(0,4);if(cs.length)ap[f]=cs[0].c;if(f%1500===0){if(prog)prog(f/N);await new Promise(r=>setTimeout(r,0))}}
+  return{hop:hop/sr,m,ap,rms,cand,N}}
+/* path through the candidates: low aperiodicity is good, big pitch jumps between 5 ms frames are costly */
+function vxPath(T){const{cand,N,ap,rms}=T,srt=Array.from(rms).filter(v=>v>0).sort((p,q)=>p-q),p95=srt[Math.floor(srt.length*0.95)]||1,floor=p95*0.05;
+  const voiced=new Uint8Array(N);for(let f=0;f<N;f++)voiced[f]=cand[f]&&cand[f].length&&ap[f]<0.3&&rms[f]>floor?1:0;
+  /* close 1-2 frame holes so a run is not cut by a single doubtful frame */
+  for(let f=1;f<N-2;f++)if(!voiced[f]&&voiced[f-1]&&(voiced[f+1]||voiced[f+2])&&cand[f]&&cand[f].length&&rms[f]>floor)voiced[f]=1;
+  const out=new Float32Array(N).fill(NaN);let f=0;
+  while(f<N){if(!voiced[f]){f++;continue}let g=f;while(g<N&&voiced[g])g++;
+    if(g-f>=6){const L=g-f,cost=[],back=[];
+      for(let k=0;k<L;k++){const cs=cand[f+k];cost.push(new Float64Array(cs.length));back.push(new Int16Array(cs.length));
+        for(let a=0;a<cs.length;a++){const em=cs[a].c*4;if(k===0){cost[0][a]=em;continue}const pc=cand[f+k-1];let best=1e9,bi=0;
+          for(let b=0;b<pc.length;b++){const dm=Math.abs(cs[a].m-pc[b].m),tr=dm<0.6?dm*0.8:0.5+dm*0.35;const v=cost[k-1][b]+tr;if(v<best){best=v;bi=b}}cost[k][a]=best+em;back[k][a]=bi}}
+      let bi=0,bv=1e9;cost[L-1].forEach((v,i)=>{if(v<bv){bv=v;bi=i}});for(let k=L-1;k>=0;k--){out[f+k]=cand[f+k][bi].m;if(k)bi=back[k][bi]}}
+    f=g}
+  /* octave slips at the edges of notes: a frame far from its surroundings (125 ms median) is folded back by an octave, or dropped */
+  {const W2=12;for(let i=0;i<N;i++){const v=out[i];if(isNaN(v))continue;const w=[];for(let k=Math.max(0,i-W2);k<=Math.min(N-1,i+W2);k++)if(!isNaN(out[k]))w.push(out[k]);if(w.length<5)continue;w.sort((p,q)=>p-q);const md=w[w.length>>1];
+    if(Math.abs(v-md)>6){if(Math.abs(v+12-md)<1.5)out[i]=v+12;else if(Math.abs(v-12-md)<1.5)out[i]=v-12;else out[i]=NaN}}}
+  /* 3-frame median: removes single-frame spikes without blurring note changes */
+  const sm=out.slice();for(let i=1;i<N-1;i++){const a=out[i-1],b=out[i],c=out[i+1];if(isNaN(a)||isNaN(b)||isNaN(c))continue;sm[i]=Math.max(Math.min(a,b),Math.min(Math.max(a,b),c))}
+  /* the fading tail (and onset) of each sung stretch: once the voice has dropped under half its level and the line has wandered more
+     than 2 half steps from where the voice just was, it is reverb or breath, not singing */
+  {let i=0;while(i<N){if(isNaN(sm[i])){i++;continue}let j=i;while(j<N&&!isNaN(sm[j]))j++;if(j-i>=12){const rr=[];for(let k=i;k<j;k++)rr.push(rms[k]);rr.sort((p,q)=>p-q);const rm=rr[rr.length>>1];
+      const ref=(a,b)=>{const w=[];for(let k=Math.max(i,a);k<Math.min(j,b);k++)if(!isNaN(sm[k]))w.push(sm[k]);w.sort((p,q)=>p-q);return w.length?w[w.length>>1]:NaN};
+      for(let e=j-1,c=0;c<40&&e>i+8;c++,e--){const r0=ref(e-30,e-12);if(!isNaN(r0)&&Math.abs(sm[e]-r0)>2&&rms[e]<rm*0.5){for(let z=e;z<j;z++)sm[z]=NaN;}}
+      for(let s=i,c=0;c<24&&s<j-8;c++,s++){const r0=ref(s+12,s+30);if(!isNaN(r0)&&Math.abs(sm[s]-r0)>2&&rms[s]<rm*0.5){for(let z=i;z<=s;z++)sm[z]=NaN;}}}i=j}}
+  return{m:sm,floor,p95}}
+/* the singer's scale: peaks where steady pitch lingers (frames moving less than 0.1 half step per 10 ms) */
+function vxScale(m){const ok=[];for(let i=1;i<m.length-1;i++){const a=m[i-1],b=m[i],c=m[i+1];if(isNaN(a)||isNaN(b)||isNaN(c))continue;if(Math.abs(c-a)<0.1)ok.push(b)}
+  if(!ok.length)return[];const lo=Math.floor(Math.min(...ok))-1,hi=Math.ceil(Math.max(...ok))+1,B=Math.round((hi-lo)/0.05)+1,h=new Float64Array(B);
+  ok.forEach(v=>{const c=(v-lo)/0.05;for(let b=Math.max(0,Math.floor(c-6));b<=Math.min(B-1,Math.ceil(c+6));b++){const z=(b-c)/2.4;h[b]+=Math.exp(-z*z/2)}});
+  let tot=0;h.forEach(v=>tot+=v);const pk=[];for(let b=1;b<B-1;b++)if(h[b]>=h[b-1]&&h[b]>h[b+1]&&h[b]>tot*0.0003)pk.push({m:lo+b*0.05,v:h[b]});
+  pk.sort((p,q)=>q.v-p.v);const keep=[];pk.forEach(p=>{if(keep.every(k=>Math.abs(k.m-p.m)>=0.5))keep.push(p)});return keep.map(k=>k.m).sort((p,q)=>p-q)}
+/* which scale note at every moment: dynamic programming over his notes; switching costs about 40 ms of being 1 sd off */
+function vxNotes(m,hop,D,o){o=o||{};const sw=o.sw||8,sig=o.sig||0.32,minF=Math.round((o.minDur||0.04)/hop),N=m.length,notes=[];let f=0;
+  while(f<N){if(isNaN(m[f])){f++;continue}let g=f;while(g<N&&!isNaN(m[g]))g++;const L=g-f;if(L*hop<0.04){f=g;continue}
+    let lo=Infinity,hi=-Infinity;for(let k=f;k<g;k++){lo=Math.min(lo,m[k]);hi=Math.max(hi,m[k])}const S=D.map((v,i)=>i).filter(i=>D[i]>=lo-1.2&&D[i]<=hi+1.2);if(!S.length){f=g;continue}
+    const K=S.length,cost=new Float64Array(K),nc=new Float64Array(K),back=new Int16Array(L*K);
+    const em=(k,i)=>{const z=(m[f+k]-D[S[i]])/sig;return Math.min(z*z,9)};
+    for(let i=0;i<K;i++)cost[i]=em(0,i);
+    for(let k=1;k<L;k++){let b0=0;for(let i=1;i<K;i++)if(cost[i]<cost[b0])b0=i;for(let i=0;i<K;i++){let v=cost[i],bi=i;if(cost[b0]+sw<v){v=cost[b0]+sw;bi=b0}nc[i]=v+em(k,i);back[k*K+i]=bi}cost.set(nc)}
+    let bi=0;for(let i=1;i<K;i++)if(cost[i]<cost[bi])bi=i;const lab=new Int16Array(L);for(let k=L-1;k>=0;k--){lab[k]=bi;if(k)bi=back[k*K+bi]}
+    let segs=[];let s0=0;for(let k=1;k<=L;k++)if(k===L||lab[k]!==lab[s0]){segs.push({a:f+s0,b:f+k,d:S[lab[s0]]});s0=k}
+    /* a sliver shorter than the minimum joins the neighbor nearest in pitch (never averaged) */
+    let ch=true;while(ch&&segs.length>1){ch=false;for(let s=0;s<segs.length;s++){if(segs[s].b-segs[s].a>=minF)continue;const Lf=segs[s-1],R=segs[s+1];
+        const pick=!Lf?R:!R?Lf:(Math.abs(D[Lf.d]-D[segs[s].d])<Math.abs(D[R.d]-D[segs[s].d])||(Math.abs(D[Lf.d]-D[segs[s].d])===Math.abs(D[R.d]-D[segs[s].d])&&Lf.b-Lf.a>=R.b-R.a))?Lf:R;
+        if(pick===Lf)Lf.b=segs[s].b;else R.a=segs[s].a;segs.splice(s,1);ch=true;break}
+      for(let s=1;s<segs.length;s++)if(segs[s].d===segs[s-1].d){segs[s-1].b=segs[s].b;segs.splice(s,1);s--;ch=true}}
+    segs.forEach(sg=>{const v=[];for(let k=sg.a;k<sg.b;k++)v.push(m[k]);const n=v.length,cut=n>=10?Math.floor(n*0.2):0,mid=v.slice(cut,n-cut).sort((p,q)=>p-q);
+      const dev=v.reduce((s2,x)=>s2+Math.abs(x-D[sg.d]),0)/n;let h0=-1,h1=-1;v.forEach((x,k)=>{if(Math.abs(x-D[sg.d])<0.3){if(h0<0)h0=k;h1=k}});
+      notes.push({t0:sg.a*hop,t1:sg.b*hop,mX:mid[mid.length>>1],d:sg.d,conf:+Math.max(0,1-dev/0.6).toFixed(2),hs:h0>=0&&h1-h0>=8?[(sg.a+h0)*hop,(sg.a+h1+1)*hop]:null})});
+    f=g}
+  return notes}
+/* consonant gaps inside a phrase are bridged; only long, quiet gaps are breaths */
+function vxBridge(notes,rms,hop,floor){for(let i=0;i<notes.length-1;i++){const a=notes[i],b=notes[i+1],gap=b.t0-a.t1;if(gap<=0)continue;
+    let quiet=0,run=0;for(let f=Math.floor(a.t1/hop);f<Math.ceil(b.t0/hop);f++){if(rms[f]<floor*2){run++;quiet=Math.max(quiet,run)}else run=0}
+    if(gap<0.2||(gap<0.4&&quiet*hop<0.15)){a.e=a.t1;a.t1=b.t0;a.br=1}}return notes}
+/* how the singer swells into a note after silence: time from the start until his loudness reaches 70% of the note's own level */
+function vxAttack(notes,T){const hop=T.hop;notes.forEach((n,i)=>{const p=notes[i-1];if(p&&n.t0-p.t1<0.05)return;const a=Math.floor(n.t0/hop),b=Math.min(T.N-1,Math.floor(Math.min(n.t1,n.t0+0.3)/hop));if(b-a<4)return;
+  const v=[];for(let f=a;f<=b;f++)v.push(T.rms[f]);const pk=v.slice().sort((x,y)=>x-y)[Math.floor(v.length*0.8)];let k=0;while(k<v.length&&v[k]<pk*0.7)k++;n.att=+Math.max(0.03,Math.min(0.25,k*hop)).toFixed(3)})}
+/* repeated melodies: phrases whose note paths match (dynamic time warping over his scale notes) share a letter, A, B, C...
+   Inside a group, a doubtful note (low confidence) that most of the other singings of the same melody put on another
+   scale note, close to what was measured, is moved there. */
+function vxDtw(a,b,D){const n=a.length,m=b.length,C=new Float64Array((n+1)*(m+1)).fill(1e9),W=m+1;C[0]=0;
+  for(let i=1;i<=n;i++)for(let j=1;j<=m;j++){const c=Math.min(3,Math.abs(D[a[i-1].d]-D[b[j-1].d]));C[i*W+j]=c+Math.min(C[(i-1)*W+j],C[i*W+j-1],C[(i-1)*W+j-1])}
+  const path=[];let i=n,j=m;while(i>0&&j>0){path.push([i-1,j-1]);const d=C[(i-1)*W+j-1],u=C[(i-1)*W+j],l=C[i*W+j-1];if(d<=u&&d<=l){i--;j--}else if(u<l)i--;else j--}
+  return{cost:C[n*W+m]/Math.max(n,m),path:path.reverse()}}
+function vxMelodies(phr,D){const n=phr.length,par=phr.map((p,i)=>i),fd=i=>par[i]===i?i:(par[i]=fd(par[i])),C={};let fixed=0;
+  /* every pair of phrases that clearly sing the same melody is linked; linked phrases form one melody */
+  for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=phr[i].core,b=phr[j].core;if(a.length<3||b.length<3)continue;const lr=a.length/b.length;if(lr<0.6||lr>1.67)continue;
+    const c=vxDtw(a,b,D).cost;C[i+','+j]=c;if(c<0.45)par[fd(i)]=fd(j)}
+  const comp={};for(let i=0;i<n;i++)if(phr[i].core.length>=3)(comp[fd(i)]=comp[fd(i)]||[]).push(i);
+  const groups=Object.values(comp).sort((x,y)=>x[0]-y[0]).map((mem,k)=>({mem,lab:String.fromCharCode(65+k%26)+(k>=26?Math.floor(k/26):'')}));
+  phr.forEach(p=>p.mel=null);groups.forEach(g=>g.mem.forEach(i=>phr[i].mel=g.lab));
+  groups.forEach(g=>{if(g.mem.length<3)return;const cst=(i,j)=>i===j?0:C[Math.min(i,j)+','+Math.max(i,j)]||vxDtw(phr[i].core,phr[j].core,D).cost;
+    let rep=g.mem[0],bs=1e9;g.mem.forEach(i=>{const s2=g.mem.reduce((a,j)=>a+cst(i,j),0);if(s2<bs){bs=s2;rep=i}});const R0=phr[rep].core,al={};
+    g.mem.forEach(i=>{const r=vxDtw(phr[i].core,R0,D);al[i]={};r.path.forEach(([a,b])=>{(al[i][b]=al[i][b]||[]).push(a)})});
+    g.mem.forEach(i=>{phr[i].core.forEach((nn,k)=>{if(nn.conf>=0.45)return;const pos=Object.keys(al[i]).filter(b=>al[i][b].includes(k)).map(Number);if(!pos.length)return;
+      const votes={};g.mem.forEach(j=>{if(j===i)return;pos.forEach(b=>{(al[j][b]||[]).forEach(a=>{const o=phr[j].core[a];if(o&&o.conf>=0.6)votes[o.d]=(votes[o.d]||0)+1})})});
+      const tot=Object.values(votes).reduce((x,y)=>x+y,0);let bd=null,bv=0;Object.entries(votes).forEach(([d,v])=>{if(v>bv){bv=v;bd=+d}});
+      if(bd!=null&&bd!==nn.d&&bv>=2&&bv/tot>=0.66&&Math.abs(nn.mX-D[bd])<0.9){nn.d=bd;nn.mX=D[bd];nn.fix=1;fixed++}})})});
+  return{groups:groups.map(g=>({lab:g.lab,n:g.mem.length})),fixed}}
+/* the whole song map from the recording: notes are placed into the existing phrases (so saved progress keeps its place) */
+async function vxMap(an,x,prog){const T=await vxTrack(x,VO_SR,f=>prog&&prog('Measuring the singer\'s voice, every 5 milliseconds... '+Math.round(f*100)+'%'));
+  const P=vxPath(T),D=vxScale(P.m);if(D.length<2)return null;T.N=T.N||T.m.length;
+  const core=vxBridge(vxNotes(P.m,T.hop,D,{minDur:0.09}),T.rms,T.hop,P.floor),fine=vxBridge(vxNotes(P.m,T.hop,D,{minDur:0.04}),T.rms,T.hop,P.floor);vxAttack(core,T);
+  const off=an.off||0,key=m=>Math.round(m-off)+off,st=an.phrases.map(p=>p.t0),pi=t=>{let k=0;for(let i=0;i<st.length;i++)if(t>=st[i]-0.2)k=i;return k};
+  const phr=an.phrases.map(p=>({t0:p.t0,t1:p.t1,core:[],fine:[]}));core.forEach(n=>phr[pi((n.t0+n.t1)/2)].core.push(n));fine.forEach(n=>phr[pi((n.t0+n.t1)/2)].fine.push(n));
+  /* a note never carries on across a phrase break */
+  phr.forEach(p=>{[p.core,p.fine].forEach(a=>{const l=a[a.length-1];if(l&&l.br&&l.e!=null){l.t1=l.e;delete l.br}})});
+  let old=null;for(let i=0;i<phr.length;i++)if(!phr[i].core.length){old=old||smAnalyzeOld(an,x);phr[i]=Object.assign({},old.phr[i],{old:1})}
+  const mel=vxMelodies(phr.filter(p=>!p.old),D);
+  const r3=v=>+v.toFixed(3),cOut=n=>({t0:r3(n.t0),t1:r3(n.t1),m:r3(key(n.mX)),mX:r3(n.mX),hs:n.hs?n.hs.map(r3):null,conf:n.conf,att:n.att||null,br:n.br||0,fix:n.fix||0});
+  const out=phr.map(p=>p.old?p:{t0:r3(p.core[0].t0),t1:r3(p.core[p.core.length-1].t1),mel:p.mel||null,core:p.core.map(cOut),fine:p.fine.map(n=>({t0:r3(n.t0),t1:r3(n.t1),mX:r3(n.mX)}))});
+  /* the pitch line itself, every 10 ms in hundredths of a half step, for the song editor (0 = no voice) */
+  const c=[];for(let f=0;f<P.m.length;f+=2){const v=P.m[f];c.push(isNaN(v)?0:Math.round(v*100))}
+  return{v:SM_VER,off,tonicR:an.tonicR,phr:out,audio:true,vx:{hop:T.hop*2,c,D:D.map(r3),mel:mel.groups,fixed:mel.fixed}}}
+
+async function smAnalyzeA(an,x,prog){if(x&&x.length>VO_SR*3){try{const r=await vxMap(an,x,prog);if(r)return r}catch(e){console.warn('voice measuring v2 failed',e)}}return smAnalyzeOld(an,x)}
+function smAnalyzeOld(an,x){const off=an.off||0,f2m=f=>69+12*Math.log2(f/440),med=a=>{const s=a.slice().sort((p,q)=>p-q);return s[s.length>>1]},key=m=>Math.round(m-off)+off;
   const phr=an.phrases.map(p=>{const core=smCoreOf(p.notes,off);core.forEach(n=>{n.mX=n.m});
     if(x){core.forEach(n=>{const f0=440*Math.pow(2,(n.m-69)/12),tr=[];for(let t=n.t0+0.03;t<n.t1-0.05;t+=0.02){const f=earSongPitch(x,Math.round(t*VO_SR),f0);tr.push(f?{t,m:f2m(f)}:null)}
         const ok=tr.filter(Boolean);if(ok.length<3)return;const m0=med(ok.map(q=>q.m));let bs=0,be=-1,s=-1;
@@ -5913,7 +6058,7 @@ function smDegrees(){const ns=[];SM.phr.forEach(p=>p.core.forEach(n=>ns.push(n))
     return{i,m:d.m,mR,c,n:mine.length,dur,share:dur/T,name:nameOf(mR).replace(/-?\d+$/,''),src:best?(best.hs||[best.t0+(best.t1-best.t0)*0.22,best.t1-(best.t1-best.t0)*0.22]):null,srcM:best?best.mX:d.m}})}
 const smDegName=d=>d?d.name+(Math.abs(d.c)>=20?(d.c>0?' +':' ')+d.c+'¢':''):'';
 function smIntervalWords(s){const a=Math.abs(s),r=Math.round(a);return(s>0?'up ':'down ')+(r===0?'a tiny bit':r===1?'a half step':r===2?'a whole step':r===3?'a minor third':r===4?'a major third':r===5?'a fourth':r===6?'a tritone':r===7?'a fifth':r===8?'a minor sixth':r===9?'a major sixth':r===12?'an octave':r+' half steps')}
-function smLoadMap(map){SM.off=map.off;SM.phr=map.phr.map((p,i)=>({i,t0:p.t0,t1:p.t1,core:p.core.map(n=>Object.assign({},n)),fine:p.fine||[]}));SM.fine=!!map.audio;
+function smLoadMap(map){SM.off=map.off;SM.phr=map.phr.map((p,i)=>({i,t0:p.t0,t1:p.t1,mel:p.mel||null,core:p.core.map(n=>Object.assign({},n)),fine:p.fine||[]}));SM.vx=map.vx||null;SM.fine=!!map.audio;
   SM.deg=smDegrees();const st=smSong();
   const tn=(map.tonicR!=null?Math.round(map.tonicR)+map.off:SM.deg[0]&&SM.deg[0].m);let ti=0,bd=99;SM.deg.forEach((d,i)=>{const e=Math.abs(d.m-tn);if(e<bd){bd=e;ti=i}});
   SM.isonAuto=ti;SM.isonD=st.ison!=null&&SM.deg[st.ison]?st.ison:ti;
@@ -5947,11 +6092,11 @@ async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
   const an=analyzeSong4Course(rec);if(!an||!an.phrases.length)return false;SM.id=rid;SM.key=kk;SM.name=rec.name||'';SM.dur=rec.dur;SM.st={};SM.x=null;SM.seg=null;SM.segT0=0;SM.plan=null;SM.ok=false;
   if(rec.audio){if(prog)prog('Loading the recording...');try{SM.x=await smDecode(rec.audio);SM.seg=SM.x}catch(e){SM.x=null}}
   const ck='ison-smap-'+SM_VER+'-'+rid+(SM.x?'-a':'-n');let map=store.get(ck,null);
-  if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=smAnalyze(an,SM.x);store.set(ck,map)}
+  if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=await smAnalyzeA(an,SM.x,prog);try{Object.keys(localStorage).filter(k=>/^ison-smap-[1-5]-/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}store.set(ck,map)}
   /* the song map is always measured in the original key; a key change moves its pitches and uses the moved recording */
   let pbBlob=rec.audio||null;if(kk&&SM.x){try{const kb=await keyedAudio(rid,rec.audio,kk,prog);SM.x=await smDecode(kb);SM.seg=SM.x;pbBlob=kb}catch(e){}}
   SM.hq=null;SM.sth={};if(SM.x&&pbBlob){try{SM.hq=normPk(await decodeAt(pbBlob,PB_SR).then(d=>d.slice()));SM.hqT0=0}catch(e){SM.hq=null}}
-  if(SM.id!==rid||SM.key!==kk)return false;smLoadMap(keyMap(map,kk));return true}
+  if(SM.id!==rid||SM.key!==kk)return false;SM.base=map;smLoadMap(keyMap(vxEdApply(map,rid),kk));return true}
 /* ---- curriculum: what each phrase needs, just before that phrase ---- */
 let LPR=null;
 function smRange(){if(LPR)return LPR;const st=smSong(),n=SM.phr.length,a=st.from!=null?Math.min(st.from,n-1):0,b=st.to!=null?Math.min(Math.max(st.to,a),n-1):n-1;return[a,b]}
@@ -5980,7 +6125,7 @@ function smSpeeds(){return SONG_SPEED[earSet().pace||'gentle']||SONG_SPEED.gentl
 function smSpeed(s){const sp=smSpeeds();return s<=1?sp[0]:s===2?sp[Math.min(1,sp.length-1)]:1}
 /* timing follows the recording exactly: each note lasts as long as he sings it, and every pause between notes
    (his breaths) is kept as a silent rest, with his own audio under it; slowing down stretches everything evenly */
-function songTimeline(ns,k,mOf){const out=[];ns.forEach((n,i)=>{const nx=ns[i+1],gap=nx?nx.t0-n.t1:0,e=nx&&gap<0.1?nx.t0:n.t1;out.push({m:mOf(n),d:Math.max(0.05,(e-n.t0)*k),src:[n.t0,e]});if(nx&&gap>=0.1)out.push({m:null,d:gap*k,src:[n.t1,nx.t0]})});return out}
+function songTimeline(ns,k,mOf){const out=[];ns.forEach((n,i)=>{const nx=ns[i+1],gap=nx?nx.t0-n.t1:0,e=nx&&gap<0.1?nx.t0:n.t1;out.push({m:mOf(n),d:Math.max(0.05,(e-n.t0)*k),src:[n.t0,e],att:n.att?n.att*k:0});if(nx&&gap>=0.1)out.push({m:null,d:gap*k,src:[n.t1,nx.t0]})});return out}
 function smSeq(ns,speed,fine){return songTimeline(ns,1/Math.min(1,speed),n=>fine?smFineM(n):smM(n))}
 function smIsonM(){const d=SM.deg[SM.isonD];return d?(smPitchMode()==='western'?d.mR:d.m):null}
 /* the ison under note, scale and memory drills; Off means no drone anywhere in the session */
@@ -6280,6 +6425,102 @@ function lpInit(){
   $('lpLTimbre').onchange=()=>{earSave({timbre:$('lpLTimbre').value});lpChanged('Tone sound changed')};
   window.__lp={LPQ,lpReplan,lpChanged,lpDrills,lpSteps,lpSet,lpSave,lpRange,lpWith,lpSel,lpSelSet,renderLoop}}
 
+/* ================= Song editor =================
+   The singer's pitch line (measured every 10 ms by the new measuring) with the notes the tone plays on top.
+   Zoom, drag along, play what is on screen slowly with the singer and/or the tone, and tap a note to fix its pitch,
+   start, end or swell. Changes are saved per song (in the original key) and every lesson uses them. */
+const VE={t0:0,span:6,sel:null,speed:0.5,st:'idle',url:null,a:0,raf:0,drag:null};
+function vxEdAll(){return store.get('ison-vxed',{})}
+function vxEdApply(map,id){const E=vxEdAll()[id];if(!E||!map||!map.phr)return map;
+  return Object.assign({},map,{phr:map.phr.map((p,i)=>{const c=E[i];if(!c||!c.length)return p;return Object.assign({},p,{core:c.map(n=>Object.assign({},n)),t0:Math.min(p.t0,c[0].t0),t1:c[c.length-1].t1})})})}
+function vxMapNow(){return vxEdApply(SM.base,SM.id)}
+function vxSavePhrase(pi,core){const all=vxEdAll(),E=Object.assign({},all[SM.id]||{});core.sort((a,b)=>a.t0-b.t0);E[pi]=core;all[SM.id]=E;store.set('ison-vxed',all);vxRefresh()}
+function vxRefresh(){if(SM.base){smLoadMap(keyMap(vxEdApply(SM.base,SM.id),SM.key));SM.plan=null}vxDraw();vxNoteUI()}
+const vxKey=m=>{const off=(SM.base&&SM.base.off)||0;return Math.round(m-off)+off};
+function vxName(m){const r=Math.round(m),c=Math.round((m-r)*100);return nameOf(r).replace(/-?\d+$/,'')+(Math.abs(c)>=10?(c>0?' +':' ')+c+'¢':'')}
+function vxOpen(){if(!SM.ok||!SM.base){return}if(!SM.base.vx){$('vxSong').textContent='This song has no recording saved with it, so there is no pitch line to show. Add the song with its recording to use the editor.'}
+  else{const M=vxMapNow(),n=M.phr.reduce((a,p)=>a+p.core.length,0);$('vxSong').textContent=(SM.name||'This song')+(SM.key?' · shown in the original key':'')}
+  const sel=$('vxPhr');sel.innerHTML='';SM.base.phr.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Phrase '+(i+1)+' · '+fmtT(p.t0)+(p.mel?' · melody '+p.mel:'');sel.appendChild(o)});
+  const sp=$('vxSpd');if(!sp.children.length)[[1,'100%'],[0.5,'50%'],[0.25,'25%']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.v=v;b.onclick=()=>{VE.speed=v;vxStop();vxSpdUI()};sp.appendChild(b)});vxSpdUI();
+  const p0=SM.base.phr[0];VE.t0=Math.max(0,p0.t0-0.3);VE.span=Math.min(8,Math.max(3,p0.t1-p0.t0+0.6));VE.sel=null;$('vxSheet').hidden=false;document.documentElement.classList.add('sheet-open');
+  requestAnimationFrame(()=>{vxDraw();vxNoteUI()})}
+function vxClose(){vxStop();$('vxSheet').hidden=true;document.documentElement.classList.remove('sheet-open');try{renderLoop();renderMaster()}catch(e){}}
+function vxSpdUI(){[...$('vxSpd').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===VE.speed)))}
+function vxDur(){const vx=SM.base&&SM.base.vx;return vx?vx.c.length*vx.hop:(SM.base.phr[SM.base.phr.length-1].t1+1)}
+function vxFlat(){const M=vxMapNow(),out=[];M.phr.forEach((p,pi)=>p.core.forEach((n,k)=>out.push({p:pi,k,n})));return out}
+function vxDraw(){const cv=$('vxCv');if(!cv||$('vxSheet').hidden||!SM.base)return;const w=Math.max(280,cv.parentElement.clientWidth),h=Math.round(Math.min(360,Math.max(210,innerHeight*0.33))),g=fitCanvas(cv,w,h),C=colors(),M=vxMapNow(),vx=M.vx;
+  const D=vx?vx.D:SM.deg.map(d=>d.m),lo=D[0]-1.5,hi=D[D.length-1]+1.5,Y=m=>h-14-(m-lo)/(hi-lo)*(h-34),X=t=>(t-VE.t0)/VE.span*w,t1=VE.t0+VE.span;
+  g.clearRect(0,0,w,h);g.font='11px system-ui,sans-serif';g.textBaseline='middle';
+  D.forEach(d=>{g.strokeStyle=C.muted;g.globalAlpha=0.28;g.setLineDash([3,5]);g.beginPath();g.moveTo(0,Y(d));g.lineTo(w,Y(d));g.stroke();g.setLineDash([]);g.globalAlpha=0.85;g.fillStyle=C.muted;g.fillText(vxName(d),4,Y(d)-8)});g.globalAlpha=1;
+  /* seconds along the bottom */
+  const step=VE.span>20?5:VE.span>8?2:VE.span>3?1:0.5;g.fillStyle=C.muted;for(let t=Math.ceil(VE.t0/step)*step;t<t1;t+=step){g.fillText((t>=60?Math.floor(t/60)+':'+String((t%60).toFixed(step<1?1:0)).padStart(step<1?4:2,'0'):t.toFixed(step<1?1:0)+'s'),X(t)+2,h-6)}
+  /* phrases and melodies */
+  M.phr.forEach((p,i)=>{if(p.t1<VE.t0||p.t0>t1)return;g.strokeStyle=C.lapis;g.globalAlpha=0.5;g.beginPath();g.moveTo(X(p.t0),0);g.lineTo(X(p.t0),h-16);g.stroke();g.globalAlpha=1;g.fillStyle=C.lapis;g.fillText('Phrase '+(i+1)+(p.mel?' · '+p.mel:''),Math.max(2,X(p.t0)+3),9)});
+  /* the singer */
+  if(vx){const a=Math.max(0,Math.floor(VE.t0/vx.hop)),b=Math.min(vx.c.length-1,Math.ceil(t1/vx.hop));g.strokeStyle=C.ink;g.lineWidth=1.6;g.beginPath();let pen=false;
+    for(let i=a;i<=b;i++){const v=vx.c[i];if(!v){pen=false;continue}const xx=X(i*vx.hop),yy=Y(v/100);if(pen)g.lineTo(xx,yy);else{g.moveTo(xx,yy);pen=true}}g.stroke();g.lineWidth=1}
+  /* turns */
+  if($('vxTurns').checked)M.phr.forEach(p=>(p.fine||[]).forEach(n=>{if(n.t1<VE.t0||n.t0>t1)return;g.fillStyle=C.lapis;g.globalAlpha=0.55;g.fillRect(X(n.t0),Y(n.mX)+5,Math.max(2,X(n.t1)-X(n.t0)),3);g.globalAlpha=1}));
+  /* the notes the tone plays */
+  const bh=Math.max(6,Math.min(14,(h-34)/(hi-lo)*0.38));
+  vxFlat().forEach(({p,k,n})=>{if(n.t1<VE.t0||n.t0>t1)return;const x0=X(n.t0),x1=X(n.t1),y=Y(n.mX),sel=VE.sel&&VE.sel.p===p&&VE.sel.k===k;
+    g.fillStyle=n.conf!=null&&n.conf<0.25&&!n.ed?C.warn:C.accent;g.globalAlpha=sel?0.95:0.6;g.fillRect(x0,y-bh/2,Math.max(2,x1-x0-1),bh);g.globalAlpha=1;
+    if(n.ed||sel){g.strokeStyle=sel?C.ink:C.accent;g.lineWidth=sel?2.4:1.4;g.strokeRect(x0,y-bh/2,Math.max(2,x1-x0-1),bh);g.lineWidth=1}
+    if(n.att&&(x1-x0)>18){g.strokeStyle=C.ink;g.globalAlpha=0.5;g.beginPath();g.moveTo(x0,y+bh/2);g.lineTo(X(n.t0+n.att),y-bh/2);g.stroke();g.globalAlpha=1}});
+  if(VE.st==='playing'){const pt=VE.a+__vxPos()*VE.speed;g.strokeStyle=C.bad||C.accent;g.lineWidth=2;g.beginPath();g.moveTo(X(pt),0);g.lineTo(X(pt),h);g.stroke();g.lineWidth=1}
+  $('vxPos').value=String(Math.round(VE.t0/Math.max(0.01,vxDur()-VE.span)*1000));
+  {const fl=vxFlat(),ed=fl.filter(q=>q.n.ed).length,uns=fl.filter(q=>q.n.conf!=null&&q.n.conf<0.25&&!q.n.ed).length,mels=(vx&&vx.mel||[]).filter(m=>m.n>1).map(m=>m.lab+' ×'+m.n).join(', ');
+    $('vxSum').textContent=fl.length+' notes'+(uns?', '+uns+' sliding or between scale notes (orange)':'')+(ed?', '+ed+' changed by you':'')+(mels?'. Melodies that come back: '+mels+'.':'.')}}
+const __vxPos=()=>earAudio?earAudio.currentTime||0:0;
+function vxNoteUI(){const box=$('vxNote');if(!VE.sel){box.hidden=true;return}const M=vxMapNow(),p=M.phr[VE.sel.p],n=p&&p.core[VE.sel.k];if(!n){VE.sel=null;box.hidden=true;return}box.hidden=false;
+  $('vxNoteTxt').innerHTML='<b>'+vxName(n.mX)+'</b> · phrase '+(VE.sel.p+1)+', note '+(VE.sel.k+1)+' · '+n.t0.toFixed(2)+' to '+n.t1.toFixed(2)+' s ('+Math.round((n.t1-n.t0)*1000)+' ms)'+(n.conf!=null&&!n.ed?' · '+(n.conf<0.25?'sliding or between scale notes':'steady'):'')+(n.ed?' · changed by you':'');
+  $('vxAtt').value=String(Math.round((n.att||0.06)*1000));$('vxAttTxt').textContent=Math.round((n.att||0.06)*1000)+' ms'}
+/* change the selected note: fn gets a copy of the phrase's notes and the index */
+function vxEdit(fn){if(!VE.sel)return;const M=vxMapNow(),pi=VE.sel.p,core=M.phr[pi].core.map(n=>Object.assign({},n));const k=fn(core,VE.sel.k);if(k===false)return;if(typeof k==='number')VE.sel.k=k;vxSavePhrase(pi,core)}
+const vxMark=n=>{n.ed=1;n.conf=1;n.hs=null};
+function vxStep(dir){vxEdit((c,k)=>{const n=c[k],D=SM.base.vx?SM.base.vx.D:SM.deg.map(d=>d.m);let i=0;D.forEach((d,j)=>{if(Math.abs(d-n.mX)<Math.abs(D[i]-n.mX))i=j});
+  let j=i+dir;if(Math.abs(D[i]-n.mX)>0.15&&((dir>0&&D[i]>n.mX)||(dir<0&&D[i]<n.mX)))j=i;if(j<0||j>=D.length)return false;n.mX=D[j];n.m=vxKey(n.mX);vxMark(n)})}
+function vxNudge(which,dt){vxEdit((c,k)=>{const n=c[k],pv=c[k-1],nx=c[k+1];
+  if(which==='s'){let t=n.t0+dt;t=Math.min(t,n.t1-0.03);if(pv){t=Math.max(t,pv.t0+0.03);if(t<pv.t1||pv.t1===n.t0){pv.t1=t;vxMark(pv)}}t=Math.max(0,t);n.t0=+t.toFixed(3)}
+  else{let t=n.t1+dt;t=Math.max(t,n.t0+0.03);if(nx){t=Math.min(t,nx.t1-0.03);if(t>nx.t0||nx.t0===n.t1){nx.t0=t;vxMark(nx)}}n.t1=+t.toFixed(3)}vxMark(n)})}
+function vxPlayRange(a,b,btn){if(VE.st!=='idle'&&VE.btn===btn){vxStop();return}vxStop();try{pvStop();lpPvStop()}catch(e){}earUnlock();VE.st='loading';VE.btn=btn;VE.lab=btn.innerHTML;btn.textContent='Preparing...';
+  (async()=>{try{const sp=VE.speed,k=1/sp,T=earTimbre(),ev=[],vS={},t=0.1;a=Math.max(0,a);
+    if($('vxTone').checked){const ns=vxFlat().map(q=>q.n).filter(n=>n.t1>a&&n.t0<b).map(n=>Object.assign({},n,{t0:Math.max(a,n.t0),t1:Math.min(b,n.t1)}));
+      if(ns.length){const seq=songTimeline(ns,k,n=>n.mX);let tt=t+(ns[0].t0-a)*k,LN=null;const flush=()=>{if(!LN)return;const lead=Math.min(0.02,LN.t);ev.push({type:'line',t:LN.t-lead,d:tt-LN.t+lead,p:LN.p.map(q=>[q[0]+lead,q[1]]),att:LN.att,h:T.h,lp:T.lp,g:$('vxVoice').checked?0.8:1});LN=null};
+        seq.forEach(s=>{if(s.m!=null){if(!LN)LN={t:tt,p:[],att:Math.max(0.02,Math.min(0.5,s.att||0.06))};LN.p.push([tt-LN.t,m2f(s.m)])}else flush();tt+=s.d});flush()}}
+    if($('vxVoice').checked&&SM.seg){const key='SM|ve|'+a.toFixed(3)+'-'+b.toFixed(3)+'@'+sp;vS[key]={src:'SM',map:[[0,a],[(b-a)*k,b]]};ev.push({type:'recx',t,key,from:0,d:(b-a)*k,g:$('vxTone').checked?0.7:1})}
+    let recs=null;if(Object.keys(vS).length){BG.recSr=BG.recSr||{};recs=await bgRecs({vSpecs:vS})}
+    const blob=await bgSynth({ev,dur:(b-a)*k+0.4,sr:PB_SR,voSr:VO_SR,vol:0.85,vo:{},recs,recSr:BG.recSr||{}},()=>{});if(VE.btn!==btn||VE.st!=='loading')return;
+    if(VE.url)URL.revokeObjectURL(VE.url);VE.url=URL.createObjectURL(blob);VE.a=a-t*sp;const au=earAudio;au.loop=false;au.onended=()=>vxStop();au.src=VE.url;au.play().catch(()=>{});VE.st='playing';btn.innerHTML='&#9632; Stop';
+    const tick=()=>{if(VE.st!=='playing')return;const pt=VE.a+__vxPos()*VE.speed;if(pt>VE.t0+VE.span*0.92)VE.t0=Math.min(vxDur()-VE.span,pt-VE.span*0.15);vxDraw();VE.raf=requestAnimationFrame(tick)};tick()}
+  catch(e){console.warn('editor playback failed',e);vxStop()}})()}
+function vxStop(){cancelAnimationFrame(VE.raf);if(VE.btn){VE.btn.innerHTML=VE.lab;VE.btn=null}if(VE.st!=='idle'&&earAudio&&!EARS.run){try{earAudio.pause()}catch(e){}}VE.st='idle';vxDraw()}
+function vxInit(){document.querySelectorAll('[data-vx-open]').forEach(b=>b.onclick=vxOpen);$('vxClose').onclick=vxClose;$('vxSheet').addEventListener('click',e=>{if(e.target===$('vxSheet'))vxClose()});
+  $('vxIn').onclick=()=>{const c=VE.t0+VE.span/2;VE.span=Math.max(1,VE.span/1.6);VE.t0=Math.max(0,c-VE.span/2);vxDraw()};
+  $('vxOut').onclick=()=>{const c=VE.t0+VE.span/2;VE.span=Math.min(Math.max(4,vxDur()),VE.span*1.6);VE.t0=Math.max(0,Math.min(vxDur()-VE.span,c-VE.span/2));vxDraw()};
+  $('vxPos').oninput=()=>{VE.t0=+$('vxPos').value/1000*Math.max(0,vxDur()-VE.span);vxDraw()};
+  $('vxPhr').onchange=()=>{const p=SM.base.phr[+$('vxPhr').value];VE.t0=Math.max(0,p.t0-0.3);VE.span=Math.min(Math.max(3,p.t1-p.t0+0.6),20);VE.sel=null;vxDraw();vxNoteUI()};
+  ['vxTurns'].forEach(id=>$(id).onchange=vxDraw);
+  $('vxPlay').onclick=()=>vxPlayRange(VE.t0,VE.t0+VE.span,$('vxPlay'));
+  const cv=$('vxCv');cv.addEventListener('pointerdown',e=>{VE.drag={x:e.clientX,y:e.clientY,t0:VE.t0,moved:false};cv.setPointerCapture(e.pointerId)});
+  cv.addEventListener('pointermove',e=>{const d=VE.drag;if(!d)return;const dx=e.clientX-d.x;if(Math.abs(dx)>6)d.moved=true;if(d.moved){VE.t0=Math.max(0,Math.min(vxDur()-VE.span,d.t0-dx/cv.clientWidth*VE.span));vxDraw()}});
+  cv.addEventListener('pointerup',e=>{const d=VE.drag;VE.drag=null;if(!d||d.moved)return;const r=cv.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,w=r.width,h=r.height,vx=SM.base.vx,D=vx?vx.D:SM.deg.map(q=>q.m),lo=D[0]-1.5,hi=D[D.length-1]+1.5;
+    const t=VE.t0+x/w*VE.span,mm=lo+(h-14-y)/(h-34)*(hi-lo);let best=null,bd=1e9;vxFlat().forEach(q=>{const n=q.n;const dt=t<n.t0?n.t0-t:t>n.t1?t-n.t1:0,dist=dt/VE.span*w+Math.abs(mm-n.mX)/(hi-lo)*h*0.6;if(dist<bd){bd=dist;best=q}});
+    VE.sel=best&&bd<40?{p:best.p,k:best.k}:null;vxDraw();vxNoteUI()});
+  $('vxDn').onclick=()=>vxStep(-1);$('vxUp').onclick=()=>vxStep(1);
+  $('vxCm').onclick=()=>vxEdit((c,k)=>{c[k].mX=+(c[k].mX-0.1).toFixed(3);c[k].m=vxKey(c[k].mX);vxMark(c[k])});$('vxCp').onclick=()=>vxEdit((c,k)=>{c[k].mX=+(c[k].mX+0.1).toFixed(3);c[k].m=vxKey(c[k].mX);vxMark(c[k])});
+  $('vxS0').onclick=()=>vxNudge('s',-0.02);$('vxS1').onclick=()=>vxNudge('s',0.02);$('vxE0').onclick=()=>vxNudge('e',-0.02);$('vxE1').onclick=()=>vxNudge('e',0.02);
+  $('vxAtt').oninput=()=>{$('vxAttTxt').textContent=$('vxAtt').value+' ms'};$('vxAtt').onchange=()=>vxEdit((c,k)=>{c[k].att=+$('vxAtt').value/1000;c[k].ed=1});
+  $('vxSplit').onclick=()=>vxEdit((c,k)=>{const n=c[k];if(n.t1-n.t0<0.08)return false;const mid=+((n.t0+n.t1)/2).toFixed(3),b=Object.assign({},n,{t0:mid,att:null});n.t1=mid;vxMark(n);vxMark(b);c.splice(k+1,0,b)});
+  $('vxJoin').onclick=()=>vxEdit((c,k)=>{const n=c[k],nx=c[k+1];if(!nx)return false;const keep=(nx.t1-nx.t0)>(n.t1-n.t0)?nx:n;n.mX=keep.mX;n.m=keep.m;n.t1=nx.t1;vxMark(n);c.splice(k+1,1)});
+  $('vxDel').onclick=()=>vxEdit((c,k)=>{if(c.length<2)return false;c.splice(k,1);VE.sel=null;return 0});
+  $('vxReset').onclick=()=>{if(!VE.sel)return;const all=vxEdAll(),E=Object.assign({},all[SM.id]||{});delete E[VE.sel.p];all[SM.id]=E;store.set('ison-vxed',all);VE.sel=null;vxRefresh()};
+  $('vxResetAll').onclick=()=>{const b=$('vxResetAll');if(b.dataset.arm!=='1'){b.dataset.arm='1';b.textContent='Tap again to undo every change to this song';setTimeout(()=>{b.dataset.arm='';b.textContent='Undo all my changes to this song'},4000);return}
+    b.dataset.arm='';b.textContent='Undo all my changes to this song';const all=vxEdAll();delete all[SM.id];store.set('ison-vxed',all);VE.sel=null;vxRefresh()};
+  $('vxHear').onclick=()=>{if(!VE.sel)return;const n=vxMapNow().phr[VE.sel.p].core[VE.sel.k];vxPlayRange(n.t0-0.35,n.t1+0.35,$('vxHear'))};
+  window.addEventListener('resize',()=>{if(!$('vxSheet').hidden)vxDraw()});
+  window.__vx={VE,vxOpen,vxFlat,vxEdit,vxStep,vxNudge,vxMapNow,vxEdAll}}
+
 /* ---- changes during a background session take effect at the start of the next drill, so nothing is cut off ---- */
 async function bgReplanFromNext(why){if(!EARS.run||!EARS.bg||BG.prep||BG.replan)return;const pos=bgPos(),ns=BG.starts.findIndex(x=>x>pos+1.5);if(ns<0)return;
   BG.replan=true;$('earPending').hidden=false;$('earPending').textContent=why+' from the next drill...';
@@ -6336,8 +6577,11 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const s=earSet(),ev=[],marks=[],s
       else if(st.k==='say'&&st.vo){if(words&&s.cues!=='none')vo(st.vo.filter(k=>VO[k]))}
       else if(st.k==='say'){if(st.ann){if(s.ann&&s.cues!=='none'){const a=annShort(st.ann);marks.push({t,ph:'L',note:null,ann:a});if(words)vo(annKeys(st.ann))}}else if(words)vo(voKeys(st.text))}
       else if(st.k==='play'){marks.push({t,ph:st.ph,note:null});const t0p=t,vA=[],vm=st.vMode,gv=vm==='tone'?0:vm==='solo'?(dvg>0?Math.max(0.55,Math.min(1,dvg*2)):0):dvg,toneOn=!(vm==='solo'&&gv>0),perNote=st.seq.some(n=>n.r!=null);let tt=0;if(gv>0&&VS.seg&&!perNote)st.seq.forEach(n=>{if(n.src)vA.push([tt,n.src[0]],[tt+n.d,n.src[1]]);tt+=n.d});
+        /* song material plays as one continuous line per breath: it starts 20 ms before the singer, swells in like a voice and slides into each note */
+        let LN=null;const useLine=toneOn&&!st.swell&&st.seq.some(n=>n.src)&&s.legato!==false,flush=()=>{if(!LN)return;const lead=Math.min(0.02,LN.t);ev.push({type:'line',t:LN.t-lead,d:t-LN.t+lead,p:LN.p.map(q=>[q[0]+lead,q[1]]),att:LN.att,h:T.h,lp:T.lp});LN=null};
         st.seq.forEach(n=>{if(n.m!=null){if(gv>0&&VS.seg&&perNote&&n.src){const r=n.r||1,key=dsrc+'|'+(n.d*r).toFixed(2)+'>'+n.src[0].toFixed(3)+'-'+n.src[1].toFixed(3);vSpecs[key]={src:dsrc,map:[[0,n.src[0]],[n.d*r,n.src[1]]]};ev.push({type:'recx',t,key,from:0,d:n.d*0.97,g:gv,r})}
-          if(toneOn)note(n.m,n.d,st.swell);else{marks.push({t,note:n.m});t+=n.d}}else{marks.push({t,note:null});t+=n.d}});
+          if(toneOn&&useLine){if(!LN)LN={t,p:[],att:Math.max(0.03,Math.min(0.25,n.att||0.06))};LN.p.push([t-LN.t,m2f(n.m)]);marks.push({t,note:n.m});t+=n.d}
+          else if(toneOn)note(n.m,n.d,st.swell);else{marks.push({t,note:n.m});t+=n.d}}else{flush();marks.push({t,note:null});t+=n.d}});flush();
         if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t:t0p,d:t-t0p,h:T.h,lp:T.lp,g:0.2});
         if(vA.length>1){const key=dsrc+'|'+vA.map(x=>x[0].toFixed(2)+'>'+x[1].toFixed(3)).join(',');vSpecs[key]={src:dsrc,map:vA};ev.push({type:'recx',t:t0p,key,from:0,d:t-t0p,g:gv})}marks.push({t,note:null})}
       else if(st.k==='glide'){marks.push({t,ph:st.ph,note:st.m1});ev.push({type:'glide',f0:m2f(st.m0),f1:m2f(st.m1),t,d:st.d*0.98,h:T.h,lp:T.lp});t+=st.d;marks.push({t,note:null})}
@@ -6360,6 +6604,11 @@ async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,ou
       else if(e.type==='recx'){const c=D.recs&&D.recs[e.key];if(!c)continue;const csr=(D.recSr&&D.recSr[e.key])||sr,kk=csr/sr,st=Math.round(e.t*sr),f0=Math.round(e.from*csr),lim=Math.round(e.d*sr),fd=Math.round(0.03*sr),g=0.9*e.g,r=(e.r||1)*kk;for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j<0)continue;let v;if(r===1){const q=f0+j;if(q>=c.length)break;v=c[q]}else{const q=f0+j*r,qi=Math.floor(q),fr=q-qi;if(qi+1>=c.length)break;v=c[qi]*(1-fr)+c[qi+1]*fr}buf[i-b0]+=v*g*Math.min(1,j/fd,(lim-j)/fd)}}
       else if(e.type==='glide'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g);if(e.ph==null){e.ph=0;e.li=st}
         for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr,rem=e.d-tt,f=e.f0*Math.pow(e.f1/e.f0,Math.min(1,tt/e.d));e.ph+=TW*f/sr;const env=Math.min(1,tt/0.05,rem/0.1);let v=0;for(let k=0;k<K;k++){const fk=f*(k+1);if(fk<e.lp&&fk<sr/2-300)v+=e.h[k]/sum*Math.sin(e.ph*(k+1))}buf[i-b0]+=g*env*v}e.li=en}
+      else if(e.type==='line'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g),att=e.att||0.06,rel=0.09,gl=0.035,P=e.p;if(e.ph==null){e.ph=0;e.li=st;e.ni=0}
+        for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr;while(e.ni<P.length-1&&tt+gl/2>=P[e.ni+1][0])e.ni++;const cur=P[e.ni];let f=cur[1];
+          if(e.ni>0){const k=(tt-(cur[0]-gl/2))/gl;if(k<1){const pf=P[e.ni-1][1],q=Math.max(0,k),sm=q*q*(3-2*q);f=pf*Math.pow(cur[1]/pf,sm)}}
+          e.ph+=TW*f/sr;const rem=e.d-tt,env=(tt<att?0.5-0.5*Math.cos(Math.PI*tt/att):1)*(rem<rel?Math.max(0,rem/rel):1);let v=0;
+          for(let k=0;k<K;k++){const fk=f*(k+1);if(fk<e.lp&&fk<sr/2-300)v+=e.h[k]/sum*Math.sin(e.ph*(k+1))}buf[i-b0]+=g*env*v}e.li=en}
       else if(e.type==='vo'){const c=vo[e.k];if(!c)continue;const st=Math.round(e.t*sr),k=vsr/sr;for(let i=s0;i<b0+n;i++){const j=i-st;if(j<0)continue;const q=j*k,qi=Math.floor(q);if(qi+1>=c.length)break;const fr=q-qi;buf[i-b0]+=(c[qi]*(1-fr)+c[qi+1]*fr)*0.9}}
       else if(e.type==='tick'){const st=Math.round(e.t*sr),amp=0.16*D.vol*(e.lvl||1);for(let i=s0;i<b0+n;i++){const tt=(i-st)/sr;if(tt>0.07)break;const env=tt<0.005?tt/0.005:Math.exp(-(tt-0.005)/0.012);buf[i-b0]+=amp*env*Math.sin(TW*1600*tt)}}
       else{const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),P=[];
@@ -6522,7 +6771,7 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earEngine').onchange=()=>earSave({engine:$('earEngine').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
   $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
   $('earTest').onclick=()=>{earUnlock();setTimeout(()=>earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>earSay('That was your home note, '+spokenName(S.home)+'.',()=>{})),150)};
-  $('earStart').onclick=earStart;smInit();lpInit();dailyInit();keyInit();lesInit();
+  $('earStart').onclick=earStart;smInit();lpInit();vxInit();dailyInit();keyInit();lesInit();
   $('earAnnSet').onchange=()=>earSave({ann:$('earAnnSet').checked});
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
   $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
