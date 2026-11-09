@@ -451,7 +451,7 @@ html.lk-still:not(.sketch) #amb i{animation-play-state:paused}
 .vxnote{border-top:1px dashed var(--line,rgba(127,127,127,.4));margin-top:8px;padding-top:4px}
 #vxAtt{flex:1;min-width:120px}
 html.sketch .vxwrap{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}
-.lph{margin:14px 0 4px;font-size:1rem}.lpql{display:block;margin:8px 0 2px}.mpnotes{font-size:1.05rem;letter-spacing:.02em;margin:2px 0 8px;overflow-wrap:anywhere}
+.lph{margin:14px 0 4px;font-size:1rem}html.earsgraph .earann:empty,html.earsgraph .earmix:empty{min-height:0;margin:0}.earsv{text-align:center;margin:4px 0 6px}.earphr{font-size:1.15rem;font-weight:700;margin:2px 0 6px;min-height:1.4em}.earphr.dim{opacity:.55}.earvsw{justify-content:center;margin:0 0 6px}.eargraph{border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px;overflow:hidden;margin:0 0 6px}.eargraph canvas{display:block;width:100%}html.sketch .eargraph{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}.lpql{display:block;margin:8px 0 2px}.mpnotes{font-size:1.05rem;letter-spacing:.02em;margin:2px 0 8px;overflow-wrap:anywhere}
 .lpunit{align-self:center;color:var(--muted);font-size:.92rem}
 .lpsub{margin:2px 0 8px 26px;flex-wrap:wrap;gap:6px;align-items:center}.lpsub>.label{flex-basis:100%;margin:0}#lpBox input[type=number]{width:4.6em;text-align:center}.lpsub.dim{opacity:.45}
 .lpplay{padding:6px 12px;font-size:.9rem;white-space:nowrap}.vxopen{display:block;margin:4px 0 10px;white-space:normal;text-align:left}.lpplay.on{background:var(--accent);color:#141414}
@@ -1244,6 +1244,9 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <div class="earprep" id="earPrep" hidden><span id="earPrepTxt">Preparing...</span><span class="eartr"><i id="earPrepBar"></i></span></div>
       <button class="primary big" id="earTapPlay" hidden>Tap to begin</button>
       <div class="eardots"><i id="earDotL">Listen</i><i id="earDotW">With me</i><i id="earDotA">Alone</i><i id="earDotC">Check</i></div>
+      <div class="earsv" id="earSV" hidden><p class="earphr" id="earPhr" aria-live="polite"></p>
+        <div class="chips earchips earvsw" id="earVSw" role="group" aria-label="View"><button data-v="note">Note</button><button data-v="graph">Graph</button></div>
+        <div class="eargraph" id="earGW" hidden><canvas id="earGraph" aria-label="The singer's pitch line and the notes the tone plays, moving with the song"></canvas></div></div>
       <div class="orbwrap"><svg class="orbring" viewBox="0 0 100 100" aria-hidden="true"><circle class="bgc" cx="50" cy="50" r="48"/><circle class="fgc" id="earRing" cx="50" cy="50" r="48" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100"/></svg>
         <div class="orb" id="earOrb"><div class="earphase" id="earPhase"></div><div class="earnote" id="earNote"></div></div></div>
       <div class="earann" id="earAnn"></div>
@@ -6684,6 +6687,29 @@ function mpInit(){
   $('mpHear').onclick=()=>{const L=mpList(),S0=mpSet(),M=L.find(x=>x.lab===S0.mel)||L[0];if(!M)return;const N=mpNotes(M,S0.sing);lpPreview(mpSeqOf(N.notes,mpSpeed()),$('mpHear'),{tone:S0.tone,drone:mpDrone(),sep:S0.style==='piano'})};
   window.__mp={mpList,mpNotes,mpDrills,mpSet,mpSave,renderMelody}}
 
+/* ---- where in the song the session is: the phrase, and a moving graph of the singer and the notes ---- */
+function earSongPos(pos){const M=BG.smap;if(!M||!M.length)return null;let i=Math.min(BG.smi||0,M.length-1);if(M[i][0]>pos)i=0;while(i<M.length&&M[i][1]<=pos)i++;BG.smi=Math.max(0,i-1);
+  if(i>=M.length||M[i][0]>pos)return null;const e=M[i],f=e[1]>e[0]?(pos-e[0])/(e[1]-e[0]):0;return e[2]+f*(e[3]-e[2])}
+function earPhraseAt(t){if(t==null||!SM.ok)return -1;let k=-1;SM.phr.forEach((p,i)=>{if(t>=p.t0-0.25)k=i});return k}
+function earSongView(pos){const box=$('earSV');const has=EARS.bg&&BG.smap&&BG.smap.length>0&&SM.ok;if(box.hidden!==!has)box.hidden=!has;
+  const view=has&&earSet().runView==='graph'?'graph':'note';$('earGW').hidden=view!=='graph';document.querySelector('.orbwrap').hidden=view==='graph';document.documentElement.classList.toggle('earsgraph',view==='graph');
+  [...$('earVSw').children].forEach(b=>{const on=b.dataset.v===view;if(b.getAttribute('aria-pressed')!==String(on))b.setAttribute('aria-pressed',String(on))});if(!has)return;
+  const t=earSongPos(pos);if(t!=null){EARS.sT=t;EARS.sTat=pos}const live=t!=null,tt=live?t:(EARS.sT!=null&&pos-EARS.sTat<4?EARS.sT:null),k=earPhraseAt(tt);
+  const txt=k<0?'':'Phrase '+(k+1)+' of '+SM.phr.length+' · '+fmtT(SM.phr[k].t0)+(SM.phr[k].mel?' · melody '+SM.phr[k].mel:'');
+  const el=$('earPhr');if(el.textContent!==txt)el.textContent=txt;el.classList.toggle('dim',!live);
+  if(view==='graph'){const now=performance.now(),gap=S.lowpow===true?66:33;if(!EARS.gT||now-EARS.gT>=gap){EARS.gT=now;earGraphDraw(tt,live)}}}
+function earGraphDraw(t,live){const cv=$('earGraph');if(!cv||!SM.ok)return;const w=Math.max(260,cv.parentElement.clientWidth),h=200,g=fitCanvas(cv,w,h),C=colors();g.clearRect(0,0,w,h);
+  const D=SM.deg.map(d=>d.m);if(!D.length)return;const lo=Math.min(...D)-1.5,hi=Math.max(...D)+1.5,span=6,t0=(t==null?0:t)-span*0.35,X=x=>(x-t0)/span*w,Y=m=>h-14-(m-lo)/(hi-lo)*(h-28);
+  g.font='11px system-ui,sans-serif';g.textBaseline='middle';
+  SM.deg.forEach(d=>{g.strokeStyle=C.muted;g.globalAlpha=0.25;g.setLineDash([3,5]);g.beginPath();g.moveTo(0,Y(d.m));g.lineTo(w,Y(d.m));g.stroke();g.setLineDash([]);g.globalAlpha=0.8;g.fillStyle=C.muted;g.fillText(smDegName(d),4,Y(d.m)-7)});g.globalAlpha=1;
+  SM.phr.forEach((p,i)=>{if(p.t0<t0||p.t0>t0+span)return;g.strokeStyle=C.lapis;g.globalAlpha=0.45;g.beginPath();g.moveTo(X(p.t0),0);g.lineTo(X(p.t0),h);g.stroke();g.globalAlpha=1;g.fillStyle=C.lapis;g.fillText('Phrase '+(i+1)+(p.mel?' · '+p.mel:''),X(p.t0)+3,9)});
+  const vx=SM.vx,kk=SM.key||0;if(vx&&vx.c){const a=Math.max(0,Math.floor(t0/vx.hop)),b=Math.min(vx.c.length-1,Math.ceil((t0+span)/vx.hop));g.strokeStyle=C.ink;g.lineWidth=1.6;g.beginPath();let pen=false;
+    for(let i=a;i<=b;i++){const v=vx.c[i];if(!v){pen=false;continue}const xx=X(i*vx.hop),yy=Y(v/100+kk);if(pen)g.lineTo(xx,yy);else{g.moveTo(xx,yy);pen=true}}g.stroke();g.lineWidth=1}
+  const bh=10;SM.phr.forEach(p=>p.core.forEach(n=>{if(n.t1<t0||n.t0>t0+span)return;const m=smM(n),on=t!=null&&t>=n.t0&&t<n.t1;g.fillStyle=on?C.good:C.accent;g.globalAlpha=on?0.95:0.55;g.fillRect(X(n.t0),Y(m)-bh/2,Math.max(2,X(n.t1)-X(n.t0)-1),bh);g.globalAlpha=1}));
+  if(t!=null){const px=X(t);g.strokeStyle=live?C.bad||C.accent:C.muted;g.lineWidth=2;g.beginPath();g.moveTo(px,0);g.lineTo(px,h);g.stroke();g.lineWidth=1}
+  if(!live){g.fillStyle=C.muted;g.fillText(t==null?'Not in the song right now':'Between runs',w/2-50,h/2)}}
+function earViewInit(){[...$('earVSw').children].forEach(b=>b.onclick=()=>{earSave({runView:b.dataset.v});EARS.gT=0;earSongView(bgPos())})}
+
 /* ---- changes during a background session take effect at the start of the next drill, so nothing is cut off ---- */
 async function bgReplanFromNext(why){if(!EARS.run||!EARS.bg||BG.prep||BG.replan)return;const pos=bgPos(),ns=BG.starts.findIndex(x=>x>pos+1.5);if(ns<0)return;
   BG.replan=true;$('earPending').hidden=false;$('earPending').textContent=why+' from the next drill...';
@@ -6692,7 +6718,7 @@ async function bgReplanFromNext(why){if(!EARS.run||!EARS.bg||BG.prep||BG.replan)
     const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:bgSessionSr(tl.dur),voSr:VO_SR,vol:earToneVol(),vo:voUsed,rec:tl.rec||null,recRate:tl.recRate,recs,recSr:BG.recSr||{}},()=>{});if(!EARS.run||!EARS.bg){BG.replan=false;return}
     BG.pending={url:URL.createObjectURL(blob),at,tl,offset:el};$('earPending').textContent=why+' from the next drill.'}catch(e){console.warn('replan failed',e);BG.replan=false;$('earPending').hidden=true}}
 function bgSwapCheck(){const P=BG.pending;if(!P||!earAudio)return;if(bgPos()>=P.at-0.05){bgLog();const was=!earAudio.paused;BG.pending=null;BG.replan=false;
-  if(BG.url)URL.revokeObjectURL(BG.url);BG.url=P.url;BG.marks=P.tl.marks;BG.starts=P.tl.starts;BG.dur=P.tl.dur;BG.offset=P.offset;EARS.drills=P.tl.drills;BG.logPos=0;
+  if(BG.url)URL.revokeObjectURL(BG.url);BG.url=P.url;BG.smap=P.tl.smap||[];BG.smi=0;BG.marks=P.tl.marks;BG.starts=P.tl.starts;BG.dur=P.tl.dur;BG.offset=P.offset;EARS.drills=P.tl.drills;BG.logPos=0;
   earAudio.src=P.url;if(was)earAudio.play().catch(()=>{});$('earPending').hidden=true;bgSync()}}
 
 /* ---- Background mode: the whole session prepared ahead as one sound file ----
@@ -6718,7 +6744,7 @@ function voKeys(text){if(!text)return[];const low=String(text).trim().replace(/[
   if((m=low.match(/^(.+) and its neighbors$/)))return[voNoteName(m[1]),'neighbors'].filter(Boolean);
   if(low.includes(', '))return low.split(', ').flatMap(voKeys);const nk=voNoteName(low);return nk?[nk]:[]}
 /* the whole session as a list of timed sounds, plus marks for the on-screen display */
-function bgTimeline(u,lv,goal,opt){opt=opt||{};const s=earSet(),ev=[],marks=[],starts=[],all=[],T=earTimbre();let t=0.4;const words=s.cues==='words';let lastAnn='';
+function bgTimeline(u,lv,goal,opt){opt=opt||{};const smap=[],s=earSet(),ev=[],marks=[],starts=[],all=[],T=earTimbre();let t=0.4;const words=s.cues==='words';let lastAnn='';
   const vo=keys=>{let any=false;keys.forEach(k=>{const c=VO[k];if(!c)return;ev.push({type:'vo',k,t});t+=c.length/VO_SR+0.06;any=true});if(any)t+=0.25};
   const cue=(ph,say)=>{marks.push({t,ph,note:null});if(words){const k=say?voKeys(say):[];vo(k.length?k:['ph_'+ph])}else if(s.cues==='tones'){ev.push({type:'tick',t,lvl:1.6});if(ph==='A')ev.push({type:'tick',t:t+0.14,lvl:1.6});t+=0.55}};
   const note=(m,d,swell)=>{ev.push({type:'note',f:m2f(m),t,d:d*0.96,swell:!!swell,h:T.h,lp:T.lp});marks.push({t,note:m});t+=d};
@@ -6742,9 +6768,10 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const s=earSet(),ev=[],marks=[],s
       else if(st.k==='play'){marks.push({t,ph:st.ph,note:null});const t0p=t,vA=[],vm=st.vMode,gv=vm==='tone'?0:vm==='solo'?(dvg>0?Math.max(0.55,Math.min(1,dvg*2)):0):dvg,toneOn=!(vm==='solo'&&gv>0),perNote=st.seq.some(n=>n.r!=null);let tt=0;if(gv>0&&VS.seg&&!perNote)st.seq.forEach(n=>{if(n.src)vA.push([tt,n.src[0]],[tt+n.d,n.src[1]]);tt+=n.d});
         /* song material plays as one continuous line per breath: it starts 20 ms before the singer, swells in like a voice and slides into each note */
         let LN=null;const useLine=toneOn&&!st.swell&&!st.sep&&st.seq.some(n=>n.src)&&s.legato!==false,flush=()=>{if(!LN)return;const lead=Math.min(0.02,LN.t);ev.push({type:'line',t:LN.t-lead,d:t-LN.t+lead,p:LN.p.map(q=>[q[0]+lead,q[1]]),att:LN.att,h:T.h,lp:T.lp});LN=null};
-        st.seq.forEach(n=>{if(n.m!=null){if(gv>0&&VS.seg&&perNote&&n.src){const r=n.r||1,key=dsrc+'|'+(n.d*r).toFixed(2)+'>'+n.src[0].toFixed(3)+'-'+n.src[1].toFixed(3);vSpecs[key]={src:dsrc,map:[[0,n.src[0]],[n.d*r,n.src[1]]]};ev.push({type:'recx',t,key,from:0,d:n.d*0.97,g:gv,r})}
+        const contig=dsrc==='SM'&&SM.ok&&st.seq.length>0&&st.seq.every((n,i,a)=>n.src&&(!i||Math.abs(n.src[0]-a[i-1].src[1])<0.25));
+        st.seq.forEach(n=>{const tb=t;if(n.m!=null){if(gv>0&&VS.seg&&perNote&&n.src){const r=n.r||1,key=dsrc+'|'+(n.d*r).toFixed(2)+'>'+n.src[0].toFixed(3)+'-'+n.src[1].toFixed(3);vSpecs[key]={src:dsrc,map:[[0,n.src[0]],[n.d*r,n.src[1]]]};ev.push({type:'recx',t,key,from:0,d:n.d*0.97,g:gv,r})}
           if(toneOn&&useLine){if(!LN)LN={t,p:[],att:Math.max(0.03,Math.min(0.25,n.att||0.06))};LN.p.push([t-LN.t,m2f(n.m)]);marks.push({t,note:n.m});t+=n.d}
-          else if(toneOn)note(n.m,n.d,st.swell);else{marks.push({t,note:n.m});t+=n.d}}else{flush();marks.push({t,note:null});t+=n.d}});flush();
+          else if(toneOn)note(n.m,n.d,st.swell);else{marks.push({t,note:n.m});t+=n.d}}else{flush();marks.push({t,note:null});t+=n.d}if(contig)smap.push([tb,t,n.src[0],n.src[1]])});flush();
         if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t:t0p,d:t-t0p,h:T.h,lp:T.lp,g:0.2});
         if(vA.length>1){const key=dsrc+'|'+vA.map(x=>x[0].toFixed(2)+'>'+x[1].toFixed(3)).join(',');vSpecs[key]={src:dsrc,map:vA};ev.push({type:'recx',t:t0p,key,from:0,d:t-t0p,g:gv})}marks.push({t,note:null})}
       else if(st.k==='glide'){marks.push({t,ph:st.ph,note:st.m1});ev.push({type:'glide',f0:m2f(st.m0),f1:m2f(st.m1),t,d:st.d*0.98,h:T.h,lp:T.lp});t+=st.d;marks.push({t,note:null})}
@@ -6752,7 +6779,7 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const s=earSet(),ev=[],marks=[],s
       else if(st.k==='quiet'){marks.push({t,ph:st.ph,note:null});if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t,d:st.d,h:T.h,lp:T.lp,g:0.2});if(s.ticks&&st.beat)for(let x=0;x<st.d-0.01;x+=st.beat)ev.push({type:'tick',t:t+x,lvl:x===0?1.2:0.8});t+=st.d}
       else if(st.k==='gap')t+=st.d})}
   marks.push({t,ph:'',note:null,di:-2});t+=0.4;if(s.cues!=='none')vo(['complete']);
-  return{ev,marks,starts,drills:all,dur:t+0.6,rec:u===5?(ES.hq||ES.seg):null,recRate:u===5&&ES.hq?PB_SR:VO_SR,vSpecs}}
+  return{smap,ev,marks,starts,drills:all,dur:t+0.6,rec:u===5?(ES.hq||ES.seg):null,recRate:u===5&&ES.hq?PB_SR:VO_SR,vSpecs}}
 async function bgRecs(tl){const keys=Object.keys(tl.vSpecs||{});if(!keys.length)return null;const by={};keys.forEach(k=>{const v=tl.vSpecs[k];(by[v.src]=by[v.src]||{})[k]=v.map});const out={};BG.recSr={};for(const sname of Object.keys(by)){Object.assign(out,await earSongVoices(by[sname],sname==='ES'?ES:SM,BG.recSr))}return out}
 /* synthesis and MP3 encoding; runs in a background worker when possible (also works on the page) */
 async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,out=[],ev=D.ev.slice().sort((a,b)=>a.t-b.t),vo=D.vo,G=0.62*D.vol,TW=2*Math.PI;
@@ -6798,7 +6825,7 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
     if(EARS.u===6){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();SM.plan=smPlan(Math.max(60,EARS.goal-(resumeAt||0)-25));SM.sess={done:new Set(),ids:[]};SM.lastIds=[];$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     if(EARS.u===14){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(mpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');if(!mpList().length)throw new Error('this song has no melodies found yet');EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     if(EARS.u===13){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(lpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
-    const tl=bgTimeline(EARS.u,EARS.lv,Math.max(60,EARS.goal-(resumeAt||0)));EARS.drills=tl.drills;BG.marks=tl.marks;BG.starts=tl.starts;BG.dur=tl.dur;BG.u=EARS.u;BG.offset=resumeAt||0;
+    const tl=bgTimeline(EARS.u,EARS.lv,Math.max(60,EARS.goal-(resumeAt||0)));EARS.drills=tl.drills;BG.smap=tl.smap||[];BG.smi=0;BG.marks=tl.marks;BG.starts=tl.starts;BG.dur=tl.dur;BG.u=EARS.u;BG.offset=resumeAt||0;
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
     $('earPrepTxt').textContent='Lining up the singer with the tones...';const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:bgSessionSr(tl.dur),voSr:VO_SR,vol:earToneVol(),vo:voUsed,rec:tl.rec||null,recRate:tl.recRate,recs,recSr:BG.recSr||{}},p=>{$('earPrepBar').style.width=Math.max(2,Math.round(p*100))+'%';$('earPrepTxt').textContent='Preparing your session... '+Math.round(p*100)+'%'});
     if(!EARS.run){BG.prep=false;return}
@@ -6817,7 +6844,7 @@ function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if
   let ru=null;Object.keys(spans).forEach(u=>{const r=addPractice('ears',+u,spans[u]);if(r)ru=r});BG.logPos=pos;if(ru)setTimeout(()=>fiveStar('Rank '+ru),200)}}
 function bgTimeUpdate(){bgSwapCheck();const pos=bgPos();if(pos-BG.logPos>=30)bgLog();if(document.visibilityState==='visible'&&!BG.raf)bgLoop()}
 function bgSync(){bgSwapCheck();const pos=bgPos(),M=BG.marks;let ph='',note=null,di=-1,ann='',mixL='';for(let i=0;i<M.length&&M[i].t<=pos;i++){const m=M[i];if(m.ph!=null)ph=m.ph;if('note' in m)note=m.note;if(m.di!=null)di=m.di;if(m.ann!=null)ann=m.ann;if(m.ph!=null)mixL=m.mix||''}
-  EARS.ph=ph;EARS.note=note;EARS.ann=ann;EARS.mix=mixL;EARS.di=Math.max(0,di);EARS.el=BG.offset+Math.min(pos,BG.dur);if(SM.sess)smTrack(EARS.di);if(di!==BG.lastDi){BG.lastDi=di;const dr0=EARS.drills[Math.max(0,di)];if(dr0&&di>=0)earMedia(dr0.name)}earUI()}
+  EARS.ph=ph;EARS.note=note;EARS.ann=ann;EARS.mix=mixL;EARS.di=Math.max(0,di);EARS.el=BG.offset+Math.min(pos,BG.dur);if(SM.sess)smTrack(EARS.di);if(di!==BG.lastDi){BG.lastDi=di;const dr0=EARS.drills[Math.max(0,di)];if(dr0&&di>=0)earMedia(dr0.name)}earUI();earSongView(pos)}
 function smTrackPos(){if(EARS.u!==6||!EARS.bg)return;const pos=bgPos();let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});if(di>0)smTrack(di)}
 function bgLoop(){cancelAnimationFrame(BG.raf);BG.raf=null;if(!EARS.run||!EARS.bg)return;if(document.visibilityState!=='visible')return;bgSync();BG.raf=requestAnimationFrame(()=>{BG.raf=null;bgLoop()})}
 document.addEventListener('visibilitychange',()=>{if(EARS.run&&EARS.bg){bgLog();if(document.visibilityState==='visible')bgLoop()}});
@@ -6935,7 +6962,7 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earEngine').onchange=()=>earSave({engine:$('earEngine').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
   $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
   $('earTest').onclick=()=>{earUnlock();setTimeout(()=>earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>earSay('That was your home note, '+spokenName(S.home)+'.',()=>{})),150)};
-  $('earStart').onclick=earStart;smInit();lpInit();mpInit();vxInit();dailyInit();keyInit();lesInit();
+  $('earStart').onclick=earStart;smInit();lpInit();mpInit();vxInit();earViewInit();dailyInit();keyInit();lesInit();
   $('earAnnSet').onchange=()=>earSave({ann:$('earAnnSet').checked});
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
   $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
