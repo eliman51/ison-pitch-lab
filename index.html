@@ -33,7 +33,7 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
 header h1{font-family:var(--f-display);font-weight:400;font-size:1.9rem;margin:0;letter-spacing:.03em}
 header h1 span{color:var(--accent)}
 header p{margin:0;color:var(--muted);font-size:.92rem}
-.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;padding:6px;margin-inline:-6px;
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(6,1fr);gap:2px;padding:6px;margin-inline:-6px;
   background:rgba(11,10,16,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .tabs{isolation:isolate}
 .tabs button{background:transparent;border:0;color:var(--muted);padding:9px 2px;border-radius:8px;font-size:.9rem;transition:color var(--t-med) var(--e-out)}
@@ -698,7 +698,7 @@ html.sketch .seg button[aria-pressed="true"]{background:var(--sk-hatch-on),var(-
 
 /* the bottom bar: see-through paper with an inked edge; the current tab gets a hand-drawn circle */
 html.sketch .tabs{position:fixed;top:auto;left:0;right:0;bottom:0;transform:none;z-index:40;width:auto;margin:0;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));
-  display:grid;grid-template-columns:repeat(5,1fr);gap:2px;border:0;border-radius:0;background:var(--sk-bar);-webkit-backdrop-filter:blur(var(--sk-blur));backdrop-filter:blur(var(--sk-blur));
+  display:grid;grid-template-columns:repeat(6,1fr);gap:2px;border:0;border-radius:0;background:var(--sk-bar);-webkit-backdrop-filter:blur(var(--sk-blur));backdrop-filter:blur(var(--sk-blur));
   box-shadow:0 calc(var(--skw)*-.9) 0 -0.5px var(--ink),0 -5px 0 -2px var(--ink-soft);transition:transform calc(.3s*var(--sk-t)) var(--sk-ease),box-shadow calc(.25s*var(--sk-t)) var(--sk-ease)}
 html.sketch.sk-m-lift.sk-under .tabs{box-shadow:0 calc(var(--skw)*-.9) 0 -0.5px var(--ink),0 -7px 0 -3px var(--ink-soft),0 -12px 18px -10px var(--sk-shade)}
 html.sketch .tabs::before,html.sketch .tabs .tabink{display:none}
@@ -973,6 +973,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   <nav class="tabs" role="tablist" aria-label="Sections"><span class="tabink" id="tabInk" aria-hidden="true"></span>
     <button role="tab" id="tab-practice" aria-selected="true" aria-controls="v-practice">Practice</button>
     <button role="tab" id="tab-songs" aria-selected="false" aria-controls="v-songs">Songs</button>
+    <button role="tab" id="tab-chant" aria-selected="false" aria-controls="v-chant">Chant</button>
     <button role="tab" id="tab-tuner" aria-selected="false" aria-controls="v-tuner">Tuner</button>
     <button role="tab" id="tab-stats" aria-selected="false" aria-controls="v-stats">Stats</button>
     <button role="tab" id="tab-settings" aria-selected="false" aria-controls="v-settings">Settings</button>
@@ -1542,6 +1543,78 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <p class="status" style="margin:0">Headphones help. A drone through the speaker gets picked up by the mic.</p>
   </section>
   </div>
+  <div class="view" id="v-chant" hidden>
+  <style>
+  .chkar{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+  .chknow{font-size:1.4rem;line-height:1.55;font-weight:600;min-height:2.2em}
+  .chknow .s{color:var(--muted);transition:color .12s}
+  .chknow .s.done{color:inherit;opacity:.5}
+  .chknow .s.on{color:var(--lapis);text-decoration:underline;text-underline-offset:6px;text-decoration-thickness:3px}
+  .chknow .s.ac{font-weight:800}
+  .chknext{font-size:.98rem;color:var(--muted);min-height:1.4em}
+  .chkpos{font-size:.78rem;color:var(--muted)}
+  #chRoll{width:100%;height:130px;display:block;color:inherit}
+  .chmels{display:flex;flex-direction:column;gap:6px}
+  .chmel{display:flex;flex-direction:column;align-items:flex-start;text-align:left;gap:2px;padding:8px 12px;width:100%}
+  .chmel small{color:var(--muted);font-weight:500;font-size:.78rem}
+  .chstar{color:var(--lapis)}
+  .chgl{margin-top:6px}
+  .chlines{display:flex;flex-direction:column;gap:4px}
+  .chlines button{text-align:left;font-size:.88rem;padding:6px 10px;font-weight:500;width:100%}
+  .chlines button small{color:var(--muted);margin-right:4px}
+  .chlines button.cur{border-color:var(--lapis);box-shadow:inset 0 0 0 1px var(--lapis)}
+  .chsl{display:flex;flex-direction:column;gap:2px}
+  .chsl input[type=range]{width:100%}
+  .chsl .label b{color:inherit;font-weight:600}
+  #chText{width:100%;min-height:8em;font:inherit;font-size:.95rem;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;box-sizing:border-box}
+  .chhow{font-size:.9rem;color:var(--muted)}
+  .chhow li{margin:4px 0}
+  .chbig{font-size:1rem;padding:10px 16px}
+  </style>
+  <section class="panel" aria-labelledby="t-chant">
+    <h2 id="t-chant">Chant Maker</h2>
+    <p class="status" style="margin:0">Read a psalm on one steady note. Pick a scale and a melody, and the app turns your own voice into a chant you can listen to, loop and learn.</p>
+    <div class="field"><label class="label" for="chSrc">1. Your reading</label><select id="chSrc"></select>
+      <div class="row"><button id="chRec">&#9679; Record</button><label class="btnlike" style="cursor:pointer"><input type="file" id="chFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Upload a recording</span></label><button id="chHear" class="lpplay">&#9654; Hear the reading</button></div>
+      <p class="status" id="chSrcSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <details class="opts"><summary>How to record a good reading</summary><ol class="chhow"><li>Hold one steady note, like a reader in church. A flat, held note is the easiest to reshape.</li><li>Use a comfortable middle note, not your lowest.</li><li>Go slowly and let each vowel ring.</li><li>Say every syllable clearly.</li><li>Keep your volume up to the end of each line.</li><li>Use a quiet, soft room with no fan or motor running. Hold the phone 6 to 8 inches away.</li><li>Leave a second of silence before and after.</li></ol></details></div>
+    <div class="field"><label class="label" for="chText">2. The words you read (so every word is matched to its note)</label>
+      <textarea id="chText" placeholder="Paste or type the words exactly as you said them. Start a new line wherever the melody should take a breath."></textarea>
+      <p class="status" id="chTxtSt" style="margin:4px 0 0" aria-live="polite"></p></div>
+  </section>
+  <section class="panel" id="chPlayer" hidden aria-labelledby="t-chplay">
+    <h2 id="t-chplay">Listen</h2>
+    <div class="row"><button id="chPlay" class="primary chbig">&#9654; Play the chant</button><button id="chLoop" aria-pressed="false">Loop</button><span class="status" id="chSum"></span></div>
+    <div class="chkar"><span class="chkpos" id="chKPos"></span><canvas id="chRoll" aria-hidden="true"></canvas><div class="chknow" id="chKNow" aria-live="off"></div><div class="chknext" id="chKNext"></div></div>
+    <audio id="chAud" preload="auto"></audio><audio id="chOrig" preload="none"></audio>
+    <details class="opts"><summary>All lines (tap one to start there)</summary><div class="chlines" id="chLines"></div></details>
+  </section>
+  <section class="panel" aria-labelledby="t-chshape">
+    <h2 id="t-chshape">3. Shape the chant</h2>
+    <div class="field"><label class="label" for="chScale">Scale (the flavor of the notes)</label><select id="chScale"></select></div>
+    <div class="field chsl"><label class="label" for="chLen">Length: <b id="chLenV"></b></label><input type="range" id="chLen" min="30" max="300" step="1"><div class="row"><button id="chLenNat" class="lpplay">Back to a natural pace</button></div></div>
+    <div class="field"><span class="label">Melody (a star marks the best fits)</span><div class="chmels" id="chMels"></div><p class="status" id="chMelD" style="margin:4px 0 0"></p></div>
+    <div class="field chsl"><label class="label" for="chUp">Height: <b id="chUpV"></b></label><input type="range" id="chUp" min="-7" max="7" step="1"><div class="row"><button id="chUpAuto" class="lpplay">Closest to my voice</button></div></div>
+    <div class="field chsl"><label class="label" for="chRange">How far the melody travels: <b id="chRangeV"></b></label><input type="range" id="chRange" min="50" max="200" step="25"></div>
+    <details class="opts"><summary>Fine tuning: endings, breaths, accents, drone</summary>
+      <div class="field chsl"><label class="label" for="chHold">Hold the last note of a line: <b id="chHoldV"></b></label><input type="range" id="chHold" min="0.6" max="4" step="0.1"></div>
+      <div class="field chsl"><label class="label" for="chPause">Breath between lines: <b id="chPauseV"></b></label><input type="range" id="chPause" min="0.3" max="2.5" step="0.1"></div>
+      <div class="field chsl"><label class="label" for="chLean">Lean on the accented syllables: <b id="chLeanV"></b></label><input type="range" id="chLean" min="0" max="10" step="1"></div>
+      <div class="field"><span class="label">Rhythm of the reciting notes</span><div class="chips earchips" id="chEven"><button data-v="0">Follow my own rhythm</button><button data-v="1">Even</button></div></div>
+      <div class="field chsl"><label class="label" for="chDrone">Drone under the voice: <b id="chDroneV"></b></label><input type="range" id="chDrone" min="0" max="10" step="1"></div>
+      <div class="field chsl"><label class="label" for="chGuide">Guide tone on the melody: <b id="chGuideV"></b></label><input type="range" id="chGuide" min="0" max="10" step="1"></div>
+    </details>
+  </section>
+  <section class="panel" aria-labelledby="t-chsave">
+    <h2 id="t-chsave">4. Keep it</h2>
+    <p class="status" style="margin:0">This screen is a playground: nothing is saved until you say so.</p>
+    <div class="field"><label class="label" for="chName">Name for the song</label><input type="text" id="chName" maxlength="60" placeholder="For example: Psalm 118, Forever O Lord"></div>
+    <div class="row"><button id="chSave" class="primary">Save as a song in the app</button><a id="chDl" class="lpplay" download="chant.wav" style="border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit">Download the audio</a></div>
+    <div id="chSaveAsk" hidden><p class="status" id="chSaveQ" style="margin:0 0 6px"></p><div class="row"><button id="chSaveYes" class="primary">Yes, save it</button><button id="chSaveNo">Cancel</button></div></div>
+    <p class="status" id="chSaveSt" style="margin:0" aria-live="polite"></p>
+  </section>
+  </div>
+
   <div class="view" id="v-tuner" hidden>
   <section class="panel" aria-labelledby="t-live">
     <h2 id="t-live">Live tuner</h2>
@@ -3334,7 +3407,7 @@ window.addEventListener('scroll',()=>{const t=$('statTip');if(t&&!t.hidden)t.hid
 {let rz=0,lw=innerWidth;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth!==lw&&!$('v-stats').hidden){lw=innerWidth;renderStats()}},300)})}
 
 /* ================= Tabs ================= */
-const TABS=['practice','songs','tuner','stats','settings'];
+const TABS=['practice','songs','chant','tuner','stats','settings'];
 const SONG_UI={cv:'sing',tgt:'tgt',you:'you',h:260},LESSON_UI={cv:'lsCanvas',tgt:'lsTgt',you:'lsYou',h:280};
 function placeTabInk(){if(typeof placeTabLiquid==='function'){placeTabLiquid();return}const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
   nav.style.setProperty('--tx',b.offsetLeft+'px');nav.style.setProperty('--tw',b.offsetWidth+'px');ink.style.left=(b.offsetLeft+b.offsetWidth*0.2)+'px';ink.style.width=(b.offsetWidth*0.6)+'px'}
@@ -3342,7 +3415,7 @@ window.addEventListener('resize',()=>placeTabInk());
 function showTab(k){
   if(L.active&&k!=='practice'&&G.lesson&&G.playing)lessonPause();
   const was=TABS.find(t=>!$('v-'+t).hidden);
-  TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});
+  TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});if(k==='chant')chOpen();else if(CHM.inited)chStop();
   placeTabInk();if(was&&was!==k&&uiMotion()){const v=$('v-'+k);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter')}
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
@@ -5769,7 +5842,7 @@ function tiltStart(){if(tiltState==='on'||!tiltOn())return;const D=window.Device
 document.addEventListener('pointerdown',()=>{if(tiltState==='off')tiltStart()},{passive:true});
 /* ---- tab bar: icons, liquid highlight, compact while scrolling down ---- */
 const TAB_ICONS={practice:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',songs:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
-  tuner:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.4"/>',stats:'<path d="M4 20h16M6.5 20v-6M11.5 20V6M16.5 20v-9"/>',
+  chant:'<path d="M5 5.5h14v13H5z"/><path d="M8.5 9.5h7M8.5 13h4.5"/><path d="M16.5 12v4.2"/><circle cx="15.2" cy="16.3" r="1.3"/>',tuner:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.4"/>',stats:'<path d="M4 20h16M6.5 20v-6M11.5 20V6M16.5 20v-9"/>',
   settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>'};
 const ICO=(p,fill)=>'<svg viewBox="0 0 24 24" fill="'+(fill?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
 function tabIcons(){TABS.forEach(t=>{const b=$('tab-'+t);if(b.querySelector('svg'))return;const s=document.createElement('span');s.textContent=b.textContent;b.textContent='';b.insertAdjacentHTML('afterbegin',ICO(TAB_ICONS[t]));b.appendChild(s)})}
@@ -7438,6 +7511,312 @@ $('refNote').onchange=()=>{S.ref=+$('refNote').value;retuneDrone();redraw();if(G
 $('lane').onchange=()=>{S.lane=$('lane').checked;redraw()};
 window.addEventListener('resize',()=>{drawTake(audio.paused?null:audio.currentTime);if(!live)drawLive(0);if(!G.playing)drawSing()});
 if(window.matchMedia)matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change',()=>{drawTake(null);if(!live)drawLive(0)});
+
+/* ================= Chant Maker: engine ================= */
+/* in-place radix-2 FFT */
+function chFFT(re,im){const n=re.length;for(let i=1,j=0;i<n;i++){let b=n>>1;for(;j&b;b>>=1)j^=b;j^=b;if(i<j){let t=re[i];re[i]=re[j];re[j]=t;t=im[i];im[i]=im[j];im[j]=t}}
+  for(let len=2;len<=n;len<<=1){const ang=-2*Math.PI/len,wr=Math.cos(ang),wi=Math.sin(ang);for(let i=0;i<n;i+=len){let cr=1,ci=0;for(let k=0;k<len/2;k++){const a=i+k,b=a+len/2,xr=re[b]*cr-im[b]*ci,xi=re[b]*ci+im[b]*cr;re[b]=re[a]-xr;im[b]=im[a]-xi;re[a]+=xr;im[a]+=xi;const t=cr*wr-ci*wi;ci=cr*wi+ci*wr;cr=t}}}}
+/* steady background noise (a fan, a hum, room hiss) is measured in the quietest moments and turned down everywhere */
+function chClean(x,sr){const N=1024,H=256,L=x.length,nf=Math.max(1,Math.floor((L-N)/H)+1),nb=N/2+1,win=new Float32Array(N);for(let i=0;i<N;i++)win[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+  const mag=new Float32Array(nf*nb),re=new Float32Array(N),im=new Float32Array(N);
+  for(let f=0;f<nf;f++){const s=f*H;for(let i=0;i<N;i++){re[i]=(x[s+i]||0)*win[i];im[i]=0}chFFT(re,im);for(let b=0;b<nb;b++)mag[f*nb+b]=Math.hypot(re[b],im[b])}
+  /* the noise level of each pitch band: its 12th-percentile loudness over the whole recording */
+  const noise=new Float32Array(nb),col=new Float32Array(nf);for(let b=0;b<nb;b++){for(let f=0;f<nf;f++)col[f]=mag[f*nb+b];const s=Array.from(col).sort((p,q)=>p-q);noise[b]=s[Math.floor(nf*0.25)]*2.6}
+  let tot=0,nz=0;for(let b=0;b<nb;b++){nz+=noise[b]*noise[b]}for(let i=0;i<mag.length;i++)tot+=mag[i]*mag[i];const snr=10*Math.log10((tot/nf)/(nz+1e-12)+1e-12);
+  const out=new Float32Array(L),ws=new Float32Array(L),g=new Float32Array(nb),gp=new Float32Array(nb).fill(1),g2=new Float32Array(nb),FL=0.045;
+  for(let f=0;f<nf;f++){const s=f*H;for(let i=0;i<N;i++){re[i]=(x[s+i]||0)*win[i];im[i]=0}chFFT(re,im);
+    for(let b=0;b<nb;b++){const m=mag[f*nb+b],r=noise[b]/(m+1e-9);let v=1-r*r;v=v<FL?FL:v;v=v<gp[b]?0.5*gp[b]+0.5*v:v;g[b]=v;gp[b]=v}
+    for(let b=0;b<nb;b++){const a=g[b>0?b-1:b],c=g[b<nb-1?b+1:b];g2[b]=(a+2*g[b]+c)/4}
+    for(let b=0;b<nb;b++){re[b]*=g2[b];im[b]*=g2[b];if(b>0&&b<nb-1){re[N-b]*=g2[b];im[N-b]*=g2[b]}}
+    /* inverse */for(let i=0;i<N;i++)im[i]=-im[i];chFFT(re,im);for(let i=0;i<N;i++){const o=s+i;if(o<L){out[o]+=re[i]/N*win[i];ws[o]+=win[i]*win[i]}}}
+  for(let i=0;i<L;i++)out[i]=ws[i]>1e-3?out[i]/ws[i]:x[i];return{y:out,snr}}
+/* everything measured from the recording, every 5 ms: pitch, loudness, vowel strength, how fast the sound is changing */
+function chFeat(x0,sr){const cl=chClean(x0,sr),x=cl.y,tr=psTrack(x,sr),regs=psMarks(x,tr),hop=tr.hop,off=tr.off,n=tr.f0.length,L=x.length,y=new Float32Array(L);
+  {const a1=Math.exp(-2*Math.PI*250/sr),a2=Math.exp(-2*Math.PI*2600/sr);let l1=0,l2=0,l3=0;for(let i=0;i<L;i++){l1=a1*l1+(1-a1)*x[i];const h=x[i]-l1;l2=a2*l2+(1-a2)*h;l3=a2*l3+(1-a2)*l2;y[i]=l3}}
+  const W=Math.round(sr*0.046),env=new Float32Array(n),son=new Float32Array(n);
+  for(let f=0;f<n;f++){const c=f*hop+off,a=Math.max(0,c-(W>>1)),b=Math.min(L,a+W);let e=0,s=0;for(let i=a;i<b;i++){e+=x[i]*x[i];s+=y[i]*y[i]}env[f]=10*Math.log10(e/W+1e-10);son[f]=10*Math.log10(s/W+1e-10)}
+  const N=1024,NB=14,re=new Float32Array(N),im=new Float32Array(N),win=new Float32Array(N),ed=[];for(let i=0;i<N;i++)win[i]=0.5-0.5*Math.cos(2*Math.PI*i/N);
+  for(let b=0;b<=NB;b++)ed.push(Math.round(150*Math.pow(5000/150,b/NB)/sr*N));
+  const V=new Float32Array(n*NB);for(let f=0;f<n;f++){const c=f*hop+off-(N>>1);for(let i=0;i<N;i++){const k=c+i;re[i]=k>=0&&k<L?x[k]*win[i]:0;im[i]=0}chFFT(re,im);let mean=0;
+    for(let b=0;b<NB;b++){let e=0;for(let k=ed[b];k<Math.max(ed[b]+1,ed[b+1]);k++)e+=re[k]*re[k]+im[k]*im[k];const v=Math.log(e+1e-9);V[f*NB+b]=v;mean+=v}mean/=NB;for(let b=0;b<NB;b++)V[f*NB+b]-=mean}
+  const flux=new Float32Array(n);for(let f=3;f<n-3;f++){let d=0;for(let b=0;b<NB;b++){const q=V[(f+3)*NB+b]-V[(f-3)*NB+b];d+=q*q}flux[f]=Math.sqrt(d/NB)}
+  return{x,regs,F:{f0:tr.f0,hop,off,sr,n,env,son,flux,snr:cl.snr,dur:L/sr}}}
+
+/* ---- the words ---- */
+const CH_FN=new Set('the a an of and to in on at by for from with as is are was were be been am it its his her my thy thine mine our your yours their me he she we ye you they them him us or nor but if that which who whom this these those than so shall will would should may might can could do does did have has had hath unto into upon o oh thee thou i'.split(' '));
+const CH_EX={blessed:2,wicked:2,naked:2,sacred:2,hundred:2,beloved:3,prayer:1,prayers:1,every:2,evening:2,create:2,created:3,creation:3,creator:3,idea:3,israel:3,friend:1,friends:1,something:2,sometimes:2,therefore:2,wherefore:2,people:2,peoples:2,heaven:2,heavens:2,forever:3,being:2,seeing:2,poem:2,lion:2,lions:2,quiet:2,science:2,violence:3,area:3,real:1,evil:2,even:2,iron:2,business:2,righteous:2,righteousness:3,alleluia:4,hallelujah:4,amen:2,jesus:2,toward:2,towards:2,ordinance:3,ordinances:4,different:2,generation:4,generations:4,humiliation:5};
+const CH_S1=new Set('precept precepts refuge reverence ready comfort comforts comforted conquer inner into enemy enemies enter entered envy ever every excellent fortress perfect perish perished upright under utter uttermost evil even evening open over only also always any many very forest forty promise promises prophet prophets proper province present presence perfectly comfort concert conscience constant contrite counsel counsels country covenant comely company compass enmity entrance envious exile exit infant instant insect incense image inward upward forward surface subject substance purpose mercy mercies sorrow'.split(' '));
+const CH_A2=new Set('above about again against among away abide abides alone arise awake afraid aloud astray abhor along around aside before behind below beneath beside between beyond because become began begin believe belong beloved'.split(' '));
+function chWordSyl(raw){
+  const forced=raw.split(/[-·•]/).filter(Boolean);if(forced.length>1)return forced;
+  const w=raw,l=w.toLowerCase(),n=l.length,isV=i=>{const c=l[i];if('aeio'.includes(c))return true;if(c==='u')return!(i>0&&(l[i-1]==='q'||(l[i-1]==='g'&&i+1<n&&'aeiou'.includes(l[i+1]))));
+    if(c==='y')return!(i===0&&n>1&&'aeiou'.includes(l[1]))&&!(i>0&&i+1<n&&'aeiou'.includes(l[i-1])&&'aeiou'.includes(l[i+1]));return false};
+  /* each vowel group is one beat, with the usual English exceptions */
+  let nu=[];for(let i=0;i<n;){if(!isV(i)){i++;continue}let j=i;while(j<n&&isV(j))j++;nu.push([i,j]);i=j}
+  const out=[];nu.forEach(([a,b])=>{const g=l.slice(a,b),pre=l[a-1]||'',nx=l.slice(b,b+2);let cut=-1;
+    if(g.length>1){const k=g.search(/i[aou]/);if(k>=0){const before=k>0?g[k-1]:pre;if(!(/[tcsgx]/.test(before)&&k===0)&&!/^(tion|sion|cion)/.test(pre+g+nx))cut=a+k+1}
+      if(cut<0&&g==='ua'&&pre!=='q'&&pre!=='g')cut=a+1;
+      if(cut<0&&g==='ie'&&(nx[0]==='t'||nx==='nc'||nx==='nt')&&!/[tc]/.test(pre))cut=a+1;
+      if(cut<0&&g[g.length-1]==='i'&&nx==='ng')cut=b-1;
+      if(cut<0&&g==='uia')cut=a+2}
+    if(cut>0){out.push([a,cut]);out.push([cut,b])}else out.push([a,b])});
+  nu=out;
+  const drop=k=>{if(nu.length>1)nu.splice(k,1)};
+  if(nu.length>1){const[a,b]=nu[nu.length-1],g=l.slice(a,b),rest=l.slice(b),p1=l[a-1]||'',p2=l[a-2]||'';
+    if(g==='e'&&rest===''){if(!(p1==='l'&&p2&&!'aeiouy'.includes(p2)))drop(nu.length-1)}
+    else if(g==='e'&&rest==='d'){if(!'td'.includes(p1))drop(nu.length-1)}
+    else if(g==='e'&&rest==='s'){if(!'sxzcg'.includes(p1)&&!((p1==='h')&&'sc'.includes(p2))&&!(p1==='l'&&p2&&!'aeiouy'.includes(p2)))drop(nu.length-1)}}
+  /* a silent e before -ly -ness -ful -less -ment */
+  if(nu.length>2){for(let k=nu.length-2;k>=1;k--){const[a,b]=nu[k];if(l.slice(a,b)==='e'&&/^(ly|ness|ful|less|ment|ments)$/.test(l.slice(b))&&!'aeiouy'.includes(l[a-1]||'a')&&!(l[a-1]==='l'&&!'aeiouy'.includes(l[a-2]||'a'))){drop(k);break}}}
+  const key=l.replace(/[^a-z]/g,''),want=CH_EX[key];
+  if(want){while(nu.length>want)nu.splice(nu.length-1,1);while(nu.length<want){/* split the longest group */let bi=0,bl=0;nu.forEach(([a,b],i)=>{if(b-a>bl){bl=b-a;bi=i}});const[a,b]=nu[bi];if(b-a<2)break;nu.splice(bi,1,[a,a+1],[a+1,b])}}
+  if(!nu.length)return[w];
+  /* where to break the letters between two beats */
+  const DG=['th','sh','ch','ph','wh','gh','ck','ng'],cuts=[];for(let k=0;k+1<nu.length;k++){const e=nu[k][1],s=nu[k+1][0],run=s-e;let c;
+    if(run<=0)c=s;else if(run===1)c=e;else{const dg=DG.includes(l.slice(e,e+2));c=run===2&&dg?e:dg?e+2:e+1}cuts.push(c)}
+  const parts=[];let p=0;cuts.forEach(c=>{parts.push(w.slice(p,c));p=c});parts.push(w.slice(p));return parts.filter(s=>s.length)}
+function chWordStress(l,k){l=l.replace(/[^a-z]/g,'');if(k<=1)return CH_FN.has(l)?-1:0;
+  if(/(tion|sion|cian|tious|cious|tions|sions)$/.test(l))return Math.max(0,k-2);if(/(ic|ics|ish)$/.test(l)&&k>2)return k-2;if(/(ity|ety|ify|ual|ial|ious|ities|ually)$/.test(l)&&k>=3)return k-3;
+  if(CH_S1.has(l))return 0;if(CH_A2.has(l))return 1;if(/^under/.test(l)&&k>=3)return 2;
+  if(/^un/.test(l)&&k>=3)return /^un(be|de|re|pre|con|com|in|en|ex|dis|for)/.test(l)?2:1;
+  if(/^(be|de|re|pre|pro|con|com|in|im|en|em|ex|dis|mis|for|per|sur|sub|ob|with|up|to)[^aeiouy]/.test(l)||/^a(cc|ff|pp|ss|tt|ll|rr)/.test(l))return 1;
+  if(/^(e|o)[^aeiouy][aeiouy]/.test(l)&&/(ternal|bey|beys|bedient|lect|vent|rase|normous|ternity)$/.test(l))return 1;return 0}
+/* the pasted words -> a flat list of beats, each knowing its word, its place in the sentence and whether it carries the accent */
+function chText(str){const S=[];if(!str||!str.trim())return S;let wi=0,si=0,ph=0,brk=false;
+  str=str.replace(/([A-Za-z])-\s*\n\s*([a-z])/g,'$1$2');
+  str.split(/\n/).forEach(line=>{const toks=line.split(/\s+/).filter(Boolean);let firstInLine=true;toks.forEach(tk=>{const core=tk.replace(/^[^A-Za-z]+|[^A-Za-z]+$/g,'');if(!core||!/[A-Za-z]/.test(core))return;
+      const tail=(tk.match(/[.,;:!?]+["'”’)]*$/)||[''])[0],pc=/[.!?]/.test(tail)?3:/[;:]/.test(tail)?2:/,/.test(tail)?1:0;
+      if((firstInLine||brk)&&S.length)ph++;brk=false;const parts=chWordSyl(core),st=chWordStress(core.toLowerCase(),parts.length);
+      parts.forEach((p,k)=>S.push({t:p,w:wi,k,nk:parts.length,word:core,ws:k===0,we:k===parts.length-1,pri:st===k?1:0,pc:k===parts.length-1?pc:0,nl:k===0&&firstInLine,sent:si,ph}));
+      wi++;firstInLine=false;if(pc>=2)brk=true;if(pc>=3)si++})});
+  /* place of each word in its sentence */
+  const bySent={};S.forEach(s=>{(bySent[s.sent]=bySent[s.sent]||new Set()).add(s.w)});const pos={};Object.keys(bySent).forEach(k=>{const a=[...bySent[k]].sort((p,q)=>p-q);a.forEach((w,i)=>{pos[w]=[i+1,a.length]})});
+  S.forEach(s=>{s.wp=pos[s.w][0];s.wn=pos[s.w][1]});return S}
+
+/* ---- finding the syllables, matching them to the words, and marking the accents ---- */
+function chSeg(F,T){const n=F.n,dt=F.hop/F.sr,f0=F.f0,env=F.env;
+  const sm=(a,w)=>{const o=new Float32Array(a.length),h=w>>1;for(let i=0;i<a.length;i++){let s=0,c=0;for(let k=Math.max(0,i-h);k<=Math.min(a.length-1,i+h);k++){s+=a[k];c++}o[i]=s/c}return o};
+  /* the reader's own note: sounds far from it are not his voice */
+  const ms=[];for(let i=0;i<n;i++)if(f0[i])ms.push(69+12*Math.log2(f0[i]/440));ms.sort((a,b)=>a-b);const med=ms.length?ms[ms.length>>1]:50;
+  const vc=new Uint8Array(n);for(let i=0;i<n;i++)if(f0[i]&&Math.abs(69+12*Math.log2(f0[i]/440)-med)<9)vc[i]=1;
+  const s0=new Float32Array(n);for(let i=0;i<n;i++)s0[i]=F.son[i]-(vc[i]?0:8);const S=sm(sm(s0,5),5);
+  const srt=Array.from(env).sort((a,b)=>a-b),top=srt[Math.floor(n*0.95)];
+  /* stretches of his voice; tiny holes are bridged, tiny specks dropped */
+  const runs=[];{let i=0;while(i<n){if(!vc[i]){i++;continue}let j=i;while(j<n&&vc[j])j++;if(runs.length&&(i-runs[runs.length-1][1])*dt<0.05)runs[runs.length-1][1]=j;else runs.push([i,j]);i=j}}
+  let fm=0,fs=0,fc=0;for(let i=0;i<n;i++)if(vc[i]){fm+=F.flux[i];fc++}fm/=fc||1;for(let i=0;i<n;i++)if(vc[i])fs+=(F.flux[i]-fm)**2;fs=Math.sqrt(fs/(fc||1))||1;
+  /* each stretch is cut at every real dip in loudness: these pieces are the raw material */
+  const cutRun=(a,b,TH,ZH)=>{let pk=[];for(let i=a+1;i<b-1;i++)if(S[i]>=S[i-1]&&S[i]>S[i+1])pk.push(i);let mx=a;for(let i=a;i<b;i++)if(S[i]>S[mx])mx=i;if(!pk.length)pk=[mx];
+    const vmin=(p,q)=>{let m=p;for(let i=p;i<=q;i++)if(S[i]<S[m])m=i;return m};let vl=[];for(let k=0;k+1<pk.length;k++)vl.push(vmin(pk[k],pk[k+1]));
+    const dep=k=>Math.min(S[pk[k]],S[pk[k+1]])-S[vl[k]];
+    while(vl.length){let bi=0,bd=1e9;for(let k=0;k<vl.length;k++){const d=dep(k);if(d<bd){bd=d;bi=k}}if(bd>=TH)break;const keep=S[pk[bi]]>=S[pk[bi+1]]?pk[bi]:pk[bi+1];pk.splice(bi,2,keep);vl.splice(bi,1);
+      if(bi>0)vl[bi-1]=vmin(pk[bi-1],pk[bi]);if(bi<vl.length)vl[bi]=vmin(pk[bi],pk[bi+1])}
+    const cuts=vl.map((v,k)=>({i:v,d:dep(k)})).filter(c=>(c.i-a)*dt>0.05&&(b-c.i)*dt>0.05);
+    /* two vowels touching with no dip: cut where the sound itself changes fastest */
+    if(ZH){const ed=[a].concat(cuts.map(c=>c.i),[b]);for(let k=0;k+1<ed.length;k++){const p=ed[k],q=ed[k+1];if((q-p)*dt<0.45)continue;let bi=-1,bz=ZH;for(let i=p+18;i<q-18;i++){if(F.flux[i]>=F.flux[i-1]&&F.flux[i]>F.flux[i+1]){const z=(F.flux[i]-fm)/fs;if(z>bz){bz=z;bi=i}}}if(bi>=0)cuts.push({i:bi,d:0,h:1})}cuts.sort((x,y)=>x.i-y.i)}
+    return cuts};
+  const mkAtoms=(TH,ZH)=>{const A=[];runs.forEach(([a,b])=>{if((b-a)*dt<0.035)return;const cuts=cutRun(a,b,TH,ZH),ed=[a].concat(cuts.map(c=>c.i),[b]);for(let k=0;k+1<ed.length;k++){let c=ed[k];for(let i=ed[k];i<ed[k+1];i++)if(S[i]>S[c])c=i;
+        A.push({a:ed[k],b:ed[k+1],c,pk:S[c],dur:(ed[k+1]-ed[k])*dt,dip:k>0?cuts[k-1]:null})}});
+    A.forEach((q,j)=>{q.gap=j>0&&!q.dip?(q.a-A[j-1].b)*dt:0});const ds=A.map(q=>q.dur).sort((x,y)=>x-y),mdur=ds[ds.length>>1]||0.3;A.forEach((q,j)=>{q.minor=q.dur<0.16||q.pk<top-22;const pv=A[j-1],nx=A[j+1],near=[];if(pv&&(q.dip||q.gap<0.12))near.push(pv.pk);if(nx&&(nx.dip||(nx.a-q.b)*dt<0.12))near.push(nx.pk);q.weak=near.length>0&&q.pk<Math.max.apply(null,near)-10;q.tail=(q.minor||q.weak)&&!(nx&&(nx.dip||(nx.a-q.b)*dt<0.12)&&nx.pk>q.pk+6)});return A};
+  const halve=A=>{let bi=0;A.forEach((q,i)=>{if(q.dur>A[bi].dur)bi=i});const q=A[bi],m=Math.round((q.a+q.b)/2);if((q.b-q.a)*dt<0.12)return false;
+    const mk=(a,b,dip,gap)=>{let c=a;for(let i=a;i<b;i++)if(S[i]>S[c])c=i;return{a,b,c,pk:S[c],dur:(b-a)*dt,dip,gap,minor:false}};A.splice(bi,1,mk(q.a,m,q.dip,q.gap),mk(m,q.b,{i:m,d:0,h:1},0));return true};
+  let A=T&&T.length?mkAtoms(1.2,1.5):mkAtoms(2.5,3);if(!A.length)return{phr:[],med,matched:false,nSyl:0,dt};
+  let groups=null,matched=false;const N=T?T.length:0;
+  if(N){while(A.length<N&&halve(A));
+    if(A.length>=N){/* best way to hand the pieces out to the syllables of the text, in order */
+      const nA=A.length,MX=7,INF=1e9,D=[],B=[];for(let i=0;i<=N;i++){D.push(new Float64Array(nA+1).fill(INF));B.push(new Int16Array(nA+1))}D[0][0]=0;
+      const mdS=A.reduce((x,q)=>x+q.dur,0)/N;const mc=j=>{const q=A[j],p=A[j-1];if(q.dip)return q.dip.h?0.3:q.weak||p.weak?0.2:Math.min(1.4,0.25*q.dip.d);return q.tail&&q.gap<0.5?0.3:1.5+5*q.gap};/* cost of keeping piece j in the same syllable as piece j-1 */
+      const bc=(bt,j)=>{const q=A[j];if(q.dip)return bt===0?0:bt===1?0.4:bt===2?1.5:3;const g=q.gap;return bt===0?(g>0.6?(g-0.6)*2:0):bt===1?0:bt===2?(g<0.3?0.5:0)-Math.min(g,2)*0.5:(g<0.3?1:0)-Math.min(g,2)*1.5};
+      const bt=i=>{const s=T[i],p=T[i-1];return s.ph!==p.ph?3:!s.ws?0:p.pc===1?2:1};
+      for(let i=1;i<=N;i++)for(let j=i;j<=nA-(N-i);j++){let best=INF,bk=-1,m=0;for(let k=j-1;k>=Math.max(i-1,j-MX);k--){/* syllable i = pieces k..j-1 */if(k<j-1)m+=mc(k+1);if(D[i-1][k]>=INF)continue;
+            let c=D[i-1][k]+m+(i>1?bc(bt(i-1),k):0);let allMinor=true;for(let u=k;u<j;u++)if(!A[u].minor&&!A[u].weak){allMinor=false;break}if(allMinor)c+=1.2;const lr=Math.log(Math.max(0.03,(A[j-1].b-A[k].a)*dt)/mdS);c+=0.5*lr*lr;if(c<best){best=c;bk=k}}D[i][j]=best;B[i][j]=bk}
+      if(D[N][nA]<INF){groups=[];let j=nA;for(let i=N;i>=1;i--){const k=B[i][j];groups.unshift([k,j]);j=k}matched=true}}}
+  if(!groups){groups=[];A.forEach((q,j)=>{if(groups.length&&(q.tail&&q.gap<0.5||q.dip&&(q.weak||A[j-1].weak)))groups[groups.length-1][1]=j+1;else groups.push([j,j+1])})}
+  /* each syllable: its full extent with consonants, and the steady part of its vowel (the part that can be stretched) */
+  const lo=top-30,syl=groups.map(([k,j])=>{let best=k;for(let u=k;u<j;u++)if(A[u].pk>A[best].pk)best=u;const q=A[best];let na=q.c,nb=q.c;while(na-1>=q.a&&vc[na-1]&&S[na-1]>=S[q.c]-5)na--;while(nb+1<q.b&&vc[nb+1]&&S[nb+1]>=S[q.c]-5)nb++;nb++;
+    const v=[];for(let i=na;i<nb;i++)if(f0[i])v.push(69+12*Math.log2(f0[i]/440));v.sort((x,y)=>x-y);return{ca:A[k].a,cb:A[j-1].b,na,nb,pk:q.pk,m:v.length?v[v.length>>1]:med,gap:A[k].gap,dipStart:!!A[k].dip}});
+  syl.forEach((s,i)=>{const prev=i>0?syl[i-1].cb:0,next=i+1<syl.length?syl[i+1].ca:n;let a=s.ca,b=s.cb;if(!s.dipStart){const lim=Math.max(prev+Math.round((s.ca-prev)*0.45),s.ca-Math.round(0.2/dt));while(a-1>=lim&&env[a-1]>lo)a--;a=Math.max(lim,a-2)}
+    if(!(i+1<syl.length&&syl[i+1].dipStart)){const lim=Math.min(next-Math.round((next-s.cb)*0.45),s.cb+Math.round(0.28/dt));while(b<lim&&env[b]>lo)b++;b=Math.min(lim,b+2)}s.a=Math.max(0,a);s.b=Math.min(n,b);s.dur=(s.cb-s.ca)*dt});
+  if(matched)syl.forEach((s,i)=>{s.x=T[i]});
+  /* lines: from the text when there is one, from the long silences when there is not */
+  const phr=[];if(matched){syl.forEach(s=>{if(!phr.length||s.x.ph!==phr[phr.length-1].id)phr.push({id:s.x.ph,syl:[]});phr[phr.length-1].syl.push(s)})}
+  else{const gs=syl.slice(1).map(s=>s.gap).filter(g=>g>0.03).sort((x,y)=>x-y),mg=gs.length?gs[gs.length>>1]:0,lim=Math.max(0.45,Math.min(2.5,2.2*mg));syl.forEach((s,i)=>{if(!i||s.gap>=lim)phr.push({id:phr.length,syl:[]});phr[phr.length-1].syl.push(s)})}
+  phr.forEach(p=>{const L=p.syl,md=L.reduce((s,q)=>s+q.dur,0)/L.length,sd=Math.sqrt(L.reduce((s,q)=>s+(q.dur-md)**2,0)/L.length)||1,me=L.reduce((s,q)=>s+q.pk,0)/L.length,se=Math.sqrt(L.reduce((s,q)=>s+(q.pk-me)**2,0)/L.length)||1;
+    L.forEach(s=>{const zd=Math.max(-2,Math.min(2,(s.dur-md)/sd)),ze=Math.max(-2,Math.min(2,(s.pk-me)/se));s.sc=s.x?s.x.pri+0.12*zd+0.1*ze:0.5+0.3*zd+0.25*ze;s.acc=s.x?s.x.pri>0:s.sc>0.75});
+    if(!matched)for(let i=0;i+1<L.length;i++)if(L[i].acc&&L[i+1].acc){if(L[i].sc>=L[i+1].sc)L[i+1].acc=false;else L[i].acc=false}});
+  return{phr,med,matched,nSyl:syl.length,nAtoms:A.length,dt}}
+
+/* ---- the melodies: each line has an opening, a reciting note, and a close that lands on the last accent ---- */
+const CH_MEL=[
+ {id:'plain',g:'Simple',n:'Plain reading',d:'One steady note. Each line lifts a step on its last accent, and the ending dips below and comes home.',ph:[{r:0,a:[1],m:0,e:[0]}],fin:{r:0,pre:[[1]],a:[0],m:-1,e:[-1,0]}},
+ {id:'rise',g:'Simple',n:'Rise and rest',d:'Climbs to a reciting note two steps up. The first line stays up there, the second walks back home.',ph:[{in:[0,1],r:2,a:[3],m:2,e:[2]},{r:2,pre:[[2]],a:[1],m:1,e:[0]}]},
+ {id:'fall',g:'Simple',n:'Falling close',d:'Recites two steps up and lets every line fall. The second line falls all the way home.',ph:[{r:2,a:[2],m:1,e:[1]},{r:2,pre:[[3]],a:[2],m:1,e:[0]}]},
+ {id:'sway',g:'Simple',n:'Two-note sway',d:'Rocks between two neighbor notes: accented syllables lean up, the rest sit down.',ph:[{r:1,acc:1,a:[2],m:1,e:[1]},{r:1,acc:1,pre:[[1]],a:[0],m:0,e:[0]}]},
+ {id:'psalm',g:'Medium',n:'Psalm tone',d:'The classic shape: an opening climb, a reciting note, a lift at the half, and a stepwise close.',ph:[{in:[0,1],r:3,pre:[[3]],a:[4],m:3,e:[3]},{r:3,pre:[[3],[2]],a:[1,2],m:1,e:[0]}]},
+ {id:'arch',g:'Medium',n:'Arch',d:'Each pair of lines rises over a peak and comes back down, like one long breath.',ph:[{in:[0,1,2],r:3,a:[4,3],m:2,e:[2]},{in:[2],r:3,pre:[[3],[2]],a:[1,2],m:1,e:[0]}]},
+ {id:'call',g:'Medium',n:'Call and answer',d:'The first line calls from up high and stays open. The second answers lower and closes.',ph:[{in:[2,3],r:4,pre:[[5]],a:[4],m:3,e:[4]},{in:[4,3],r:2,pre:[[3]],a:[2],m:1,e:[0]}]},
+ {id:'lean',g:'Medium',n:'Leaning accents',d:'Every accented syllable leans up a step, so the important words stand out.',ph:[{in:[0,2],r:2,acc:1,pre:[[3]],a:[4,3],m:2,e:[2]},{r:2,acc:1,pre:[[2]],a:[1],m:0,e:[0]}]},
+ {id:'low',g:'Medium',n:'Low and close',d:'Stays near the home note and dips below it. Quiet, sober, good for penitential verses.',ph:[{in:[0],r:1,pre:[[2]],a:[1],m:0,e:[0]},{r:0,pre:[[1]],a:[0,-1],m:-1,e:[-2]}],fin:{r:0,pre:[[1]],a:[-1],m:-1,e:[0]}},
+ {id:'wave',g:'Ornate',n:'Three-line wave',d:'Three different lines in turn: a climb, a high line, and a descent home.',ph:[{in:[0,1],r:2,pre:[[3]],a:[4],m:3,e:[3]},{in:[3],r:4,pre:[[5],[4]],a:[3,4],m:3,e:[2]},{in:[2],r:2,pre:[[3],[2]],a:[1],m:1,e:[0]}]},
+ {id:'orn',g:'Ornate',n:'Ornamented close',d:'Accents lean up, and the last accent and last syllable of each line carry several notes.',ph:[{in:[0,2],r:3,acc:1,pre:[[4],[3]],a:[2,3,4],m:3,e:[3,2]},{r:3,acc:1,pre:[[4],[3]],a:[2,3,2],m:1,e:[1,0,-1,0]}]},
+ {id:'feast',g:'Ornate',n:'Festal',d:'Bright and high. Reaches up to the top of the scale before coming down.',ph:[{in:[2,3],r:4,acc:1,pre:[[5]],a:[6,5],m:4,e:[4]},{in:[4],r:4,pre:[[5],[6]],a:[7,6,5],m:4,e:[4,3]},{in:[3],r:2,pre:[[3],[4]],a:[3,2],m:1,e:[1,0]}]},
+ {id:'long',g:'Ornate',n:'Long cadence',d:'Slow, drawn-out endings: three syllables of approach and a turning figure on the last ones.',ph:[{in:[0,1],r:2,pre:[[3],[2]],a:[3,4,3],m:2,e:[2,1,2]},{r:2,pre:[[3],[2],[1]],a:[2,1,0],m:0,e:[1,0]}]}];
+/* the plan: every syllable gets its notes and lengths, then the time map and the pitch curve the voice is reshaped to */
+function chPlan(F,seg,o){const M0=CH_MEL.find(m=>m.id===o.mel)||CH_MEL[0],fz=o.range||1,Z=d=>Math.round(d*fz)+0,ZT=T=>({in:(T.in||[]).map(Z),r:Z(T.r),acc:T.acc||0,pre:(T.pre||[]).map(g=>g.map(Z)),a:T.a.map(Z),m:Z(T.m),e:T.e.map(Z)}),M={id:M0.id,ph:M0.ph.map(ZT),fin:M0.fin?ZT(M0.fin):null},
+  kk=o.k||1,sc=o.scale,sr=F.sr,hop=F.hop,off=F.off,U=o.U*kk,HOLD=o.hold*kk,PAUSE=o.pause*kk,COMMA=(o.comma||0)*kk,K=seg.phr.length;
+  const semi=d=>{const j=((d%7)+7)%7;return o.home+sc[j]+12*Math.floor(d/7)},smp=f=>f*hop+off;
+  const all=[];seg.phr.forEach(p=>p.syl.forEach(s=>all.push(s.dur)));all.sort((a,b)=>a-b);const medDur=all[all.length>>1]||0.4;
+  const mo=[],mi=[],phr=[],notes=[];let t=0;const LEAD=0.12;
+  const put=(to,ti)=>{mo.push(to*sr);mi.push(ti)};
+  seg.phr.forEach((p,pi)=>{const last=pi===K-1,T=last?(M.fin||M.ph[M.ph.length-1]):M.ph[pi%M.ph.length],S=p.syl,n=S.length;
+    let a=-1;for(let i=n-1;i>=Math.max(0,n-3);i--)if(S[i].acc){a=i;break}if(a<0)a=n>=2?n-2:n-1;
+    const pre=T.pre||[],P=Math.min(pre.length,a),I=Math.min((T.in||[]).length,Math.max(0,a-P-1));
+    const srcA=smp(S[0].a);
+    if(pi===0){put(0,Math.max(0,srcA-LEAD*sr));t=LEAD}
+    else{const prevB=smp(seg.phr[pi-1].syl[seg.phr[pi-1].syl.length-1].b),G=PAUSE,sl=(srcA-prevB)/sr;if(sl>G){put(t+G/2,prevB+G/2*sr);put(t+G/2,srcA-G/2*sr)}t+=G}
+    const P0={t,syl:[],kind:last?'close':M.ph.length>1?['A','B','C'][pi%M.ph.length]:'A'};
+    S.forEach((s,i)=>{let g;
+      if(i<I)g=[{d:T.in[i],t:U}];
+      else if(i<a-P){const up=T.acc&&s.acc&&o.lean>0?T.acc:0,nat=o.even?1:Math.max(0.6,Math.min(1.4,s.dur/medDur));g=[{d:T.r+up,t:U*nat*(s.acc?1+0.35*o.lean:1)}]}
+      else if(i<a)g=pre[pre.length-(a-i)].map(d=>({d,t:U}));
+      else if(i===a){let q=T.a.slice();if(a===n-1)T.e.forEach(d=>{if(q[q.length-1]!==d)q.push(d)});g=q.map((d,k)=>({d,t:k?0.8*U:1.5*U}));if(a===n-1)g[g.length-1].t=HOLD*(last?1:0.7)}
+      else if(i<n-1)g=[{d:T.m,t:0.8*U}];
+      else{g=T.e.map(d=>({d,t:0.8*U}));g[g.length-1].t=HOLD*(last?1:0.7)}
+      let Ts=g.reduce((x,q)=>x+q.t,0);const sa=smp(s.a),sb=smp(s.b),voiced=s.na>=0;
+      if(i>0&&S[i-1].x&&S[i-1].x.pc===1&&COMMA>0)t+=COMMA;if(!voiced){const natd=(sb-sa)/sr;if(Ts>natd*1.4){const k=natd*1.4/Ts;g.forEach(q=>q.t*=k);Ts=natd*1.4}put(t,sa)}
+      else{const na=smp(s.na),nb=smp(s.nb);let hd=(na-sa)/sr,tl=(sb-nb)/sr;const lim=0.72*Ts;if(hd+tl>lim){const k=lim/(hd+tl);hd*=k;tl*=k}put(t,sa);if(hd>0)put(t+hd,na);put(t+Ts-tl,nb)}
+      let tt=t;g.forEach((q,k)=>{notes.push({t:tt,d:q.t,m:semi(q.d),deg:q.d,p:pi,s:i,last:i===n-1&&k===g.length-1,fin:last});tt+=q.t});
+      put(t+Ts,sb);P0.syl.push({t,d:Ts,deg:g.map(q=>q.d),acc:s.acc,x:s.x||null,role:i<I?'open':i<a-P?'recite':i<a?'approach':i===a?'accent':i<n-1?'after':'end',src:[sa/sr,sb/sr],m:s.m});t+=Ts});
+    P0.e=t;phr.push(P0)});
+  const lastB=mi[mi.length-1],TAIL=0.35;put(t+TAIL,Math.min((F.n-1)*hop+off,lastB+TAIL*sr));const dur=t+TAIL,len=Math.ceil(dur*sr);
+  /* pitch curve every 5 ms */
+  const nf=Math.ceil(dur/0.005)+1,tm=new Float32Array(nf),g=new Float32Array(nf).fill(1);notes.forEach(q=>{const a=Math.round(q.t/0.005),b=Math.round((q.t+q.d)/0.005);for(let i=a;i<b&&i<nf;i++)tm[i]=q.m});
+  phr.forEach(p=>{const a=Math.round(p.t/0.005),b=Math.min(nf,Math.round(p.e/0.005));for(let i=a;i<b;i++)if(!tm[i])tm[i]=tm[i-1]||tm[i+1]||0;
+    for(let pass=0;pass<3;pass++){const c=tm.slice(a,b),w=o.glide||7,h=w>>1;for(let i=a;i<b;i++){let s=0,k=0;for(let j=i-h;j<=i+h;j++){if(j>=a&&j<b){s+=c[j-a];k++}}tm[i]=s/k}}});
+  /* a little life on long notes, and the reader's own small movements */
+  let j=0;const tin=to=>{const x=to*sr;while(j+1<mo.length-1&&mo[j+1]<=x)j++;while(j>0&&mo[j]>x)j--;const d=mo[j+1]-mo[j];return d>0?mi[j]+(mi[j+1]-mi[j])*(x-mo[j])/d:mi[j]};
+  notes.forEach(q=>{const a=Math.round(q.t/0.005),b=Math.min(nf,Math.round((q.t+q.d)/0.005));if(q.d>=0.7&&o.vib>0)for(let i=a;i<b;i++){const tau=(i-a)*0.005,r=Math.max(0,Math.min(1,(tau-0.3)/0.5));tm[i]+=o.vib*r*Math.sin(2*Math.PI*5.2*tau)}
+    if(q.last){const n0=a+Math.round((b-a)*0.6),end=q.fin?0.25:0.5;for(let i=n0;i<b;i++)g[i]=1-(1-end)*(i-n0)/(b-n0)}});
+  if(o.nat>0)phr.forEach(p=>p.syl.forEach(s=>{if(!s.m)return;const a=Math.round(s.t/0.005),b=Math.min(nf,Math.round((s.t+s.d)/0.005));for(let i=a;i<b;i++){const f=Math.round((tin(i*0.005)-off)/hop),v=f>=0&&f<F.n?F.f0[f]:0;if(v){const dv=69+12*Math.log2(v/440)-s.m;if(Math.abs(dv)<1.5)tm[i]+=o.nat*dv}}}));
+  for(let i=Math.round((dur-TAIL)/0.005);i<nf;i++)g[i]=Math.max(0,g[i-1]-0.02);
+  let lo=1e9,hi=-1e9;notes.forEach(q=>{if(q.m<lo)lo=q.m;if(q.m>hi)hi=q.m});return{mo:Float64Array.from(mo),mi:Float64Array.from(mi),tm,g,len,dur,phr,notes,lo,hi}}
+/* the voice itself, rebuilt grain by grain: each vocal pulse is placed at the new pitch and the vowels are stretched to the new length */
+function chRender(x,sr,regs,P){const L=P.len,out=new Float32Array(L),ws=new Float32Array(L),mo=P.mo,mi=P.mi,tm=P.tm,fr=sr*0.005,XL=x.length,h0=Math.round(sr*0.005),wc={};
+  const win=h=>wc[h]||(wc[h]=(()=>{const w=new Float32Array(2*h);for(let i=0;i<2*h;i++)w[i]=0.5-0.5*Math.cos(2*Math.PI*(i+0.5)/(2*h));return w})());
+  const grain=(src,dst,h)=>{const w=win(h);for(let i=-h;i<h;i++){const s=src+i,o=dst+i;if(s<0||s>=XL||o<0||o>=L)continue;const gv=w[i+h];out[o]+=x[s]*gv;ws[o]+=gv}};
+  let j=0,ri=0,ts=0,seed=12345;const rnd=()=>{seed=(seed*1103515245+12345)&0x7fffffff;return seed/0x7fffffff-0.5};
+  while(ts<L){while(j+1<mo.length-1&&mo[j+1]<=ts)j++;const d=mo[j+1]-mo[j],sl=d>0?(mi[j+1]-mi[j])/d:1,ti=d>0?mi[j]+(mi[j+1]-mi[j])*(ts-mo[j])/d:mi[j];
+    while(ri<regs.length-1&&regs[ri].M[regs[ri].M.length-1]<ti)ri++;while(ri>0&&regs[ri].M[0]>ti)ri--;
+    const R=regs[ri],M=R&&R.M,tv=tm[Math.min(tm.length-1,Math.floor(ts/fr))];
+    if(M&&tv>0&&ti>=M[0]-2&&ti<=M[M.length-1]+2){let lo=0,hi=M.length-1;while(hi-lo>1){const md=(lo+hi)>>1;if(M[md]<=ti)lo=md;else hi=md}const k=ti-M[lo]<=M[hi]-ti?lo:hi;
+      const Pa=k+1<M.length?M[k+1]-M[k]:M[k]-M[k-1],Pp=k>0?M[k]-M[k-1]:Pa,Ps=Math.round((Pa+Pp)/2);grain(M[k],Math.round(ts),Ps);ts+=sr/(440*Math.pow(2,(tv-69)/12))}
+    else{grain(Math.round(ti+(sl<0.75?rnd()*sr*0.006:0)),Math.round(ts),h0);ts+=h0}}
+  const g=P.g;for(let i=0;i<L;i++){const w=ws[i];out[i]=(w>0.4?out[i]/w:out[i]/0.4)*(g?g[Math.min(g.length-1,Math.floor(i/fr))]:1)}return out}
+/* the drone under it and an optional guide tone on the melody */
+function chBacking(len,sr,P,o){const y=new Float32Array(len);if(o.drone>0){let hm=o.home;while(hm>50)hm-=12;while(hm<36)hm+=12;const f=440*Math.pow(2,(hm-69)/12),A=Math.pow(o.drone/10,1.6)*0.16,w=2*Math.PI*f/sr,fd=Math.round(sr*0.5);
+    for(let i=0;i<len;i++){const e=Math.min(1,i/fd,(len-i)/fd),p=w*i;y[i]+=A*e*(Math.sin(p)+0.5*Math.sin(2*p)+0.28*Math.sin(3*p)+0.14*Math.sin(4*p)+0.3*Math.sin(1.5*p))}}
+  if(o.guide>0){const A=Math.pow(o.guide/10,1.6)*0.2,tm=P.tm,fr=sr*0.005;let ph=0,amp=0;for(let i=0;i<len;i++){const k=Math.min(tm.length-1,Math.floor(i/fr)),m=tm[k],on=m>0?1:0;amp+=(on-amp)*0.0015;if(m>0){ph+=2*Math.PI*440*Math.pow(2,(m-69)/12)/sr}y[i]+=A*amp*(Math.sin(ph)+0.3*Math.sin(2*ph)+0.1*Math.sin(3*ph))}}
+  return y}
+
+/* ================= Chant Maker: screen ================= */
+const CH_BASE=[{id:'b:forever',name:'Forever, O Lord (Psalm 118, verses 89 to 96)',file:'chant-forever.mp3'}];
+const CHM={x:null,regs:null,F:null,seg:null,P:null,y:null,url:null,src:null,busy:false,inited:false,rec:null,T:[],raf:0,kpi:-1,ksi:-2,nat:0,mk:0,ourl:null};
+const chDef={src:'b:forever',scale:'tone1',mel:'psalm',up:0,len:0,range:100,hold:1.6,pause:0.9,lean:5,drone:3,guide:0,even:false,loop:false};
+function chSet(){return Object.assign({},chDef,store.get('ison-chant-set',{}))}
+function chSave(p){const s=Object.assign(chSet(),p);store.set('ison-chant-set',s);return s}
+const chNote=m=>{const r=Math.round(m);return['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'][((r%12)+12)%12]+(Math.floor(r/12)-1)};
+const chClock=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const chEsc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+let CHW=null;
+function chWorker(){if(CHW!==null)return CHW;try{const src=[psTrack,psMarks,chFFT,chClean,chFeat].map(f=>f.toString()).join('\n')+
+  '\nonmessage=e=>{const d=e.data;try{const r=chFeat(d.x,d.sr);r.regs.forEach(q=>{q.M=Int32Array.from(q.M)});postMessage({id:d.id,r})}catch(err){postMessage({id:d.id,err:String(err)})}}';
+  CHW=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})))}catch(e){CHW=false}return CHW}
+function chFeatRun(x){const local=()=>new Promise(r=>setTimeout(()=>{const q=chFeat(x,KEY_SR);q.regs.forEach(g=>{g.M=Int32Array.from(g.M)});r(q)},30)),W=chWorker();if(!W)return local();
+  return new Promise(res=>{const id=Math.random(),on=e=>{if(!e.data||e.data.id!==id)return;W.removeEventListener('message',on);if(e.data.err)local().then(res);else res(e.data.r)};W.addEventListener('message',on);W.postMessage({id,x,sr:KEY_SR})})}
+function chSrcList(hasMine){const sel=$('chSrc');sel.innerHTML=CH_BASE.map(b=>'<option value="'+b.id+'">'+chEsc(b.name)+'</option>').join('')+(hasMine?'<option value="my">My own recording</option>':'');sel.value=CHM.src||chSet().src;if(!sel.value)sel.value=CH_BASE[0].id}
+async function chLoad(id){const st=$('chSrcSt');if(CHM.busy)return;CHM.busy=true;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;st.textContent='Loading the recording.';$('chPlayer').hidden=true;
+  try{let an=null;try{an=await BlobDB.get('chant-an2:'+id)}catch(e){}
+    if(!an||!an.F||!an.x){let blob=null;if(id.startsWith('b:')){const b=CH_BASE.find(q=>q.id===id);blob=b?await pubAudio('chant:'+id,b.file):null}else blob=await BlobDB.get('chant-rec');
+      if(!blob){st.textContent=id==='my'?'No recording of your own yet. Record or upload one.':'The built-in recording could not be loaded. Check your connection and try again.';CHM.busy=false;return}
+      st.textContent='Listening to the recording: cleaning the sound and finding every syllable. The first time takes up to a minute.';
+      const x=await keyDecode(blob),r=await chFeatRun(x);an={x:r.x,regs:r.regs,F:r.F};try{await BlobDB.put('chant-an2:'+id,an)}catch(e){}}
+    CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.src=id;chSave({src:id});$('chSrc').value=id;$('chText').value=store.get('ison-chant-text:'+id,'');
+    const snr=an.F.snr;st.textContent=chClock(an.F.dur)+' long. '+(snr<8?'There was a strong background hum or noise, and it has been cleaned out. A quieter room will sound better still.':snr<16?'Some background noise was cleaned out.':'Clean recording.');
+    if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}CHM.busy=false;chMatch()}
+  catch(e){st.textContent='That recording could not be read. Try another file.';CHM.busy=false}}
+function chMatch(){if(!CHM.F)return;const txt=$('chText').value;store.set('ison-chant-text:'+CHM.src,txt);CHM.T=chText(txt);CHM.seg=chSeg(CHM.F,CHM.T.length?CHM.T:null);const g=CHM.seg,st=$('chTxtSt'),nw=CHM.T.filter(s=>s.ws).length;
+  if(!g.phr.length)st.textContent='No voice was found in this recording.';
+  else if(!CHM.T.length)st.textContent='No words yet, so the syllables were found by ear: '+g.nSyl+' syllables in '+g.phr.length+' lines. Paste the words above and every word will be matched to its place.';
+  else if(g.matched)st.textContent=nw+' words, '+CHM.T.length+' syllables, each matched to its place in your voice, in '+g.phr.length+' lines. If a word lands on the wrong note, check that the words are exactly what you said, or split a word by hand with a hyphen (bless-ed).';
+  else st.textContent='The words have '+CHM.T.length+' syllables, but fewer than that could be heard in the recording. Check that the words match what you said. For now the syllables are found by ear.';
+  chMelStats();chMakeNow()}
+function chOpts(s,k,mel){const sc=rtScale(s.scale)||RT_T1,M=CH_MEL.find(m=>m.id===(mel||s.mel))||CH_MEL[0],fz=s.range/100,sm=d=>{const z=Math.round(d*fz);return sc[((z%7)+7)%7]+12*Math.floor(z/7)},ds=[];M.ph.concat(M.fin?[M.fin]:[]).forEach(T=>{[].concat(T.in||[],[T.r,T.m],T.a,T.e,...(T.pre||[])).forEach(d=>ds.push(sm(d)))});const semi=(Math.min.apply(null,ds)+Math.max.apply(null,ds))/2;
+  return{mel:M.id,scale:sc,home:Math.round(CHM.seg.med-semi)+s.up,U:0.45,hold:s.hold,pause:s.pause,lean:s.lean/10,nat:0.2,vib:0.12,comma:0.15,even:!!s.even,glide:7,range:fz,k:k||1,drone:s.drone,guide:s.guide}}
+function chSolveK(s,mel){const d1=chPlan(CHM.F,CHM.seg,chOpts(s,1,mel)).dur;if(!s.len)return{k:1,d1};const d2=chPlan(CHM.F,CHM.seg,chOpts(s,2,mel)).dur;let k=1+(s.len-d1)/Math.max(0.1,d2-d1);k=Math.max(0.4,Math.min(3,k));
+  const dk=chPlan(CHM.F,CHM.seg,chOpts(s,k,mel)).dur;k=Math.max(0.4,Math.min(3,k+(s.len-dk)/Math.max(0.1,d2-d1)));return{k,d1}}
+/* every melody, measured on this reading: how long it runs, how far it reaches, and which ones suit the length you asked for */
+function chMelStats(){const box=$('chMels');if(!CHM.seg||!CHM.seg.phr.length){box.innerHTML='';return}const s=chSet(),rows=CH_MEL.map(M=>{const q=chSolveK(s,M.id),P=chPlan(CHM.F,CHM.seg,chOpts(s,1,M.id));return{M,d1:q.d1,k:q.k,span:P.hi-P.lo,reach:Math.max(Math.abs(P.hi-CHM.seg.med),Math.abs(P.lo-CHM.seg.med))}});
+  const rank=rows.slice().sort((a,b)=>s.len?Math.abs(Math.log(a.k))-Math.abs(Math.log(b.k)):a.reach-b.reach),star=new Set(rank.slice(0,3).map(r=>r.M.id));let h='',g='';
+  rows.forEach(r=>{if(r.M.g!==g){g=r.M.g;h+='<span class="label chgl">'+g+'</span>'}const fit=star.has(r.M.id);
+    h+='<button class="chmel" data-m="'+r.M.id+'" aria-pressed="'+(s.mel===r.M.id)+'"><span>'+(fit?'<b class="chstar" aria-hidden="true">&#9733;</b> ':'')+chEsc(r.M.n)+'</span><small>'+chClock(r.d1)+' at a natural pace &middot; spans '+(Math.round(r.span*2)/2)+' semitones'+(fit?(s.len?' &middot; fits your length':' &middot; easiest on your voice'):'')+'</small></button>'});
+  box.innerHTML=h;const M=CH_MEL.find(m=>m.id===s.mel)||CH_MEL[0];$('chMelD').textContent=M.d;box.querySelectorAll('.chmel').forEach(b=>b.onclick=()=>{chSave({mel:b.dataset.m});chMelStats();chMakeSoon()})}
+function chMakeSoon(){clearTimeout(CHM.mk);CHM.mk=setTimeout(chMakeNow,320)}
+function chPlaying(){const a=$('chAud');return!!a&&!a.paused&&!a.ended}
+function chMakeNow(){clearTimeout(CHM.mk);const pl=$('chPlayer');if(!CHM.seg||!CHM.seg.phr.length){pl.hidden=true;return}const s=chSet(),a=$('chAud'),was=chPlaying(),frac=CHM.P&&a.duration?a.currentTime/CHM.P.dur:0;
+  const q=chSolveK(s),o=chOpts(s,q.k),P=chPlan(CHM.F,CHM.seg,o),y=chRender(CHM.x,KEY_SR,CHM.regs,P);CHM.P=P;CHM.y=y;CHM.k=q.k;CHM.o=o;CHM.nat=q.d1;
+  let mix=y;if(s.drone>0||s.guide>0){const bk=chBacking(P.len,KEY_SR,P,o);mix=new Float32Array(P.len);for(let i=0;i<P.len;i++)mix[i]=y[i]*0.85+bk[i]}
+  if(CHM.url)URL.revokeObjectURL(CHM.url);CHM.url=URL.createObjectURL(new Blob([keyWav(mix,KEY_SR)],{type:'audio/wav'}));a.src=CHM.url;a.loop=!!s.loop;$('chDl').href=CHM.url;
+  pl.hidden=false;CHM.kpi=-1;CHM.ksi=-2;chLines();chLabels();chKar(was?frac*P.dur:0);
+  if(was){const go=()=>{a.removeEventListener('loadedmetadata',go);try{a.currentTime=Math.min(P.dur-0.2,frac*P.dur)}catch(e){}a.play().catch(()=>{})};a.addEventListener('loadedmetadata',go)}}
+function chLineText(p,cur){return p.syl.map((s,i)=>{const t=s.x?s.x.t:'•',sp=s.x?(s.x.ws&&i?' ':''):(i?' ':'');return sp+'<span class="s'+(s.acc?' ac':'')+(s.deg.length>1?' ml':'')+'" data-i="'+i+'">'+chEsc(t)+'</span>'+(s.x&&s.x.we&&s.x.pc===1?',':'')}).join('')}
+function chLines(){const P=CHM.P;$('chLines').innerHTML=P.phr.map((p,i)=>'<button data-i="'+i+'"><small>'+chClock(p.t)+'</small> '+p.syl.map((s,k)=>(s.x?(s.x.ws&&k?' ':'')+chEsc(s.x.t):(k?' ':'')+'•')).join('')+'</button>').join('');
+  $('chLines').querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=$('chAud');try{a.currentTime=Math.max(0,P.phr[+b.dataset.i].t-0.1)}catch(e){}chPlay(true)})}
+function chLabels(){const s=chSet(),P=CHM.P;if(!P)return;const lo=CHM.nat*0.5,hi=CHM.nat*2.5,L=$('chLen');L.min=Math.round(lo);L.max=Math.round(hi);L.value=Math.round(P.dur);
+  const pc=Math.round((CHM.k-1)*100);$('chLenV').textContent=chClock(P.dur)+(s.len?(Math.abs(pc)<3?', natural pace':pc>0?', '+pc+'% slower than natural':', '+(-pc)+'% quicker than natural'):', natural pace');
+  $('chUpV').textContent='home note '+chNote(CHM.o.home)+(s.up?' ('+(s.up>0?s.up+' higher':-s.up+' lower')+' than the closest fit)':' (the melody is centered on your reading note, '+chNote(CHM.seg.med)+')');
+  $('chRangeV').textContent=(s.range===100?'as written':s.range<100?'narrower':'wider')+', from '+chNote(P.lo)+' up to '+chNote(P.hi);
+  $('chHoldV').textContent=s.hold.toFixed(1)+' s';$('chPauseV').textContent=s.pause.toFixed(1)+' s';$('chLeanV').textContent=s.lean?s.lean+' of 10':'off';$('chDroneV').textContent=s.drone?s.drone+' of 10':'off';$('chGuideV').textContent=s.guide?s.guide+' of 10':'off';
+  $('chSum').textContent=P.phr.length+' lines, '+P.notes.length+' notes, '+chClock(P.dur)+' long.';$('chLoop').setAttribute('aria-pressed',String(!!s.loop));$('chEven').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===!!s.even)))}
+/* karaoke: the line being sung, the word and syllable lit as it sounds, the next line waiting below, and the notes drawn above */
+function chKar(t){const P=CHM.P;if(!P)return;let pi=0;for(let i=0;i<P.phr.length;i++)if(P.phr[i].t-0.3<=t)pi=i;const p=P.phr[pi];
+  if(pi!==CHM.kpi){CHM.kpi=pi;CHM.ksi=-2;$('chKNow').innerHTML=chLineText(p,true);$('chKNext').innerHTML=pi+1<P.phr.length?chLineText(P.phr[pi+1],false):'<i>the end</i>';$('chKPos').textContent='Line '+(pi+1)+' of '+P.phr.length;
+    $('chLines').querySelectorAll('button').forEach((b,i)=>b.classList.toggle('cur',i===pi))}
+  let si=-1;for(let i=0;i<p.syl.length;i++)if(p.syl[i].t<=t+0.03)si=i;if(t>p.e+0.05)si=p.syl.length;
+  if(si!==CHM.ksi){CHM.ksi=si;$('chKNow').querySelectorAll('.s').forEach((e,i)=>{e.classList.toggle('on',i===si);e.classList.toggle('done',i<si)})}
+  chRoll(p,t)}
+function chRoll(p,t){const cv=$('chRoll');if(!cv)return;const P=CHM.P,dpr=Math.min(2,window.devicePixelRatio||1),W=cv.clientWidth||320,H=cv.clientHeight||130;if(cv.width!==Math.round(W*dpr)){cv.width=Math.round(W*dpr);cv.height=Math.round(H*dpr)}
+  const c=cv.getContext('2d'),cs=getComputedStyle(cv),ink=cs.color,hi=cs.getPropertyValue('--lapis').trim()||'#3b6fd4';c.setTransform(dpr,0,0,dpr,0,0);c.clearRect(0,0,W,H);
+  const t0=p.t-0.15,t1=p.e+0.15,X=q=>8+(W-16)*(q-t0)/(t1-t0),lo=P.lo-1,hiM=P.hi+1,Y=m=>H-26-(H-40)*(m-lo)/Math.max(1,hiM-lo);
+  c.globalAlpha=0.18;c.strokeStyle=ink;c.lineWidth=1;c.beginPath();const yh=Y(CHM.o.home);c.moveTo(4,yh);c.lineTo(W-4,yh);c.stroke();c.globalAlpha=1;
+  const ns=P.notes.filter(q=>q.t>=p.t-0.01&&q.t<p.e);ns.forEach(q=>{const x0=X(q.t),x1=X(q.t+q.d),y=Y(q.m),on=t>=q.t&&t<q.t+q.d,past=t>=q.t+q.d;c.fillStyle=on?hi:ink;c.globalAlpha=on?1:past?0.3:0.6;const w=Math.max(3,x1-x0-2);c.beginPath();if(c.roundRect)c.roundRect(x0,y-4,w,8,4);else c.rect(x0,y-4,w,8);c.fill()});
+  c.globalAlpha=0.75;c.fillStyle=ink;c.font='11px system-ui,sans-serif';c.textAlign='left';let lastX=-99;p.syl.forEach(s=>{const x=X(s.t);if(x-lastX<14)return;const tx=s.x?s.x.t:'•';c.fillText(tx,x,H-8);lastX=x+c.measureText(tx).width});
+  c.globalAlpha=1;if(t>=t0&&t<=t1){c.strokeStyle=hi;c.lineWidth=2;c.beginPath();c.moveTo(X(t),4);c.lineTo(X(t),H-22);c.stroke()}}
+function chTick(){const a=$('chAud');chKar(a.currentTime);if(a.paused||a.ended){CHM.raf=0;chBtn();return}CHM.raf=requestAnimationFrame(chTick)}
+function chBtn(){const on=chPlaying();$('chPlay').innerHTML=on?'&#9632; Stop':'&#9654; Play the chant'}
+function chPlay(force){const a=$('chAud');if(!CHM.P)return;const o=$('chOrig');if(o&&!o.paused)o.pause();if(chPlaying()&&!force){a.pause();chBtn();return}a.play().then(()=>{chBtn();if(!CHM.raf)CHM.raf=requestAnimationFrame(chTick)}).catch(()=>{})}
+function chStop(){const a=$('chAud');if(a&&!a.paused)a.pause();const o=$('chOrig');if(o&&!o.paused)o.pause();chBtn()}
+async function chNewRec(blob){$('chSrcSt').textContent='Saving your recording.';try{await BlobDB.put('chant-rec',blob);await BlobDB.put('chant-an2:my',null)}catch(e){}store.set('ison-chant-mine',1);CHM.src='my';chSrcList(true);$('chSrc').value='my';chLoad('my')}
+async function chRecord(){const b=$('chRec');if(CHM.rec){CHM.rec.stop();return}
+  try{const stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}}),mr=new MediaRecorder(stream),parts=[],t0=Date.now();chStop();
+    const iv=setInterval(()=>{$('chSrcSt').textContent='Recording: '+chClock((Date.now()-t0)/1000)+'. Tap Stop when you finish.'},500);mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
+    mr.onstop=()=>{clearInterval(iv);stream.getTracks().forEach(t=>t.stop());CHM.rec=null;b.innerHTML='&#9679; Record';chNewRec(new Blob(parts,{type:mr.mimeType||'audio/webm'}))};mr.start();CHM.rec=mr;b.innerHTML='&#9632; Stop recording'}
+  catch(e){$('chSrcSt').textContent='The microphone could not be opened here. Record with your phone\'s voice memo app and use Upload instead.'}}
+function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
+  $('chScale').innerHTML=RT_LIST.filter(r=>r[0]!=='off').map(r=>'<option value="'+r[0]+'">'+r[1]+'</option>').join('');$('chScale').value=s.scale;
+  $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};
+  chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').onchange=()=>chLoad($('chSrc').value);
+  $('chRec').onclick=chRecord;$('chFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)chNewRec(f)};
+  $('chHear').onclick=()=>{const o=$('chOrig');if(!CHM.x)return;if(!o.paused){o.pause();return}chStop();if(!CHM.ourl){CHM.ourl=URL.createObjectURL(new Blob([keyWav(CHM.x,KEY_SR)],{type:'audio/wav'}));o.src=CHM.ourl}o.play().catch(()=>{})};
+  let tt=0;$('chText').oninput=()=>{clearTimeout(tt);tt=setTimeout(chMatch,900)};
+  const sl=(id,key,conv,stats)=>{const e=$(id);e.value=key==='len'?0:s[key];e.oninput=()=>{const v=conv?conv(+e.value):+e.value,p={};p[key]=v;chSave(p);if(stats)chMelStats();chMakeSoon()}};
+  sl('chLen','len',v=>v,true);sl('chUp','up');sl('chRange','range',null,true);sl('chHold','hold',null,true);sl('chPause','pause',null,true);sl('chLean','lean');sl('chDrone','drone');sl('chGuide','guide');
+  $('chLenNat').onclick=()=>{chSave({len:0});chMelStats();chMakeNow()};$('chUpAuto').onclick=()=>{chSave({up:0});$('chUp').value=0;chMakeNow()};
+  $('chEven').querySelectorAll('button').forEach(b=>b.onclick=()=>{chSave({even:b.dataset.v==='1'});chMelStats();chMakeNow()});
+  $('chPlay').onclick=()=>chPlay();$('chLoop').onclick=()=>{const v=!chSet().loop;chSave({loop:v});$('chAud').loop=v;$('chLoop').setAttribute('aria-pressed',String(v))};
+  $('chAud').addEventListener('ended',chBtn);$('chAud').addEventListener('pause',chBtn);
+  $('chSave').onclick=()=>{const nm=($('chName').value||'').trim();if(!CHM.y){return}if(!nm){$('chSaveSt').textContent='Give it a name first.';$('chName').focus();return}$('chSaveAsk').hidden=false;$('chSaveQ').textContent='Save "'+nm+'" as a new song in the app?'};
+  $('chSaveNo').onclick=()=>{$('chSaveAsk').hidden=true};
+  $('chSaveYes').onclick=async()=>{$('chSaveAsk').hidden=true;const nm=$('chName').value.trim(),st=$('chSaveSt');try{chStop();const f=new File([keyWav(CHM.y,KEY_SR)],nm+'.wav',{type:'audio/wav'});await importRecording(f,st);st.textContent='Saved "'+nm+'" as a new song. It is now in your song lists under Practice and Songs, with the voice only, so the app can add its own drone.'}catch(e){st.textContent='It could not be saved on this device.'}};
+  chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?CH_BASE[0].id:s.src)}
 
 drawLive(0);loadSource();exampleTake();
 showTab((()=>{try{const t=localStorage.getItem('ison-tab');return TABS.includes(t)?t:'practice'}catch(e){return 'practice'}})());
