@@ -1146,7 +1146,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <p class="status" style="margin:0 0 8px">Your part on repeat at one speed, with the tone under the singer's voice. Every few runs it mixes in the scale of the part or the steps you pick, then goes back to the part. Speed, volumes and the tone sound can be changed during the session too; changes start at the next run. This is separate from Master a song: its own song, part and settings.</p>
         <select id="lpSongSel" aria-label="Song"></select>
         <label class="addsong" for="addSongFile" data-add-for="lp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Add a new song (a recording from your phone)</label>
-        <div class="keyrow"><span class="label">Key</span><b data-key-for="sm">As sung</b><button data-key-open="sm" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
+        <div class="keyrow"><span class="label">Key</span><b data-key-for="lp">As sung</b><button data-key-open="lp" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
         <p class="status" id="lpStatus" style="margin:4px 0"></p>
         <div class="grid2"><div class="field"><label class="label" for="lpFrom">From</label><select id="lpFrom"></select></div><div class="field"><label class="label" for="lpTo">To</label><select id="lpTo"></select></div></div>
         <p class="status" id="lpPartInfo" style="margin:4px 0"></p>
@@ -1190,6 +1190,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <p class="status" style="margin:0 0 8px">The melodies of the song, found from the recording: phrases that sing the same tune share a letter. Each one plays as a clean, piano-like version on the singer's own scale notes, with his rhythm, over and over at your speed. With the singer, or with the singer off. Change speed and volumes during the session too.</p>
         <select id="mpSongSel" aria-label="Song"></select>
         <label class="addsong" for="addSongFile" data-add-for="mp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>Add a new song (a recording from your phone)</label>
+        <div class="keyrow"><span class="label">Key</span><b data-key-for="mp">As sung</b><button data-key-open="mp" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
         <p class="status" id="mpStatus" style="margin:4px 0"></p>
         <div id="mpBody">
           <div class="field"><span class="label">Melody</span><div class="chips earchips" id="mpMels"></div></div>
@@ -5389,7 +5390,7 @@ function keyFit(R,U){const fits=k=>R.a+k>=U.lo-0.5&&R.b+k<=U.hi+0.5;for(let d=0;
 /* ---- the Key sheet ---- */
 const KS={id:null,k0:0,k:0,rec:null,an:null,aud:null,which:'B',url:{},busy:false,tok:0};
 const KEY_ICON={play:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>'};
-function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23'}}
+function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23',lp:lpSongId(),mp:mpSongId()}}
 function renderKeyRows(){const ids=keyRowIds();document.querySelectorAll('[data-key-for]').forEach(el=>{const k=songKey(ids[el.dataset.keyFor]);el.textContent=keyWords(k);el.classList.toggle('moved',k!==0)})}
 async function keySheetOpen(id){KS.id=id;KS.k0=KS.k=songKey(id);KS.which='B';KS.tok++;KS.rec=await songRecFor(id);KS.an=KS.rec?analyzeSong4Course(KS.rec):null;KS.span=KS.rec?songSpan(KS.an?[].concat(...KS.an.phrases.map(p=>p.notes)):KS.rec.notes):null;
   keyStopAudio();Object.values(KS.url).forEach(u=>URL.revokeObjectURL(u));KS.url={};$('kSong').textContent=KS.rec?KS.rec.name||'This song':'Choose a song first.';
