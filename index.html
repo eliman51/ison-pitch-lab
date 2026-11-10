@@ -1562,6 +1562,8 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   .chlines{display:flex;flex-direction:column;gap:4px}
   .chlines button{text-align:left;font-size:.88rem;padding:6px 10px;font-weight:500;width:100%}
   .chlines button small{color:var(--muted);margin-right:4px}
+  #v-chant .voicerow{flex-wrap:nowrap;gap:6px}#v-chant .voicerow input{width:3.2em;min-width:0}#v-chant .voicerow button{min-width:40px;padding-inline:0}
+  .chmine{display:flex;gap:6px;align-items:stretch}.chmine>button:first-child{flex:1;text-align:left}.chmine .del{flex:0 0 auto;width:auto}
   .chlines button.cur{border-color:var(--lapis);box-shadow:inset 0 0 0 1px var(--lapis)}
   .chsl{display:flex;flex-direction:column;gap:2px}
   .chsl input[type=range]{width:100%}
@@ -1571,6 +1573,11 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   .chhow li{margin:4px 0}
   .chbig{font-size:1rem;padding:10px 16px}
   </style>
+  <section class="panel" id="chMine" hidden aria-labelledby="t-chmine">
+    <h2 id="t-chmine">My chants</h2>
+    <div class="chlines" id="chMineList"></div>
+    <p class="status" id="chMineSt" style="margin:0" aria-live="polite"></p>
+  </section>
   <section class="panel" aria-labelledby="t-chant">
     <h2 id="t-chant">Chant Maker</h2>
     <p class="status" style="margin:0">Read a psalm on one steady note. Pick a scale and a melody, and the app turns your own voice into a chant you can listen to, loop and learn.</p>
@@ -1587,6 +1594,14 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="row"><button id="chPlay" class="primary chbig">&#9654; Play the chant</button><button id="chLoop" aria-pressed="false">Loop</button><span class="status" id="chSum"></span></div>
     <div class="chkar"><span class="chkpos" id="chKPos"></span><canvas id="chRoll" aria-hidden="true"></canvas><div class="chknow" id="chKNow" aria-live="off"></div><div class="chknext" id="chKNext"></div></div>
     <audio id="chAud" preload="auto"></audio><audio id="chOrig" preload="none"></audio>
+    <div class="field"><span class="label">Mix (change it while it plays)</span>
+      <div class="grid2">
+        <div class="field"><label class="label" for="chVoiceN">Singer's voice: 0 to 10</label><div class="row voicerow"><button id="chVoiceDn" aria-label="Voice quieter">&minus;</button><input type="number" id="chVoiceN" inputmode="numeric" min="0" max="10" step="1"><button id="chVoiceUp" aria-label="Voice louder">+</button></div></div>
+        <div class="field"><label class="label" for="chToneN">Melody tone: 0 to 10</label><div class="row voicerow"><button id="chToneDn" aria-label="Tone quieter">&minus;</button><input type="number" id="chToneN" inputmode="numeric" min="0" max="10" step="1"><button id="chToneUp" aria-label="Tone louder">+</button></div></div>
+        <div class="field"><label class="label" for="chDroneN">Drone (ison): 0 to 10</label><div class="row voicerow"><button id="chDroneDn" aria-label="Drone quieter">&minus;</button><input type="number" id="chDroneN" inputmode="numeric" min="0" max="10" step="1"><button id="chDroneUp" aria-label="Drone louder">+</button></div></div>
+      </div>
+      <div class="chips earchips" id="chOct"><button data-v="1">Tones an octave up (easier to hear on a phone)</button><button data-v="0">Tones at the voice's own pitch</button></div>
+      <p class="status" id="chMixTxt" style="margin:4px 0 0"></p></div>
     <details class="opts"><summary>All lines (tap one to start there)</summary><div class="chlines" id="chLines"></div></details>
   </section>
   <section class="panel" aria-labelledby="t-chshape">
@@ -1596,20 +1611,19 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="field"><span class="label">Melody (a star marks the best fits)</span><div class="chmels" id="chMels"></div><p class="status" id="chMelD" style="margin:4px 0 0"></p></div>
     <div class="field chsl"><label class="label" for="chUp">Height: <b id="chUpV"></b></label><input type="range" id="chUp" min="-7" max="7" step="1"><div class="row"><button id="chUpAuto" class="lpplay">Closest to my voice</button></div></div>
     <div class="field chsl"><label class="label" for="chRange">How far the melody travels: <b id="chRangeV"></b></label><input type="range" id="chRange" min="50" max="200" step="25"></div>
-    <details class="opts"><summary>Fine tuning: endings, breaths, accents, drone</summary>
+    <details class="opts"><summary>Fine tuning: endings, breaths, accents</summary>
       <div class="field chsl"><label class="label" for="chHold">Hold the last note of a line: <b id="chHoldV"></b></label><input type="range" id="chHold" min="0.6" max="4" step="0.1"></div>
       <div class="field chsl"><label class="label" for="chPause">Breath between lines: <b id="chPauseV"></b></label><input type="range" id="chPause" min="0.3" max="2.5" step="0.1"></div>
       <div class="field chsl"><label class="label" for="chLean">Lean on the accented syllables: <b id="chLeanV"></b></label><input type="range" id="chLean" min="0" max="10" step="1"></div>
       <div class="field"><span class="label">Rhythm of the reciting notes</span><div class="chips earchips" id="chEven"><button data-v="0">Follow my own rhythm</button><button data-v="1">Even</button></div></div>
-      <div class="field chsl"><label class="label" for="chDrone">Drone under the voice: <b id="chDroneV"></b></label><input type="range" id="chDrone" min="0" max="10" step="1"></div>
-      <div class="field chsl"><label class="label" for="chGuide">Guide tone on the melody: <b id="chGuideV"></b></label><input type="range" id="chGuide" min="0" max="10" step="1"></div>
     </details>
   </section>
   <section class="panel" aria-labelledby="t-chsave">
     <h2 id="t-chsave">4. Keep it</h2>
-    <p class="status" style="margin:0">This screen is a playground: nothing is saved until you say so.</p>
-    <div class="field"><label class="label" for="chName">Name for the song</label><input type="text" id="chName" maxlength="60" placeholder="For example: Psalm 118, Forever O Lord"></div>
-    <div class="row"><button id="chSave" class="primary">Save as a song in the app</button><a id="chDl" class="lpplay" download="chant.wav" style="border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit">Download the audio</a></div>
+    <p class="status" style="margin:0">This screen is a playground: nothing is saved until you say so. Saved chants keep the recording, the words and every setting, and show up in My chants at the top of this screen.</p>
+    <div class="field"><label class="label" for="chName">Name for the chant</label><input type="text" id="chName" maxlength="60" placeholder="For example: Psalm 118, Forever O Lord"></div>
+    <label class="row" style="gap:8px;font-size:.9rem"><input type="checkbox" id="chAlso" checked> Also add it to my practice songs (Practice and Songs tabs)</label>
+    <div class="row"><button id="chSave" class="primary">Save to My chants</button><a id="chDl" class="lpplay" download="chant.wav" style="border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit">Download the audio</a></div>
     <div id="chSaveAsk" hidden><p class="status" id="chSaveQ" style="margin:0 0 6px"></p><div class="row"><button id="chSaveYes" class="primary">Yes, save it</button><button id="chSaveNo">Cancel</button></div></div>
     <p class="status" id="chSaveSt" style="margin:0" aria-live="polite"></p>
   </section>
@@ -7718,9 +7732,9 @@ function chBacking(len,sr,P,o){const y=new Float32Array(len);if(o.drone>0){let h
   return y}
 
 /* ================= Chant Maker: screen ================= */
-const CH_BASE=[{id:'b:forever',name:'Forever, O Lord (Psalm 118, verses 89 to 96)',file:'chant-forever.mp3'}];
+const CH_BASE=[{id:'b:forever',name:'Forever, O Lord (Psalm 118, verses 89 to 96)',file:'chant-forever.mp3',text:"Forever, O Lord,\nYour word continues in heaven.\nYour truth continues from generation to generation;\nYou laid the foundation of the earth, and it continues.\nBy Your arrangement each day continues,\nFor all things are Your servants.\nIf Your law were not my meditation,\nI would have perished in my affliction.\nI will never forget Your ordinances,\nFor in them You give me life, O Lord.\nI am Yours; save me,\nFor I search Your ordinances.\nSinners waited for me to kill me;\nI understood Your testimonies.\nI saw the limit of every accomplishment;\nYour commandment is exceedingly broad."}];
 const CHM={x:null,regs:null,F:null,seg:null,P:null,y:null,url:null,src:null,busy:false,inited:false,rec:null,T:[],raf:0,kpi:-1,ksi:-2,nat:0,mk:0,ourl:null};
-const chDef={src:'b:forever',scale:'tone1',mel:'psalm',up:0,len:0,range:100,hold:1.6,pause:0.9,lean:5,drone:3,guide:0,even:false,loop:false};
+const chDef={src:'b:forever',scale:'tone1',mel:'psalm',up:0,len:0,range:100,hold:1.6,pause:0.9,lean:5,drone:3,guide:4,voice:8,oct:1,even:false,loop:false};
 function chSet(){return Object.assign({},chDef,store.get('ison-chant-set',{}))}
 function chSave(p){const s=Object.assign(chSet(),p);store.set('ison-chant-set',s);return s}
 const chNote=m=>{const r=Math.round(m);return['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'][((r%12)+12)%12]+(Math.floor(r/12)-1)};
@@ -7732,14 +7746,14 @@ function chWorker(){if(CHW!==null)return CHW;try{const src=[psTrack,psMarks,chFF
   CHW=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})))}catch(e){CHW=false}return CHW}
 function chFeatRun(x){const local=()=>new Promise(r=>setTimeout(()=>{const q=chFeat(x,KEY_SR);q.regs.forEach(g=>{g.M=Int32Array.from(g.M)});r(q)},30)),W=chWorker();if(!W)return local();
   return new Promise(res=>{const id=Math.random(),on=e=>{if(!e.data||e.data.id!==id)return;W.removeEventListener('message',on);if(e.data.err)local().then(res);else res(e.data.r)};W.addEventListener('message',on);W.postMessage({id,x,sr:KEY_SR})})}
-function chSrcList(hasMine){const sel=$('chSrc');sel.innerHTML=CH_BASE.map(b=>'<option value="'+b.id+'">'+chEsc(b.name)+'</option>').join('')+(hasMine?'<option value="my">My own recording</option>':'');sel.value=CHM.src||chSet().src;if(!sel.value)sel.value=CH_BASE[0].id}
+function chSrcList(hasMine){const sel=$('chSrc'),cs=store.get('ison-chants',[]).filter(c=>c.src.startsWith('c:'));sel.innerHTML=CH_BASE.map(b=>'<option value="'+b.id+'">'+chEsc(b.name)+'</option>').join('')+(hasMine?'<option value="my">My own recording (the latest)</option>':'')+(cs.length?'<optgroup label="Recordings kept with my chants">'+cs.map(c=>'<option value="'+c.src+'">'+chEsc(c.name)+'</option>').join('')+'</optgroup>':'');sel.value=CHM.src||chSet().src;if(!sel.value)sel.value=CH_BASE[0].id}
 async function chLoad(id){const st=$('chSrcSt');if(CHM.busy)return;CHM.busy=true;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;st.textContent='Loading the recording.';$('chPlayer').hidden=true;
   try{let an=null;try{an=await BlobDB.get('chant-an2:'+id)}catch(e){}
-    if(!an||!an.F||!an.x){let blob=null;if(id.startsWith('b:')){const b=CH_BASE.find(q=>q.id===id);blob=b?await pubAudio('chant:'+id,b.file):null}else blob=await BlobDB.get('chant-rec');
-      if(!blob){st.textContent=id==='my'?'No recording of your own yet. Record or upload one.':'The built-in recording could not be loaded. Check your connection and try again.';CHM.busy=false;return}
+    if(!an||!an.F||!an.x){let blob=null;if(id.startsWith('b:')){const b=CH_BASE.find(q=>q.id===id);blob=b?await pubAudio('chant:'+id,b.file):null}else blob=await BlobDB.get(id.startsWith('c:')?'chant-rec:'+id.slice(2):'chant-rec');
+      if(!blob){st.textContent=id.startsWith('c:')?'The recording saved with this chant is missing on this device.':id==='my'?'No recording of your own yet. Record or upload one.':'The built-in recording could not be loaded. Check your connection and try again.';CHM.busy=false;return}
       st.textContent='Listening to the recording: cleaning the sound and finding every syllable. The first time takes up to a minute.';
       const x=await keyDecode(blob),r=await chFeatRun(x);an={x:r.x,regs:r.regs,F:r.F};try{await BlobDB.put('chant-an2:'+id,an)}catch(e){}}
-    CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.src=id;chSave({src:id});$('chSrc').value=id;$('chText').value=store.get('ison-chant-text:'+id,'');
+    CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.src=id;chSave({src:id});$('chSrc').value=id;$('chText').value=store.get('ison-chant-text:'+id,'')||((CH_BASE.find(b=>b.id===id)||{}).text||'');
     const snr=an.F.snr;st.textContent=chClock(an.F.dur)+' long. '+(snr<8?'There was a strong background hum or noise, and it has been cleaned out. A quieter room will sound better still.':snr<16?'Some background noise was cleaned out.':'Clean recording.');
     if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}CHM.busy=false;chMatch()}
   catch(e){st.textContent='That recording could not be read. Try another file.';CHM.busy=false}}
@@ -7761,12 +7775,24 @@ function chMelStats(){const box=$('chMels');if(!CHM.seg||!CHM.seg.phr.length){bo
   box.innerHTML=h;const M=CH_MEL.find(m=>m.id===s.mel)||CH_MEL[0];$('chMelD').textContent=M.d;box.querySelectorAll('.chmel').forEach(b=>b.onclick=()=>{chSave({mel:b.dataset.m});chMelStats();chMakeSoon()})}
 function chMakeSoon(){clearTimeout(CHM.mk);CHM.mk=setTimeout(chMakeNow,320)}
 function chPlaying(){const a=$('chAud');return!!a&&!a.paused&&!a.ended}
+/* the mix: the reshaped voice, a clean tone on every melody note, and the drone, each at its own level */
+function chToneLayer(P,len,sr,oct){const y=new Float32Array(len),up=oct?12:0,gl=Math.round(sr*0.03),at=Math.round(sr*0.025),N=P.notes,hz=m=>440*Math.pow(2,(m+up-69)/12);let ph=0;
+  for(let k=0;k<N.length;k++){const q=N[k],a=Math.round(q.t*sr),b=Math.min(len,Math.round((q.t+q.d)*sr)),pv=N[k-1],nx=N[k+1],tin=pv&&pv.p===q.p&&Math.abs(pv.t+pv.d-q.t)<0.01,tout=nx&&nx.p===q.p&&Math.abs(q.t+q.d-nx.t)<0.01,f1=hz(q.m),f0=tin?hz(pv.m):f1,rel=Math.max(1,Math.min(Math.round(sr*0.06),(b-a)>>1));
+    for(let i=a;i<b;i++){const j=i-a,f=j<gl?f0+(f1-f0)*j/gl:f1;ph+=2*Math.PI*f/sr;const e=Math.min(tin?1:Math.min(1,j/at),tout?1:Math.min(1,(b-i)/rel));y[i]+=0.2*e*(Math.sin(ph)+0.45*Math.sin(2*ph)+0.22*Math.sin(3*ph)+0.1*Math.sin(4*ph))}}return y}
+function chDroneLayer(len,sr,home,oct){const y=new Float32Array(len);let hm=home;while(hm>50)hm-=12;while(hm<36)hm+=12;hm+=oct?12:0;const w=2*Math.PI*440*Math.pow(2,(hm-69)/12)/sr,fd=Math.round(sr*0.5);
+  for(let i=0;i<len;i++){const e=Math.min(1,i/fd,(len-i)/fd),p=w*i;y[i]=0.16*e*(Math.sin(p)+0.5*Math.sin(2*p)+0.28*Math.sin(3*p)+0.14*Math.sin(4*p)+0.3*Math.sin(1.5*p))}return y}
+function chMixBuf(){const s=chSet(),P=CHM.P,y=CHM.y,n=P.len,lv=v=>v>0?Math.pow(v/10,1.6):0,gv=lv(s.voice)*1.15,gt=lv(s.guide),gd=lv(s.drone);
+  if(gt>0&&(!CHM.pG||CHM.pGo!==s.oct)){CHM.pG=chToneLayer(P,n,KEY_SR,s.oct);CHM.pGo=s.oct}if(gd>0&&(!CHM.pD||CHM.pDo!==s.oct)){CHM.pD=chDroneLayer(n,KEY_SR,CHM.o.home,s.oct);CHM.pDo=s.oct}
+  const m=new Float32Array(n);for(let i=0;i<n;i++)m[i]=y[i]*gv+(gt>0?CHM.pG[i]*gt:0)+(gd>0?CHM.pD[i]*gd:0);return m}
+function chAudio(mix,was,frac){const a=$('chAud'),P=CHM.P;if(CHM.url)URL.revokeObjectURL(CHM.url);CHM.url=URL.createObjectURL(new Blob([keyWav(mix,KEY_SR)],{type:'audio/wav'}));a.src=CHM.url;a.loop=!!chSet().loop;$('chDl').href=CHM.url;
+  if(was){const go=()=>{a.removeEventListener('loadedmetadata',go);try{a.currentTime=Math.min(P.dur-0.2,frac*P.dur)}catch(e){}a.play().catch(()=>{})};a.addEventListener('loadedmetadata',go)}}
 function chMakeNow(){clearTimeout(CHM.mk);const pl=$('chPlayer');if(!CHM.seg||!CHM.seg.phr.length){pl.hidden=true;return}const s=chSet(),a=$('chAud'),was=chPlaying(),frac=CHM.P&&a.duration?a.currentTime/CHM.P.dur:0;
   const q=chSolveK(s),o=chOpts(s,q.k),P=chPlan(CHM.F,CHM.seg,o),y=chRender(CHM.x,KEY_SR,CHM.regs,P);CHM.P=P;CHM.y=y;CHM.k=q.k;CHM.o=o;CHM.nat=q.d1;
-  let mix=y;if(s.drone>0||s.guide>0){const bk=chBacking(P.len,KEY_SR,P,o);mix=new Float32Array(P.len);for(let i=0;i<P.len;i++)mix[i]=y[i]*0.85+bk[i]}
-  if(CHM.url)URL.revokeObjectURL(CHM.url);CHM.url=URL.createObjectURL(new Blob([keyWav(mix,KEY_SR)],{type:'audio/wav'}));a.src=CHM.url;a.loop=!!s.loop;$('chDl').href=CHM.url;
-  pl.hidden=false;CHM.kpi=-1;CHM.ksi=-2;chLines();chLabels();chKar(was?frac*P.dur:0);
-  if(was){const go=()=>{a.removeEventListener('loadedmetadata',go);try{a.currentTime=Math.min(P.dur-0.2,frac*P.dur)}catch(e){}a.play().catch(()=>{})};a.addEventListener('loadedmetadata',go)}}
+  CHM.pD=null;CHM.pG=null;chAudio(chMixBuf(),was,frac);
+  pl.hidden=false;CHM.kpi=-1;CHM.ksi=-2;chLines();chLabels();chKar(was?frac*P.dur:0)}
+function chRemix(){if(!CHM.P)return;const a=$('chAud'),was=chPlaying(),frac=a.duration?a.currentTime/CHM.P.dur:0;chAudio(chMixBuf(),was,frac);chMixLab()}
+function chMixLab(){const s=chSet();[['voice','chVoiceN'],['guide','chToneN'],['drone','chDroneN']].forEach(([k,id])=>{const e=$(id);if(document.activeElement!==e)e.value=s[k]});$('chOct').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===s.oct)));
+  $('chMixTxt').textContent=s.voice===0?(s.guide>0?'Tone only. The words stay lit above, so you always know which syllable you are on. Sing them yourself.':'Everything is turned off.'):s.guide===0?'Voice only, no melody tone.':s.voice<=3?'Mostly tone, with the voice quiet underneath to show where each word falls. Good for singing along.':'Voice and melody tone together.'}
 function chLineText(p,cur){return p.syl.map((s,i)=>{const t=s.x?s.x.t:'•',sp=s.x?(s.x.ws&&i?' ':''):(i?' ':'');return sp+'<span class="s'+(s.acc?' ac':'')+(s.deg.length>1?' ml':'')+'" data-i="'+i+'">'+chEsc(t)+'</span>'+(s.x&&s.x.we&&s.x.pc===1?',':'')}).join('')}
 function chLines(){const P=CHM.P;$('chLines').innerHTML=P.phr.map((p,i)=>'<button data-i="'+i+'"><small>'+chClock(p.t)+'</small> '+p.syl.map((s,k)=>(s.x?(s.x.ws&&k?' ':'')+chEsc(s.x.t):(k?' ':'')+'•')).join('')+'</button>').join('');
   $('chLines').querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=$('chAud');try{a.currentTime=Math.max(0,P.phr[+b.dataset.i].t-0.1)}catch(e){}chPlay(true)})}
@@ -7774,7 +7800,7 @@ function chLabels(){const s=chSet(),P=CHM.P;if(!P)return;const lo=CHM.nat*0.5,hi
   const pc=Math.round((CHM.k-1)*100);$('chLenV').textContent=chClock(P.dur)+(s.len?(Math.abs(pc)<3?', natural pace':pc>0?', '+pc+'% slower than natural':', '+(-pc)+'% quicker than natural'):', natural pace');
   $('chUpV').textContent='home note '+chNote(CHM.o.home)+(s.up?' ('+(s.up>0?s.up+' higher':-s.up+' lower')+' than the closest fit)':' (the melody is centered on your reading note, '+chNote(CHM.seg.med)+')');
   $('chRangeV').textContent=(s.range===100?'as written':s.range<100?'narrower':'wider')+', from '+chNote(P.lo)+' up to '+chNote(P.hi);
-  $('chHoldV').textContent=s.hold.toFixed(1)+' s';$('chPauseV').textContent=s.pause.toFixed(1)+' s';$('chLeanV').textContent=s.lean?s.lean+' of 10':'off';$('chDroneV').textContent=s.drone?s.drone+' of 10':'off';$('chGuideV').textContent=s.guide?s.guide+' of 10':'off';
+  $('chHoldV').textContent=s.hold.toFixed(1)+' s';$('chPauseV').textContent=s.pause.toFixed(1)+' s';$('chLeanV').textContent=s.lean?s.lean+' of 10':'off';chMixLab();
   $('chSum').textContent=P.phr.length+' lines, '+P.notes.length+' notes, '+chClock(P.dur)+' long.';$('chLoop').setAttribute('aria-pressed',String(!!s.loop));$('chEven').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===!!s.even)))}
 /* karaoke: the line being sung, the word and syllable lit as it sounds, the next line waiting below, and the notes drawn above */
 function chKar(t){const P=CHM.P;if(!P)return;let pi=0;for(let i=0;i<P.phr.length;i++)if(P.phr[i].t-0.3<=t)pi=i;const p=P.phr[pi];
@@ -7800,6 +7826,20 @@ async function chRecord(){const b=$('chRec');if(CHM.rec){CHM.rec.stop();return}
     const iv=setInterval(()=>{$('chSrcSt').textContent='Recording: '+chClock((Date.now()-t0)/1000)+'. Tap Stop when you finish.'},500);mr.ondataavailable=e=>{if(e.data&&e.data.size)parts.push(e.data)};
     mr.onstop=()=>{clearInterval(iv);stream.getTracks().forEach(t=>t.stop());CHM.rec=null;b.innerHTML='&#9679; Record';chNewRec(new Blob(parts,{type:mr.mimeType||'audio/webm'}))};mr.start();CHM.rec=mr;b.innerHTML='&#9632; Stop recording'}
   catch(e){$('chSrcSt').textContent='The microphone could not be opened here. Record with your phone\'s voice memo app and use Upload instead.'}}
+/* My chants: the recording, the words and every setting, kept under a name */
+async function chSaveChant(nm){const id=Date.now().toString(36);let src=CHM.src;
+  if(src==='my'){const b=await BlobDB.get('chant-rec');if(b){await BlobDB.put('chant-rec:'+id,b);try{const an=await BlobDB.get('chant-an2:my');if(an)await BlobDB.put('chant-an2:c:'+id,an)}catch(e){}src='c:'+id}}
+  const set=Object.assign({},chSet(),{src});const list=store.get('ison-chants',[]);list.unshift({id,name:nm,src,text:$('chText').value,set,dur:CHM.P?CHM.P.dur:0,created:Date.now()});store.set('ison-chants',list);
+  chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').value=CHM.src;chMineRender()}
+function chMineRender(){const list=store.get('ison-chants',[]),box=$('chMineList');$('chMine').hidden=!list.length;
+  box.innerHTML=list.map((c,i)=>{const M=CH_MEL.find(m=>m.id===c.set.mel),R=RT_LIST.find(r=>r[0]===c.set.scale);return'<div class="chmine"><button data-i="'+i+'"><b>'+chEsc(c.name)+'</b><br><small>'+(M?chEsc(M.n):'')+(R?', '+chEsc(R[1].replace(/ \(.*\)/,'')):'')+(c.dur?', '+chClock(c.dur):'')+'</small></button><button class="del lpplay" data-d="'+i+'" aria-label="Delete '+chEsc(c.name)+'">Delete</button></div>'}).join('');
+  box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>chOpenChant(store.get('ison-chants',[])[+b.dataset.i]));
+  box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.dataset.armed){const list=store.get('ison-chants',[]),c=list.splice(+b.dataset.d,1)[0];store.set('ison-chants',list);if(c&&c.src.startsWith('c:')){BlobDB.put('chant-rec:'+c.id,null).catch(()=>{});BlobDB.put('chant-an2:'+c.src,null).catch(()=>{})}
+      $('chMineSt').textContent='Deleted "'+(c?c.name:'')+'". Anything already added to your practice songs stays there.';chSrcList(!!store.get('ison-chant-mine',0));chMineRender();return}
+    b.dataset.armed='1';b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Delete'}},3500)})}
+function chSyncUI(){const s=chSet();$('chScale').value=s.scale;$('chUp').value=s.up;$('chRange').value=s.range;$('chHold').value=s.hold;$('chPause').value=s.pause;$('chLean').value=s.lean;chMixLab()}
+function chOpenChant(c){if(!c)return;chStop();store.set('ison-chant-text:'+c.src,c.text||'');store.set('ison-chant-set',Object.assign({},c.set));chSyncUI();$('chName').value=c.name;$('chMineSt').textContent='Opened "'+c.name+'".';
+  chSrcList(!!store.get('ison-chant-mine',0));CHM.busy=false;chLoad(c.src);setTimeout(()=>{const e=$('chPlayer');if(!e.hidden)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'})},1200)}
 function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('chScale').innerHTML=RT_LIST.filter(r=>r[0]!=='off').map(r=>'<option value="'+r[0]+'">'+r[1]+'</option>').join('');$('chScale').value=s.scale;
   $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};
@@ -7808,14 +7848,21 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('chHear').onclick=()=>{const o=$('chOrig');if(!CHM.x)return;if(!o.paused){o.pause();return}chStop();if(!CHM.ourl){CHM.ourl=URL.createObjectURL(new Blob([keyWav(CHM.x,KEY_SR)],{type:'audio/wav'}));o.src=CHM.ourl}o.play().catch(()=>{})};
   let tt=0;$('chText').oninput=()=>{clearTimeout(tt);tt=setTimeout(chMatch,900)};
   const sl=(id,key,conv,stats)=>{const e=$(id);e.value=key==='len'?0:s[key];e.oninput=()=>{const v=conv?conv(+e.value):+e.value,p={};p[key]=v;chSave(p);if(stats)chMelStats();chMakeSoon()}};
-  sl('chLen','len',v=>v,true);sl('chUp','up');sl('chRange','range',null,true);sl('chHold','hold',null,true);sl('chPause','pause',null,true);sl('chLean','lean');sl('chDrone','drone');sl('chGuide','guide');
+  sl('chLen','len',v=>v,true);sl('chUp','up');sl('chRange','range',null,true);sl('chHold','hold',null,true);sl('chPause','pause',null,true);sl('chLean','lean');
+  let rm=0;const lvl=(id,key)=>{const e=$(id+'N'),set=v=>{v=Math.max(0,Math.min(10,Math.round(v)));if(isNaN(v))return;const p={};p[key]=v;chSave(p);e.value=v;clearTimeout(rm);rm=setTimeout(chRemix,250)};
+    e.oninput=()=>{if(e.value!=='')set(+e.value)};$(id+'Dn').onclick=()=>set(chSet()[key]-1);$(id+'Up').onclick=()=>set(chSet()[key]+1)};lvl('chVoice','voice');lvl('chTone','guide');lvl('chDrone','drone');
+  $('chOct').querySelectorAll('button').forEach(b=>b.onclick=()=>{chSave({oct:+b.dataset.v});chRemix()});chMixLab();
   $('chLenNat').onclick=()=>{chSave({len:0});chMelStats();chMakeNow()};$('chUpAuto').onclick=()=>{chSave({up:0});$('chUp').value=0;chMakeNow()};
   $('chEven').querySelectorAll('button').forEach(b=>b.onclick=()=>{chSave({even:b.dataset.v==='1'});chMelStats();chMakeNow()});
   $('chPlay').onclick=()=>chPlay();$('chLoop').onclick=()=>{const v=!chSet().loop;chSave({loop:v});$('chAud').loop=v;$('chLoop').setAttribute('aria-pressed',String(v))};
   $('chAud').addEventListener('ended',chBtn);$('chAud').addEventListener('pause',chBtn);
-  $('chSave').onclick=()=>{const nm=($('chName').value||'').trim();if(!CHM.y){return}if(!nm){$('chSaveSt').textContent='Give it a name first.';$('chName').focus();return}$('chSaveAsk').hidden=false;$('chSaveQ').textContent='Save "'+nm+'" as a new song in the app?'};
+  $('chSave').onclick=()=>{const nm=($('chName').value||'').trim();if(!CHM.y){return}if(!nm){$('chSaveSt').textContent='Give it a name first.';$('chName').focus();return}const ex=store.get('ison-chants',[]).some(c=>c.name.toLowerCase()===nm.toLowerCase());
+    $('chSaveAsk').hidden=false;$('chSaveQ').textContent=(ex?'You already have a chant called "'+nm+'". This saves a second one with the same name. ':'')+'Save "'+nm+'" to My chants'+($('chAlso').checked?' and to your practice songs':'')+'?'};
   $('chSaveNo').onclick=()=>{$('chSaveAsk').hidden=true};
-  $('chSaveYes').onclick=async()=>{$('chSaveAsk').hidden=true;const nm=$('chName').value.trim(),st=$('chSaveSt');try{chStop();const f=new File([keyWav(CHM.y,KEY_SR)],nm+'.wav',{type:'audio/wav'});await importRecording(f,st);st.textContent='Saved "'+nm+'" as a new song. It is now in your song lists under Practice and Songs, with the voice only, so the app can add its own drone.'}catch(e){st.textContent='It could not be saved on this device.'}};
+  $('chSaveYes').onclick=async()=>{$('chSaveAsk').hidden=true;const nm=$('chName').value.trim(),st=$('chSaveSt'),also=$('chAlso').checked;try{chStop();st.textContent='Saving.';await chSaveChant(nm);
+      if(also){const f=new File([keyWav(CHM.y,KEY_SR)],nm+'.wav',{type:'audio/wav'});await importRecording(f,st)}
+      st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs in the Practice and Songs tabs (voice only, so the app can add its own drone).':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
+  chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?CH_BASE[0].id:s.src)}
 
 drawLive(0);loadSource();exampleTake();
