@@ -7819,20 +7819,58 @@ async function chLoadTts(id){const st=$('chSrcSt'),tok=++CHM.lt;CHM.busy=false;c
   if(id!=='tts')$('chText').value=store.get('ison-chant-text:'+id,'')||an.text;CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.V=an.V;CHM.ttsText=an.text;CHM.tkey=key;$('chVoiceSel').value=an.voice;
   const vn=$('chVoiceSel').selectedOptions[0];st.textContent='Computer voice: '+(vn?vn.textContent.replace(/ \(.*/,''):an.voice)+', '+chClock(an.F.dur)+' of speech.';$('chTtsSt').textContent='';
   if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}chMatch()}
-let CHV_TTS=null;
-async function chvLib(prog){if(CHV_TTS)return CHV_TTS;const mod=await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js');
-  CHV_TTS=await mod.KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX-timestamped',{dtype:'q8',device:'wasm',progress_callback:prog});return CHV_TTS}
+/* the voice is made in a background worker, one line at a time, so the screen never freezes; each finished line
+   is kept on the device, so if the phone locks or the page closes, it carries on from where it stopped */
+function chvLine(L,tts,phon,o){return(async()=>{const tk=tts.tokenizer,t2i=tk.model.tokens_to_ids,SR=24000;let last=null;const om=tts.model;tts.model=async i=>{const r=await om(i);last=r;return r};
+  try{const mk=tk('a',{truncation:true}).input_ids,chars=[],wr=[];
+    for(let wi=0;wi<L.length;wi++){const w=L[wi];let p=chvPost(((await phon(w.word))||[]).join(''));if(CHV_FN.has(w.word.toLowerCase())&&L.length>1)p=p.replace(/[ˈˌ]/g,'');
+      p=[...p].filter(c=>t2i.has(c)).join('');if(wi)chars.push(' ');const a=chars.length;chars.push(...p);wr.push([a,chars.length,p]);
+      if(w.pc){const c=o.flat?',':w.pc===1?',':w.pc===2?';':'.';if(t2i.has(c))chars.push(c)}}
+    const ids=[0].concat(chars.map(c=>t2i.get(c)),[0]),T=new mk.constructor('int64',BigInt64Array.from(ids.map(BigInt)),[1,ids.length]);
+    const au=await tts.generate_from_ids(T,{voice:o.voice,speed:o.speed}),wav=au.audio,du=Array.from(last.durations.data).map(Number),tot=du.reduce((s,d)=>s+d,0),k=wav.length/tot,cum=[0];
+    du.forEach(d=>cum.push(cum[cum.length-1]+d*k));const at=c=>cum[c+1]/SR,syl=[];
+    wr.forEach(([a,b,p],wi)=>{chvSyl([...p]).forEach((q,k2,arr)=>syl.push({w:wi,k:k2,n:arr.length,t0:at(a+q.a),t1:at(a+q.b),v0:at(a+q.va),v1:at(a+q.vb),st:q.st}))});
+    return{wav:Float32Array.from(wav),syl}}finally{tts.model=om}})()}
+let CHVW=null;
+function chvWorker(){if(CHVW)return CHVW;const src="import{KokoroTTS}from'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js';\n"+
+  'const CHV_VOW='+JSON.stringify(CHV_VOW)+',CHV_DI=new Set('+JSON.stringify([...CHV_DI])+'),CHV_FN=new Set('+JSON.stringify([...CHV_FN])+');\n'+
+  [chvPost,chvSyl,chvPhon,chvLine].map(f=>f.toString()).join('\n')+
+  "\nlet tts=null;onmessage=async e=>{const d=e.data;try{if(!tts){tts=await KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX-timestamped',{dtype:'q8',device:'wasm',progress_callback:p=>{if(p&&p.status==='progress')postMessage({t:'dl',file:p.file,loaded:p.loaded,total:p.total})}})}"+
+  "postMessage({t:'ready'});const phon=chvPhon(tts,d.voice);for(const i of d.todo){const r=await chvLine(d.lines[i],tts,phon,{voice:d.voice,speed:d.speed,flat:true});postMessage({t:'line',i,wav:r.wav,syl:r.syl},[r.wav.buffer])}postMessage({t:'end'})}catch(err){postMessage({t:'err',msg:String(err&&err.message||err)})}}";
+  CHVW=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})),{type:'module'});return CHVW}
+function chvStopWorker(){if(CHVW){try{CHVW.terminate()}catch(e){}CHVW=null}}
+/* the finished lines, joined with a breath between them, at the app's working rate, with every syllable's time */
+function chvJoin(res){const SR=24000,GAP=Math.round(SR*0.45),lead=Math.round(SR*0.3);let n=lead;res.forEach(r=>n+=r.wav.length+GAP);const y=new Float32Array(n),syl=[];let pos=lead;
+  res.forEach((r,li)=>{y.set(r.wav,pos);const t=pos/SR;r.syl.forEach(q=>syl.push(Object.assign({},q,{line:li,t0:q.t0+t,t1:q.t1+t,v0:q.v0+t,v1:q.v1+t})));pos+=r.wav.length+GAP});
+  const ra=SR/KEY_SR,m=Math.floor(n/ra),x=new Float32Array(m);for(let i=0;i<m;i++){const s=i*ra,j=Math.floor(s),f=s-j;x[i]=(y[j]||0)*(1-f)+(y[j+1]||0)*f}return{x,syl}}
 function chHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(36)}
-async function chMakeVoice(){if(CHM.making)return;const st=$('chTtsSt'),txt=$('chText').value.trim(),voice=$('chVoiceSel').value,T=chText(txt);if(!T.length){st.textContent='Type or paste the words first.';return}
-  const key=chHash(txt+'|'+voice+'|v1');CHM.making=true;$('chMake').disabled=true;chStop();
-  try{let an=null;try{an=await BlobDB.get('chant-an2:t:'+key)}catch(e){}
-    if(!an||!an.V){const files={};st.textContent='Loading the voice. The first time, it downloads about 90 MB, then it stays on this device.';
-      const tts=await chvLib(p=>{if(p&&p.status==='progress'&&p.total){files[p.file]=[p.loaded,p.total];let a=0,b=0;Object.values(files).forEach(([x,y])=>{a+=x;b+=y});st.textContent='Downloading the voice: '+Math.round(a/1048576)+' of '+Math.round(b/1048576)+' MB. This happens only once.'}});
-      const R=await chvMake(chvLines(T),tts,chvPhon(tts,voice),{voice,speed:0.85,flat:true},(i,n)=>{st.textContent='Speaking line '+(i+1)+' of '+n+'.'});
-      st.textContent='Finding the pitch of every syllable.';const r=await chFeatRun(R.x);an={x:r.x,regs:r.regs,F:r.F,V:R.syl,text:txt,voice};try{await BlobDB.put('chant-an2:t:'+key,an)}catch(e){}}
-    store.set('ison-chant-tts',key);store.set('ison-chant-text:tts',txt);const s=chSet();if(s.voice===8&&s.guide===4){chSave({voice:6,guide:7})}
-    CHM.making=false;$('chMake').disabled=false;if(CHM.src==='tts'||CHM.src.startsWith('t:')){await chLoadTts('tts');st.textContent='Done. Press Play the chant.'}else st.textContent='The voice is ready. Pick Computer voice above to hear it.'}
-  catch(e){CHM.making=false;$('chMake').disabled=false;st.textContent='The voice could not be made here ('+(e&&e.message?e.message.slice(0,90):'unknown problem')+'). The first time it needs an internet connection, and it works on the GitHub site rather than inside the Claude page.'}}
+function chMakeBtn(on){const b=$('chMake');b.disabled=false;b.dataset.stop=on?'1':'';if(on)b.textContent='Stop making the voice'}
+async function chMakeVoice(){const st=$('chTtsSt');if(CHM.making){chvStopWorker();CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice from the words';st.textContent='Stopped. The lines already spoken are kept, so the next time it carries on from there.';return}
+  const txt=$('chText').value.trim(),voice=$('chVoiceSel').value,T=chText(txt);if(!T.length){st.textContent='Type or paste the words first.';return}
+  const key=chHash(txt+'|'+voice+'|v1');chStop();let an=null;try{an=await BlobDB.get('chant-an2:t:'+key)}catch(e){}
+  if(an&&an.V){store.set('ison-chant-tts',key);store.set('ison-chant-text:tts',txt);await chLoadTts('tts');st.textContent='Done. Press Play the chant.';return}
+  const lines=chvLines(T),lk=lines.map(L=>'chant-line:'+chHash(voice+'|0.85|'+JSON.stringify(L.map(w=>[w.word,w.pc])))),res=new Array(lines.length);
+  for(let i=0;i<lines.length;i++){try{const r=await BlobDB.get(lk[i]);if(r&&r.wav)res[i]=r}catch(e){}}
+  const todo=[];res.forEach((r,i)=>{if(!r)todo.push(i)});for(let i=0;i<lines.length;i++)if(!res[i]&&!todo.includes(i))todo.push(i);
+  CHM.making=true;chMakeBtn(true);const done0=lines.length-todo.length;let t0=0,nd=0;const files={};
+  st.textContent=done0?'Carrying on: '+done0+' of '+lines.length+' lines were already spoken.':'Starting the voice. The page stays usable while it works.';
+  const finish=async()=>{chvStopWorker();CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice again';st.textContent='Finding the pitch of every syllable.';
+    try{const R=chvJoin(res),r=await chFeatRun(R.x);const an2={x:r.x,regs:r.regs,F:r.F,V:R.syl,text:txt,voice};try{await BlobDB.put('chant-an2:t:'+key,an2)}catch(e){}
+      store.set('ison-chant-tts',key);store.set('ison-chant-text:tts',txt);const s=chSet();if(s.voice===8&&s.guide===4)chSave({voice:6,guide:7});
+      lk.forEach(k=>{BlobDB.put(k,null).catch(()=>{})});
+      if(CHM.src==='tts'||CHM.src.startsWith('t:')){await chLoadTts('tts');st.textContent='Done. Press Play the chant.'}else st.textContent='The voice is ready. Pick Computer voice above to hear it.'}
+    catch(e){st.textContent='Something went wrong putting the lines together ('+String(e&&e.message||e).slice(0,80)+').'}};
+  if(!todo.length){finish();return}
+  let W;try{W=chvWorker()}catch(e){CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice from the words';st.textContent='This browser cannot run the voice in the background.';return}
+  W.onmessage=async e=>{const d=e.data;if(!CHM.making)return;
+    if(d.t==='dl'&&d.total){files[d.file]=[d.loaded,d.total];let a=0,b=0;Object.values(files).forEach(([x,y])=>{a+=x;b+=y});if(b>2e6)st.textContent='Downloading the voice: '+Math.round(a/1048576)+' of '+Math.round(b/1048576)+' MB. This happens only once.'}
+    else if(d.t==='ready'){t0=Date.now();st.textContent='Speaking line '+(done0+1)+' of '+lines.length+'. The first line takes the longest.'}
+    else if(d.t==='line'){res[d.i]={wav:d.wav,syl:d.syl};try{await BlobDB.put(lk[d.i],{wav:d.wav,syl:d.syl})}catch(e){}nd++;const left=todo.length-nd,per=(Date.now()-t0)/nd/1000,rem=Math.round(per*left);
+      if(left>0)st.textContent='Spoke '+(done0+nd)+' of '+lines.length+' lines. About '+(rem<90?rem+' seconds':Math.round(rem/60)+' minutes')+' left. You can keep using the page; keep the screen on.'}
+    else if(d.t==='end'){finish()}
+    else if(d.t==='err'){chvStopWorker();CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice from the words';st.textContent='The voice could not be made here ('+d.msg.slice(0,90)+'). The first time it needs an internet connection, and it works on the GitHub site rather than inside the Claude page.'}};
+  W.onerror=ev=>{if(!CHM.making)return;chvStopWorker();CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice from the words';st.textContent='The voice could not start in this browser ('+String(ev&&ev.message||'worker error').slice(0,80)+').'};
+  W.postMessage({lines,voice,speed:0.85,todo})}
 async function chLoad(id){if(id==='tts'||id.startsWith('t:'))return chLoadTts(id);const st=$('chSrcSt'),tok=++CHM.lt;CHM.busy=true;$('chTtsBox').hidden=true;$('chHear').hidden=false;CHM.V=null;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;st.textContent='Loading the recording.';$('chPlayer').hidden=true;
   try{let an=null;try{an=await BlobDB.get('chant-an2:'+id)}catch(e){}if(tok!==CHM.lt)return;
     if(!an||!an.F||!an.x){let blob=null;if(id.startsWith('b:')){const b=CH_BASE.find(q=>q.id===id);blob=b?await pubAudio('chant:'+id,b.file):null}else blob=await BlobDB.get(id.startsWith('c:')?'chant-rec:'+id.slice(2):'chant-rec');
@@ -7857,7 +7895,7 @@ function chOpts(s,k,mel){const sc=rtScale(s.scale)||RT_T1,M=CH_MEL.find(m=>m.id=
 function chSolveK(s,mel){const d1=chPlan(CHM.F,CHM.seg,chOpts(s,1,mel)).dur;if(!s.len)return{k:1,d1};const d2=chPlan(CHM.F,CHM.seg,chOpts(s,2,mel)).dur;let k=1+(s.len-d1)/Math.max(0.1,d2-d1);k=Math.max(0.4,Math.min(3,k));
   const dk=chPlan(CHM.F,CHM.seg,chOpts(s,k,mel)).dur;k=Math.max(0.4,Math.min(3,k+(s.len-dk)/Math.max(0.1,d2-d1)));return{k,d1}}
 /* every melody, measured on this reading: how long it runs, how far it reaches, and which ones suit the length you asked for */
-function chMelStats(){const box=$('chMels');if(!CHM.seg||!CHM.seg.phr.length){box.innerHTML='';return}const s=chSet(),rows=CH_MEL.map(M=>{const q=chSolveK(s,M.id),P=chPlan(CHM.F,CHM.seg,chOpts(s,1,M.id));return{M,d1:q.d1,k:q.k,span:P.hi-P.lo,reach:Math.max(Math.abs(P.hi-CHM.seg.med),Math.abs(P.lo-CHM.seg.med))}});
+function chMelStats(){const box=$('chMels');if(!CHM.seg||!CHM.seg.phr.length){box.innerHTML='<p class="status" style="margin:0">The melodies show up here once there is a voice.</p>';$('chMelD').textContent='';return}const s=chSet(),rows=CH_MEL.map(M=>{const q=chSolveK(s,M.id),P=chPlan(CHM.F,CHM.seg,chOpts(s,1,M.id));return{M,d1:q.d1,k:q.k,span:P.hi-P.lo,reach:Math.max(Math.abs(P.hi-CHM.seg.med),Math.abs(P.lo-CHM.seg.med))}});
   const rank=rows.slice().sort((a,b)=>s.len?Math.abs(Math.log(a.k))-Math.abs(Math.log(b.k)):a.reach-b.reach),star=new Set(rank.slice(0,3).map(r=>r.M.id));let h='',g='';
   rows.forEach(r=>{if(r.M.g!==g){g=r.M.g;h+='<span class="label chgl">'+g+'</span>'}const fit=star.has(r.M.id);
     h+='<button class="chmel" data-m="'+r.M.id+'" aria-pressed="'+(s.mel===r.M.id)+'"><span>'+(fit?'<b class="chstar" aria-hidden="true">&#9733;</b> ':'')+chEsc(r.M.n)+'</span><small>'+chClock(r.d1)+' at a natural pace &middot; spans '+(Math.round(r.span*2)/2)+' semitones'+(fit?(s.len?' &middot; fits your length':' &middot; easiest on your voice'):'')+'</small></button>'});
