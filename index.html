@@ -451,7 +451,7 @@ html.lk-still:not(.sketch) #amb i{animation-play-state:paused}
 .vxnote{border-top:1px dashed var(--line,rgba(127,127,127,.4));margin-top:8px;padding-top:4px}
 #vxAtt{flex:1;min-width:120px}
 html.sketch .vxwrap{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}
-.lph{margin:14px 0 4px;font-size:1rem}html.earsgraph .earann:empty,html.earsgraph .earmix:empty{min-height:0;margin:0}.earsv{text-align:center;margin:4px 0 6px}.earphr{font-size:1.15rem;font-weight:700;margin:2px 0 6px;min-height:1.4em}.earphr.dim{opacity:.55}.earvsw{justify-content:center;margin:0 0 6px}.eargraph{border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px;overflow:hidden;margin:0 0 6px}.eargraph canvas{display:block;width:100%}html.sketch .eargraph{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}.lpql{display:block;margin:8px 0 2px}.mpnotes{font-size:1.05rem;letter-spacing:.02em;margin:2px 0 8px;overflow-wrap:anywhere}
+.lph{margin:14px 0 4px;font-size:1rem}html.earsgraph .earann:empty,html.earsgraph .earmix:empty{min-height:0;margin:0}.earsv{text-align:center;margin:4px 0 6px}.earphr{font-size:1.15rem;font-weight:700;margin:2px 0 6px;min-height:1.4em}.earphr.dim{opacity:.55}.earvsw{justify-content:center;margin:0 0 6px}.eargraph{border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px;overflow:hidden;margin:0 0 6px}.eargraph canvas{display:block;width:100%}html.sketch .eargraph{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}.lpql{display:block;margin:8px 0 2px}.rtb{margin-top:6px}.rttxt{margin:6px 0;padding:8px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:6px}.mpnotes{font-size:1.05rem;letter-spacing:.02em;margin:2px 0 8px;overflow-wrap:anywhere}
 .lpunit{align-self:center;color:var(--muted);font-size:.92rem}
 .lpsub{margin:2px 0 8px 26px;flex-wrap:wrap;gap:6px;align-items:center}.lpsub>.label{flex-basis:100%;margin:0}#lpBox input[type=number]{width:4.6em;text-align:center}.lpsub.dim{opacity:.45}
 .lpplay{padding:6px 12px;font-size:.9rem;white-space:nowrap}.vxopen{display:block;margin:4px 0 10px;white-space:normal;text-align:left}.lpplay.on{background:var(--accent);color:#141414}
@@ -1170,8 +1170,10 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <div class="field"><label class="label" for="lpVoiceN">Singer's voice: 0 to 10</label><div class="row voicerow"><button id="lpVoiceDn" aria-label="Quieter">−</button><input type="number" id="lpVoiceN" inputmode="numeric" min="0" max="10" step="1"><button id="lpVoiceUp" aria-label="Louder">+</button></div><p class="status" id="lpVoiceTxt" style="margin:4px 0 0"></p></div>
           <div class="field"><label class="label" for="lpToneN">Tone volume: 0 to 10</label><div class="row voicerow"><button id="lpToneDn" aria-label="Quieter">−</button><input type="number" id="lpToneN" inputmode="numeric" min="0" max="10" step="1"><button id="lpToneUp" aria-label="Louder">+</button></div><p class="status" id="lpToneTxt" style="margin:4px 0 0"></p></div>
           <div class="field"><label class="label" for="lpTimbre">Tone sound</label><select id="lpTimbre"><option value="warm">Warm hum (easiest to match)</option><option value="organ">Organ (cuts through noise)</option><option value="pure">Pure</option></select></div>
+          <div class="field"><label class="label" for="lpRt">Scale (experiment)</label><select id="lpRt"><option value="off">As sung (his own scale)</option><option value="tone1">Tone 1 (Byzantine diatonic)</option><option value="hijaz">Hijaz (the Arabian sound)</option><option value="hard">Byzantine scale (Plagal Second)</option><option value="soft">Soft chromatic (Tone 2)</option><option value="major">Western major</option><option value="minor">Western minor</option></select><select id="lpRtB" aria-label="Count the new scale from" class="rtb"><option value="low">from his lowest note (bigger change)</option><option value="home">from his home note ⌂</option></select></div>
           <div class="field"><label class="label" for="lpPitch">Tone pitch</label><select id="lpPitch"><option value="scale">The singer's scale</option><option value="exact">Exactly as sung</option><option value="western">Nearest Western note</option></select></div>
         </div>
+        <p class="status rttxt" id="lpRtTxt" hidden></p>
         <label class="check"><input type="checkbox" id="lpDrone"> Ison drone under everything</label>
         <h4 class="lph">Mix-ins</h4>
         <div class="field"><span class="label">Mix in after every</span><div class="row voicerow"><button id="lpEvDn" aria-label="Fewer runs">−</button><input type="number" id="lpEvN" inputmode="numeric" min="1" max="50" step="1" aria-label="Runs between mix-ins"><span class="lpunit">runs of the part</span><button id="lpEvUp" aria-label="More runs">+</button></div></div>
@@ -1212,8 +1214,10 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <div class="field"><label class="label" for="mpToneN">Tone volume: 0 to 10</label><div class="row voicerow"><button id="mpToneDn" aria-label="Quieter">−</button><input type="number" id="mpToneN" inputmode="numeric" min="0" max="10" step="1"><button id="mpToneUp" aria-label="Louder">+</button></div><p class="status" id="mpToneTxt" style="margin:4px 0 0"></p></div>
             <div class="field"><label class="label" for="mpTimbre">Tone sound</label><select id="mpTimbre"><option value="warm">Warm hum (easiest to match)</option><option value="organ">Organ (cuts through noise)</option><option value="pure">Pure</option></select></div>
             <div class="field"><label class="label" for="mpStyle">Note style</label><select id="mpStyle"><option value="line">Smooth, like a voice</option><option value="piano">Separate notes, like a piano</option></select></div>
-            <div class="field"><label class="label" for="mpPitch">Tone pitch</label><select id="mpPitch"><option value="scale">The singer's scale notes</option><option value="western">Nearest piano notes</option></select></div>
+            <div class="field"><label class="label" for="mpRt">Scale (experiment)</label><select id="mpRt"><option value="off">As sung (his own scale)</option><option value="tone1">Tone 1 (Byzantine diatonic)</option><option value="hijaz">Hijaz (the Arabian sound)</option><option value="hard">Byzantine scale (Plagal Second)</option><option value="soft">Soft chromatic (Tone 2)</option><option value="major">Western major</option><option value="minor">Western minor</option></select><select id="mpRtB" aria-label="Count the new scale from" class="rtb"><option value="low">from his lowest note (bigger change)</option><option value="home">from his home note ⌂</option></select></div>
+          <div class="field"><label class="label" for="mpPitch">Tone pitch</label><select id="mpPitch"><option value="scale">The singer's scale notes</option><option value="western">Nearest piano notes</option></select></div>
           </div>
+          <p class="status rttxt" id="mpRtTxt" hidden></p>
           <label class="check"><input type="checkbox" id="mpDrone"> Ison drone under the melody</label>
           <p class="status" id="mpSum" style="margin:8px 0 0"></p>
         </div>
@@ -6385,10 +6389,19 @@ function lpRule(){const L=lpSet(),m=lpQmode(),t=+L.minNote||0;if(m==='off'||!t)r
 function lpRuleD(d0,r){if(!r)return d0;if(typeof r==='number')return Math.max(r,d0);return d0<r.t?Math.min(d0*r.x,r.t):d0}
 const lpXTxt=x=>String(+(+x).toFixed(2));
 function lpRuleTxt(r){return!r?'':typeof r==='number'?'notes at least '+lpMinTxt(r):'quick notes ×'+lpXTxt(r.x)+' up to '+lpMinTxt(r.t)}
-function lpSeq(ns,sp){return songTimeline(ns,1/Math.min(1,sp),n=>smM(n),lpRule())}
+/* ---- scale experiment: the melody keeps its shape and rhythm; each of the singer's scale notes is counted up or down from his
+   home note (the ison) and played on that same step of another scale, in chant tuning ---- */
+const RT_LIST=[['off','As sung (his own scale)'],['tone1','Tone 1 (Byzantine diatonic)'],['hijaz','Hijaz (the Arabian sound)'],['hard','Byzantine scale (Plagal Second)'],['soft','Soft chromatic (Tone 2)'],['major','Western major'],['minor','Western minor']];
+const RT_T1=[0,5/3,3,5,7,26/3,10,12];
+function rtScale(k){if(!k||k==='off')return null;if(k==='tone1')return RT_T1;const S0=BZ_SC[k];return S0?S0.c:null}
+function rtName(k){const f=RT_LIST.find(x=>x[0]===k);return f?f[1].replace(/ \(.*\)$/,''):''}
+/* counted from his lowest note (default: the new scale's character lands where the melody lives) or from his home note */
+function rtDegM(i,k,b){const ai=b==='home'?SM.isonD:0,a=rtScale(k),h=SM.deg[ai];if(!a||i==null||!h||!SM.deg[i])return null;const q=i-ai,o=Math.floor(q/7),j=((q%7)+7)%7;return h.m+a[j]+12*o}
+function rtMapTxt(k,b){if(!rtScale(k))return'';return SM.deg.map(d=>{const v=rtDegM(d.i,k,b),nm=m=>{const r=Math.round(m),c=Math.round((m-r)*100);return nameOf(r).replace(/-?\d+$/,'')+(Math.abs(c)>=10?(c>0?'+':'')+c+'¢':'')};return nm(d.m)+(d.i===SM.isonD?' ⌂':'')+' → '+nm(v)}).join(' · ')}
+function lpSeq(ns,sp){const k=lpSet().rt,b=lpSet().rtb;return songTimeline(ns,1/Math.min(1,sp),n=>{const r=rtDegM(n.deg,k,b);return r!=null?r:smM(n)},lpRule())}
 const lpMinTxt=v=>v?String(+(+v).toFixed(2))+' s':'off';
 function lpScaleSeq(sp){const RD=smRangeDegs(),ds=SM.deg.filter(d=>RD.has(d.i)).sort((x,y)=>x.m-y.m),durs=lpNotes().map(n=>n.t1-n.t0).sort((x,y)=>x-y),
-    med=durs.length?durs[Math.floor(durs.length/2)]:0.6,beat=lpRuleD(Math.max(0.35,Math.min(1.4,med))/sp,lpRule()),up=ds.map(d=>({m:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)}));
+    med=durs.length?durs[Math.floor(durs.length/2)]:0.6,beat=lpRuleD(Math.max(0.35,Math.min(1.4,med))/sp,lpRule()),up=ds.map(d=>{const r=rtDegM(d.i,lpSet().rt,lpSet().rtb);return{m:r!=null?r:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)}});
   return up.concat(up.slice(0,-1).reverse())}
 const lpPct=sp=>Math.round(sp*100);
 function lpRun(i,every,mix,sp,first,back){const seq=lpSeq(lpNotes(),sp);
@@ -6404,13 +6417,14 @@ function lpDrills(goal){if(!SM.ok||!SM.phr.length)return[];return lpWith(()=>{co
   const out=[],lim=(goal||EARS.goal||1200)*2+120;let tot=0,run=0,brk=0,back=false;const add=d=>{out.push(d);tot+=earStepsSec(d.steps)+2};
   while(tot<lim&&out.length<800){run++;add(lpRun(run,every,kinds.length>0,sp,run===1,back));back=false;
     if(kinds.length&&run%every===0){const k=kinds[brk++%kinds.length];if(k==='scale')add(lpScale(sp,Math.max(1,Math.round(+L0.scaleN||1))));else picked.forEach(x=>add(lpStep(x,sp,Math.max(1,Math.round(+L0.stepN||1)))));back=true}}
+  {const k=lpSet().rt;if(rtScale(k))out.forEach(d=>{d.noVoice=true;d.name+=' · in '+rtName(k)})}
   return out})}
 /* ---- hear a step or the scale before picking it: tone, singer and drone exactly as the session plays them ---- */
 const LPV={st:'idle',btn:null,url:null,lab:''};
 function lpPvStop(){if(LPV.btn){LPV.btn.innerHTML=LPV.lab;LPV.btn.classList.remove('on')}if(LPV.st!=='idle'&&earAudio&&!EARS.run){try{earAudio.pause()}catch(e){}}LPV.st='idle';LPV.btn=null}
 async function lpPreview(seq,btn,o){o=o||{};if(EARS.run)return;if(LPV.st!=='idle'&&LPV.btn===btn){lpPvStop();return}lpPvStop();try{pvStop()}catch(e){}earUnlock();
   LPV.st='loading';LPV.btn=btn;LPV.lab=btn.innerHTML;btn.textContent='...';btn.classList.add('on');
-  try{const T=earTimbre(),gv=songVoiceGain(),ev=[],vS={},vA=[],t=0.15;let tt=0;
+  try{const T=earTimbre(),gv=o.noVoice?0:songVoiceGain(),ev=[],vS={},vA=[],t=0.15;let tt=0;
     let LN=null;const flush=()=>{if(!LN)return;const lead=Math.min(0.02,LN.t);ev.push({type:'line',t:LN.t-lead,d:t+tt-LN.t+lead,p:LN.p.map(q=>[q[0]+lead,q[1]]),att:LN.att,h:T.h,lp:T.lp});LN=null};
     seq.forEach(n=>{if(n.src)vA.push([tt,n.src[0]],[tt+n.d,n.src[1]]);if(n.m!=null){if(o.sep)ev.push({type:'note',f:m2f(n.m),t:t+tt,d:n.d*0.96,h:T.h,lp:T.lp});else{if(!LN)LN={t:t+tt,p:[],att:Math.max(0.03,Math.min(0.25,n.att||0.06))};LN.p.push([t+tt-LN.t,m2f(n.m)])}}else flush();tt+=n.d});flush();
     const dr='drone' in o?o.drone:lpDrone();if(dr!=null)ev.push({type:'note',f:m2f(dr),t,d:tt,h:T.h,lp:T.lp,g:0.2});
@@ -6459,6 +6473,7 @@ async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.h
       :'At '+L0.speed+'%, a note shorter than '+lpMinTxt(T)+' is made '+lpXTxt(X)+' times longer, but never longer than '+lpMinTxt(T)+'; longer notes keep '+L0.speed+'%. For example a '+two(e1)+' s note becomes '+two(lpRuleD(e1,r))+' s and a '+two(e2)+' s note becomes '+two(lpRuleD(e2,r))+' s. In this part '+ch+' of '+ns2.length+' notes are stretched, so a run takes about '+Math.round(T1)+' s instead of '+Math.round(T0)+' s.'}
   lpSetV('lpSpN',L0.speed);[...$('lpSpChips').children].forEach(bt=>bt.setAttribute('aria-pressed',String(+bt.dataset.v===L0.speed)));
   lpSetV('lpToneN',L0.tone);$('lpToneTxt').textContent=L0.tone+' of 10: '+LP_TONE_WORDS[L0.tone]+'.';earVoiceShow();lpSetV('lpVoiceN',songVoiceLvl());$('lpVoiceTxt').textContent=songVoiceLvl()+' of 10: '+VOICE_WORDS[songVoiceLvl()]+'.';
+  {const k=L0.rt||'off';$('lpRt').value=k;const on=!!rtScale(k);$('lpRtTxt').hidden=!on;if(on)$('lpRtTxt').textContent='Experiment: the same melody, shape and rhythm, with each of his notes moved to the same step of '+rtName(k)+', counted from '+(L0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,L0.rtb)+'. The singer is muted while re-tuned (his voice stays in his real scale); the ison stays on his home note.'}$('lpRtB').value=L0.rtb==='home'?'home':'low';$('lpRtB').hidden=!rtScale(L0.rt);
   $('lpTimbre').value=s.timbre;$('lpPitch').value=s.smPitch||'scale';$('lpDrone').checked=!!L0.drone;
   lpSetV('lpEvN',L0.every);$('lpScale').checked=!!L0.scale;lpSetV('lpScN',L0.scaleN);$('lpStepsOn').checked=!!L0.steps;lpSetV('lpStN',L0.stepN);
   $('lpScRow').classList.toggle('dim',!L0.scale);$('lpStRow').classList.toggle('dim',!L0.steps);
@@ -6467,7 +6482,7 @@ async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.h
   steps.forEach(x=>{const row=document.createElement('div');row.className='lpstep'+(pick.includes(x.key)?' on':'');const id='lpSt_'+x.key.replace('.','_');
     const cb=document.createElement('input');cb.type='checkbox';cb.id=id;cb.checked=pick.includes(x.key);cb.onchange=()=>{let p=lpSel().slice();if(cb.checked){if(!p.includes(x.key))p.push(x.key)}else p=p.filter(k=>k!==x.key);
       if(cb.checked&&!lpSet().steps)lpSave({steps:true});lpSelSet(p);renderLoop()};
-    const pl=document.createElement('button');pl.className='lpplay';pl.innerHTML='&#9654; Hear';pl.setAttribute('aria-label','Hear step '+x.num);pl.onclick=()=>lpWith(()=>lpPreview(lpSeq(x.notes,lpSpeed()),pl));
+    const pl=document.createElement('button');pl.className='lpplay';pl.innerHTML='&#9654; Hear';pl.setAttribute('aria-label','Hear step '+x.num);pl.onclick=()=>lpWith(()=>lpPreview(lpSeq(x.notes,lpSpeed()),pl,{noVoice:!!rtScale(lpSet().rt)}));
     const lb=document.createElement('label');lb.htmlFor=id;lb.innerHTML='<b>Step '+x.num+'</b> <span class="status">phrase '+(x.p+1)+' · '+fmtT(x.t0)+' · '+x.notes.length+' notes</span><span class="lpnames">'+x.notes.map(n=>smDegName(SM.deg[n.deg])).join(' ')+'</span>'+(x.hard?'<span class="lphard">hard spot</span>':'');
     row.append(cb,lb,pl);host.appendChild(row)});
   $('lpStepsHint').textContent=steps.length+(steps.length===1?' step':' steps')+' in this part, split where the singer breathes or every 3 to 4 notes.'+(pick.length?' '+pick.length+' picked.':' None picked yet.');
@@ -6492,6 +6507,8 @@ function lpInit(){
   $('lpLMnDn').onclick=()=>lpMinStep(-0.1);$('lpLMnUp').onclick=()=>lpMinStep(0.1);
   $('lpToneDn').onclick=()=>lpToneStep(-1);$('lpToneUp').onclick=()=>lpToneStep(1);lpNum('lpToneN','tone',0,10,v=>lpChanged('Tone volume '+v));
   $('lpVoiceDn').onclick=()=>{earVoiceSet(songVoiceLvl()-1);renderLoop()};$('lpVoiceUp').onclick=()=>{earVoiceSet(songVoiceLvl()+1);renderLoop()};$('lpVoiceN').onchange=()=>{earVoiceSet($('lpVoiceN').value);renderLoop()};
+  $('lpRtB').onchange=()=>{lpSave({rtb:$('lpRtB').value});lpChanged('Scale counted '+($('lpRtB').value==='home'?'from his home note':'from his lowest note'))};
+  $('lpRt').onchange=()=>{const k=$('lpRt').value;lpSave({rt:k});lpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
   $('lpTimbre').onchange=()=>{earSave({timbre:$('lpTimbre').value});lpChanged('Tone sound changed')};
   $('lpPitch').onchange=()=>{earSave({smPitch:$('lpPitch').value});lpChanged('Tone pitch changed')};
   $('lpDrone').onchange=()=>{lpSave({drone:$('lpDrone').checked});lpChanged($('lpDrone').checked?'Ison on':'Ison off')};
@@ -6500,8 +6517,8 @@ function lpInit(){
   $('lpStepsOn').onchange=()=>{lpSave({steps:$('lpStepsOn').checked});lpChanged('Mix-ins changed')};
   $('lpScDn').onclick=()=>{lpSave({scaleN:Math.max(1,lpSet().scaleN-1)});lpChanged('Scale times')};$('lpScUp').onclick=()=>{lpSave({scaleN:Math.min(10,lpSet().scaleN+1)});lpChanged('Scale times')};lpNum('lpScN','scaleN',1,10);
   $('lpStDn').onclick=()=>{lpSave({stepN:Math.max(1,lpSet().stepN-1)});lpChanged('Step times')};$('lpStUp').onclick=()=>{lpSave({stepN:Math.min(10,lpSet().stepN+1)});lpChanged('Step times')};lpNum('lpStN','stepN',1,10);
-  $('lpScPlay').onclick=()=>lpWith(()=>lpPreview(lpScaleSeq(lpSpeed()),$('lpScPlay')));
-  $('lpPartPlay').onclick=()=>lpWith(()=>lpPreview(lpSeq(lpNotes(),lpSpeed()),$('lpPartPlay')));
+  $('lpScPlay').onclick=()=>lpWith(()=>lpPreview(lpScaleSeq(lpSpeed()),$('lpScPlay'),{noVoice:!!rtScale(lpSet().rt)}));
+  $('lpPartPlay').onclick=()=>lpWith(()=>lpPreview(lpSeq(lpNotes(),lpSpeed()),$('lpPartPlay'),{noVoice:!!rtScale(lpSet().rt)}));
   $('lpSelHard').onclick=()=>{const h=lpSteps().filter(x=>x.hard).map(x=>x.key);lpSelSet(h);if(h.length)lpSave({steps:true});renderLoop()};
   $('lpSelAll').onclick=()=>{lpSelSet(lpSteps().map(x=>x.key));lpSave({steps:true});renderLoop()};
   $('lpSelNone').onclick=()=>{lpSelSet([]);renderLoop()};
@@ -6618,7 +6635,7 @@ function mpSet(){return Object.assign({},MP_DEF,earSet().mp||{})}
 function mpSave(o){earSave({mp:Object.assign(mpSet(),o)})}
 function mpSongId(){return mpSet().song||earSet().smSong||'b:psalm23'}
 function mpSpeed(){return Math.max(0.3,Math.min(1,(mpSet().speed||60)/100))}
-function mpDegM(i){const d=SM.deg[i];if(!d)return null;const pm=mpSet().pitch;return pm==='western'?d.mR:d.m}
+function mpDegM(i){const d=SM.deg[i];if(!d)return null;{const r=rtDegM(i,mpSet().rt,mpSet().rtb);if(r!=null)return r}const pm=mpSet().pitch;return pm==='western'?d.mR:d.m}
 /* readable notes of one singing: each on its scale note, a repeated scale note joins the one before it (unless a breath splits them) */
 function mpClean(core,degOf){const out=[];core.forEach((n,k)=>{const dg=degOf?degOf(n,k):n.deg,l=out[out.length-1];
     if(l&&l.deg===dg&&n.t0-l.t1<0.05){l.t1=n.t1;return}out.push({t0:n.t0,t1:n.t1,deg:dg,att:n.att||null,mX:SM.deg[dg]?SM.deg[dg].m:n.mX})});return out}
@@ -6646,6 +6663,7 @@ function mpDrills(goal){if(!SM.ok)return[];const L=mpList();if(!L.length)return[
   const pick=S0.mode==='all'?L:[L.find(M=>M.lab===S0.mel)||L[0]],each=Math.max(1,Math.round(+S0.each||4)),out=[];let tot=0,guard=0,first=true;
   while(tot<lim&&out.length<800&&guard++<400){for(const M of pick){const N=mpNotes(M,S0.mode==='all'?'all':S0.sing);if(!N.notes.length)continue;
       const reps=S0.mode==='all'?each:50;for(let r=1;r<=reps&&tot<lim;r++){const d=mpRun(M,N,sp,S0.mode==='all'?r:out.length+1,S0.mode==='all'?each:0,r===1||first);first=false;out.push(d);tot+=earStepsSec(d.steps)+2}}}
+  {const k=mpSet().rt;if(rtScale(k))out.forEach(d=>{d.noVoice=true;d.name+=' · in '+rtName(k)})}
   return out}
 /* ---- the setup card ---- */
 async function renderMelody(){const box=$('mpBox'),s=earSet(),on=s.unit===14;box.hidden=!on;if(!on)return;{const pf=$('earPaceChips').closest('.field');if(pf)pf.hidden=true}
@@ -6666,6 +6684,7 @@ async function renderMelody(){const box=$('mpBox'),s=earSet(),on=s.unit===14;box
     $('mpMnTxt').textContent=mn?'Notes shorter than '+lpMinTxt(mn)+' at '+S0.speed+'% are held until they last '+lpMinTxt(mn)+'; longer ones keep '+S0.speed+'%. Here '+held+' of '+N.notes.length+' notes are held longer: about '+Math.round(T1)+' s a run instead of '+Math.round(T0)+' s.':'Off: every note follows the speed.'}
   lpSetV('mpSpN',S0.speed);[...$('mpSpChips').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S0.speed)));
   lpSetV('mpVoiceN',songVoiceLvl());$('mpVoiceTxt').textContent=songVoiceLvl()+' of 10: '+VOICE_WORDS[songVoiceLvl()]+'.';lpSetV('mpToneN',S0.tone);$('mpToneTxt').textContent=S0.tone+' of 10: '+LP_TONE_WORDS[S0.tone]+'.';
+  {const k=S0.rt||'off';$('mpRt').value=k;const on=!!rtScale(k);$('mpRtTxt').hidden=!on;if(on)$('mpRtTxt').textContent='Experiment: melody '+cur.lab+' with the same shape and rhythm, each note moved to the same step of '+rtName(k)+', counted from '+(S0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,S0.rtb)+'. The singer is muted while re-tuned.'}$('mpRtB').value=S0.rtb==='home'?'home':'low';$('mpRtB').hidden=!rtScale(S0.rt);
   $('mpTimbre').value=s.timbre;$('mpPitch').value=S0.pitch;$('mpStyle').value=S0.style;$('mpDrone').checked=!!S0.drone;
   const D=mpDrills(s.min*60);let t=0,runs=0;for(const d of D){const x=earStepsSec(d.steps)+2;if(t+x>s.min*60)break;t+=x;runs++}
   $('mpSum').textContent='In '+s.min+' minutes: about '+runs+' runs'+(S0.mode==='all'?' going through all '+L.length+' melodies, '+S0.each+' runs each':' of melody '+cur.lab)+'.'}
@@ -6683,9 +6702,11 @@ function mpInit(){
   $('mpToneDn').onclick=()=>lpToneStep(-1);$('mpToneUp').onclick=()=>lpToneStep(1);$('mpToneN').onchange=()=>{const v=Math.max(0,Math.min(10,Math.round(+$('mpToneN').value)||0));mpSave({tone:v});mpChanged('Tone volume '+v)};
   $('mpVoiceDn').onclick=()=>{earVoiceSet(songVoiceLvl()-1);renderMelody()};$('mpVoiceUp').onclick=()=>{earVoiceSet(songVoiceLvl()+1);renderMelody()};$('mpVoiceN').onchange=()=>{earVoiceSet($('mpVoiceN').value);renderMelody()};
   $('mpVoiceOff').onclick=()=>{earVoiceSet(0);renderMelody()};
+  $('mpRtB').onchange=()=>{mpSave({rtb:$('mpRtB').value});mpChanged('Scale counted '+($('mpRtB').value==='home'?'from his home note':'from his lowest note'))};
+  $('mpRt').onchange=()=>{const k=$('mpRt').value;mpSave({rt:k});mpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
   $('mpTimbre').onchange=()=>{earSave({timbre:$('mpTimbre').value});mpChanged('Tone sound changed')};$('mpPitch').onchange=()=>{mpSave({pitch:$('mpPitch').value});mpChanged('Tone pitch changed')};
   $('mpStyle').onchange=()=>{mpSave({style:$('mpStyle').value});mpChanged('Note style changed')};$('mpDrone').onchange=()=>{mpSave({drone:$('mpDrone').checked});mpChanged($('mpDrone').checked?'Ison on':'Ison off')};
-  $('mpHear').onclick=()=>{const L=mpList(),S0=mpSet(),M=L.find(x=>x.lab===S0.mel)||L[0];if(!M)return;const N=mpNotes(M,S0.sing);lpPreview(mpSeqOf(N.notes,mpSpeed()),$('mpHear'),{tone:S0.tone,drone:mpDrone(),sep:S0.style==='piano'})};
+  $('mpHear').onclick=()=>{const L=mpList(),S0=mpSet(),M=L.find(x=>x.lab===S0.mel)||L[0];if(!M)return;const N=mpNotes(M,S0.sing);lpPreview(mpSeqOf(N.notes,mpSpeed()),$('mpHear'),{tone:S0.tone,drone:mpDrone(),sep:S0.style==='piano',noVoice:!!rtScale(S0.rt)})};
   window.__mp={mpList,mpNotes,mpDrills,mpSet,mpSave,renderMelody}}
 
 /* ---- where in the song the session is: the phrase, and a moving graph of the singer and the notes ---- */
@@ -6756,7 +6777,7 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const smap=[],s=earSet(),ev=[],ma
   else{di=opt.start%dr.length;opt.prev.slice(0,opt.start).forEach(d=>{all.push(d);starts.push(-1)})}
   while(t<goal){if(di>=dr.length){if(u===10||u===13||u===14||(u===6&&goal-t<120))break;dr=earDrills(u,lv);di=0;if(!dr.length)break;if(s.cues!=='none')vo(['round'])}
     const d=dr[di++],idx=all.length;all.push(d);starts.push(t);marks.push({t,ph:'',note:null,di:idx,ann:''});lastAnn='';
-    dsrc=d.vsrc||(u===5?'ES':u===6?'SM':null);dvg=dsrc?songVoiceGain():0;VS=dsrc==='ES'?ES:SM;
+    dsrc=d.vsrc||(u===5?'ES':u===6?'SM':null);dvg=dsrc&&!d.noVoice?songVoiceGain():0;VS=dsrc==='ES'?ES:SM;
     if(s.cues!=='none'){let k=d.vo?d.vo.slice():voKeys(d.name);if(d.pre)k=d.pre.concat(k);if(/^Today/.test(d.name))k=['todays',...earFocus(earState()).map(voNote)];
       if(d.m!=null){const r=d.m-earHome();k=k.concat(['thisis',voNote(d.m),r===0?'homenote':Math.abs(r)<=12?(r>0?'up_':'dn_')+Math.abs(r):null].filter(Boolean))}vo(k)}
     d.steps.forEach((st,si)=>{
