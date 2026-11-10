@@ -1593,6 +1593,8 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <select id="chVoiceSel"><option value="bm_george">George (British, clear; the steadiest pitch, recommended)</option><option value="am_michael">Michael (American)</option><option value="am_onyx">Onyx (American, deep)</option><option value="am_fenrir">Fenrir (American)</option><option value="bm_lewis">Lewis (British, deep)</option></select>
       <div class="row"><button id="chMake" class="primary">Make the voice from the words</button></div>
       <p class="status" id="chTtsSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <div class="row"><button id="chBak" class="lpplay" hidden>Save a backup file of this voice</button><label style="cursor:pointer"><input type="file" id="chBakIn" accept=".chant,application/octet-stream" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Load a voice backup</span></label></div>
+      <p class="status" id="chBakSt" style="margin:0" aria-live="polite"></p>
       <p class="status" style="margin:0;font-size:.8rem">The voice is Kokoro, a free, open voice (Apache 2.0 license). The first time, it downloads about 90 MB, then it stays on this device. It reports exactly when it says every sound, so each syllable sits exactly on its note.</p>
     </div>
   </section>
@@ -6245,7 +6247,7 @@ async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
   const an=analyzeSong4Course(rec);if(!an||!an.phrases.length)return false;SM.id=rid;SM.key=kk;SM.name=rec.name||'';SM.dur=rec.dur;SM.st={};SM.x=null;SM.seg=null;SM.segT0=0;SM.plan=null;SM.ok=false;
   if(rec.audio){if(prog)prog('Loading the recording...');try{SM.x=await smDecode(rec.audio);SM.seg=SM.x}catch(e){SM.x=null}}
   const ck='ison-smap-'+SM_VER+'-'+rid+(SM.x?'-a':'-n');let map=store.get(ck,null);
-  if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=await smAnalyzeA(an,SM.x,prog);try{Object.keys(localStorage).filter(k=>/^ison-smap-[1-5]-/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}store.set(ck,map)}
+  if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=await smAnalyzeA(an,rec.exact?null:SM.x,prog);try{Object.keys(localStorage).filter(k=>/^ison-smap-[1-5]-/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}store.set(ck,map)}
   /* the song map is always measured in the original key; a key change moves its pitches and uses the moved recording */
   let pbBlob=rec.audio||null;if(kk&&SM.x){try{const kb=await keyedAudio(rid,rec.audio,kk,prog);SM.x=await smDecode(kb);SM.seg=SM.x;pbBlob=kb}catch(e){}}
   SM.hq=null;SM.sth={};if(SM.x&&pbBlob){try{SM.hq=normPk(await decodeAt(pbBlob,PB_SR).then(d=>d.slice()));SM.hqT0=0}catch(e){SM.hq=null}}SM.pb=pbBlob;SM.x0=SM.x;SM.hq0=SM.hq;SM.vsig='off';
@@ -7815,7 +7817,7 @@ function chSrcList(hasMine){const sel=$('chSrc'),cs=store.get('ison-chants',[]).
 async function chLoadTts(id){const st=$('chSrcSt'),tok=++CHM.lt;CHM.busy=false;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;CHM.V=null;$('chPlayer').hidden=true;$('chTtsBox').hidden=false;CHM.src=id;chSave({src:id});$('chSrc').value=id;
   const key=id==='tts'?store.get('ison-chant-tts',''):id.slice(2);if(id==='tts')$('chText').value=store.get('ison-chant-text:tts','')||CH_BASE[0].text;
   let an=null;if(key)try{an=await BlobDB.get('chant-an2:t:'+key)}catch(e){}if(tok!==CHM.lt)return;
-  $('chHear').hidden=!(an&&an.V);if(!an||!an.V){st.textContent=id==='tts'?'The computer voice sings whatever words you type below.':'The voice saved with this chant is missing on this device. Tap Make the voice to make it again.';$('chTtsSt').textContent='Type or paste the words below, one breath per line, then tap Make the voice.';$('chMake').textContent='Make the voice from the words';$('chTxtSt').textContent='';chMelStats();return}
+  $('chHear').hidden=!(an&&an.V);$('chBak').hidden=!(an&&an.V);if(!an||!an.V){st.textContent=id==='tts'?'The computer voice sings whatever words you type below.':'The voice saved with this chant is missing on this device. Tap Make the voice to make it again.';$('chTtsSt').textContent='Type or paste the words below, one breath per line, then tap Make the voice.';$('chMake').textContent='Make the voice from the words';$('chTxtSt').textContent='';chMelStats();return}
   if(id!=='tts')$('chText').value=store.get('ison-chant-text:'+id,'')||an.text;CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.V=an.V;CHM.ttsText=an.text;CHM.tkey=key;$('chVoiceSel').value=an.voice;
   const vn=$('chVoiceSel').selectedOptions[0];st.textContent='Computer voice: '+(vn?vn.textContent.replace(/ \(.*/,''):an.voice)+', '+chClock(an.F.dur)+' of speech.';$('chTtsSt').textContent='';
   if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}chMatch()}
@@ -7831,6 +7833,18 @@ function chvLine(L,tts,phon,o){return(async()=>{const tk=tts.tokenizer,t2i=tk.mo
     du.forEach(d=>cum.push(cum[cum.length-1]+d*k));const at=c=>cum[c+1]/SR,syl=[];
     wr.forEach(([a,b,p],wi)=>{chvSyl([...p]).forEach((q,k2,arr)=>syl.push({w:wi,k:k2,n:arr.length,t0:at(a+q.a),t1:at(a+q.b),v0:at(a+q.va),v1:at(a+q.vb),st:q.st}))});
     return{wav:Float32Array.from(wav),syl}}finally{tts.model=om}})()}
+/* keep the saved voices: ask the browser not to clear this site's storage, and allow a backup file */
+function chPersist(){try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(()=>{})}catch(e){}}
+async function chBackup(){const st=$('chBakSt'),key=CHM.src==='tts'?store.get('ison-chant-tts',''):CHM.src.startsWith('t:')?CHM.src.slice(2):'';let an=null;try{an=key?await BlobDB.get('chant-an2:t:'+key):null}catch(e){}
+  if(!an||!an.V){st.textContent='Make the voice first.';return}const x=an.x,pcm=new Int16Array(x.length);for(let i=0;i<x.length;i++)pcm[i]=Math.max(-32767,Math.min(32767,Math.round(x[i]*32767)));
+  const head=JSON.stringify({kind:'ison-chant-voice',v:1,key,text:an.text,voice:an.voice,sr:KEY_SR,V:an.V}),blob=new Blob([head,'\n',pcm.buffer],{type:'application/octet-stream'}),u=URL.createObjectURL(blob),a=document.createElement('a');
+  const nm=(an.text.split('\n')[0]||'chant').replace(/[^A-Za-z0-9 ]+/g,'').trim().slice(0,40)||'chant';a.href=u;a.download=nm+' (voice).chant';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),60000);
+  st.textContent='Backup file made ('+Math.round(blob.size/1048576)+' MB). Keep it in your Files app. Loading it back takes seconds instead of making the voice again.'}
+async function chRestore(f){const st=$('chBakSt');st.textContent='Reading the backup.';try{const b=new Uint8Array(await f.arrayBuffer());let nl=b.indexOf(10);if(nl<0)throw 0;const h=JSON.parse(new TextDecoder().decode(b.slice(0,nl)));if(h.kind!=='ison-chant-voice')throw 0;
+    const raw=b.slice(nl+1),pcm=new Int16Array(raw.buffer,raw.byteOffset,Math.floor(raw.length/2)),x=new Float32Array(pcm.length);for(let i=0;i<pcm.length;i++)x[i]=pcm[i]/32767;
+    st.textContent='Finding the pitch of every syllable.';const r=await chFeatRun(x);await BlobDB.put('chant-an2:t:'+h.key,{x:r.x,regs:r.regs,F:r.F,V:h.V,text:h.text,voice:h.voice});
+    store.set('ison-chant-tts',h.key);store.set('ison-chant-text:tts',h.text);chPersist();$('chSrc').value='tts';await chLoadTts('tts');st.textContent='Voice loaded from the backup.'}
+  catch(e){st.textContent='That file is not a Chant Maker voice backup.'}}
 let CHVW=null;
 function chvWorker(){if(CHVW)return CHVW;const src="import{KokoroTTS}from'https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js';\n"+
   'const CHV_VOW='+JSON.stringify(CHV_VOW)+',CHV_DI=new Set('+JSON.stringify([...CHV_DI])+'),CHV_FN=new Set('+JSON.stringify([...CHV_FN])+');\n'+
@@ -7857,7 +7871,7 @@ async function chMakeVoice(){const st=$('chTtsSt');if(CHM.making){chvStopWorker(
   const finish=async()=>{chvStopWorker();CHM.making=false;chMakeBtn(false);$('chMake').textContent='Make the voice again';st.textContent='Finding the pitch of every syllable.';
     try{const R=chvJoin(res),r=await chFeatRun(R.x);const an2={x:r.x,regs:r.regs,F:r.F,V:R.syl,text:txt,voice};try{await BlobDB.put('chant-an2:t:'+key,an2)}catch(e){}
       store.set('ison-chant-tts',key);store.set('ison-chant-text:tts',txt);const s=chSet();if(s.voice===8&&s.guide===4)chSave({voice:6,guide:7});
-      lk.forEach(k=>{BlobDB.put(k,null).catch(()=>{})});
+      chPersist();
       if(CHM.src==='tts'||CHM.src.startsWith('t:')){await chLoadTts('tts');st.textContent='Done. Press Play the chant.'}else st.textContent='The voice is ready. Pick Computer voice above to hear it.'}
     catch(e){st.textContent='Something went wrong putting the lines together ('+String(e&&e.message||e).slice(0,80)+').'}};
   if(!todo.length){finish();return}
@@ -7913,8 +7927,15 @@ function chMixBuf(){const s=chSet(),P=CHM.P,y=CHM.y,n=P.len,lv=v=>v>0?Math.pow(v
   const m=new Float32Array(n);for(let i=0;i<n;i++)m[i]=y[i]*gv+(gt>0?CHM.pG[i]*gt:0)+(gd>0?CHM.pD[i]*gd:0);return m}
 function chAudio(mix,was,frac){const a=$('chAud'),P=CHM.P;if(CHM.url)URL.revokeObjectURL(CHM.url);CHM.url=URL.createObjectURL(new Blob([keyWav(mix,KEY_SR)],{type:'audio/wav'}));a.src=CHM.url;a.loop=!!chSet().loop;$('chDl').href=CHM.url;
   if(was){const go=()=>{a.removeEventListener('loadedmetadata',go);try{a.currentTime=Math.min(P.dur-0.2,frac*P.dur)}catch(e){}a.play().catch(()=>{})};a.addEventListener('loadedmetadata',go)}}
+/* everything that shapes the melody (the mix levels do not) */
+function chSig(s){return JSON.stringify([s.scale,s.mel,s.up,s.len,s.range,s.hold,s.pause,s.lean,!!s.even,s.vr||'auto'])}
+function chPlanPack(P){return{mo:P.mo,mi:P.mi,tm:P.tm,g:P.g,len:P.len,dur:P.dur,lo:P.lo,hi:P.hi,notes:P.notes,phr:P.phr}}
+/* the exact melody as a song for the rest of the app: every note as written, the syllable under each note, nothing re-measured */
+function chSongRec(nm){const P=CHM.P,notes=P.notes.map(q=>({t0:+q.t.toFixed(3),t1:+(q.t+q.d).toFixed(3),m:+q.m.toFixed(3)})),ct=[];for(let t=0;t<P.dur;t+=0.02){const v=P.tm[Math.min(P.tm.length-1,Math.round(t/0.005))];ct.push([+t.toFixed(3),v>0?+v.toFixed(2):null])}
+  const words=[];P.phr.forEach(p=>p.syl.forEach(q=>words.push({t0:+q.t.toFixed(3),t1:+(q.t+q.d).toFixed(3),s:q.x?q.x.t:'',ws:q.x?!!q.x.ws:false,line:p.kind})));
+  return{name:nm,notes,dur:+P.dur.toFixed(3),contour:ct,off:tuningOffset(notes.map(q=>({m:q.m}))),audio:new File([keyWav(CHM.y,KEY_SR)],nm+'.wav',{type:'audio/wav'}),exact:true,words,created:Date.now()}}
 function chMakeNow(){clearTimeout(CHM.mk);const pl=$('chPlayer');if(!CHM.seg||!CHM.seg.phr.length){pl.hidden=true;return}const s=chSet(),a=$('chAud'),was=chPlaying(),frac=CHM.P&&a.duration?a.currentTime/CHM.P.dur:0;
-  const q=chSolveK(s),o=chOpts(s,q.k),P=chPlan(CHM.F,CHM.seg,o),y=chRender(CHM.x,KEY_SR,CHM.regs,P);CHM.P=P;CHM.y=y;CHM.k=q.k;CHM.o=o;CHM.nat=q.d1;
+  const L=CHM.lock&&CHM.lock.src===CHM.src&&CHM.lock.sig===chSig(s)?CHM.lock:null,q=L?{k:L.k,d1:L.d1}:chSolveK(s),o=L?L.o:chOpts(s,q.k),P=L?L.P:chPlan(CHM.F,CHM.seg,o),y=chRender(CHM.x,KEY_SR,CHM.regs,P);if(!L)CHM.lock=null;CHM.P=P;CHM.y=y;CHM.k=q.k;CHM.o=o;CHM.nat=q.d1;
   CHM.pD=null;CHM.pG=null;chAudio(chMixBuf(),was,frac);
   pl.hidden=false;CHM.kpi=-1;CHM.ksi=-2;chLines();chLabels();chKar(was?frac*P.dur:0)}
 function chRemix(){if(!CHM.P)return;const a=$('chAud'),was=chPlaying(),frac=a.duration?a.currentTime/CHM.P.dur:0;chAudio(chMixBuf(),was,frac);chMixLab()}
@@ -7956,20 +7977,21 @@ async function chRecord(){const b=$('chRec');if(CHM.rec){CHM.rec.stop();return}
 /* My chants: the recording, the words and every setting, kept under a name */
 async function chSaveChant(nm){const id=Date.now().toString(36);let src=CHM.src;if(src==='tts'&&CHM.tkey)src='t:'+CHM.tkey;
   if(src==='my'){const b=await BlobDB.get('chant-rec');if(b){await BlobDB.put('chant-rec:'+id,b);try{const an=await BlobDB.get('chant-an2:my');if(an)await BlobDB.put('chant-an2:c:'+id,an)}catch(e){}src='c:'+id}}
+  if(CHM.P){try{await BlobDB.put('chant-plan:'+id,{P:chPlanPack(CHM.P),o:CHM.o,k:CHM.k,d1:CHM.nat,sig:chSig(chSet()),src})}catch(e){}}
   const set=Object.assign({},chSet(),{src});const list=store.get('ison-chants',[]);list.unshift({id,name:nm,src,text:CHM.V?CHM.ttsText:$('chText').value,set,dur:CHM.P?CHM.P.dur:0,created:Date.now()});store.set('ison-chants',list);
   chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').value=CHM.src;chMineRender()}
 function chMineRender(){const list=store.get('ison-chants',[]),box=$('chMineList');$('chMine').hidden=!list.length;
   box.innerHTML=list.map((c,i)=>{const M=CH_MEL.find(m=>m.id===c.set.mel),R=RT_LIST.find(r=>r[0]===c.set.scale);return'<div class="chmine"><button data-i="'+i+'"><b>'+chEsc(c.name)+'</b><br><small>'+(M?chEsc(M.n):'')+(R?', '+chEsc(R[1].replace(/ \(.*\)/,'')):'')+(c.dur?', '+chClock(c.dur):'')+'</small></button><button class="del lpplay" data-d="'+i+'" aria-label="Delete '+chEsc(c.name)+'">Delete</button></div>'}).join('');
   box.querySelectorAll('[data-i]').forEach(b=>b.onclick=()=>chOpenChant(store.get('ison-chants',[])[+b.dataset.i]));
   box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.dataset.armed){const list=store.get('ison-chants',[]),c=list.splice(+b.dataset.d,1)[0];store.set('ison-chants',list);if(c&&c.src.startsWith('c:')){BlobDB.put('chant-rec:'+c.id,null).catch(()=>{});BlobDB.put('chant-an2:'+c.src,null).catch(()=>{})}
-      $('chMineSt').textContent='Deleted "'+(c?c.name:'')+'". Anything already added to your practice songs stays there.';chSrcList(!!store.get('ison-chant-mine',0));chMineRender();return}
+      BlobDB.put('chant-plan:'+(c?c.id:''),null).catch(()=>{});$('chMineSt').textContent='Deleted "'+(c?c.name:'')+'". Anything already added to your practice songs stays there.';chSrcList(!!store.get('ison-chant-mine',0));chMineRender();return}
     b.dataset.armed='1';b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Delete'}},3500)})}
 function chSyncUI(){const s=chSet();$('chScale').value=s.scale;$('chVr').value=s.vr||'auto';$('chUp').value=s.up;$('chRange').value=s.range;$('chHold').value=s.hold;$('chPause').value=s.pause;$('chLean').value=s.lean;chMixLab()}
-function chOpenChant(c){if(!c)return;chStop();store.set('ison-chant-text:'+c.src,c.text||'');store.set('ison-chant-set',Object.assign({},c.set));chSyncUI();$('chName').value=c.name;$('chMineSt').textContent='Opened "'+c.name+'".';
+async function chOpenChant(c){if(!c)return;chStop();CHM.lock=null;try{const pl=await BlobDB.get('chant-plan:'+c.id);if(pl&&pl.P)CHM.lock=Object.assign({},pl,{src:pl.src||c.src,sig:pl.sig||chSig(c.set)})}catch(e){}store.set('ison-chant-text:'+c.src,c.text||'');store.set('ison-chant-set',Object.assign({},c.set));chSyncUI();$('chName').value=c.name;$('chMineSt').textContent='Opened "'+c.name+'".';
   chSrcList(!!store.get('ison-chant-mine',0));CHM.busy=false;chLoad(c.src);setTimeout(()=>{const e=$('chPlayer');if(!e.hidden)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'})},1200)}
 function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('chScale').innerHTML=RT_LIST.filter(r=>r[0]!=='off').map(r=>'<option value="'+r[0]+'">'+r[1]+'</option>').join('');$('chScale').value=s.scale;
-  $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};$('chVr').value=s.vr||'auto';$('chVr').onchange=()=>{chSave({vr:$('chVr').value});chMelStats();chMakeSoon()};$('chMake').onclick=chMakeVoice;
+  $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};$('chVr').value=s.vr||'auto';$('chVr').onchange=()=>{chSave({vr:$('chVr').value});chMelStats();chMakeSoon()};$('chMake').onclick=chMakeVoice;$('chBak').onclick=chBackup;$('chBakIn').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)chRestore(f)};chPersist();
   chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').onchange=()=>chLoad($('chSrc').value);
   $('chRec').onclick=chRecord;$('chFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)chNewRec(f)};
   $('chHear').onclick=()=>{const o=$('chOrig');if(!CHM.x)return;if(!o.paused){o.pause();return}chStop();if(!CHM.ourl){CHM.ourl=URL.createObjectURL(new Blob([keyWav(CHM.x,KEY_SR)],{type:'audio/wav'}));o.src=CHM.ourl}o.play().catch(()=>{})};
@@ -7987,8 +8009,8 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
     $('chSaveAsk').hidden=false;$('chSaveQ').textContent=(ex?'You already have a chant called "'+nm+'". This saves a second one with the same name. ':'')+'Save "'+nm+'" to My chants'+($('chAlso').checked?' and to your practice songs':'')+'?'};
   $('chSaveNo').onclick=()=>{$('chSaveAsk').hidden=true};
   $('chSaveYes').onclick=async()=>{$('chSaveAsk').hidden=true;const nm=$('chName').value.trim(),st=$('chSaveSt'),also=$('chAlso').checked;try{chStop();st.textContent='Saving.';await chSaveChant(nm);
-      if(also){const f=new File([keyWav(CHM.y,KEY_SR)],nm+'.wav',{type:'audio/wav'});await importRecording(f,st)}
-      st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs in the Practice and Songs tabs (voice only, so the app can add its own drone).':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
+      if(also){const rec=chSongRec(nm);try{await MyDB.put(rec)}catch(e1){rec.audio=null;await MyDB.put(rec)}try{refreshMySongs()}catch(e){}}
+      st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs in the Practice and Songs tabs, with every note exactly as written here (voice only, so the app can add its own drone).':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
   chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?CH_BASE[0].id:s.src)}
 
