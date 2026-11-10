@@ -5348,14 +5348,14 @@ function psMarks(x,tr){
       m=bi;if(m>b)break;M.push(m)}
     if(M.length>=3)out.push({a,b,M})});return out}
 function psolaShift(x,sr,semis){
-  if(!semis)return x.slice();const tr=psTrack(x,sr),beta=Math.pow(2,semis/12),regs=psMarks(x,tr),L=x.length,out=new Float32Array(L),wsum=new Float32Array(L),mask=new Float32Array(L);
+  const isC=typeof semis!=='number';if(!isC&&!semis)return x.slice();const tr=psTrack(x,sr),beta=isC?1:Math.pow(2,semis/12),bAt=i=>isC?Math.pow(2,(semis[Math.min(semis.length-1,Math.max(0,Math.floor(i/sr/0.005)))]||0)/12):beta,regs=psMarks(x,tr),L=x.length,out=new Float32Array(L),wsum=new Float32Array(L),mask=new Float32Array(L);
   const hann=n=>{const w=new Float32Array(n);for(let i=0;i<n;i++)w[i]=0.5-0.5*Math.cos(2*Math.PI*(i+0.5)/n);return w},wc={},win=h=>wc[h]||(wc[h]=hann(2*h));
   const addGrain=(src,dst,half,w)=>{for(let i=-half;i<half;i++){const s=src+i,o=dst+i;if(s<0||s>=L||o<0||o>=L)continue;const g=w[i+half];out[o]+=x[s]*g;wsum[o]+=g}};
   /* voiced stretches get the moved grains; breaths, consonants and silence are the original, cross-faded at
      each edge with the grains' own fade so there is no bump or gap */
   regs.forEach(R=>{const M=R.M;let ts=M[0];const end=M[M.length-1];let k=0;
     while(ts<=end){while(k+1<M.length&&Math.abs(M[k+1]-ts)<=Math.abs(M[k]-ts))k++;
-      const ma=M[k],Pa=k+1<M.length?M[k+1]-M[k]:M[k]-M[k-1],Pp=k>0?M[k]-M[k-1]:Pa,P=Math.round((Pa+Pp)/2);addGrain(ma,Math.round(ts),P,win(P));ts+=P/beta}
+      const ma=M[k],Pa=k+1<M.length?M[k+1]-M[k]:M[k]-M[k-1],Pp=k>0?M[k]-M[k-1]:Pa,P=Math.round((Pa+Pp)/2);addGrain(ma,Math.round(ts),P,win(P));ts+=P/bAt(ts)}
     const P0=M[1]-M[0],Pl=M[M.length-1]-M[M.length-2];for(let i=Math.max(0,M[0]-P0);i<=Math.min(L-1,end+Pl);i++)mask[i]=(i<M[0]+P0||i>end-Pl)?Math.min(1,wsum[i]):1});
   let e0=0,e1=0;for(let i=0;i<L;i++){out[i]+=(1-mask[i])*x[i];e0+=x[i]*x[i];e1+=out[i]*out[i]}
   const g=e1>0?Math.min(2,Math.sqrt(e0/e1)):1;for(let i=0;i<L;i++)out[i]*=g;return out}
@@ -6153,7 +6153,7 @@ async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
   if(!map||map.v!==SM_VER){if(prog)prog('Measuring every note of the song (once)...');await new Promise(r=>setTimeout(r,30));map=await smAnalyzeA(an,SM.x,prog);try{Object.keys(localStorage).filter(k=>/^ison-smap-[1-5]-/.test(k)).forEach(k=>localStorage.removeItem(k))}catch(e){}store.set(ck,map)}
   /* the song map is always measured in the original key; a key change moves its pitches and uses the moved recording */
   let pbBlob=rec.audio||null;if(kk&&SM.x){try{const kb=await keyedAudio(rid,rec.audio,kk,prog);SM.x=await smDecode(kb);SM.seg=SM.x;pbBlob=kb}catch(e){}}
-  SM.hq=null;SM.sth={};if(SM.x&&pbBlob){try{SM.hq=normPk(await decodeAt(pbBlob,PB_SR).then(d=>d.slice()));SM.hqT0=0}catch(e){SM.hq=null}}
+  SM.hq=null;SM.sth={};if(SM.x&&pbBlob){try{SM.hq=normPk(await decodeAt(pbBlob,PB_SR).then(d=>d.slice()));SM.hqT0=0}catch(e){SM.hq=null}}SM.pb=pbBlob;SM.x0=SM.x;SM.hq0=SM.hq;SM.vsig='off';
   if(SM.id!==rid||SM.key!==kk)return false;SM.base=map;smLoadMap(keyMap(vxEdApply(map,rid),kk));return true}
 /* ---- curriculum: what each phrase needs, just before that phrase ---- */
 let LPR=null;
@@ -6398,6 +6398,24 @@ function rtName(k){const f=RT_LIST.find(x=>x[0]===k);return f?f[1].replace(/ \(.
 /* counted from his lowest note (default: the new scale's character lands where the melody lives) or from his home note */
 function rtDegM(i,k,b){const ai=b==='home'?SM.isonD:0,a=rtScale(k),h=SM.deg[ai];if(!a||i==null||!h||!SM.deg[i])return null;const q=i-ai,o=Math.floor(q/7),j=((q%7)+7)%7;return h.m+a[j]+12*o}
 function rtMapTxt(k,b){if(!rtScale(k))return'';return SM.deg.map(d=>{const v=rtDegM(d.i,k,b),nm=m=>{const r=Math.round(m),c=Math.round((m-r)*100);return nameOf(r).replace(/-?\d+$/,'')+(Math.abs(c)>=10?(c>0?'+':'')+c+'¢':'')};return nm(d.m)+(d.i===SM.isonD?' ⌂':'')+' → '+nm(v)}).join(' · ')}
+/* the singer re-tuned with the melody: each of his notes is moved by the same amount as its tone, with 30 ms blends between
+   notes; breaths and consonants stay as they are. Made once per song, key and scale, then kept on this device. */
+function rtSig(k,b){return rtScale(k)&&SM.ok?[k,b==='home'?'home':'low',SM.key||0,SM.phr.reduce((a,p)=>a+p.core.length,0)].join('|'):'off'}
+function rtCurve(k,b){const dur=(SM.x0?SM.x0.length/VO_SR:SM.dur||0)+1,N=Math.ceil(dur/0.005),c=new Float32Array(N),ns=[];SM.phr.forEach(p=>p.core.forEach(n=>ns.push(n)));ns.sort((x,y)=>x.t0-y.t0);
+  const sh=n=>{const r=rtDegM(n.deg,k,b),d=SM.deg[n.deg];return r!=null&&d?r-d.m:0};
+  ns.forEach((n,i)=>{const v=sh(n);for(let f=Math.max(0,Math.floor(n.t0/0.005));f<Math.min(N,Math.ceil(n.t1/0.005));f++)c[f]=v});
+  for(let i=1;i<ns.length;i++){const a=ns[i-1],bn=ns[i];if(bn.t0-a.t1>0.03)continue;const va=sh(a),vb=sh(bn);if(va===vb)continue;const f0=Math.floor((bn.t0-0.015)/0.005),f1=Math.ceil((bn.t0+0.015)/0.005);
+    for(let f=Math.max(0,f0);f<=Math.min(N-1,f1);f++)c[f]=va+(vb-va)*(f-f0)/Math.max(1,f1-f0)}
+  return c}
+async function smVoiceFor(sig,k,b,prog){if(!SM.ok||!SM.pb||SM.vsig===sig)return SM.vsig===sig;
+  if(sig==='off'){SM.x=SM.x0;SM.seg=SM.x0;SM.hq=SM.hq0;SM.st={};SM.sth={};SM.vsig='off';return true}
+  try{const ck=songKeyId(SM.id)+'|rt|'+sig+'|'+SM.pb.size;let blob=KEYMEM[ck]||await KeyDB.get(ck);
+    if(!blob){if(prog)prog('Re-tuning the singer to '+rtName(k)+'. This takes a few seconds, only the first time.');const x=await keyDecode(SM.pb),w=await keyRun(x,rtCurve(k,b));blob=new Blob([w],{type:'audio/wav'});await KeyDB.put(ck,blob);
+      const idx=store.get('ison-rtidx',{})||{},sid=songKeyId(SM.id),L=(idx[sid]||[]).filter(c=>c!==ck);L.unshift(ck);L.slice(4).forEach(c=>KeyDB.del(c));idx[sid]=L.slice(0,4);store.set('ison-rtidx',idx)}
+    KEYMEM[ck]=blob;const x=await smDecode(blob),hq=normPk(await decodeAt(blob,PB_SR).then(d=>d.slice()));SM.x=x;SM.seg=x;SM.hq=hq;SM.st={};SM.sth={};SM.vsig=sig;return true}
+  catch(e){console.warn('re-tuning the singer failed',e);return false}}
+async function lpVoice(prog){const L0=lpSet();return smVoiceFor(rtSig(L0.rt,L0.rtb),L0.rt,L0.rtb,prog)}
+async function mpVoice(prog){const S0=mpSet();return smVoiceFor(rtSig(S0.rt,S0.rtb),S0.rt,S0.rtb,prog)}
 function lpSeq(ns,sp){const k=lpSet().rt,b=lpSet().rtb;return songTimeline(ns,1/Math.min(1,sp),n=>{const r=rtDegM(n.deg,k,b);return r!=null?r:smM(n)},lpRule())}
 const lpMinTxt=v=>v?String(+(+v).toFixed(2))+' s':'off';
 function lpScaleSeq(sp){const RD=smRangeDegs(),ds=SM.deg.filter(d=>RD.has(d.i)).sort((x,y)=>x.m-y.m),durs=lpNotes().map(n=>n.t1-n.t0).sort((x,y)=>x-y),
@@ -6417,7 +6435,7 @@ function lpDrills(goal){if(!SM.ok||!SM.phr.length)return[];return lpWith(()=>{co
   const out=[],lim=(goal||EARS.goal||1200)*2+120;let tot=0,run=0,brk=0,back=false;const add=d=>{out.push(d);tot+=earStepsSec(d.steps)+2};
   while(tot<lim&&out.length<800){run++;add(lpRun(run,every,kinds.length>0,sp,run===1,back));back=false;
     if(kinds.length&&run%every===0){const k=kinds[brk++%kinds.length];if(k==='scale')add(lpScale(sp,Math.max(1,Math.round(+L0.scaleN||1))));else picked.forEach(x=>add(lpStep(x,sp,Math.max(1,Math.round(+L0.stepN||1)))));back=true}}
-  {const k=lpSet().rt;if(rtScale(k))out.forEach(d=>{d.noVoice=true;d.name+=' · in '+rtName(k)})}
+  {const k=lpSet().rt;if(rtScale(k)){const mute=SM.vsig!==rtSig(k,lpSet().rtb);out.forEach(d=>{d.noVoice=mute;d.name+=' · in '+rtName(k)})}}
   return out})}
 /* ---- hear a step or the scale before picking it: tone, singer and drone exactly as the session plays them ---- */
 const LPV={st:'idle',btn:null,url:null,lab:''};
@@ -6473,7 +6491,7 @@ async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.h
       :'At '+L0.speed+'%, a note shorter than '+lpMinTxt(T)+' is made '+lpXTxt(X)+' times longer, but never longer than '+lpMinTxt(T)+'; longer notes keep '+L0.speed+'%. For example a '+two(e1)+' s note becomes '+two(lpRuleD(e1,r))+' s and a '+two(e2)+' s note becomes '+two(lpRuleD(e2,r))+' s. In this part '+ch+' of '+ns2.length+' notes are stretched, so a run takes about '+Math.round(T1)+' s instead of '+Math.round(T0)+' s.'}
   lpSetV('lpSpN',L0.speed);[...$('lpSpChips').children].forEach(bt=>bt.setAttribute('aria-pressed',String(+bt.dataset.v===L0.speed)));
   lpSetV('lpToneN',L0.tone);$('lpToneTxt').textContent=L0.tone+' of 10: '+LP_TONE_WORDS[L0.tone]+'.';earVoiceShow();lpSetV('lpVoiceN',songVoiceLvl());$('lpVoiceTxt').textContent=songVoiceLvl()+' of 10: '+VOICE_WORDS[songVoiceLvl()]+'.';
-  {const k=L0.rt||'off';$('lpRt').value=k;const on=!!rtScale(k);$('lpRtTxt').hidden=!on;if(on)$('lpRtTxt').textContent='Experiment: the same melody, shape and rhythm, with each of his notes moved to the same step of '+rtName(k)+', counted from '+(L0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,L0.rtb)+'. The singer is muted while re-tuned (his voice stays in his real scale); the ison stays on his home note.'}$('lpRtB').value=L0.rtb==='home'?'home':'low';$('lpRtB').hidden=!rtScale(L0.rt);
+  {const k=L0.rt||'off';$('lpRt').value=k;const on=!!rtScale(k);$('lpRtTxt').hidden=!on;if(on)$('lpRtTxt').textContent='Experiment: the same melody, shape and rhythm, with each of his notes moved to the same step of '+rtName(k)+', counted from '+(L0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,L0.rtb)+'. The singer\'s voice is re-tuned with it, note by note (made once, the first time, in a few seconds); the ison stays on his home note.'}$('lpRtB').value=L0.rtb==='home'?'home':'low';$('lpRtB').hidden=!rtScale(L0.rt);
   $('lpTimbre').value=s.timbre;$('lpPitch').value=s.smPitch||'scale';$('lpDrone').checked=!!L0.drone;
   lpSetV('lpEvN',L0.every);$('lpScale').checked=!!L0.scale;lpSetV('lpScN',L0.scaleN);$('lpStepsOn').checked=!!L0.steps;lpSetV('lpStN',L0.stepN);
   $('lpScRow').classList.toggle('dim',!L0.scale);$('lpStRow').classList.toggle('dim',!L0.steps);
@@ -6482,7 +6500,7 @@ async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.h
   steps.forEach(x=>{const row=document.createElement('div');row.className='lpstep'+(pick.includes(x.key)?' on':'');const id='lpSt_'+x.key.replace('.','_');
     const cb=document.createElement('input');cb.type='checkbox';cb.id=id;cb.checked=pick.includes(x.key);cb.onchange=()=>{let p=lpSel().slice();if(cb.checked){if(!p.includes(x.key))p.push(x.key)}else p=p.filter(k=>k!==x.key);
       if(cb.checked&&!lpSet().steps)lpSave({steps:true});lpSelSet(p);renderLoop()};
-    const pl=document.createElement('button');pl.className='lpplay';pl.innerHTML='&#9654; Hear';pl.setAttribute('aria-label','Hear step '+x.num);pl.onclick=()=>lpWith(()=>lpPreview(lpSeq(x.notes,lpSpeed()),pl,{noVoice:!!rtScale(lpSet().rt)}));
+    const pl=document.createElement('button');pl.className='lpplay';pl.innerHTML='&#9654; Hear';pl.setAttribute('aria-label','Hear step '+x.num);pl.onclick=()=>(async()=>{const ok=await lpVoice(t=>{pl.textContent='...'});lpWith(()=>lpPreview(lpSeq(x.notes,lpSpeed()),pl,{noVoice:!!rtScale(lpSet().rt)&&!ok}))})();
     const lb=document.createElement('label');lb.htmlFor=id;lb.innerHTML='<b>Step '+x.num+'</b> <span class="status">phrase '+(x.p+1)+' · '+fmtT(x.t0)+' · '+x.notes.length+' notes</span><span class="lpnames">'+x.notes.map(n=>smDegName(SM.deg[n.deg])).join(' ')+'</span>'+(x.hard?'<span class="lphard">hard spot</span>':'');
     row.append(cb,lb,pl);host.appendChild(row)});
   $('lpStepsHint').textContent=steps.length+(steps.length===1?' step':' steps')+' in this part, split where the singer breathes or every 3 to 4 notes.'+(pick.length?' '+pick.length+' picked.':' None picked yet.');
@@ -6507,8 +6525,8 @@ function lpInit(){
   $('lpLMnDn').onclick=()=>lpMinStep(-0.1);$('lpLMnUp').onclick=()=>lpMinStep(0.1);
   $('lpToneDn').onclick=()=>lpToneStep(-1);$('lpToneUp').onclick=()=>lpToneStep(1);lpNum('lpToneN','tone',0,10,v=>lpChanged('Tone volume '+v));
   $('lpVoiceDn').onclick=()=>{earVoiceSet(songVoiceLvl()-1);renderLoop()};$('lpVoiceUp').onclick=()=>{earVoiceSet(songVoiceLvl()+1);renderLoop()};$('lpVoiceN').onchange=()=>{earVoiceSet($('lpVoiceN').value);renderLoop()};
-  $('lpRtB').onchange=()=>{lpSave({rtb:$('lpRtB').value});lpChanged('Scale counted '+($('lpRtB').value==='home'?'from his home note':'from his lowest note'))};
-  $('lpRt').onchange=()=>{const k=$('lpRt').value;lpSave({rt:k});lpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
+  $('lpRtB').onchange=async()=>{lpSave({rtb:$('lpRtB').value});if(EARS.run&&EARS.u===13)await lpVoice();lpChanged('Scale counted '+($('lpRtB').value==='home'?'from his home note':'from his lowest note'))};
+  $('lpRt').onchange=async()=>{const k=$('lpRt').value;lpSave({rt:k});if(EARS.run&&EARS.u===13)await lpVoice();lpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
   $('lpTimbre').onchange=()=>{earSave({timbre:$('lpTimbre').value});lpChanged('Tone sound changed')};
   $('lpPitch').onchange=()=>{earSave({smPitch:$('lpPitch').value});lpChanged('Tone pitch changed')};
   $('lpDrone').onchange=()=>{lpSave({drone:$('lpDrone').checked});lpChanged($('lpDrone').checked?'Ison on':'Ison off')};
@@ -6517,8 +6535,8 @@ function lpInit(){
   $('lpStepsOn').onchange=()=>{lpSave({steps:$('lpStepsOn').checked});lpChanged('Mix-ins changed')};
   $('lpScDn').onclick=()=>{lpSave({scaleN:Math.max(1,lpSet().scaleN-1)});lpChanged('Scale times')};$('lpScUp').onclick=()=>{lpSave({scaleN:Math.min(10,lpSet().scaleN+1)});lpChanged('Scale times')};lpNum('lpScN','scaleN',1,10);
   $('lpStDn').onclick=()=>{lpSave({stepN:Math.max(1,lpSet().stepN-1)});lpChanged('Step times')};$('lpStUp').onclick=()=>{lpSave({stepN:Math.min(10,lpSet().stepN+1)});lpChanged('Step times')};lpNum('lpStN','stepN',1,10);
-  $('lpScPlay').onclick=()=>lpWith(()=>lpPreview(lpScaleSeq(lpSpeed()),$('lpScPlay'),{noVoice:!!rtScale(lpSet().rt)}));
-  $('lpPartPlay').onclick=()=>lpWith(()=>lpPreview(lpSeq(lpNotes(),lpSpeed()),$('lpPartPlay'),{noVoice:!!rtScale(lpSet().rt)}));
+  $('lpScPlay').onclick=()=>(async()=>{const ok=await lpVoice(t=>{$('lpScPlay').textContent='Re-tuning...'});lpWith(()=>lpPreview(lpScaleSeq(lpSpeed()),$('lpScPlay'),{noVoice:!!rtScale(lpSet().rt)&&!ok}))})();
+  $('lpPartPlay').onclick=()=>(async()=>{const ok=await lpVoice(t=>{$('lpPartPlay').textContent='Re-tuning the singer (first time only)...'});lpWith(()=>lpPreview(lpSeq(lpNotes(),lpSpeed()),$('lpPartPlay'),{noVoice:!!rtScale(lpSet().rt)&&!ok}))})();
   $('lpSelHard').onclick=()=>{const h=lpSteps().filter(x=>x.hard).map(x=>x.key);lpSelSet(h);if(h.length)lpSave({steps:true});renderLoop()};
   $('lpSelAll').onclick=()=>{lpSelSet(lpSteps().map(x=>x.key));lpSave({steps:true});renderLoop()};
   $('lpSelNone').onclick=()=>{lpSelSet([]);renderLoop()};
@@ -6542,7 +6560,7 @@ function vxSavePhrase(pi,core){const all=vxEdAll(),E=Object.assign({},all[SM.id]
 function vxRefresh(){if(SM.base){smLoadMap(keyMap(vxEdApply(SM.base,SM.id),SM.key));SM.plan=null}vxDraw();vxNoteUI()}
 const vxKey=m=>{const off=(SM.base&&SM.base.off)||0;return Math.round(m-off)+off};
 function vxName(m){const r=Math.round(m),c=Math.round((m-r)*100);return nameOf(r).replace(/-?\d+$/,'')+(Math.abs(c)>=10?(c>0?' +':' ')+c+'¢':'')}
-function vxOpen(){if(!SM.ok||!SM.base){return}if(!SM.base.vx){$('vxSong').textContent='This song has no recording saved with it, so there is no pitch line to show. Add the song with its recording to use the editor.'}
+function vxOpen(){if(!SM.ok||!SM.base){return}if(SM.vsig&&SM.vsig!=='off')smVoiceFor('off');if(!SM.base.vx){$('vxSong').textContent='This song has no recording saved with it, so there is no pitch line to show. Add the song with its recording to use the editor.'}
   else{const M=vxMapNow(),n=M.phr.reduce((a,p)=>a+p.core.length,0);$('vxSong').textContent=(SM.name||'This song')+(SM.key?' · shown in the original key':'')}
   const sel=$('vxPhr');sel.innerHTML='';SM.base.phr.forEach((p,i)=>{const o=document.createElement('option');o.value=i;o.textContent='Phrase '+(i+1)+' · '+fmtT(p.t0)+(p.mel?' · melody '+p.mel:'');sel.appendChild(o)});
   const sp=$('vxSpd');if(!sp.children.length)[[1,'100%'],[0.5,'50%'],[0.25,'25%']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.v=v;b.onclick=()=>{VE.speed=v;vxStop();vxSpdUI()};sp.appendChild(b)});vxSpdUI();
@@ -6663,7 +6681,7 @@ function mpDrills(goal){if(!SM.ok)return[];const L=mpList();if(!L.length)return[
   const pick=S0.mode==='all'?L:[L.find(M=>M.lab===S0.mel)||L[0]],each=Math.max(1,Math.round(+S0.each||4)),out=[];let tot=0,guard=0,first=true;
   while(tot<lim&&out.length<800&&guard++<400){for(const M of pick){const N=mpNotes(M,S0.mode==='all'?'all':S0.sing);if(!N.notes.length)continue;
       const reps=S0.mode==='all'?each:50;for(let r=1;r<=reps&&tot<lim;r++){const d=mpRun(M,N,sp,S0.mode==='all'?r:out.length+1,S0.mode==='all'?each:0,r===1||first);first=false;out.push(d);tot+=earStepsSec(d.steps)+2}}}
-  {const k=mpSet().rt;if(rtScale(k))out.forEach(d=>{d.noVoice=true;d.name+=' · in '+rtName(k)})}
+  {const k=mpSet().rt;if(rtScale(k)){const mute=SM.vsig!==rtSig(k,mpSet().rtb);out.forEach(d=>{d.noVoice=mute;d.name+=' · in '+rtName(k)})}}
   return out}
 /* ---- the setup card ---- */
 async function renderMelody(){const box=$('mpBox'),s=earSet(),on=s.unit===14;box.hidden=!on;if(!on)return;{const pf=$('earPaceChips').closest('.field');if(pf)pf.hidden=true}
@@ -6684,7 +6702,7 @@ async function renderMelody(){const box=$('mpBox'),s=earSet(),on=s.unit===14;box
     $('mpMnTxt').textContent=mn?'Notes shorter than '+lpMinTxt(mn)+' at '+S0.speed+'% are held until they last '+lpMinTxt(mn)+'; longer ones keep '+S0.speed+'%. Here '+held+' of '+N.notes.length+' notes are held longer: about '+Math.round(T1)+' s a run instead of '+Math.round(T0)+' s.':'Off: every note follows the speed.'}
   lpSetV('mpSpN',S0.speed);[...$('mpSpChips').children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===S0.speed)));
   lpSetV('mpVoiceN',songVoiceLvl());$('mpVoiceTxt').textContent=songVoiceLvl()+' of 10: '+VOICE_WORDS[songVoiceLvl()]+'.';lpSetV('mpToneN',S0.tone);$('mpToneTxt').textContent=S0.tone+' of 10: '+LP_TONE_WORDS[S0.tone]+'.';
-  {const k=S0.rt||'off';$('mpRt').value=k;const on=!!rtScale(k);$('mpRtTxt').hidden=!on;if(on)$('mpRtTxt').textContent='Experiment: melody '+cur.lab+' with the same shape and rhythm, each note moved to the same step of '+rtName(k)+', counted from '+(S0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,S0.rtb)+'. The singer is muted while re-tuned.'}$('mpRtB').value=S0.rtb==='home'?'home':'low';$('mpRtB').hidden=!rtScale(S0.rt);
+  {const k=S0.rt||'off';$('mpRt').value=k;const on=!!rtScale(k);$('mpRtTxt').hidden=!on;if(on)$('mpRtTxt').textContent='Experiment: melody '+cur.lab+' with the same shape and rhythm, each note moved to the same step of '+rtName(k)+', counted from '+(S0.rtb==='home'?'his home note (⌂)':'his lowest note')+'. His notes → the new ones: '+rtMapTxt(k,S0.rtb)+'. The singer\'s voice is re-tuned with it, note by note.'}$('mpRtB').value=S0.rtb==='home'?'home':'low';$('mpRtB').hidden=!rtScale(S0.rt);
   $('mpTimbre').value=s.timbre;$('mpPitch').value=S0.pitch;$('mpStyle').value=S0.style;$('mpDrone').checked=!!S0.drone;
   const D=mpDrills(s.min*60);let t=0,runs=0;for(const d of D){const x=earStepsSec(d.steps)+2;if(t+x>s.min*60)break;t+=x;runs++}
   $('mpSum').textContent='In '+s.min+' minutes: about '+runs+' runs'+(S0.mode==='all'?' going through all '+L.length+' melodies, '+S0.each+' runs each':' of melody '+cur.lab)+'.'}
@@ -6702,11 +6720,11 @@ function mpInit(){
   $('mpToneDn').onclick=()=>lpToneStep(-1);$('mpToneUp').onclick=()=>lpToneStep(1);$('mpToneN').onchange=()=>{const v=Math.max(0,Math.min(10,Math.round(+$('mpToneN').value)||0));mpSave({tone:v});mpChanged('Tone volume '+v)};
   $('mpVoiceDn').onclick=()=>{earVoiceSet(songVoiceLvl()-1);renderMelody()};$('mpVoiceUp').onclick=()=>{earVoiceSet(songVoiceLvl()+1);renderMelody()};$('mpVoiceN').onchange=()=>{earVoiceSet($('mpVoiceN').value);renderMelody()};
   $('mpVoiceOff').onclick=()=>{earVoiceSet(0);renderMelody()};
-  $('mpRtB').onchange=()=>{mpSave({rtb:$('mpRtB').value});mpChanged('Scale counted '+($('mpRtB').value==='home'?'from his home note':'from his lowest note'))};
-  $('mpRt').onchange=()=>{const k=$('mpRt').value;mpSave({rt:k});mpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
+  $('mpRtB').onchange=async()=>{mpSave({rtb:$('mpRtB').value});if(EARS.run&&EARS.u===14)await mpVoice();mpChanged('Scale counted '+($('mpRtB').value==='home'?'from his home note':'from his lowest note'))};
+  $('mpRt').onchange=async()=>{const k=$('mpRt').value;mpSave({rt:k});if(EARS.run&&EARS.u===14)await mpVoice();mpChanged(k==='off'?'Back to his own scale':'Scale: '+rtName(k))};
   $('mpTimbre').onchange=()=>{earSave({timbre:$('mpTimbre').value});mpChanged('Tone sound changed')};$('mpPitch').onchange=()=>{mpSave({pitch:$('mpPitch').value});mpChanged('Tone pitch changed')};
   $('mpStyle').onchange=()=>{mpSave({style:$('mpStyle').value});mpChanged('Note style changed')};$('mpDrone').onchange=()=>{mpSave({drone:$('mpDrone').checked});mpChanged($('mpDrone').checked?'Ison on':'Ison off')};
-  $('mpHear').onclick=()=>{const L=mpList(),S0=mpSet(),M=L.find(x=>x.lab===S0.mel)||L[0];if(!M)return;const N=mpNotes(M,S0.sing);lpPreview(mpSeqOf(N.notes,mpSpeed()),$('mpHear'),{tone:S0.tone,drone:mpDrone(),sep:S0.style==='piano',noVoice:!!rtScale(S0.rt)})};
+  $('mpHear').onclick=()=>{const L=mpList(),S0=mpSet(),M=L.find(x=>x.lab===S0.mel)||L[0];if(!M)return;const N=mpNotes(M,S0.sing);(async()=>{const ok=await mpVoice(t=>{$('mpHear').textContent='Re-tuning the singer (first time only)...'});lpPreview(mpSeqOf(N.notes,mpSpeed()),$('mpHear'),{tone:S0.tone,drone:mpDrone(),sep:S0.style==='piano',noVoice:!!rtScale(S0.rt)&&!ok})})()};
   window.__mp={mpList,mpNotes,mpDrills,mpSet,mpSave,renderMelody}}
 
 /* ---- where in the song the session is: the phrase, and a moving graph of the singer and the notes ---- */
@@ -6845,8 +6863,9 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
       if(EARS.u===11){if(!SM.ok)throw new Error('the song could not be measured');EARS.home=smIsonM()}
       if(EARS.u===10){DAILY.plan=null;SM.sess=null;SM.lastIds=[];SM.plan=null;dailyPlan(Math.max(300,EARS.goal-(resumeAt||0)));$('earPrepTxt').textContent='Lining up the singer with the tones...'}}
     if(EARS.u===6){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();SM.plan=smPlan(Math.max(60,EARS.goal-(resumeAt||0)-25));SM.sess={done:new Set(),ids:[]};SM.lastIds=[];$('earPrepTxt').textContent='Lining up the singer with the tones...'}
-    if(EARS.u===14){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(mpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');if(!mpList().length)throw new Error('this song has no melodies found yet');EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
-    if(EARS.u===13){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(lpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
+    if(EARS.u===14){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(mpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');if(!mpList().length)throw new Error('this song has no melodies found yet');await mpVoice(t=>{$('earPrepTxt').textContent=t});EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
+    if(EARS.u===13){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(lpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');await lpVoice(t=>{$('earPrepTxt').textContent=t});EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
+    if(EARS.u!==13&&EARS.u!==14&&SM.ok)await smVoiceFor('off');
     const tl=bgTimeline(EARS.u,EARS.lv,Math.max(60,EARS.goal-(resumeAt||0)));EARS.drills=tl.drills;BG.smap=tl.smap||[];BG.smi=0;BG.marks=tl.marks;BG.starts=tl.starts;BG.dur=tl.dur;BG.u=EARS.u;BG.offset=resumeAt||0;
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
     $('earPrepTxt').textContent='Lining up the singer with the tones...';const recs=await bgRecs(tl);const blob=await bgRender({ev:tl.ev,dur:tl.dur,sr:bgSessionSr(tl.dur),voSr:VO_SR,vol:earToneVol(),vo:voUsed,rec:tl.rec||null,recRate:tl.recRate,recs,recSr:BG.recSr||{}},p=>{$('earPrepBar').style.width=Math.max(2,Math.round(p*100))+'%';$('earPrepTxt').textContent='Preparing your session... '+Math.round(p*100)+'%'});
