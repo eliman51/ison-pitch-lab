@@ -1580,14 +1580,21 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   </section>
   <section class="panel" aria-labelledby="t-chant">
     <h2 id="t-chant">Chant Maker</h2>
-    <p class="status" style="margin:0">Read a psalm on one steady note. Pick a scale and a melody, and the app turns your own voice into a chant you can listen to, loop and learn.</p>
-    <div class="field"><label class="label" for="chSrc">1. Your reading</label><select id="chSrc"></select>
-      <div class="row"><button id="chRec">&#9679; Record</button><label class="btnlike" style="cursor:pointer"><input type="file" id="chFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Upload a recording</span></label><button id="chHear" class="lpplay">&#9654; Hear the reading</button></div>
+    <p class="status" style="margin:0">Type the words of a psalm and the computer voice sings them. Pick a scale and a melody, and every syllable lands exactly on its note. As you learn it, turn the voice down and sing the words yourself over the tone.</p>
+    <div class="field"><label class="label" for="chSrc">1. The voice</label><select id="chSrc"></select>
+      <div class="row" hidden><button id="chRec">&#9679; Record</button><label class="btnlike" style="cursor:pointer"><input type="file" id="chFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Upload a recording</span></label></div>
       <p class="status" id="chSrcSt" style="margin:4px 0 0" aria-live="polite"></p>
-      <details class="opts"><summary>How to record a good reading</summary><ol class="chhow"><li>Hold one steady note, like a reader in church. A flat, held note is the easiest to reshape.</li><li>Use a comfortable middle note, not your lowest.</li><li>Go slowly and let each vowel ring.</li><li>Say every syllable clearly.</li><li>Keep your volume up to the end of each line.</li><li>Use a quiet, soft room with no fan or motor running. Hold the phone 6 to 8 inches away.</li><li>Leave a second of silence before and after.</li></ol></details></div>
-    <div class="field"><label class="label" for="chText">2. The words you read (so every word is matched to its note)</label>
-      <textarea id="chText" placeholder="Paste or type the words exactly as you said them. Start a new line wherever the melody should take a breath."></textarea>
+      <div class="row"><button id="chHear" class="lpplay">&#9654; Hear the plain spoken words</button></div>
+    <div class="field"><label class="label" for="chText">2. The words (one breath per line)</label>
+      <textarea id="chText" placeholder="Paste or type the words. Start a new line wherever the melody should take a breath."></textarea>
       <p class="status" id="chTxtSt" style="margin:4px 0 0" aria-live="polite"></p></div>
+    <div class="field" id="chTtsBox" hidden>
+      <label class="label" for="chVoiceSel">Computer voice</label>
+      <select id="chVoiceSel"><option value="bm_george">George (British, clear; the steadiest pitch, recommended)</option><option value="am_michael">Michael (American)</option><option value="am_onyx">Onyx (American, deep)</option><option value="am_fenrir">Fenrir (American)</option><option value="bm_lewis">Lewis (British, deep)</option></select>
+      <div class="row"><button id="chMake" class="primary">Make the voice from the words</button></div>
+      <p class="status" id="chTtsSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <p class="status" style="margin:0;font-size:.8rem">The voice is Kokoro, a free, open voice (Apache 2.0 license). The first time, it downloads about 90 MB, then it stays on this device. It reports exactly when it says every sound, so each syllable sits exactly on its note.</p>
+    </div>
   </section>
   <section class="panel" id="chPlayer" hidden aria-labelledby="t-chplay">
     <h2 id="t-chplay">Listen</h2>
@@ -1609,6 +1616,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="field"><label class="label" for="chScale">Scale (the flavor of the notes)</label><select id="chScale"></select></div>
     <div class="field chsl"><label class="label" for="chLen">Length: <b id="chLenV"></b></label><input type="range" id="chLen" min="30" max="300" step="1"><div class="row"><button id="chLenNat" class="lpplay">Back to a natural pace</button></div></div>
     <div class="field"><span class="label">Melody (a star marks the best fits)</span><div class="chmels" id="chMels"></div><p class="status" id="chMelD" style="margin:4px 0 0"></p></div>
+    <div class="field"><label class="label" for="chVr">Voice range</label><select id="chVr"><option value="auto">Automatic (your reading note, or bass for the computer voice)</option><option value="bass">Bass (centered on G2)</option><option value="bari">Baritone (centered on C3)</option><option value="ten">Tenor (centered on F3)</option></select></div>
     <div class="field chsl"><label class="label" for="chUp">Height: <b id="chUpV"></b></label><input type="range" id="chUp" min="-7" max="7" step="1"><div class="row"><button id="chUpAuto" class="lpplay">Closest to my voice</button></div></div>
     <div class="field chsl"><label class="label" for="chRange">How far the melody travels: <b id="chRangeV"></b></label><input type="range" id="chRange" min="50" max="200" step="25"></div>
     <details class="opts"><summary>Fine tuning: endings, breaths, accents</summary>
@@ -7731,11 +7739,68 @@ function chBacking(len,sr,P,o){const y=new Float32Array(len);if(o.drone>0){let h
   if(o.guide>0){const A=Math.pow(o.guide/10,1.6)*0.2,tm=P.tm,fr=sr*0.005;let ph=0,amp=0;for(let i=0;i<len;i++){const k=Math.min(tm.length-1,Math.floor(i/fr)),m=tm[k],on=m>0?1:0;amp+=(on-amp)*0.0015;if(m>0){ph+=2*Math.PI*440*Math.pow(2,(m-69)/12)/sr}y[i]+=A*amp*(Math.sin(ph)+0.3*Math.sin(2*ph)+0.1*Math.sin(3*ph))}}
   return y}
 
+/* ================= Chant Maker: the computer voice =================
+   Kokoro (Apache 2.0) speaks each line. The words are turned into speech sounds one word at a time, so the app
+   always knows exactly which sounds belong to which word, and the model reports how long it spends on every
+   sound. From that, every syllable and every vowel has an exact start and end. Nothing is guessed. */
+const CHV_VOW='aɑɐæəɚɛɜeiɪoɔuʊʌɒyᵻɘɵɝøœɯɤɨʉ',CHV_DI=new Set(['aɪ','aʊ','eɪ','oʊ','ɔɪ','əʊ','ɪə','eə','ʊə']);
+const CHV_FN=new Set('the a an of and to in on at by for from with as is are was were be been am it its his her my thy our your their me he she we ye you they them him us or nor but if that which who whom this these those than so shall will would should may might can could do does did have has had hath unto into upon thee thou i'.split(' '));
+function chvPost(p){return p.replace(/ʲ/g,'j').replace(/r/g,'ɹ').replace(/x/g,'k').replace(/ɬ/g,'l')}
+/* one word's speech sounds -> its syllables (vowel nuclei, with the consonants shared out between them) */
+function chvSyl(ch){const isV=c=>CHV_VOW.includes(c),nu=[];let i=0;
+  while(i<ch.length){if(!isV(ch[i])){i++;continue}let j=i+1;if(ch[j]==='ː')j++;if(j<ch.length&&isV(ch[j])&&CHV_DI.has(ch[i]+ch[j])){j++;if(ch[j]==='ː')j++}
+    let st=0;for(let k=i-1;k>=0&&!isV(ch[k]);k--){if(ch[k]==='ˈ'){st=2;break}if(ch[k]==='ˌ'){st=Math.max(st,1);break}}nu.push({a:i,b:j,st});i=j}
+  if(!nu.length)return[{a:0,b:ch.length,va:0,vb:ch.length,st:0}];
+  const out=nu.map(n=>({va:n.a,vb:n.b,st:n.st}));out[0].a=0;out[out.length-1].b=ch.length;
+  for(let k=0;k+1<nu.length;k++){const e=nu[k].b,s=nu[k+1].a,cons=[];for(let q=e;q<s;q++)if(!'ˈˌ'.includes(ch[q]))cons.push(q);
+    /* one consonant starts the next syllable; of two or more, the first one closes this syllable */
+    const cut=cons.length===0?e:cons.length===1?cons[0]:cons[1];out[k].b=cut;out[k+1].a=cut}
+  return out}
+/* the letters of a word cut into exactly n syllables, to sit under the voice's syllables */
+function chvLetters(word,n){let p=chWordSyl(word);if(p.length===n)return p;
+  while(p.length>n){let bi=0,bl=1e9;for(let k=0;k+1<p.length;k++){const l=p[k].length+p[k+1].length;if(l<bl){bl=l;bi=k}}p.splice(bi,2,p[bi]+p[bi+1])}
+  while(p.length<n){let bi=0;p.forEach((q,k)=>{if(q.length>p[bi].length)bi=k});const q=p[bi];if(q.length<2){p.push('');continue}const m=Math.ceil(q.length/2);p.splice(bi,1,q.slice(0,m),q.slice(m))}return p}
+/* a word's speech sounds, from the voice's own pronunciation step (stopped before it speaks) */
+function chvPhon(tts,voice){const STOP={stop:1};return async w=>{const ot=tts.tokenizer;let cap='';tts.tokenizer=s=>{cap=s;throw STOP};
+  try{await tts.generate(w,{voice})}catch(e){if(e!==STOP)throw e}finally{tts.tokenizer=ot}return[cap]}}
+/* make the whole reading. lines: [[{word,pc}]]; tts: a loaded KokoroTTS; phon(word) -> speech sounds; prog(i,n) */
+async function chvMake(lines,tts,phon,o,prog){const tk=tts.tokenizer,t2i=tk.model.tokens_to_ids,SR=24000,GAP=Math.round(SR*0.45),parts=[],syl=[];let pos=Math.round(SR*0.3),last=null;
+  const om=tts.model,wrap=async i=>{const r=await om(i);last=r;return r};tts.model=wrap;
+  try{const mk=tk('a',{truncation:true}).input_ids;parts.push(new Float32Array(pos));
+    for(let li=0;li<lines.length;li++){prog&&prog(li,lines.length);const L=lines[li],chars=[],wr=[];
+      for(let wi=0;wi<L.length;wi++){const w=L[wi];let p=chvPost(((await phon(w.word))||[]).join(''));if(CHV_FN.has(w.word.toLowerCase())&&L.length>1)p=p.replace(/[ˈˌ]/g,'');
+        p=[...p].filter(c=>t2i.has(c)).join('');if(wi)chars.push(' ');const a=chars.length;chars.push(...p);wr.push([a,chars.length,p]);
+        if(w.pc){const c=o.flat?',':w.pc===1?',':w.pc===2?';':'.';if(t2i.has(c))chars.push(c)}}
+      const ids=[0].concat(chars.map(c=>t2i.get(c)),[0]),T=new mk.constructor('int64',BigInt64Array.from(ids.map(BigInt)),[1,ids.length]);
+      const au=await tts.generate_from_ids(T,{voice:o.voice,speed:o.speed}),wav=au.audio,du=Array.from(last.durations.data).map(Number),tot=du.reduce((s,d)=>s+d,0),k=wav.length/tot,cum=[0];
+      du.forEach(d=>cum.push(cum[cum.length-1]+d*k));const at=c=>pos+cum[c+1];/* token c+1 is speech sound c */
+      wr.forEach(([a,b,p],wi)=>{chvSyl([...p]).forEach((s,k2,arr)=>syl.push({line:li,w:wi,k:k2,n:arr.length,t0:at(a+s.a)/SR,t1:at(a+s.b)/SR,v0:at(a+s.va)/SR,v1:at(a+s.vb)/SR,st:s.st}))});
+      parts.push(wav);parts.push(new Float32Array(GAP));pos+=wav.length+GAP}}
+  finally{tts.model=om}
+  const n=parts.reduce((s,p)=>s+p.length,0),y=new Float32Array(n);let q=0;parts.forEach(p=>{y.set(p,q);q+=p.length});
+  /* to the app's working rate */
+  const r=SR/KEY_SR,m=Math.floor(n/r),x=new Float32Array(m);for(let i=0;i<m;i++){const s=i*r,j=Math.floor(s),f=s-j;x[i]=(y[j]||0)*(1-f)+(y[j+1]||0)*f}
+  return{x,syl}}
+/* the pasted words, grouped into the lines the voice will speak */
+function chvLines(T){const L=[];T.forEach(s=>{if(s.ws){if(!L.length||L[L.length-1][0].ph!==s.ph)L.push([]);L[L.length-1].push({word:s.word,ph:s.ph,pc:0})}if(s.we){const l=L[L.length-1];l[l.length-1].pc=s.pc}});return L}
+/* the reading's syllables, already exact, in the same shape the rest of the Chant Maker uses */
+function chvSeg(F,T,V){const dt=F.hop/F.sr,fr=t=>Math.max(0,Math.min(F.n-1,Math.round((t*F.sr-F.off)/F.hop))),phr=[];
+  const lines=chvLines(T).map(w=>({w}));
+  const ms=[];for(let i=0;i<F.n;i++)if(F.f0[i])ms.push(69+12*Math.log2(F.f0[i]/440));ms.sort((a,b)=>a-b);const med=ms.length?ms[ms.length>>1]:50;let prevB=0;
+  lines.forEach((L,li)=>{const P={id:li,syl:[]};L.w.forEach((w,wi)=>{const vs=V.filter(v=>v.line===li&&v.w===wi);if(!vs.length)return;const lab=chvLetters(w.word,vs.length),pri=vs.findIndex(v=>v.st===2),isFn=CHV_FN.has(w.word.toLowerCase());
+      vs.forEach((v,k)=>{let na=fr(v.v0),nb=fr(v.v1),c=-1;for(let i=na;i<nb;i++)if(F.f0[i]){c=i;break}let e=-1;for(let i=nb-1;i>=na;i--)if(F.f0[i]){e=i;break}
+        if(c<0){na=-1;nb=-1}else{na=c;nb=e+1}const m=[];for(let i=Math.max(0,na);i<nb;i++)if(F.f0[i])m.push(69+12*Math.log2(F.f0[i]/440));m.sort((a,b)=>a-b);
+        let pk=-90;for(let i=fr(v.t0);i<fr(v.t1);i++)pk=Math.max(pk,F.son[i]);
+        const x={t:lab[k],w:wi,k,nk:vs.length,word:w.word,ws:k===0,we:k===vs.length-1,pri:(!isFn&&(pri>=0?k===pri:vs.length===1))?1:0,pc:k===vs.length-1?w.pc:0,nl:k===0&&wi===0,ph:li};
+        const s={a:fr(v.t0),b:Math.max(fr(v.t0)+1,fr(v.t1)),ca:fr(v.t0),cb:Math.max(fr(v.t0)+1,fr(v.t1)),na,nb,pk,m:m.length?m[m.length>>1]:med,dur:v.t1-v.t0,gap:Math.max(0,(fr(v.t0)-prevB)*dt),x,acc:x.pri>0};prevB=s.b;P.syl.push(s)})});
+    if(P.syl.length)phr.push(P)});
+  return{phr,med,matched:true,nSyl:phr.reduce((s,p)=>s+p.syl.length,0),dt,tts:true}}
+
 /* ================= Chant Maker: screen ================= */
 const CH_BASE=[{id:'b:forever',name:'Forever, O Lord (Psalm 118, verses 89 to 96)',file:'chant-forever.mp3',text:"Forever, O Lord,\nYour word continues in heaven.\nYour truth continues from generation to generation;\nYou laid the foundation of the earth, and it continues.\nBy Your arrangement each day continues,\nFor all things are Your servants.\nIf Your law were not my meditation,\nI would have perished in my affliction.\nI will never forget Your ordinances,\nFor in them You give me life, O Lord.\nI am Yours; save me,\nFor I search Your ordinances.\nSinners waited for me to kill me;\nI understood Your testimonies.\nI saw the limit of every accomplishment;\nYour commandment is exceedingly broad."}];
-const CHM={x:null,regs:null,F:null,seg:null,P:null,y:null,url:null,src:null,busy:false,inited:false,rec:null,T:[],raf:0,kpi:-1,ksi:-2,nat:0,mk:0,ourl:null};
-const chDef={src:'b:forever',scale:'tone1',mel:'psalm',up:0,len:0,range:100,hold:1.6,pause:0.9,lean:5,drone:3,guide:4,voice:8,oct:1,even:false,loop:false};
-function chSet(){return Object.assign({},chDef,store.get('ison-chant-set',{}))}
+const CHM={lt:0,making:false,x:null,regs:null,F:null,seg:null,P:null,y:null,url:null,src:null,busy:false,inited:false,rec:null,T:[],raf:0,kpi:-1,ksi:-2,nat:0,mk:0,ourl:null};
+const chDef={src:'tts',scale:'tone1',mel:'psalm',up:0,len:0,range:100,hold:1.6,pause:0.9,lean:5,drone:3,guide:4,voice:8,oct:1,vr:'auto',even:false,loop:false};
+function chSet(){const v=store.get('ison-chant-set',{});if(!store.get('ison-chant-v3',0)){store.set('ison-chant-v3',1);v.src='tts';store.set('ison-chant-set',v)}return Object.assign({},chDef,v)}
 function chSave(p){const s=Object.assign(chSet(),p);store.set('ison-chant-set',s);return s}
 const chNote=m=>{const r=Math.round(m);return['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'][((r%12)+12)%12]+(Math.floor(r/12)-1)};
 const chClock=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
@@ -7746,25 +7811,49 @@ function chWorker(){if(CHW!==null)return CHW;try{const src=[psTrack,psMarks,chFF
   CHW=new Worker(URL.createObjectURL(new Blob([src],{type:'text/javascript'})))}catch(e){CHW=false}return CHW}
 function chFeatRun(x){const local=()=>new Promise(r=>setTimeout(()=>{const q=chFeat(x,KEY_SR);q.regs.forEach(g=>{g.M=Int32Array.from(g.M)});r(q)},30)),W=chWorker();if(!W)return local();
   return new Promise(res=>{const id=Math.random(),on=e=>{if(!e.data||e.data.id!==id)return;W.removeEventListener('message',on);if(e.data.err)local().then(res);else res(e.data.r)};W.addEventListener('message',on);W.postMessage({id,x,sr:KEY_SR})})}
-function chSrcList(hasMine){const sel=$('chSrc'),cs=store.get('ison-chants',[]).filter(c=>c.src.startsWith('c:'));sel.innerHTML=CH_BASE.map(b=>'<option value="'+b.id+'">'+chEsc(b.name)+'</option>').join('')+(hasMine?'<option value="my">My own recording (the latest)</option>':'')+(cs.length?'<optgroup label="Recordings kept with my chants">'+cs.map(c=>'<option value="'+c.src+'">'+chEsc(c.name)+'</option>').join('')+'</optgroup>':'');sel.value=CHM.src||chSet().src;if(!sel.value)sel.value=CH_BASE[0].id}
-async function chLoad(id){const st=$('chSrcSt');if(CHM.busy)return;CHM.busy=true;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;st.textContent='Loading the recording.';$('chPlayer').hidden=true;
-  try{let an=null;try{an=await BlobDB.get('chant-an2:'+id)}catch(e){}
+function chSrcList(hasMine){const sel=$('chSrc'),cs=store.get('ison-chants',[]).filter(c=>/^[ct]:/.test(c.src));sel.innerHTML='<option value="tts">Computer voice: sings the words you type</option>'+CH_BASE.map(b=>'<option value="'+b.id+'">Your own reading: '+chEsc(b.name)+'</option>').join('')+(hasMine?'<option value="my">My own recording (the latest)</option>':'')+(cs.length?'<optgroup label="Voices and recordings kept with my chants">'+cs.map(c=>'<option value="'+c.src+'">'+chEsc(c.name)+'</option>').join('')+'</optgroup>':'');sel.value=CHM.src||chSet().src;if(!sel.value)sel.value=CH_BASE[0].id}
+async function chLoadTts(id){const st=$('chSrcSt'),tok=++CHM.lt;CHM.busy=false;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;CHM.V=null;$('chPlayer').hidden=true;$('chTtsBox').hidden=false;CHM.src=id;chSave({src:id});$('chSrc').value=id;
+  const key=id==='tts'?store.get('ison-chant-tts',''):id.slice(2);if(id==='tts')$('chText').value=store.get('ison-chant-text:tts','')||CH_BASE[0].text;
+  let an=null;if(key)try{an=await BlobDB.get('chant-an2:t:'+key)}catch(e){}if(tok!==CHM.lt)return;
+  $('chHear').hidden=!(an&&an.V);if(!an||!an.V){st.textContent=id==='tts'?'The computer voice sings whatever words you type below.':'The voice saved with this chant is missing on this device. Tap Make the voice to make it again.';$('chTtsSt').textContent='Type or paste the words below, one breath per line, then tap Make the voice.';$('chMake').textContent='Make the voice from the words';$('chTxtSt').textContent='';chMelStats();return}
+  if(id!=='tts')$('chText').value=store.get('ison-chant-text:'+id,'')||an.text;CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.V=an.V;CHM.ttsText=an.text;CHM.tkey=key;$('chVoiceSel').value=an.voice;
+  const vn=$('chVoiceSel').selectedOptions[0];st.textContent='Computer voice: '+(vn?vn.textContent.replace(/ \(.*/,''):an.voice)+', '+chClock(an.F.dur)+' of speech.';$('chTtsSt').textContent='';
+  if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}chMatch()}
+let CHV_TTS=null;
+async function chvLib(prog){if(CHV_TTS)return CHV_TTS;const mod=await import('https://cdn.jsdelivr.net/npm/kokoro-js@1.2.1/dist/kokoro.web.js');
+  CHV_TTS=await mod.KokoroTTS.from_pretrained('onnx-community/Kokoro-82M-v1.0-ONNX-timestamped',{dtype:'q8',device:'wasm',progress_callback:prog});return CHV_TTS}
+function chHash(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return(h>>>0).toString(36)}
+async function chMakeVoice(){if(CHM.making)return;const st=$('chTtsSt'),txt=$('chText').value.trim(),voice=$('chVoiceSel').value,T=chText(txt);if(!T.length){st.textContent='Type or paste the words first.';return}
+  const key=chHash(txt+'|'+voice+'|v1');CHM.making=true;$('chMake').disabled=true;chStop();
+  try{let an=null;try{an=await BlobDB.get('chant-an2:t:'+key)}catch(e){}
+    if(!an||!an.V){const files={};st.textContent='Loading the voice. The first time, it downloads about 90 MB, then it stays on this device.';
+      const tts=await chvLib(p=>{if(p&&p.status==='progress'&&p.total){files[p.file]=[p.loaded,p.total];let a=0,b=0;Object.values(files).forEach(([x,y])=>{a+=x;b+=y});st.textContent='Downloading the voice: '+Math.round(a/1048576)+' of '+Math.round(b/1048576)+' MB. This happens only once.'}});
+      const R=await chvMake(chvLines(T),tts,chvPhon(tts,voice),{voice,speed:0.85,flat:true},(i,n)=>{st.textContent='Speaking line '+(i+1)+' of '+n+'.'});
+      st.textContent='Finding the pitch of every syllable.';const r=await chFeatRun(R.x);an={x:r.x,regs:r.regs,F:r.F,V:R.syl,text:txt,voice};try{await BlobDB.put('chant-an2:t:'+key,an)}catch(e){}}
+    store.set('ison-chant-tts',key);store.set('ison-chant-text:tts',txt);const s=chSet();if(s.voice===8&&s.guide===4){chSave({voice:6,guide:7})}
+    CHM.making=false;$('chMake').disabled=false;if(CHM.src==='tts'||CHM.src.startsWith('t:')){await chLoadTts('tts');st.textContent='Done. Press Play the chant.'}else st.textContent='The voice is ready. Pick Computer voice above to hear it.'}
+  catch(e){CHM.making=false;$('chMake').disabled=false;st.textContent='The voice could not be made here ('+(e&&e.message?e.message.slice(0,90):'unknown problem')+'). The first time it needs an internet connection, and it works on the GitHub site rather than inside the Claude page.'}}
+async function chLoad(id){if(id==='tts'||id.startsWith('t:'))return chLoadTts(id);const st=$('chSrcSt'),tok=++CHM.lt;CHM.busy=true;$('chTtsBox').hidden=true;$('chHear').hidden=false;CHM.V=null;chStop();CHM.P=null;CHM.y=null;CHM.seg=null;st.textContent='Loading the recording.';$('chPlayer').hidden=true;
+  try{let an=null;try{an=await BlobDB.get('chant-an2:'+id)}catch(e){}if(tok!==CHM.lt)return;
     if(!an||!an.F||!an.x){let blob=null;if(id.startsWith('b:')){const b=CH_BASE.find(q=>q.id===id);blob=b?await pubAudio('chant:'+id,b.file):null}else blob=await BlobDB.get(id.startsWith('c:')?'chant-rec:'+id.slice(2):'chant-rec');
       if(!blob){st.textContent=id.startsWith('c:')?'The recording saved with this chant is missing on this device.':id==='my'?'No recording of your own yet. Record or upload one.':'The built-in recording could not be loaded. Check your connection and try again.';CHM.busy=false;return}
       st.textContent='Listening to the recording: cleaning the sound and finding every syllable. The first time takes up to a minute.';
-      const x=await keyDecode(blob),r=await chFeatRun(x);an={x:r.x,regs:r.regs,F:r.F};try{await BlobDB.put('chant-an2:'+id,an)}catch(e){}}
+      const x=await keyDecode(blob),r=await chFeatRun(x);an={x:r.x,regs:r.regs,F:r.F};try{await BlobDB.put('chant-an2:'+id,an)}catch(e){}if(tok!==CHM.lt)return}
     CHM.x=an.x;CHM.regs=an.regs;CHM.F=an.F;CHM.src=id;chSave({src:id});$('chSrc').value=id;$('chText').value=store.get('ison-chant-text:'+id,'')||((CH_BASE.find(b=>b.id===id)||{}).text||'');
     const snr=an.F.snr;st.textContent=chClock(an.F.dur)+' long. '+(snr<8?'There was a strong background hum or noise, and it has been cleaned out. A quieter room will sound better still.':snr<16?'Some background noise was cleaned out.':'Clean recording.');
     if(CHM.ourl){URL.revokeObjectURL(CHM.ourl);CHM.ourl=null}CHM.busy=false;chMatch()}
   catch(e){st.textContent='That recording could not be read. Try another file.';CHM.busy=false}}
-function chMatch(){if(!CHM.F)return;const txt=$('chText').value;store.set('ison-chant-text:'+CHM.src,txt);CHM.T=chText(txt);CHM.seg=chSeg(CHM.F,CHM.T.length?CHM.T:null);const g=CHM.seg,st=$('chTxtSt'),nw=CHM.T.filter(s=>s.ws).length;
+function chMatch(){if(!CHM.F)return;if(CHM.V){const txt=$('chText').value,st=$('chTxtSt');store.set('ison-chant-text:'+(CHM.src.startsWith('t:')?CHM.src:'tts'),txt);CHM.T=chText(CHM.ttsText);CHM.seg=chvSeg(CHM.F,CHM.T,CHM.V);
+    const ch=txt.trim()!==CHM.ttsText.trim(),nw=CHM.T.filter(q=>q.ws).length;st.textContent=ch?'You changed the words. Tap Make the voice to sing the new words. Until then you hear the old ones.':nw+' words, '+CHM.seg.nSyl+' syllables in '+CHM.seg.phr.length+' lines, each syllable timed exactly by the voice itself.';
+    $('chMake').textContent=ch?'Make the voice with the new words':'Make the voice again';chMelStats();chMakeNow();return}
+  const txt=$('chText').value;store.set('ison-chant-text:'+CHM.src,txt);CHM.T=chText(txt);CHM.seg=chSeg(CHM.F,CHM.T.length?CHM.T:null);const g=CHM.seg,st=$('chTxtSt'),nw=CHM.T.filter(s=>s.ws).length;
   if(!g.phr.length)st.textContent='No voice was found in this recording.';
   else if(!CHM.T.length)st.textContent='No words yet, so the syllables were found by ear: '+g.nSyl+' syllables in '+g.phr.length+' lines. Paste the words above and every word will be matched to its place.';
   else if(g.matched)st.textContent=nw+' words, '+CHM.T.length+' syllables, each matched to its place in your voice, in '+g.phr.length+' lines. If a word lands on the wrong note, check that the words are exactly what you said, or split a word by hand with a hyphen (bless-ed).';
   else st.textContent='The words have '+CHM.T.length+' syllables, but fewer than that could be heard in the recording. Check that the words match what you said. For now the syllables are found by ear.';
   chMelStats();chMakeNow()}
-function chOpts(s,k,mel){const sc=rtScale(s.scale)||RT_T1,M=CH_MEL.find(m=>m.id===(mel||s.mel))||CH_MEL[0],fz=s.range/100,sm=d=>{const z=Math.round(d*fz);return sc[((z%7)+7)%7]+12*Math.floor(z/7)},ds=[];M.ph.concat(M.fin?[M.fin]:[]).forEach(T=>{[].concat(T.in||[],[T.r,T.m],T.a,T.e,...(T.pre||[])).forEach(d=>ds.push(sm(d)))});const semi=(Math.min.apply(null,ds)+Math.max.apply(null,ds))/2;
-  return{mel:M.id,scale:sc,home:Math.round(CHM.seg.med-semi)+s.up,U:0.45,hold:s.hold,pause:s.pause,lean:s.lean/10,nat:0.2,vib:0.12,comma:0.15,even:!!s.even,glide:7,range:fz,k:k||1,drone:s.drone,guide:s.guide}}
+function chOpts(s,k,mel){const sc=rtScale(s.scale)||RT_T1,M=CH_MEL.find(m=>m.id===(mel||s.mel))||CH_MEL[0],fz=s.range/100,sm=d=>{const z=Math.round(d*fz);return sc[((z%7)+7)%7]+12*Math.floor(z/7)},ds=[];M.ph.concat(M.fin?[M.fin]:[]).forEach(T=>{[].concat(T.in||[],[T.r,T.m],T.a,T.e,...(T.pre||[])).forEach(d=>ds.push(sm(d)))});const semi=(Math.min.apply(null,ds)+Math.max.apply(null,ds))/2,tt=!!CHM.V,vr=s.vr||'auto',cen=vr==='bass'?43:vr==='bari'?48:vr==='ten'?53:tt?43:CHM.seg.med;
+  return{mel:M.id,scale:sc,center:cen,home:Math.round(cen-semi)+s.up,U:0.45,hold:s.hold,pause:s.pause,lean:s.lean/10,nat:tt?0.05:0.2,vib:0.12,comma:0.15,even:!!s.even,glide:7,range:fz,k:k||1,drone:s.drone,guide:s.guide}}
 function chSolveK(s,mel){const d1=chPlan(CHM.F,CHM.seg,chOpts(s,1,mel)).dur;if(!s.len)return{k:1,d1};const d2=chPlan(CHM.F,CHM.seg,chOpts(s,2,mel)).dur;let k=1+(s.len-d1)/Math.max(0.1,d2-d1);k=Math.max(0.4,Math.min(3,k));
   const dk=chPlan(CHM.F,CHM.seg,chOpts(s,k,mel)).dur;k=Math.max(0.4,Math.min(3,k+(s.len-dk)/Math.max(0.1,d2-d1)));return{k,d1}}
 /* every melody, measured on this reading: how long it runs, how far it reaches, and which ones suit the length you asked for */
@@ -7798,7 +7887,7 @@ function chLines(){const P=CHM.P;$('chLines').innerHTML=P.phr.map((p,i)=>'<butto
   $('chLines').querySelectorAll('button').forEach(b=>b.onclick=()=>{const a=$('chAud');try{a.currentTime=Math.max(0,P.phr[+b.dataset.i].t-0.1)}catch(e){}chPlay(true)})}
 function chLabels(){const s=chSet(),P=CHM.P;if(!P)return;const lo=CHM.nat*0.5,hi=CHM.nat*2.5,L=$('chLen');L.min=Math.round(lo);L.max=Math.round(hi);L.value=Math.round(P.dur);
   const pc=Math.round((CHM.k-1)*100);$('chLenV').textContent=chClock(P.dur)+(s.len?(Math.abs(pc)<3?', natural pace':pc>0?', '+pc+'% slower than natural':', '+(-pc)+'% quicker than natural'):', natural pace');
-  $('chUpV').textContent='home note '+chNote(CHM.o.home)+(s.up?' ('+(s.up>0?s.up+' higher':-s.up+' lower')+' than the closest fit)':' (the melody is centered on your reading note, '+chNote(CHM.seg.med)+')');
+  $('chUpV').textContent='home note '+chNote(CHM.o.home)+(s.up?' ('+(s.up>0?s.up+' higher':-s.up+' lower')+' than the center)':' (the melody is centered on '+((s.vr||'auto')==='auto'&&!CHM.V?'your reading note, ':'')+chNote(CHM.o.center)+')');
   $('chRangeV').textContent=(s.range===100?'as written':s.range<100?'narrower':'wider')+', from '+chNote(P.lo)+' up to '+chNote(P.hi);
   $('chHoldV').textContent=s.hold.toFixed(1)+' s';$('chPauseV').textContent=s.pause.toFixed(1)+' s';$('chLeanV').textContent=s.lean?s.lean+' of 10':'off';chMixLab();
   $('chSum').textContent=P.phr.length+' lines, '+P.notes.length+' notes, '+chClock(P.dur)+' long.';$('chLoop').setAttribute('aria-pressed',String(!!s.loop));$('chEven').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String((b.dataset.v==='1')===!!s.even)))}
@@ -7827,9 +7916,9 @@ async function chRecord(){const b=$('chRec');if(CHM.rec){CHM.rec.stop();return}
     mr.onstop=()=>{clearInterval(iv);stream.getTracks().forEach(t=>t.stop());CHM.rec=null;b.innerHTML='&#9679; Record';chNewRec(new Blob(parts,{type:mr.mimeType||'audio/webm'}))};mr.start();CHM.rec=mr;b.innerHTML='&#9632; Stop recording'}
   catch(e){$('chSrcSt').textContent='The microphone could not be opened here. Record with your phone\'s voice memo app and use Upload instead.'}}
 /* My chants: the recording, the words and every setting, kept under a name */
-async function chSaveChant(nm){const id=Date.now().toString(36);let src=CHM.src;
+async function chSaveChant(nm){const id=Date.now().toString(36);let src=CHM.src;if(src==='tts'&&CHM.tkey)src='t:'+CHM.tkey;
   if(src==='my'){const b=await BlobDB.get('chant-rec');if(b){await BlobDB.put('chant-rec:'+id,b);try{const an=await BlobDB.get('chant-an2:my');if(an)await BlobDB.put('chant-an2:c:'+id,an)}catch(e){}src='c:'+id}}
-  const set=Object.assign({},chSet(),{src});const list=store.get('ison-chants',[]);list.unshift({id,name:nm,src,text:$('chText').value,set,dur:CHM.P?CHM.P.dur:0,created:Date.now()});store.set('ison-chants',list);
+  const set=Object.assign({},chSet(),{src});const list=store.get('ison-chants',[]);list.unshift({id,name:nm,src,text:CHM.V?CHM.ttsText:$('chText').value,set,dur:CHM.P?CHM.P.dur:0,created:Date.now()});store.set('ison-chants',list);
   chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').value=CHM.src;chMineRender()}
 function chMineRender(){const list=store.get('ison-chants',[]),box=$('chMineList');$('chMine').hidden=!list.length;
   box.innerHTML=list.map((c,i)=>{const M=CH_MEL.find(m=>m.id===c.set.mel),R=RT_LIST.find(r=>r[0]===c.set.scale);return'<div class="chmine"><button data-i="'+i+'"><b>'+chEsc(c.name)+'</b><br><small>'+(M?chEsc(M.n):'')+(R?', '+chEsc(R[1].replace(/ \(.*\)/,'')):'')+(c.dur?', '+chClock(c.dur):'')+'</small></button><button class="del lpplay" data-d="'+i+'" aria-label="Delete '+chEsc(c.name)+'">Delete</button></div>'}).join('');
@@ -7837,12 +7926,12 @@ function chMineRender(){const list=store.get('ison-chants',[]),box=$('chMineList
   box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.dataset.armed){const list=store.get('ison-chants',[]),c=list.splice(+b.dataset.d,1)[0];store.set('ison-chants',list);if(c&&c.src.startsWith('c:')){BlobDB.put('chant-rec:'+c.id,null).catch(()=>{});BlobDB.put('chant-an2:'+c.src,null).catch(()=>{})}
       $('chMineSt').textContent='Deleted "'+(c?c.name:'')+'". Anything already added to your practice songs stays there.';chSrcList(!!store.get('ison-chant-mine',0));chMineRender();return}
     b.dataset.armed='1';b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Delete'}},3500)})}
-function chSyncUI(){const s=chSet();$('chScale').value=s.scale;$('chUp').value=s.up;$('chRange').value=s.range;$('chHold').value=s.hold;$('chPause').value=s.pause;$('chLean').value=s.lean;chMixLab()}
+function chSyncUI(){const s=chSet();$('chScale').value=s.scale;$('chVr').value=s.vr||'auto';$('chUp').value=s.up;$('chRange').value=s.range;$('chHold').value=s.hold;$('chPause').value=s.pause;$('chLean').value=s.lean;chMixLab()}
 function chOpenChant(c){if(!c)return;chStop();store.set('ison-chant-text:'+c.src,c.text||'');store.set('ison-chant-set',Object.assign({},c.set));chSyncUI();$('chName').value=c.name;$('chMineSt').textContent='Opened "'+c.name+'".';
   chSrcList(!!store.get('ison-chant-mine',0));CHM.busy=false;chLoad(c.src);setTimeout(()=>{const e=$('chPlayer');if(!e.hidden)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'})},1200)}
 function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('chScale').innerHTML=RT_LIST.filter(r=>r[0]!=='off').map(r=>'<option value="'+r[0]+'">'+r[1]+'</option>').join('');$('chScale').value=s.scale;
-  $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};
+  $('chScale').onchange=()=>{chSave({scale:$('chScale').value});chMelStats();chMakeSoon()};$('chVr').value=s.vr||'auto';$('chVr').onchange=()=>{chSave({vr:$('chVr').value});chMelStats();chMakeSoon()};$('chMake').onclick=chMakeVoice;
   chSrcList(!!store.get('ison-chant-mine',0));$('chSrc').onchange=()=>chLoad($('chSrc').value);
   $('chRec').onclick=chRecord;$('chFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(f)chNewRec(f)};
   $('chHear').onclick=()=>{const o=$('chOrig');if(!CHM.x)return;if(!o.paused){o.pause();return}chStop();if(!CHM.ourl){CHM.ourl=URL.createObjectURL(new Blob([keyWav(CHM.x,KEY_SR)],{type:'audio/wav'}));o.src=CHM.ourl}o.play().catch(()=>{})};
