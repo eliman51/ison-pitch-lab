@@ -6,7 +6,8 @@ html = open(os.path.join(root, 'index.html'), encoding='utf8').read()
 ok = True
 for n, (a, c) in enumerate(re.findall(r'<script(\s[^>]*)?>(.*?)</script>', html, re.S)):
     a = a or ''
-    if 'src=' in a or 'json' in a or not c.strip():
+    t = re.search(r'type=["\']?([^"\'\s>]+)', a)
+    if 'src=' in a or not c.strip() or (t and t.group(1) not in ('module', 'text/javascript', 'application/javascript')):
         continue
     f = tempfile.NamedTemporaryFile('w', suffix='.mjs' if 'module' in a else '.js', delete=False, encoding='utf8')
     f.write(c); f.close()
