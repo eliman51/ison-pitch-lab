@@ -1589,6 +1589,12 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="chlines" id="chMineList"></div>
     <p class="status" id="chMineSt" style="margin:0" aria-live="polite"></p>
   </section>
+  <section class="panel" aria-labelledby="t-ch118">
+    <h2 id="t-ch118">Psalm 118, sung by the real singer</h2>
+    <p class="status" style="margin:0">Tap a stanza. It opens as a finished song: its words, its melody and the singer. The first time, each one downloads (about 1 MB) and then stays on this device, in My chants.</p>
+    <div class="chips earchips" id="sg118"></div>
+    <p class="status" id="sg118St" style="margin:0" aria-live="polite"></p>
+  </section>
   <section class="panel" aria-labelledby="t-chant">
     <h2 id="t-chant">Song Maker</h2>
     <p class="status" style="margin:0">Paste any words and pick a melody. Every syllable is placed on its note, the accents of the words land on the strong notes, and the melody keeps rolling without waiting for the end of a sentence. It plays at once as a clear tone with the words lit up. Loop any part of it while you work.</p>
@@ -1610,6 +1616,35 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <details class="opts" id="sgSylBox"><summary>Check the syllables and accents</summary>
       <p class="status" style="margin:0 0 6px">Dots split the syllables. <b>Bold</b> carries a main accent, <span class="sga1">underlined</span> a light one. If a word is split wrong, type it with hyphens in the box above (bless-ed). To move an accent, put a star before the syllable that should have it (re-*joice).</p>
       <div class="sgsyl" id="sgSyl"></div></details>
+  </section>
+  <section class="panel" aria-labelledby="t-chvoice">
+    <h2 id="t-chvoice">2. Who sings it</h2>
+    <p class="status" style="margin:0">Three choices: a plain tone, the computer voice, or the real singer. The real singer sounds far better. He lives on the Mac, not in this page, so his singing is made there.</p>
+    <div class="row"><button id="sgSingNow" class="primary">&#9834; Sing it with the real singer (on the Mac)</button></div>
+    <p class="status" id="sgSingNowSt" style="margin:0 0 6px" aria-live="polite"></p>
+    <div class="field"><label class="label" for="chSrc">The voice</label><select id="chSrc"></select>
+      <div class="row" hidden><button id="chRec">&#9679; Record</button><label class="btnlike" style="cursor:pointer"><input type="file" id="chFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Upload a recording</span></label></div>
+      <p class="status" id="chSrcSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <div class="row"><button id="chHear" class="lpplay" hidden>&#9654; Hear the plain spoken words</button></div></div>
+    <div class="field" id="chTtsBox" hidden>
+      <label class="label" for="chVoiceSel">Computer voice</label>
+      <select id="chVoiceSel"><option value="bm_george">George (British, clear; the steadiest pitch, recommended)</option><option value="am_michael">Michael (American)</option><option value="am_onyx">Onyx (American, deep)</option><option value="am_fenrir">Fenrir (American)</option><option value="bm_lewis">Lewis (British, deep)</option></select>
+      <div class="row"><button id="chMake" class="primary">Make the voice from the words</button></div>
+      <p class="status" id="chTtsSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <div class="row"><button id="chBak" class="lpplay" hidden>Save a backup file of this voice</button><label style="cursor:pointer"><input type="file" id="chBakIn" accept=".chant,application/octet-stream" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Load a voice backup</span></label></div>
+      <p class="status" id="chBakSt" style="margin:0" aria-live="polite"></p>
+      <p class="status" style="margin:0;font-size:.8rem">The voice is Kokoro, a free, open speaking voice (Apache 2.0 license). The first time, it downloads about 90 MB, then it stays on this device. It is a speaking voice bent onto the notes, so it sounds like a careful reader, not a trained singer. It reports exactly when it says every sound, so each syllable sits exactly on its note.</p>
+    </div>
+    <details class="opts" id="sgSingBox"><summary>The real singer by hand: for the phone, or another singing program</summary>
+      <p class="status" style="margin:0 0 6px"><b>On the phone:</b> tap 1 below and send the notes file to the Mac (AirDrop). On the Mac, double-click "Sing the newest notes file" in the ison-singer folder. Send the sung file back to the phone and tap 3.</p>
+      <p class="status" style="margin:0 0 6px">A singing program is given exact notes and words and sings them with a trained singer's voice, far more naturally than the computer voice above. OpenUtau (free) and Synthesizer V both read the file made here.</p>
+      <p class="status" style="margin:0 0 6px"><b>1.</b> Download the notes and words of this song. <b>2.</b> Open that file in the singing program, choose a singer, and save the singing as a sound file (WAV or MP3). <b>3.</b> Bring that sound file in here. It is laid under the song on its notes, the words still light up, and Loop a part works with it.</p>
+      <p class="status" style="margin:0 0 6px">Change nothing about the melody, speed, height or words between steps 1 and 3. Singing programs sing piano notes, so each note in the file is the nearest piano note to the church tuning.</p>
+      <div class="row"><a id="sgMidiDl" class="lpplay" role="button" href="#" download="song notes.mid" style="border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit">1. Download the notes and words</a>
+        <label style="cursor:pointer"><input type="file" id="sgSungFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">3. Bring in the sung recording</span></label></div>
+      <div class="field chsl" id="sgSungNudge" hidden><label class="label" for="sgSungOff">Voice earlier or later: <b id="sgSungOffV"></b></label><input type="range" id="sgSungOff" min="-100" max="100" step="1" value="0"></div>
+      <p class="status" id="sgSungSt" style="margin:0" aria-live="polite"></p>
+    </details>
   </section>
   <section class="panel" id="chPlayer" hidden aria-labelledby="t-chplay">
     <h2 id="t-chplay">Listen</h2>
@@ -1633,7 +1668,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <p class="status" id="sgFit" style="margin:0"></p>
   </section>
   <section class="panel" aria-labelledby="t-chmel">
-    <h2 id="t-chmel">2. The melody</h2>
+    <h2 id="t-chmel">3. The melody</h2>
     <div class="chips earchips" id="sgFam"></div>
     <div class="field"><span class="label">Tap one. It plays on your words at once. A star marks the ones your words fit most easily.</span><div class="chmels" id="chMels"></div><p class="status" id="chMelD" style="margin:4px 0 0"></p>
       <div class="row"><label class="lpplay" style="border:1px solid var(--line);border-radius:8px;cursor:pointer">Bring in a melody file (made from a recording)<input type="file" id="sgRecIn" accept=".json,application/json" hidden></label></div><p class="status" id="sgRecSt" style="margin:0" aria-live="polite"></p></div>
@@ -1652,7 +1687,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <div class="field"><span class="label">Turns</span><div class="chips earchips" id="sgPat"><button data-v="ab">First, second, first, second</button><button data-v="aab">First twice, then second</button><button data-v="aabb">Each twice</button></div></div></details>
   </section>
   <section class="panel" aria-labelledby="t-chshape">
-    <h2 id="t-chshape">3. Shape it</h2>
+    <h2 id="t-chshape">4. Shape it</h2>
     <div class="field"><label class="label" for="chScale">Scale (the flavor of the notes)</label><select id="chScale"></select></div>
     <div class="field"><span class="label">When the words and the melody pull apart</span><div class="chips earchips" id="sgLam"><button data-v="0">The melody never bends: one syllable to a note, wherever it falls</button><button data-v="1">Balanced: accents land on strong notes, breaths mostly between words</button><button data-v="2.5">The words lead: the melody stretches so breaths fall at commas and line ends</button></div></div>
     <div class="field"><label class="label" for="chVr">Voice range</label><select id="chVr"><option value="auto">Automatic (low man's voice, or your own reading note)</option><option value="bass">Bass (centered on G2)</option><option value="bari">Baritone (centered on C3)</option><option value="ten">Tenor (centered on F3)</option></select></div>
@@ -1667,32 +1702,6 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <div id="sgFixTools" hidden><p class="status" id="sgFixWho" style="margin:6px 0"></p>
         <div class="chips earchips"><button data-a="n1">One note</button><button data-a="n2">Slur over 2 notes</button><button data-a="n3">Slur over 3 notes</button><button data-a="half">Share a note with the next syllable</button><button data-a="pu">Make it an upbeat</button><button data-a="acc">Give it the accent</button><button data-a="noacc">Take the accent away</button><button data-a="br">Add a breath after it</button><button data-a="clr">Back to automatic</button></div></div>
       <div class="row"><button id="sgFixAll" class="lpplay">Clear all my fixes</button></div>
-    </details>
-  </section>
-  <section class="panel" aria-labelledby="t-chvoice">
-    <h2 id="t-chvoice">4. A voice that sings the words (optional)</h2>
-    <p class="status" style="margin:0">The song is complete without this. A voice helps most when you cannot look at the screen: you hear which word sits on which note. Use the computer voice, or your own reading of the words; either one is re-tuned onto the melody.</p>
-    <div class="field"><label class="label" for="chSrc">The voice</label><select id="chSrc"></select>
-      <div class="row" hidden><button id="chRec">&#9679; Record</button><label class="btnlike" style="cursor:pointer"><input type="file" id="chFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Upload a recording</span></label></div>
-      <p class="status" id="chSrcSt" style="margin:4px 0 0" aria-live="polite"></p>
-      <div class="row"><button id="chHear" class="lpplay" hidden>&#9654; Hear the plain spoken words</button></div></div>
-    <div class="field" id="chTtsBox" hidden>
-      <label class="label" for="chVoiceSel">Computer voice</label>
-      <select id="chVoiceSel"><option value="bm_george">George (British, clear; the steadiest pitch, recommended)</option><option value="am_michael">Michael (American)</option><option value="am_onyx">Onyx (American, deep)</option><option value="am_fenrir">Fenrir (American)</option><option value="bm_lewis">Lewis (British, deep)</option></select>
-      <div class="row"><button id="chMake" class="primary">Make the voice from the words</button></div>
-      <p class="status" id="chTtsSt" style="margin:4px 0 0" aria-live="polite"></p>
-      <div class="row"><button id="chBak" class="lpplay" hidden>Save a backup file of this voice</button><label style="cursor:pointer"><input type="file" id="chBakIn" accept=".chant,application/octet-stream" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">Load a voice backup</span></label></div>
-      <p class="status" id="chBakSt" style="margin:0" aria-live="polite"></p>
-      <p class="status" style="margin:0;font-size:.8rem">The voice is Kokoro, a free, open speaking voice (Apache 2.0 license). The first time, it downloads about 90 MB, then it stays on this device. It is a speaking voice bent onto the notes, so it sounds like a careful reader, not a trained singer. It reports exactly when it says every sound, so each syllable sits exactly on its note.</p>
-    </div>
-    <details class="opts" id="sgSingBox"><summary>A real singing voice, made in a singing program</summary>
-      <p class="status" style="margin:0 0 6px">A singing program is given exact notes and words and sings them with a trained singer's voice, far more naturally than the computer voice above. OpenUtau (free) and Synthesizer V both read the file made here.</p>
-      <p class="status" style="margin:0 0 6px"><b>1.</b> Download the notes and words of this song. <b>2.</b> Open that file in the singing program, choose a singer, and save the singing as a sound file (WAV or MP3). <b>3.</b> Bring that sound file in here. It is laid under the song on its notes, the words still light up, and Loop a part works with it.</p>
-      <p class="status" style="margin:0 0 6px">Change nothing about the melody, speed, height or words between steps 1 and 3. Singing programs sing piano notes, so each note in the file is the nearest piano note to the church tuning.</p>
-      <div class="row"><a id="sgMidiDl" class="lpplay" role="button" href="#" download="song notes.mid" style="border:1px solid var(--line);border-radius:8px;text-decoration:none;color:inherit">1. Download the notes and words</a>
-        <label style="cursor:pointer"><input type="file" id="sgSungFile" accept="audio/*,video/mp4,.m4a,.mp3,.wav" hidden><span class="lpplay" role="button" style="display:inline-block;border:1px solid var(--line);border-radius:8px">3. Bring in the sung recording</span></label></div>
-      <div class="field chsl" id="sgSungNudge" hidden><label class="label" for="sgSungOff">Voice earlier or later: <b id="sgSungOffV"></b></label><input type="range" id="sgSungOff" min="-100" max="100" step="1" value="0"></div>
-      <p class="status" id="sgSungSt" style="margin:0" aria-live="polite"></p>
     </details>
   </section>
   <section class="panel" aria-labelledby="t-chsave">
@@ -8171,6 +8180,17 @@ function sgTidyNow(auto){const e=$('chText'),r=sgTidy(e.value),st=$('sgTidySt');
 function sgTxtParse(t,fallback){t=String(t||'').replace(/^\uFEFF/,'').replace(/\r\n?/g,'\n');const out=[],re=/^[ \t]*={3,}[ \t]*(.+?)[ \t]*={3,}[ \t]*$/gm;let m,last=null,at=0;
   while((m=re.exec(t))){if(last!==null){const x=t.slice(at,m.index).trim();if(x)out.push({name:last,text:x})}else{const x=t.slice(0,m.index).trim();if(x)out.push({name:fallback,text:x})}last=m[1].slice(0,60);at=re.lastIndex}
   const x=t.slice(at).trim();if(x)out.push({name:last===null?fallback:last,text:x});return out}
+/* a locked file from this site, opened with the passphrase (the same format unlockPriv reads); null = wrong passphrase */
+async function privOpen(file,pw){const r=await fetch(file);if(!r.ok)throw new Error('download');const b=new Uint8Array(await r.arrayBuffer());if(String.fromCharCode(...b.slice(0,4))!=='ISN1')throw new Error('format');
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
+  try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
+/* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
+async function sg118Open(n){const st=$('sg118St'),id='p118s'+n;let c=store.get('ison-chants',[]).find(x=>x.id===id);
+  if(!c){const pw=store.get('ison-nb-pw','');if(!pw){st.textContent='One time only: scroll down to My saved words, type your passphrase and tap Load Psalm 118. Then tap the stanza again.';return}st.textContent='Getting stanza '+n+'. This happens once.';
+    let buf;try{buf=await privOpen('s118/'+n+'.bin',pw)}catch(e){st.textContent='Stanza '+n+' is not here yet, or the connection dropped. The stanzas are being added one by one; try again a little later.';return}if(!buf){st.textContent='The saved passphrase did not open it. Load Psalm 118 again under My saved words.';return}
+    try{const jl=new DataView(buf).getUint32(0),J=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl)));await BlobDB.put('sg-sung:'+id,{blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'}),sig:'',nudge:0,name:J.name});
+      c={id,name:J.name,src:'s:'+id,text:J.text,ov:{},set:Object.assign({},J.set,{src:'s:'+id}),dur:J.dur||0,created:Date.now()};const L=store.get('ison-chants',[]);L.push(c);store.set('ison-chants',L);chMineRender()}catch(e){st.textContent='Stanza '+n+' could not be kept on this device. Its storage may be full.';return}}
+  await chOpenChant(c);st.textContent='Stanza '+n+' is open. Press Play the song below.'}
 function sgTxtList(keep){const L=store.get('ison-sg-texts',[]),sel=$('sgTxtSel');sel.innerHTML='<option value="">'+(L.length?'Choose saved words to open them':'Nothing saved yet')+'</option>'+L.map((x,i)=>'<option value="'+i+'">'+chEsc(x.name)+' ('+x.text.trim().split(/\s+/).length+' words)</option>').join('');sel.value=keep!=null?String(keep):'';$('sgTxtDel').hidden=sel.value==='';const d=$('sgTxtDel');delete d.dataset.armed;d.textContent='Delete'}
 function sgOvGet(){const o=store.get('ison-sg-ov',null);return o&&o.h===chHash(CHM.tx||'')?o.m||{}:{}}
 function sgOvSet(i,p){const m=Object.assign({},sgOvGet());if(p===null)delete m[i];else{m[i]=Object.assign({},m[i]||{},p);Object.keys(m[i]).forEach(k=>{if(m[i][k]==null)delete m[i][k]});if(!Object.keys(m[i]).length)delete m[i]}store.set('ison-sg-ov',{h:chHash(CHM.tx||''),m})}
@@ -8187,7 +8207,7 @@ function sgSungAlign(x,P){const fs=KEY_SR/100,ne=Math.floor(x.length/fs),e=new F
   let best=0,bs=-1e18;for(let lag=-300;lag<=300;lag++){let s=0;for(let f=0;f<n;f++){const j=f-lag;s+=(E[f]-mE)*((j>=0&&j<ne?b[j]:0)-me)}if(s>bs){bs=s;best=lag}}
   /* a singing program saves its sound from the very start of the notes file, so a small difference is the singer's own way with consonants, not a shift */
   return Math.abs(best)<20?0:best/100}
-function sgSungLay(P){const S=CHM.sung;if(!S)return null;S.bad=!!S.sig&&S.sig!==sgSungSig();if(S.bad)return null;if(S.auto==null||S.for!==P.dur){S.auto=sgSungAlign(S.x,P);S.for=P.dur}
+function sgSungLay(P){const S=CHM.sung;if(!S)return null;if(!S.sig&&S.key!=='sg-sung'){S.sig=sgSungSig();BlobDB.get(S.key).then(r=>{if(r){r.sig=S.sig;BlobDB.put(S.key,r)}}).catch(()=>{})}S.bad=!!S.sig&&S.sig!==sgSungSig();if(S.bad)return null;if(S.auto==null||S.for!==P.dur){S.auto=sgSungAlign(S.x,P);S.for=P.dur}
   const sh=Math.round((S.auto+(S.nudge||0))*KEY_SR),x=S.x,y=new Float32Array(P.len),a=Math.max(0,sh),b=Math.min(P.len,x.length+sh);for(let i=a;i<b;i++)y[i]=x[i-sh];return y}
 function sgSungNote(){const S=CHM.sung,P=CHM.P,st=$('chSrcSt');$('sgSungNudge').hidden=!S||!!S.bad;if(!S||!P)return;
   if(S.bad){st.textContent='The melody, the speed, the height or the words were changed after this recording was made, so it no longer fits and is switched off (you hear the tone). Put them back, or make a new recording from the new notes.';return}
@@ -8221,7 +8241,7 @@ function chMatch(){const txt=$('chText').value,st=$('chTxtSt');
   if(!CHM.F){store.set('ison-chant-text:tts',txt);CHM.T=chText(txt);CHM.tx=txt;CHM.seg=sgSegText(CHM.T);const nw=CHM.T.filter(q=>q.ws).length;st.textContent=CHM.T.length?nw+' words, '+CHM.T.length+' syllables, in '+CHM.seg.phr.length+' lines.':'Paste or type the words, or load the test verses.';
     if(CHM.src==='tts')$('chTtsSt').textContent='Tap Make the voice to hear these words sung. Until it is ready you hear the melody tone.';sgSylView();chMelStats();chMakeNow();return}
   if(CHM.V){store.set('ison-chant-text:'+(CHM.src.startsWith('t:')?CHM.src:'tts'),txt);CHM.T=chText(CHM.ttsText);CHM.tx=CHM.ttsText;CHM.seg=chvSeg(CHM.F,CHM.T,CHM.V);
-    const ch=txt.trim()!==CHM.ttsText.trim(),nw=CHM.T.filter(q=>q.ws).length;st.textContent=ch?'You changed the words. Tap Make the voice (section 4) to sing the new words. Until then you hear the old ones.':nw+' words, '+CHM.seg.nSyl+' syllables in '+CHM.seg.phr.length+' lines, each syllable timed exactly by the voice itself.';
+    const ch=txt.trim()!==CHM.ttsText.trim(),nw=CHM.T.filter(q=>q.ws).length;st.textContent=ch?'You changed the words. Tap Make the voice (section 2) to sing the new words. Until then you hear the old ones.':nw+' words, '+CHM.seg.nSyl+' syllables in '+CHM.seg.phr.length+' lines, each syllable timed exactly by the voice itself.';
     $('chMake').textContent=ch?'Make the voice with the new words':'Make the voice again';sgSylView();chMelStats();chMakeNow();return}
   store.set('ison-chant-text:'+CHM.src,txt);CHM.T=chText(txt);CHM.tx=txt;CHM.seg=chSeg(CHM.F,CHM.T.length?CHM.T:null);const g=CHM.seg,nw=CHM.T.filter(s=>s.ws).length;
   if(!g.phr.length)st.textContent='No voice was found in this recording.';
@@ -8284,7 +8304,7 @@ function chMakeNow(){clearTimeout(CHM.mk);const pl=$('chPlayer');if(!CHM.seg||!C
   chAudio(chMixBuf(),was,frac);pl.hidden=false;CHM.kpi=-1;CHM.ksi=-2;chLines();chLabels();sgPartUI();sgFixRender();chKar(was?frac*P.dur:(CHM.off||0));sgSungNote()}
 function chRemix(){if(!CHM.P)return;const a=$('chAud'),was=chPlaying(),frac=a.duration?(a.currentTime+(CHM.off||0))/CHM.P.dur:0;chAudio(chMixBuf(),was,frac);chMixLab()}
 function chMixLab(){const s=chSet();[['voice','chVoiceN'],['guide','chToneN'],['drone','chDroneN']].forEach(([k,id])=>{const e=$(id);if(document.activeElement!==e)e.value=s[k]});$('chOct').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.v===s.oct)));
-  $('chMixTxt').textContent=!CHM.y?(s.guide>0?'Melody tone'+(s.drone>0?' over the drone':'')+'. The words light up as they are sung. To hear the words sung too, add a voice in section 4.':'The tone is off. Turn it up to hear the melody.'):s.voice===0?(s.guide>0?'Tone only. The words stay lit above, so you always know which syllable you are on. Sing them yourself.':'Everything is turned off.'):s.guide===0?'Voice only, no melody tone.':s.voice<=3?'Mostly tone, with the voice quiet underneath to show where each word falls. Good for singing along.':'Voice and melody tone together.'}
+  $('chMixTxt').textContent=!CHM.y?(s.guide>0?'Melody tone'+(s.drone>0?' over the drone':'')+'. The words light up as they are sung. To hear the words sung too, add a voice in section 2.':'The tone is off. Turn it up to hear the melody.'):s.voice===0?(s.guide>0?'Tone only. The words stay lit above, so you always know which syllable you are on. Sing them yourself.':'Everything is turned off.'):s.guide===0?'Voice only, no melody tone.':s.voice<=3?'Mostly tone, with the voice quiet underneath to show where each word falls. Good for singing along.':'Voice and melody tone together.'}
 function chLineText(p,cur){return p.syl.map((s,i)=>{const t=s.x?s.x.t:'•',sp=s.x?(s.x.ws&&i?' ':''):(i?' ':'');return sp+'<span class="s'+(s.acc?' ac':'')+(s.deg.length>1?' ml':'')+'" data-i="'+i+'">'+chEsc(t)+'</span>'+(s.x&&s.x.we&&s.x.pc===1?',':'')+(s.br?'<i class="sgbr" title="breath">'+(s.br>1?'-':'')+'&#8217;</i>':'')}).join('')}
 function chLines(){const P=CHM.P;$('chLines').innerHTML=P.phr.map((p,i)=>'<button data-i="'+i+'"><small>'+chClock(p.t)+(p.v?' &middot; v. '+chEsc(p.v):'')+'</small> '+p.syl.map((s,k)=>(s.x?(s.x.ws&&k?' ':'')+chEsc(s.x.t):(k?' ':'')+'•')).join('')+'</button>').join('');
   $('chLines').querySelectorAll('button').forEach(b=>b.onclick=()=>{const p=P.phr[+b.dataset.i];if(CHM.part&&(+b.dataset.i<CHM.part.a||+b.dataset.i>CHM.part.b)){CHM.part=null;sgPartUI()}sgPageFor(p.t);chAudio(chMixBuf(),true,Math.max(0,p.t-0.1)/P.dur);chLabels()})}
@@ -8364,7 +8384,14 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
     const L=store.get('ison-sg-texts',[]),k=L.findIndex(x=>x.name.toLowerCase()===nm.toLowerCase());if(k>=0)L[k]={name:nm,text:tx};else L.unshift({name:nm,text:tx});store.set('ison-sg-texts',L);const ok=(store.get('ison-sg-texts',[])[k>=0?k:0]||{}).text===tx;sgTxtList(k>=0?k:0);st.textContent=ok?(k>=0?'Saved over "'+nm+'".':'Saved "'+nm+'" on this device. It is in the list above from now on.'):'It could not be saved: this browser\'s storage is full.'};
   $('sgRecIn').onchange=async e=>{const f=e.target.files[0],st=$('sgRecSt');e.target.value='';if(!f)return;try{const M=JSON.parse(await f.text());if(!M||typeof M.m!=='string'||!M.n||!/^rec:/.test(M.id||''))throw 0;const k={id:M.id,g:'From a recording',n:String(M.n).slice(0,80),d:String(M.d||''),sc:M.sc||'major',bpm:+M.bpm||100,m:M.m};if(M.tun&&Array.isArray(M.tun.v))k.tun={lo:+M.tun.lo||0,v:M.tun.v.map(Number)};
       if(!sgParse(k).L)throw 0;const L=store.get('ison-sg-recs',[]).filter(q=>q.id!==k.id);L.push(k);store.set('ison-sg-recs',L);chSave({mel:k.id,fam:'all'});chMelStats();chMatch();st.textContent='"'+k.n+'" is in your melodies, under From a recording, and is now on your words.'}catch(err){st.textContent='That is not a melody file. It needs to be one made by the melody tool on the Mac.'}};
-  $('sgNbGo').onclick=async()=>{const st=$('sgTxtSt'),pw=$('sgNbPw').value;if(!pw.trim()){st.textContent='Type the passphrase first.';return}if(!(await unlockPriv('ps118',pw,st)))return;try{const bl=await BlobDB.get('priv:ps118'),got=sgTxtParse(await bl.text(),'Psalm 118'),L=store.get('ison-sg-texts',[]);got.forEach(g=>{const k=L.findIndex(x=>x.name.toLowerCase()===g.name.toLowerCase());if(k>=0)L[k]=g;else L.push(g)});store.set('ison-sg-texts',L);sgTxtList();$('sgNbPw').value='';st.textContent='Psalm 118 is in your notebook: '+got.length+' stanzas. Choose one above to open it.'}catch(e){st.textContent='It unlocked but could not be put in the notebook on this device.'}};
+  $('sg118').innerHTML=Array.from({length:22},(_,i)=>'<button data-n="'+(i+1)+'">'+(i+1)+'</button>').join('');$('sg118').querySelectorAll('button').forEach(b=>b.onclick=()=>sg118Open(+b.dataset.n));
+  $('sgNbGo').onclick=async()=>{const st=$('sgTxtSt'),pw=$('sgNbPw').value;if(!pw.trim()){st.textContent='Type the passphrase first.';return}if(!(await unlockPriv('ps118',pw,st)))return;try{const bl=await BlobDB.get('priv:ps118'),got=sgTxtParse(await bl.text(),'Psalm 118'),L=store.get('ison-sg-texts',[]);got.forEach(g=>{const k=L.findIndex(x=>x.name.toLowerCase()===g.name.toLowerCase());if(k>=0)L[k]=g;else L.push(g)});store.set('ison-sg-texts',L);store.set('ison-nb-pw',pw.trim());sgTxtList();$('sgNbPw').value='';st.textContent='Psalm 118 is in your notebook: '+got.length+' stanzas. Choose one above to open it.'}catch(e){st.textContent='It unlocked but could not be put in the notebook on this device.'}};
+  $('sgSingNow').onclick=async()=>{const st=$('sgSingNowSt'),bt=$('sgSingNow');if(!CHM.P){st.textContent='There is no song yet. Put some words in section 1 first.';return}if(bt.disabled)return;const sc=sgScore(),sig=sgSungSig(),mid=sgMidi(sc,CHM.o.bpm,'song'),t0=Date.now();
+    try{await fetch('http://127.0.0.1:8765/ping',{cache:'no-store'})}catch(e){st.textContent='The singer did not answer. He lives on your Mac: there, double-click "Start the singer" in the ison-singer folder, open this app in Chrome on the Mac, and press this again. On the phone, use "The real singer by hand" below.';return}
+    bt.disabled=true;const tick=setInterval(()=>{st.textContent='The singer is singing '+sc.length+' notes. This takes about as long as the song lasts ('+chClock(CHM.P.dur)+'). '+chClock((Date.now()-t0)/1000)+' so far. Change nothing until he is done.'},1000);
+    try{const r=await fetch('http://127.0.0.1:8765/sing',{method:'POST',body:new Blob([mid],{type:'audio/midi'})});if(!r.ok)throw 0;const bl=await r.blob();clearInterval(tick);if(sig!==sgSungSig()){st.textContent='The song was changed while he sang, so that recording no longer fits. Press the button again.';bt.disabled=false;return}
+      await sgSungIn(new File([bl],'song sung.m4a',{type:'audio/mp4'}));st.textContent=CHM.sung?'Done. The real singer is on this song. Press Play the song. Save it in section 5 to keep it.':'The recording came back but could not be loaded.'}
+    catch(e){clearInterval(tick);st.textContent='The singer started but did not finish. Look at the singer window on the Mac for what went wrong, then try again.'}bt.disabled=false};
   $('sgTxtIn').onchange=async e=>{const f=e.target.files[0],st=$('sgTxtSt');e.target.value='';if(!f)return;try{const got=sgTxtParse(await f.text(),(f.name||'Words').replace(/\.[^.]*$/,''));if(!got.length){st.textContent='No words were found in that file.';return}
       const L=store.get('ison-sg-texts',[]);let nu=0,up=0;got.forEach(g=>{const k=L.findIndex(x=>x.name.toLowerCase()===g.name.toLowerCase());if(k>=0){L[k]=g;up++}else{L.push(g);nu++}});store.set('ison-sg-texts',L);const ok=store.get('ison-sg-texts',[]).length===L.length;sgTxtList();
       st.textContent=ok?'Brought in '+got.length+' sets of words ('+nu+' new, '+up+' replaced). Choose one above to open it.':'This device would not keep them. Its storage may be full or switched off.'}catch(err){st.textContent='That file could not be read. It needs to be a plain text file.'}};
