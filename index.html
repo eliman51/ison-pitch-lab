@@ -1595,7 +1595,15 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="field"><label class="label" for="chText">1. The words</label>
       <textarea id="chText" placeholder="Paste or type the words. Verse numbers are fine. A new line is only a new line on the screen; the melody decides where the breaths go."></textarea>
       <div class="row"><button id="sgTest" class="lpplay">Load the test: Psalm 118, verses 1 to 8</button><button id="sgTest2" class="lpplay">Load: Forever, O Lord (verses 89 to 96)</button></div>
-      <p class="status" id="chTxtSt" style="margin:4px 0 0" aria-live="polite"></p></div>
+      <p class="status" id="chTxtSt" style="margin:4px 0 0" aria-live="polite"></p>
+      <div class="row"><button id="sgTidy" class="lpplay">Tidy: take out verse numbers and make my word changes</button></div>
+      <p class="status" id="sgTidySt" style="margin:0" aria-live="polite"></p></div>
+    <div class="field"><label class="label" for="sgTxtSel">My saved words (kept on this device only, never on the website)</label><select id="sgTxtSel"></select>
+      <div class="row"><input type="text" id="sgTxtName" maxlength="60" placeholder="Name, for example Psalm 118" style="flex:1;min-width:10em"><button id="sgTxtSave" class="lpplay">Save these words</button><button id="sgTxtDel" class="lpplay" hidden>Delete</button></div>
+      <p class="status" id="sgTxtSt" style="margin:0" aria-live="polite"></p></div>
+    <details class="opts"><summary>My word changes</summary>
+      <p class="status" style="margin:0 0 6px">One change per line: the word in your book, an equals sign, then the word you sing. They are made every time you paste words in, and when you tap Tidy.</p>
+      <textarea id="sgSwaps" style="width:100%;min-height:4.5em;font:inherit;font-size:.95rem;padding:8px 10px;border-radius:8px;border:1px solid var(--line);background:transparent;color:inherit;box-sizing:border-box" aria-label="My word changes"></textarea></details>
     <details class="opts" id="sgSylBox"><summary>Check the syllables and accents</summary>
       <p class="status" style="margin:0 0 6px">Dots split the syllables. <b>Bold</b> carries a main accent, <span class="sga1">underlined</span> a light one. If a word is split wrong, type it with hyphens in the box above (bless-ed). To move an accent, put a star before the syllable that should have it (re-*joice).</p>
       <div class="sgsyl" id="sgSyl"></div></details>
@@ -8133,6 +8141,15 @@ async function chLoad(id){if(id==='tone'){++CHM.lt;CHM.busy=false;chStop();CHM.P
   catch(e){st.textContent='That recording could not be read. Try another file.';CHM.busy=false}}
 /* the words with no voice at all: the same lines and syllables, ready for a melody */
 function sgSegText(T){const phr=[];T.forEach(x=>{if(!phr.length||phr[phr.length-1].id!==x.ph)phr.push({id:x.ph,syl:[]});phr[phr.length-1].syl.push({x,acc:x.st>=3})});return{phr,med:47,nSyl:T.length,tone:true}}
+/* tidy pasted words: verse numbers out, and the singer's own word changes in (kept on the device) */
+const SG_SWAP0='humiliation = affliction';
+function sgSwaps(){return String(store.get('ison-sg-swaps',SG_SWAP0)).split('\n').map(l=>l.split('=').map(x=>x.trim())).filter(p=>p.length===2&&p[0]&&p[1])}
+function sgTidy(txt){let nums=0,sw=0,t=String(txt).replace(/[\u2070\u00b9\u00b2\u00b3\u2074-\u2079]+/g,()=>{nums++;return''});
+  t=t.replace(/(^|[\s(\[])\(?\d{1,3}(?:[:.]\d{1,3})?[.)\]]?(?=\s|[A-Za-z"'\u201c\u2018]|$)/gm,(m,a)=>{nums++;return a});
+  sgSwaps().forEach(([a,b])=>{t=t.replace(new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','gi'),m=>{sw++;return m[0]!==m[0].toLowerCase()?b[0].toUpperCase()+b.slice(1):b})});
+  t=t.split('\n').map(l=>l.replace(/[ \t]{2,}/g,' ').trim()).join('\n').replace(/\n{3,}/g,'\n\n').trim();return{t,nums,sw}}
+function sgTidyNow(auto){const e=$('chText'),r=sgTidy(e.value),st=$('sgTidySt');if(r.t!==e.value.trim()||r.nums||r.sw){e.value=r.t;st.textContent=(r.nums?'Took out '+r.nums+' verse number'+(r.nums>1?'s':'')+'. ':'')+(r.sw?'Made '+r.sw+' word change'+(r.sw>1?'s':'')+'. ':'')+(!r.nums&&!r.sw?'Tidied the spacing.':'');chMatch()}else if(!auto)st.textContent='Nothing to tidy: no verse numbers and none of your word changes apply.'}
+function sgTxtList(keep){const L=store.get('ison-sg-texts',[]),sel=$('sgTxtSel');sel.innerHTML='<option value="">'+(L.length?'Choose saved words to open them':'Nothing saved yet')+'</option>'+L.map((x,i)=>'<option value="'+i+'">'+chEsc(x.name)+' ('+x.text.trim().split(/\s+/).length+' words)</option>').join('');sel.value=keep!=null?String(keep):'';$('sgTxtDel').hidden=sel.value==='';const d=$('sgTxtDel');delete d.dataset.armed;d.textContent='Delete'}
 function sgOvGet(){const o=store.get('ison-sg-ov',null);return o&&o.h===chHash(CHM.tx||'')?o.m||{}:{}}
 function sgOvSet(i,p){const m=Object.assign({},sgOvGet());if(p===null)delete m[i];else{m[i]=Object.assign({},m[i]||{},p);Object.keys(m[i]).forEach(k=>{if(m[i][k]==null)delete m[i][k]});if(!Object.keys(m[i]).length)delete m[i]}store.set('ison-sg-ov',{h:chHash(CHM.tx||''),m})}
 function sgSylView(){const box=$('sgSyl');if(!box||!$('sgSylBox').open)return;const T=CHM.T||[];let h='',li=-1;T.forEach(s=>{if(s.ph!==li){h+=(li>=0?'</div>':'')+'<div class="sgfl">';li=s.ph}h+=(s.ws?' ':'<i>&middot;</i>')+(s.v?'<small>'+chEsc(s.v)+'</small> ':'')+'<span class="'+(s.st>=3?'sga3':s.st>=1?'sga1':'')+'">'+chEsc(s.t)+'</span>'+(s.we&&s.pc?(s.pc>=3?'.':s.pc>=2?';':','):'')});box.innerHTML=T.length?h+'</div>':'<p class="status" style="margin:0">No words yet.</p>'}
@@ -8273,6 +8290,12 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('chHear').onclick=()=>{const o=$('chOrig');if(!CHM.x)return;if(!o.paused){o.pause();return}chStop();if(!CHM.ourl){CHM.ourl=URL.createObjectURL(new Blob([keyWav(CHM.x,KEY_SR)],{type:'audio/wav'}));o.src=CHM.ourl}o.play().catch(()=>{})};
   let tt=0;$('chText').oninput=()=>{clearTimeout(tt);tt=setTimeout(chMatch,900)};
   const loadTxt=t=>{$('chText').value=t;chMatch();window.scrollTo({top:$('chPlayer').getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'})};$('sgTest').onclick=()=>loadTxt(SG_TEST);$('sgTest2').onclick=()=>loadTxt(CH_BASE[0].text);
+  $('sgTidy').onclick=()=>sgTidyNow(false);$('chText').addEventListener('paste',()=>setTimeout(()=>sgTidyNow(true),30));
+  $('sgSwaps').value=String(store.get('ison-sg-swaps',SG_SWAP0));$('sgSwaps').oninput=()=>store.set('ison-sg-swaps',$('sgSwaps').value);
+  sgTxtList();$('sgTxtSel').onchange=()=>{const i=$('sgTxtSel').value,L=store.get('ison-sg-texts',[]);if(i===''||!L[+i]){sgTxtList();return}$('sgTxtName').value=L[+i].name;$('sgTxtSt').textContent='Opened "'+L[+i].name+'".';sgTxtList(+i);loadTxt(L[+i].text)};
+  $('sgTxtSave').onclick=()=>{const nm=$('sgTxtName').value.trim(),tx=$('chText').value.trim(),st=$('sgTxtSt');if(!tx){st.textContent='There are no words in the box to save.';return}if(!nm){st.textContent='Give the words a name first.';$('sgTxtName').focus();return}
+    const L=store.get('ison-sg-texts',[]),k=L.findIndex(x=>x.name.toLowerCase()===nm.toLowerCase());if(k>=0)L[k]={name:nm,text:tx};else L.unshift({name:nm,text:tx});store.set('ison-sg-texts',L);const ok=(store.get('ison-sg-texts',[])[k>=0?k:0]||{}).text===tx;sgTxtList(k>=0?k:0);st.textContent=ok?(k>=0?'Saved over "'+nm+'".':'Saved "'+nm+'" on this device. It is in the list above from now on.'):'It could not be saved: this browser\'s storage is full.'};
+  $('sgTxtDel').onclick=()=>{const d=$('sgTxtDel'),i=$('sgTxtSel').value;if(i==='')return;if(!d.dataset.armed){d.dataset.armed='1';d.textContent='Tap again to delete';setTimeout(()=>{if(d.dataset.armed){delete d.dataset.armed;d.textContent='Delete'}},3500);return}const L=store.get('ison-sg-texts',[]),x=L.splice(+i,1)[0];store.set('ison-sg-texts',L);sgTxtList();$('sgTxtSt').textContent='Deleted "'+(x?x.name:'')+'" from the saved words. The words in the box are untouched.'};
   const sl=(id,key,stats)=>{const e=$(id);e.oninput=()=>{const p={};p[key]=+e.value;chSave(p);chLabels();chMakeSoon()}};sl('sgSpeed','speed');sl('chUp','up');sl('sgBreath','breath');sl('chHold','hold');
   let rm=0;const lvl=(id,key)=>{const e=$(id+'N'),set=v=>{v=Math.max(0,Math.min(10,Math.round(v)));if(isNaN(v))return;const p={};p[key]=v;chSave(p);e.value=v;clearTimeout(rm);rm=setTimeout(chRemix,250)};
     e.oninput=()=>{if(e.value!=='')set(+e.value)};$(id+'Dn').onclick=()=>set(chSet()[key]-1);$(id+'Up').onclick=()=>set(chSet()[key]+1)};lvl('chVoice','voice');lvl('chTone','guide');lvl('chDrone','drone');
