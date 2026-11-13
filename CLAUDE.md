@@ -128,6 +128,18 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Psalm 118 (22 stanzas, Eli's wording) sits in the repo only as `n118.bin`, locked with `tools/lock.py`; the app's
   notebook unlocks it with a passphrase Eli has. The plain text is at `~/ison-singer/notebook/`. Never commit it unlocked.
 
+## Reading tones that follow the lines (13 November 2026)
+
+- A melody with `follow` (see `sgFollow`) is built fresh for each text: every line of words is one phrase. `ob6` is
+  Russian Common Chant Tone 6 (1869 Obikhod, from the OCA chanting tutorial by Drillock and Ealy: phrases A, B, C in
+  turn, cadence from the last inner accent, a Final phrase on the last line). `mcim` is the Metropolitan Cantor
+  Institute's minor psalm tone (Byzantine Catholic prostopinije; say so). `rd2` uses a simple formula written for the app.
+- Sources: media.oca.org/chanting-tutorial (Tutorial-Common-Tone6-Explanation.pdf) and
+  mci.archpitt.org/prostopinije/melodies/Psalm_tones.html. No pitched Byzantine (Greek) reading formula was found.
+- Next, waiting on Eli choosing a tone by ear: sing all 22 Psalm 118 stanzas on it at 161 and build the review box
+  (22 dots, any selection joined into one song and opened in Loop a part). `window.isonSongRec()` (localhost only)
+  hands the practice-song record to the packing step.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
