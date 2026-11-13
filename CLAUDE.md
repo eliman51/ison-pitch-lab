@@ -113,6 +113,21 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - The "Plain reading" melodies (`rd1`, `rd2`) are a reading on one note with small rises and dips, written for the
   app, not named traditional tones.
 
+## Melodies taken from recordings (built 13 November 2026)
+
+- `~/ison-singer/venv/bin/python -I tools/melody.py <recording> <words.txt> "<name>"` writes `<name>.melody.json`.
+  It lines every letter of the sung words up with the audio (torchaudio MMS forced alignment), measures pitch
+  (librosa pyin), cuts it into notes, and writes one seat per sung syllable with all its notes, the singer's own
+  pitch ladder (`tun`), note lengths and breaths. The words must be typed exactly as sung; a speech recognizer
+  (faster-whisper) gives a first draft that Eli corrects.
+- In the app: "Bring in a melody file" (Chant tab, section 2) keeps it on the device (`ison-sg-recs`, ids `rec:...`).
+  `p23t3` is the Psalm 23 Tone 3 recording done this way and built in (group "From a recording").
+- Known limits: note lengths are rounded to quarter beats and the app sets breath lengths itself, so timing follows
+  the singer closely but not to the second; a few stray short notes may remain; the Psalm 23 words used for the
+  alignment were heard by the recognizer and lightly corrected by Claude, not yet confirmed by Eli.
+- Psalm 118 (22 stanzas, Eli's wording) sits in the repo only as `n118.bin`, locked with `tools/lock.py`; the app's
+  notebook unlocks it with a passphrase Eli has. The plain text is at `~/ison-singer/notebook/`. Never commit it unlocked.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
