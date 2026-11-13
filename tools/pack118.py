@@ -9,6 +9,9 @@ for n in range(1, 23):
     j, a = os.path.join(src, '%s-%d.json' % (pre, n)), os.path.join(src, '%s-%d.m4a' % (pre, n))
     if not (os.path.exists(j) and os.path.exists(a)):
         continue
+    dst = os.path.join(out, '%d.bin' % n)
+    if os.path.exists(dst) and os.path.getmtime(dst) > max(os.path.getmtime(j), os.path.getmtime(a)):
+        continue                                       # unchanged: locking it again would make a new 1 MB file in the repository for nothing
     J = json.load(open(j, encoding='utf-8')); J.pop('notes', None) if not isinstance(J.get('notes'), list) else None
     jb = json.dumps(J, ensure_ascii=False).encode()
     t = tempfile.mktemp(); open(t, 'wb').write(struct.pack('>I', len(jb)) + jb + open(a, 'rb').read())
