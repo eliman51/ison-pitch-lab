@@ -126,7 +126,7 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the singer closely but not to the second; a few stray short notes may remain; the Psalm 23 words used for the
   alignment were heard by the recognizer and lightly corrected by Claude, not yet confirmed by Eli.
 - Psalm 118 (22 stanzas, Eli's wording) sits in the repo only as `n118.bin`, locked with `tools/lock.py`; the app's
-  notebook unlocks it with a passphrase Eli has. The plain text is at `~/ison-singer/notebook/`. Never commit it unlocked.
+  app opens it by itself with a key in the page (`NB_KEY`): Eli asked on 13 November 2026 for the passphrase prompt to be removed, so the files are only scrambled, not secret. The same holds for `s118/` (22 finished songs) and `r118/` (22 review stanzas). The plain text is at `~/ison-singer/notebook/`. Never commit it unlocked.
 
 ## Reading tones that follow the lines (13 November 2026)
 
