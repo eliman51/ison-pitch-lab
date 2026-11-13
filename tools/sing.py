@@ -26,7 +26,7 @@ HEAD = 0.5          # seconds of lead-in the voice gets before each phrase
 TAIL = 0.35         # seconds after a phrase for the last sound to die away
 GAP = 0.12          # a silence longer than this between notes starts a new phrase
 SAY = {'blessid': 'b l eh s ih d', 'belovid': 'b ih l ah v ih d', 'la': 'l aa', 'prefigured': 'p r iy f ih g y er d', 'chrismation': 'k r ih z m ey sh ax n',
-       'curdled': 'k er d ax l d', 'freewill': 'f r iy w ih l', 'supplication': 's ah p l ax k ey sh ax n',
+       'curdled': 'k er d ax l d', 'wellpleased': 'w eh l p l iy z d', 'freewill': 'f r iy w ih l', 'supplication': 's ah p l ax k ey sh ax n',
        'theotokos': 'th ey ow t ow k ow s', 'alleluia': 'aa l ey l uw y aa'}
 
 
