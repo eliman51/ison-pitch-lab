@@ -1591,6 +1591,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
   </section>
   <section class="panel" aria-labelledby="t-ch118">
     <h2 id="t-ch118">Psalm 118, sung by the real singer</h2>
+    <p class="status" style="margin:0 0 6px;font-size:.8rem">App version <b id="appVer"></b>. <button id="appFresh" class="lpplay" style="font-size:.8rem">Get the newest version</button> <span id="appFreshSt"></span></p>
     <p class="status" style="margin:0">Tap a stanza. It opens as a finished song: its words, its melody and the singer. The first time, each one downloads (about 1 MB) and then stays on this device, in My chants.</p>
     <div class="row" id="sg118Lock"><input type="text" id="sg118Pw" placeholder="Passphrase (one time)" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" style="flex:1;min-width:10em"><button id="sg118Go" class="primary">Unlock</button></div>
     <div class="chips earchips" id="sg118"></div>
@@ -8234,6 +8235,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
+const APP_VER=21;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=2;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
@@ -8454,6 +8456,7 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
   $('sg118').innerHTML=Array.from({length:22},(_,i)=>'<button data-n="'+(i+1)+'">'+(i+1)+'</button>').join('');$('sg118').querySelectorAll('button').forEach(b=>b.onclick=()=>sg118Open(+b.dataset.n));
   {const sv=store.get('ison-r118-sel',[]);$('rv118').innerHTML=Array.from({length:22},(_,i)=>'<button data-n="'+(i+1)+'" aria-pressed="'+sv.includes(i+1)+'">'+(i+1)+'</button>').join('');const bs=[...$('rv118').querySelectorAll('button')],keep=()=>store.set('ison-r118-sel',bs.filter(b=>b.getAttribute('aria-pressed')==='true').map(b=>+b.dataset.n));
     bs.forEach(b=>b.onclick=()=>{b.setAttribute('aria-pressed',String(b.getAttribute('aria-pressed')!=='true'));keep()});$('rv118All').onclick=()=>{bs.forEach(b=>b.setAttribute('aria-pressed','true'));keep()};$('rv118None').onclick=()=>{bs.forEach(b=>b.setAttribute('aria-pressed','false'));keep()};$('rv118Go').onclick=rv118Build;$('rv118Mel').value=store.get('ison-r118-mel','r118');if(!$('rv118Mel').value)$('rv118Mel').value='r118';$('rv118Mel').onchange=()=>store.set('ison-r118-mel',$('rv118Mel').value)}
+  $('appVer').textContent=APP_VER;$('appFresh').onclick=async()=>{const st=$('appFreshSt');st.textContent='Fetching...';try{if(window.caches){const ks=await caches.keys();await Promise.all(ks.map(k=>caches.delete(k)))}if(navigator.serviceWorker){const rs=await navigator.serviceWorker.getRegistrations();await Promise.all(rs.map(r=>r.update().catch(()=>{})))}}catch(e){}location.replace(location.pathname+'?fresh='+Date.now())};
   /* the passphrase is forgiving: capitals, spaces and punctuation do not matter (phones like to change them) */
   const nbUnlock=async(inp,st)=>{const pw=String(inp.value||'').toLowerCase().replace(/[^a-z0-9]/g,'');if(!pw){st.textContent='Type the passphrase in the box first, then tap the button.';inp.focus();return false}st.textContent='Working on it...';
     try{if(!(await unlockPriv('ps118',pw,st)))return false;const bl=await BlobDB.get('priv:ps118'),got=sgTxtParse(await bl.text(),'Psalm 118'),L=store.get('ison-sg-texts',[]);got.forEach(g=>{const k=L.findIndex(x=>x.name.toLowerCase()===g.name.toLowerCase());if(k>=0)L[k]=g;else L.push(g)});store.set('ison-sg-texts',L);store.set('ison-nb-pw',pw);sgTxtList();inp.value='';$('sg118Lock').hidden=true;

@@ -154,6 +154,6 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 ## Every change
 
 1. Edit `index.html` (or the other files).
-2. `python3 tools/check.py` must say OK.
+2. `python3 tools/check.py` must say OK. Raise `APP_VER` in index.html and `CACHE` in sw.js by one (the version shows on the Chant tab, with a "Get the newest version" button, because phones kept showing old copies).
 3. Commit with a plain message and push to `main`. Tell Eli what changed and what to try.
 4. Only if Eli wants the artifact copy current: `python3 tools/artifact.py` and publish it.
