@@ -1154,7 +1154,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <button id="lpPartPlay" class="lpplay">&#9654; Hear the part at this speed</button>
         <button class="lpplay vxopen" data-vx-open>&#9998; Song editor: see the singer's pitch and fix any note</button>
         <div class="field"><span class="label">Speed, for everything</span>
-          <div class="row voicerow"><button id="lpSpDn" aria-label="Slower">−</button><input type="number" id="lpSpN" inputmode="numeric" min="30" max="200" step="5" aria-label="Speed in percent"><span class="lpunit">%</span><button id="lpSpUp" aria-label="Faster">+</button></div>
+          <div class="row voicerow"><button id="lpSpDn" aria-label="Slower">−</button><input type="number" id="lpSpN" inputmode="numeric" min="30" step="5" aria-label="Speed in percent"><span class="lpunit">%</span><button id="lpSpUp" aria-label="Faster">+</button></div>
           <div class="chips earchips" id="lpSpChips"></div></div>
         <div class="field"><span class="label">Quick notes (slows down only the short ones)</span>
           <div class="chips earchips" id="lpQm"><button data-v="off">Off</button><button data-v="min">Hold to a minimum</button><button data-v="mul">Multiply, up to a limit</button></div>
@@ -1205,7 +1205,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <p class="status" id="mpOneRow" style="margin:0 0 6px">This melody plays over and over, with a breath between runs.</p>
           <div class="row voicerow lpsub" id="mpEachRow" style="margin-left:0"><span class="label">Runs of each melody</span><button id="mpEachDn" aria-label="Fewer">−</button><input type="number" id="mpEachN" inputmode="numeric" min="1" max="20" step="1"><button id="mpEachUp" aria-label="More">+</button></div>
           <div class="field"><span class="label">Speed</span>
-            <div class="row voicerow"><button id="mpSpDn" aria-label="Slower">−</button><input type="number" id="mpSpN" inputmode="numeric" min="30" max="200" step="5" aria-label="Speed in percent"><span class="lpunit">%</span><button id="mpSpUp" aria-label="Faster">+</button></div>
+            <div class="row voicerow"><button id="mpSpDn" aria-label="Slower">−</button><input type="number" id="mpSpN" inputmode="numeric" min="30" step="5" aria-label="Speed in percent"><span class="lpunit">%</span><button id="mpSpUp" aria-label="Faster">+</button></div>
             <div class="chips earchips" id="mpSpChips"></div></div>
         <div class="field"><span class="label">Shortest note (slows down only the quick notes)</span>
           <div class="row voicerow"><button id="mpMnDn" aria-label="Shorter">−</button><input type="number" id="mpMnN" inputmode="decimal" min="0" max="10" step="any" aria-label="Shortest note in seconds, for example 0.4; 0 is off"><span class="lpunit">s</span><button id="mpMnUp" aria-label="Longer">+</button></div>
@@ -6550,7 +6550,7 @@ const LP_DEF={qmode:null,mulX:2,minNote:0,speed:60,every:7,scale:true,scaleN:2,s
 function lpSet(){const v=Object.assign({},LP_DEF,earSet().lp||{});v.rng=v.rng||{};v.sel=v.sel||{};return v}
 function lpSave(o){earSave({lp:Object.assign(lpSet(),o)})}
 function lpSongId(){return lpSet().song||earSet().smSong||'b:psalm23'}
-function lpSpeed(){return Math.max(0.3,Math.min(2,(lpSet().speed||60)/100))}
+function lpSpeed(){return Math.max(0.3,Math.min(20,(lpSet().speed||60)/100))}
 function lpRange(){const n=SM.phr.length,r=lpSet().rng[SM.id]||{},a=r.from!=null?Math.min(r.from,n-1):0,b=r.to!=null?Math.min(Math.max(r.to,a),n-1):Math.min(a,n-1);return[a,b]}
 /* everything that reads "the part" (notes, the scale, voice samples) uses the loop's own part while it builds */
 function lpWith(fn){const was=LPR;LPR=lpRange();try{return fn()}finally{LPR=was}}
@@ -6640,7 +6640,7 @@ function lpReplan(){LPQ.t=0;if(!(EARS.run&&EARS.bg))return;if(BG.prep){LPQ.t=set
   if(BG.replan&&!BG.pending){LPQ.t=setTimeout(lpReplan,800);return}
   if(BG.pending){try{URL.revokeObjectURL(BG.pending.url)}catch(e){}BG.pending=null;BG.replan=false}
   bgReplanFromNext(LPQ.why)}
-function lpSpeedStep(d){const v=Math.max(30,Math.min(200,(lpG().speed||60)+d));if(v===lpG().speed){if(EARS.run)$('earPending').hidden=false,$('earPending').textContent=d<0?'Already the slowest speed (30%).':'Already the fastest speed (200%).';return}lpP({speed:v});lpChanged('Speed '+v+'%')}
+function lpSpeedStep(d){const v=Math.max(30,Math.min(2000,(lpG().speed||60)+d));if(v===lpG().speed){if(EARS.run)$('earPending').hidden=false,$('earPending').textContent=d<0?'Already the slowest speed (30%).':'Already the fastest speed.';return}lpP({speed:v});lpChanged('Speed '+v+'%')}
 function lpMinStep(d){const cur=+lpG().minNote||0;let v=Math.round((cur+d)*100)/100;v=Math.max(0,Math.min(10,v));if(v===cur)return;lpP({minNote:v});if(!lpU()&&v>0&&lpQmode()==='off')lpSave({qmode:'min'});lpChanged('Quick-note limit '+lpMinTxt(v))}
 function lpMinSet(v){v=Math.max(0,Math.min(10,Math.round((+String(v).replace(',','.')||0)*100)/100));lpP({minNote:v});if(!lpU()&&v>0&&lpQmode()==='off')lpSave({qmode:'min'});lpChanged('Quick-note limit '+lpMinTxt(v))}
 function lpMulSet(v){v=Math.max(1,Math.min(10,Math.round((+String(v).replace(',','.')||1)*100)/100));lpSave({mulX:v});lpChanged('Multiply by '+lpXTxt(v))}
@@ -6694,8 +6694,8 @@ function lpInit(){
   $('lpSongSel').onchange=()=>{lpPvStop();lpSave({song:$('lpSongSel').value});renderLoop()};
   $('lpFrom').onchange=()=>{const a=+$('lpFrom').value,b=Math.max(a,+$('lpTo').value),r=Object.assign({},lpSet().rng);r[SM.id]={from:a,to:b};lpPvStop();lpSave({rng:r});renderLoop()};
   $('lpTo').onchange=()=>{const b=+$('lpTo').value,a=Math.min(b,+$('lpFrom').value),r=Object.assign({},lpSet().rng);r[SM.id]={from:a,to:b};lpPvStop();lpSave({rng:r});renderLoop()};
-  $('lpSpDn').onclick=()=>lpSpeedStep(-5);$('lpSpUp').onclick=()=>lpSpeedStep(5);lpNum('lpSpN','speed',30,200,v=>lpChanged('Speed '+v+'%'));
-  const ch=$('lpSpChips');[40,50,60,70,80,90,100,120,140,160,180,200].forEach(v=>{const bt=document.createElement('button');bt.textContent=v+'%';bt.dataset.v=v;bt.onclick=()=>{lpSave({speed:v});lpChanged('Speed '+v+'%')};ch.appendChild(bt)});
+  $('lpSpDn').onclick=()=>lpSpeedStep(-5);$('lpSpUp').onclick=()=>lpSpeedStep(5);lpNum('lpSpN','speed',30,2000,v=>lpChanged('Speed '+v+'%'));
+  const ch=$('lpSpChips');[40,50,60,70,80,90,100,120,140,160,180,200,300,400,500].forEach(v=>{const bt=document.createElement('button');bt.textContent=v+'%';bt.dataset.v=v;bt.onclick=()=>{lpSave({speed:v});lpChanged('Speed '+v+'%')};ch.appendChild(bt)});
   $('lpMnDn').onclick=()=>lpMinStep(-0.1);$('lpMnUp').onclick=()=>lpMinStep(0.1);$('lpMnN').onchange=()=>lpMinSet($('lpMnN').value);
   [...$('lpQm').children].forEach(b=>b.onclick=()=>lpQmSet(b.dataset.v));
   $('lpMulDn').onclick=()=>lpMulStep(-0.1);$('lpMulUp').onclick=()=>lpMulStep(0.1);$('lpMulN').onchange=()=>lpMulSet($('lpMulN').value);
@@ -6893,7 +6893,7 @@ function mpInit(){
   [...$('mpMode').children].forEach(b=>b.onclick=()=>{mpSave({mode:b.dataset.v});mpChanged('Practice changed')});
   $('mpEachDn').onclick=()=>{mpSave({each:Math.max(1,mpSet().each-1)});mpChanged('Runs of each melody')};$('mpEachUp').onclick=()=>{mpSave({each:Math.min(20,mpSet().each+1)});mpChanged('Runs of each melody')};
   $('mpEachN').onchange=()=>{mpSave({each:Math.max(1,Math.min(20,Math.round(+$('mpEachN').value)||1))});mpChanged('Runs of each melody')};
-  $('mpSpDn').onclick=()=>lpSpeedStep(-5);$('mpSpUp').onclick=()=>lpSpeedStep(5);$('mpSpN').onchange=()=>{const v=Math.max(30,Math.min(200,Math.round(+$('mpSpN').value)||60));mpSave({speed:v});mpChanged('Speed '+v+'%')};
+  $('mpSpDn').onclick=()=>lpSpeedStep(-5);$('mpSpUp').onclick=()=>lpSpeedStep(5);$('mpSpN').onchange=()=>{const v=Math.max(30,Math.min(2000,Math.round(+$('mpSpN').value)||60));mpSave({speed:v});mpChanged('Speed '+v+'%')};
   const ch=$('mpSpChips');[40,50,60,70,80,90,100].forEach(v=>{const b=document.createElement('button');b.textContent=v+'%';b.dataset.v=v;b.onclick=()=>{mpSave({speed:v});mpChanged('Speed '+v+'%')};ch.appendChild(b)});
   $('mpMnDn').onclick=()=>lpMinStep(-0.1);$('mpMnUp').onclick=()=>lpMinStep(0.1);$('mpMnN').onchange=()=>lpMinSet($('mpMnN').value);
   {const c=$('mpMnChips');[[0,'Off'],[0.5,'0.5 s'],[1,'1 s'],[1.5,'1.5 s'],[2,'2 s'],[3,'3 s']].forEach(([v,l])=>{const b=document.createElement('button');b.textContent=l;b.dataset.v=v;b.onclick=()=>lpMinSet(v);c.appendChild(b)})}
