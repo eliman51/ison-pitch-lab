@@ -8229,11 +8229,13 @@ function sgTxtParse(t,fallback){t=String(t||'').replace(/^\uFEFF/,'').replace(/\
   const x=t.slice(at).trim();if(x)out.push({name:last===null?fallback:last,text:x});return out}
 /* a locked file from this site, opened with the passphrase (the same format unlockPriv reads); null = wrong passphrase */
 const NB_KEY='blamelessway118';/* Eli asked for no passphrase prompt: the Psalm 118 files stay scrambled on the public site (so they are not plain readable text there) and the app opens them by itself */
-async function privOpen(file,pw){const r=await fetch(file);if(!r.ok)throw new Error('download');const b=new Uint8Array(await r.arrayBuffer());if(String.fromCharCode(...b.slice(0,4))!=='ISN1')throw new Error('format');
+async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if(!r.ok)throw new Error('download');const b=new Uint8Array(await r.arrayBuffer());if(String.fromCharCode(...b.slice(0,4))!=='ISN1')throw new Error('format');
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-async function sg118Open(n){const st=$('sg118St'),id='p118s'+n;let c=store.get('ison-chants',[]).find(x=>x.id===id);
+const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=2;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
+async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
+  if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
   if(!c){const pw=NB_KEY;if(!pw){st.textContent='One time only: type your passphrase in the box just above and tap Unlock. Then tap the stanza again.';return}st.textContent='Getting stanza '+n+'. This happens once.';
     let buf;try{buf=await privOpen('s118/'+n+'.bin',pw)}catch(e){st.textContent='Stanza '+n+' is not here yet, or the connection dropped. The stanzas are being added one by one; try again a little later.';return}if(!buf){st.textContent='Stanza '+n+' could not be opened. Close the app, open it again and retry.';return}
     try{const jl=new DataView(buf).getUint32(0),J=JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl)));await BlobDB.put('sg-sung:'+id,{blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'}),sig:'',nudge:0,name:J.name});
@@ -8244,8 +8246,8 @@ function rvRanges(a){const o=[];let i=0;while(i<a.length){let j=i;while(j+1<a.le
 async function rv118Build(){const st=$('rv118St'),bt=$('rv118Go'),sel=[...$('rv118').querySelectorAll('button[aria-pressed="true"]')].map(b=>+b.dataset.n).sort((a,b)=>a-b);if(bt.disabled)return;if(!sel.length){st.textContent='Tap at least one stanza first.';return}
   const pw=NB_KEY;if(!pw){st.textContent='One time only: type your passphrase in the box at the top of this section and tap Unlock. Then build again.';return}
   bt.disabled=true;try{const recs=[];let total=0;
-    for(const n of sel){st.textContent='Getting stanza '+n+' ('+(recs.length+1)+' of '+sel.length+').';let rec=await BlobDB.get('r118:'+n);
-      if(!rec||!rec.j||!rec.j.notes){let buf;try{buf=await privOpen('r118/'+n+'.bin',pw)}catch(e){throw new Error('net')}if(!buf)throw new Error('pw');const jl=new DataView(buf).getUint32(0);rec={j:JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl))),blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'})};try{await BlobDB.put('r118:'+n,rec)}catch(e){}}
+    for(const n of sel){st.textContent='Getting stanza '+n+' ('+(recs.length+1)+' of '+sel.length+').';let rec=await BlobDB.get('r118:'+R118_REV+':'+n);
+      if(!rec||!rec.j||!rec.j.notes){let buf;try{buf=await privOpen('r118/'+n+'.bin',pw)}catch(e){throw new Error('net')}if(!buf)throw new Error('pw');const jl=new DataView(buf).getUint32(0);rec={j:JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl))),blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'})};try{await BlobDB.put('r118:'+R118_REV+':'+n,rec)}catch(e){}}
       rec.k=Math.ceil((rec.j.dur+0.5)/0.02);total+=rec.k*Math.round(KEY_SR*0.02);recs.push(rec)}
     const hop=Math.round(KEY_SR*0.02),buf=new ArrayBuffer(44+total*2),dv=new DataView(buf),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i))};ws(0,'RIFF');dv.setUint32(4,36+total*2,true);ws(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,KEY_SR,true);dv.setUint32(28,KEY_SR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,total*2,true);
     const notes=[],words=[],ct=[];let o=0,fi=0;
