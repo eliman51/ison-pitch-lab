@@ -27,6 +27,7 @@ written for him.
 - `psalm23.mp3`, `psalm23-tone4.mp3`, `chant-forever.mp3` recordings built into the app.
 - `p23.bin`, `bzm.bin` data the page loads (`PRIV` in index.html).
 - `sw.js` offline cache. `tools/check.py` must say OK before every push.
+- `tools/lexicon.mjs` rebuilds the syllable word list inside index.html (not needed for normal changes).
 
 ## What Eli wants from it (keep these in mind for every change)
 
@@ -45,11 +46,31 @@ written for him.
 - Sung words in English, ideally from published sheet music; any Eastern Orthodox English
   source is fine. Chants worked in Western notation; Byzantine scales are loved and practiced
   alongside the fundamentals, with real documented melodies for ears-only drills.
-- **Chant Maker**: turns his recorded reading of a psalm into a chant on a chosen scale and
-  melody, every word matched to its place, karaoke view, audio cleanup, save as song. Total
-  quality; the aim is to help people who do not know how to turn psalms into songs.
+- **Song Maker** (the Chant tab, was "Chant Maker"): paste any words, pick a melody, and every
+  syllable is laid on its note. It plays at once as a tone with karaoke words; a voice (the
+  Kokoro computer voice or his own recorded reading, re-tuned onto the notes) is optional.
+  His real use: Psalm 118 (Orthodox Study Bible wording, which he has permission to use and is
+  lightly changing), almost memorized, sung as one very long song while he works, mostly by
+  looping parts. He likes the Arabian (Hijaz, Plagal Second) sound, a steady rhythm, real
+  Orthodox melodies where possible, and being able to edit and fine tune. A melody's breath
+  may fall in the middle of a sentence or even a word; he said that is fine. Total quality; the
+  aim is to help people who do not know how to turn psalms into songs.
 - Look: the Sketchbook (notebook) design from his Shop Board.
 - He has asked about putting it on the Apple App Store.
+
+## How the Song Maker works (search index.html for these names)
+
+- `chText` / `sgWord`: words to syllables with accents. Spelling rules (`chWordSyl`,
+  `chWordStress`) plus `SG_LEX`, the list of words the rules get wrong, built from the CMU
+  Pronouncing Dictionary by `node tools/lexicon.mjs <data folder>` (see the top of that file).
+  Run it again if the rules change. `SG_LITS` holds church-English overrides (bless-ed).
+- `SG_MEL`: the melodies, in a small text notation explained above `sgParse`. "Byzantine,
+  traditional" entries were read note by note from published scores (Neanes example scores and
+  ilizol's neanes-examples, MIT); never add a "traditional" melody from memory. `sgGen` writes
+  new melodies from a number.
+- `sgAlign`: lays the syllables on the melody's seats (accents on strong seats, slurs, shared
+  notes, upbeats, breaths). `sgPlan` turns that into notes and times; `sgTone` is the tone.
+- A long song is loaded into the player a few minutes at a time (`sgWin`, `SG_PAGE`).
 
 ## Every change
 
