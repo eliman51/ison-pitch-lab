@@ -27,6 +27,7 @@ written for him.
 - `psalm23.mp3`, `psalm23-tone4.mp3`, `chant-forever.mp3` recordings built into the app.
 - `p23.bin`, `bzm.bin` data the page loads (`PRIV` in index.html).
 - `sw.js` offline cache. `tools/check.py` must say OK before every push.
+- `tools/sing.py` sings a notes file from the app with a free voice on this Mac (see "The singer on this Mac").
 - `tools/lexicon.mjs` rebuilds the syllable word list inside index.html (not needed for normal changes).
 
 ## What Eli wants from it (keep these in mind for every change)
@@ -91,6 +92,26 @@ Eli finds the Kokoro voice bent onto the notes "distractingly bad". What was fou
 - Nothing good runs on the iPhone or inside a web page yet. A DiffSinger voice could in principle run in the page
   with onnxruntime-web (acoustic model plus vocoder, fed our own phonemes, timings and pitch), loaded from a file
   the user picks; expect it to be slow on a phone.
+
+## The singer on this Mac (set up 13 November 2026)
+
+Everything lives in `~/ison-singer`, outside this repository on purpose: a Python folder (`venv`), the TIGER
+DiffSinger voice v106 (`voices/tiger/bank`, from github.com/spicytigermeat/tiger_diffsinger; personal,
+non-commercial use, no re-hosting, no religious clause), and `out/` for results.
+
+- `~/ison-singer/venv/bin/python -I tools/sing.py "<song> notes.mid"` writes `<song> sung.wav` and `.m4a`. About
+  as long to make as the song lasts. Eli can double-click `~/ison-singer/Sing the newest notes file.command`, which
+  sings the newest notes file in Downloads.
+- It reads the words and notes from the MIDI, plus the exact church tuning the app hides in it (one private event,
+  FF 7F, "ison1:" and the cents for each note), so the sung voice is on the app's own pitches, not piano pitches.
+- Words become sounds through the CMU dictionary (`SAY` in the script holds church readings such as bless-id).
+  Consonants are sung just before the next note and may take at most 40% of a note (`--cons`). The voice's own pitch
+  model gives slides and vibrato, held within 0.3 semitone of the note (`--wobble`), then each note is centred on its
+  exact pitch. `--mode` picks the voice colour (vinyl is the default; also fresh, disco, electric, glam, mystic, royal).
+- Checked by measurement only (Claude cannot hear): notes average about 6 cents from target, and a speech recognizer
+  wrote down nearly every word of the eight test verses. Eli judges the sound.
+- The "Plain reading" melodies (`rd1`, `rd2`) are a reading on one note with small rises and dips, written for the
+  app, not named traditional tones.
 
 ## Every change
 
