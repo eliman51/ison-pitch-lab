@@ -71,6 +71,26 @@ written for him.
 - `sgAlign`: lays the syllables on the melody's seats (accents on strong seats, slurs, shared
   notes, upbeats, breaths). `sgPlan` turns that into notes and times; `sgTone` is the tone.
 - A long song is loaded into the player a few minutes at a time (`sgWin`, `SG_PAGE`).
+- A real singing voice comes from outside the app: `sgScore` + `sgMidi` write the song as a MIDI file with lyrics
+  (whole word on its first note, `+` for the word's next syllable, `-` for a held syllable; OpenUtau and
+  Synthesizer V both read this), and `sgSungIn` / `sgSungLoad` / `sgSungLay` bring the finished recording back as the
+  voice (source `sung`, or `s:<id>` when saved with a chant), lined up by `sgSungAlign`.
+
+## The singing voice (researched November 2026)
+
+Eli finds the Kokoro voice bent onto the notes "distractingly bad". What was found:
+
+- Exact notes and words, best sound: Synthesizer V Studio 2 Pro (about $99 once, Mac, voice ASTERIAN is a bass
+  from a trained oktavist). No command line; one manual step per song. Its voice licences have no religious clause.
+- Free: OpenUtau with a DiffSinger voice (TIGER is male, personal use only, no re-hosting). Many DiffSinger voices
+  forbid religious use (Miyo, Laru Mine); read the terms of any voice before using it. No voice files may go in
+  this public repository.
+- SoulX-Singer (Apache 2.0) sings MIDI plus lyrics in a voice copied from a short recording, and runs on an Apple
+  Silicon Mac. It could sing in Eli's own voice.
+- Suno "Cover" sounds the most lifelike but only follows the melody roughly, so it is not for exact practice.
+- Nothing good runs on the iPhone or inside a web page yet. A DiffSinger voice could in principle run in the page
+  with onnxruntime-web (acoustic model plus vocoder, fed our own phonemes, timings and pitch), loaded from a file
+  the user picks; expect it to be slow on a phone.
 
 ## Every change
 
