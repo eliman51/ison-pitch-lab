@@ -6596,7 +6596,7 @@ async function smVoiceFor(sig,k,b,prog){if(!SM.ok||!SM.pb||SM.vsig===sig)return 
   catch(e){console.warn('re-tuning the singer failed',e);return false}}
 async function lpVoice(prog){const L0=lpSet();return smVoiceFor(rtSig(L0.rt,L0.rtb),L0.rt,L0.rtb,prog)}
 async function mpVoice(prog){const S0=mpSet();return smVoiceFor(rtSig(S0.rt,S0.rtb),S0.rt,S0.rtb,prog)}
-function lpSeq(ns,sp){const k=lpSet().rt,b=lpSet().rtb;return songTimeline(ns,1/Math.min(1,sp),n=>{const r=rtDegM(n.deg,k,b);return r!=null?r:smM(n)},lpRule())}
+function lpSeq(ns,sp){const k=lpSet().rt,b=lpSet().rtb;return songTimeline(ns,1/Math.max(0.05,sp),n=>{const r=rtDegM(n.deg,k,b);return r!=null?r:smM(n)},lpRule())}
 const lpMinTxt=v=>v?String(+(+v).toFixed(2))+' s':'off';
 function lpScaleSeq(sp){const RD=smRangeDegs(),ds=SM.deg.filter(d=>RD.has(d.i)).sort((x,y)=>x.m-y.m),durs=lpNotes().map(n=>n.t1-n.t0).sort((x,y)=>x-y),
     med=durs.length?durs[Math.floor(durs.length/2)]:0.6,beat=lpRuleD(Math.max(0.35,Math.min(1.4,med))/sp,lpRule()),up=ds.map(d=>{const r=rtDegM(d.i,lpSet().rt,lpSet().rtb);return{m:r!=null?r:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)}});
