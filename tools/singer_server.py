@@ -4,7 +4,9 @@ song's notes and words here and gets the sung recording back. Only this computer
 
     ~/ison-singer/venv/bin/python -I tools/singer_server.py        (or double-click "Start the singer" in ~/ison-singer)
 """
-import http.server, os, subprocess, sys, tempfile
+import http.server, os, subprocess, sys, tempfile, threading
+
+BUSY = threading.Lock()   # one song at a time; a second request waits its turn, and a quick 'are you there' is always answered
 
 PORT = 8765
 ALLOW = ('https://eliman51.github.io', 'http://127.0.0.1:8766', 'http://localhost:8766')
@@ -24,7 +26,7 @@ class H(http.server.BaseHTTPRequestHandler):
         self.send_response(204); self.cors(); self.end_headers()
 
     def do_GET(self):
-        self.send_response(200); self.cors(); self.send_header('Content-Type', 'text/plain'); self.end_headers(); self.wfile.write(b'singer ready')
+        self.send_response(200); self.cors(); self.send_header('Content-Type', 'text/plain'); self.end_headers(); self.wfile.write(b'singer busy' if BUSY.locked() else b'singer ready')
 
     def do_POST(self):
         n = int(self.headers.get('Content-Length', 0))
@@ -32,7 +34,8 @@ class H(http.server.BaseHTTPRequestHandler):
             self.send_response(403); self.end_headers(); return
         d = tempfile.mkdtemp(); mid = os.path.join(d, 'song notes.mid'); open(mid, 'wb').write(self.rfile.read(n))
         print('Singing a song of %d bytes of notes...' % n, flush=True)
-        r = subprocess.run([sys.executable, '-I', SING, mid], capture_output=True, text=True, cwd='/')
+        with BUSY:
+            r = subprocess.run([sys.executable, '-I', SING, mid], capture_output=True, text=True, cwd='/')
         out = os.path.join(d, 'song sung.m4a')
         if r.returncode or not os.path.exists(out):
             print(r.stdout[-400:], r.stderr[-800:], flush=True)
@@ -45,4 +48,4 @@ class H(http.server.BaseHTTPRequestHandler):
 
 
 print('The singer is ready. Leave this window open while you use the app in this Mac\'s browser. Close it to stop.', flush=True)
-http.server.HTTPServer(('127.0.0.1', PORT), H).serve_forever()
+http.server.ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

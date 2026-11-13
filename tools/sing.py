@@ -26,6 +26,7 @@ HEAD = 0.5          # seconds of lead-in the voice gets before each phrase
 TAIL = 0.35         # seconds after a phrase for the last sound to die away
 GAP = 0.12          # a silence longer than this between notes starts a new phrase
 SAY = {'blessid': 'b l eh s ih d', 'belovid': 'b ih l ah v ih d', 'la': 'l aa', 'prefigured': 'p r iy f ih g y er d', 'chrismation': 'k r ih z m ey sh ax n',
+       'curdled': 'k er d ax l d', 'freewill': 'f r iy w ih l', 'supplication': 's ah p l ax k ey sh ax n',
        'theotokos': 'th ey ow t ow k ow s', 'alleluia': 'aa l ey l uw y aa'}
 
 
@@ -129,6 +130,8 @@ class Sounds:
         c = [self.arpa(p) for p in self.cmu.get(w, [])]
         if not c and w.endswith("'s"):
             c = [self.arpa(p) + ['z'] for p in self.cmu.get(w[:-2], [])]
+        if not c:                                      # a word built from one the dictionary knows: un-righteous-ness, meditat-ed, curdl-ed
+            c = [p for p in [self.build(w)] if p]
         if not c and w in self.bank:
             c = [self.bank[w]]
         if not c:
@@ -137,6 +140,32 @@ class Sounds:
             if sum(x in self.vowels for x in p) == want:
                 return p
         return c[0]
+
+    def build(self, w, depth=0):
+        one = lambda x: self.arpa(self.cmu[x][0]) if x in self.cmu else (self.build(x, depth + 1) if depth < 2 and len(x) > 3 else None)
+        for pre, snd in (('un', ['ah', 'n']), ('re', ['r', 'iy']), ('dis', ['d', 'ih', 's']), ('mis', ['m', 'ih', 's']), ('over', ['ow', 'v', 'er']), ('fore', ['f', 'ao', 'r'])):
+            if w.startswith(pre) and len(w) > len(pre) + 2:
+                b = one(w[len(pre):])
+                if b:
+                    return snd + b
+        voiceless = {'p', 'k', 'f', 's', 'sh', 'ch', 'th'}
+        for suf in ('ness', 'less', 'ful', 'ly', 'ing', 'ed', 'es', 's', 'er', 'est', 'eth', 'ment'):
+            if not w.endswith(suf) or len(w) < len(suf) + 3:
+                continue
+            stem = w[:-len(suf)]
+            for base in (stem, stem + 'e', stem[:-1] if len(stem) > 2 and stem[-1] == stem[-2] else None, stem[:-1] + 'y' if stem.endswith('i') else None):
+                b = one(base) if base else None
+                if not b:
+                    continue
+                last = b[-1]
+                tail = {'ness': ['n', 'ax', 's'], 'less': ['l', 'ax', 's'], 'ful': ['f', 'ax', 'l'], 'ly': ['l', 'iy'], 'ing': ['ih', 'ng'], 'er': ['er'], 'est': ['ax', 's', 't'], 'eth': ['ax', 'th'], 'ment': ['m', 'ax', 'n', 't'],
+                        'ed': ['ih', 'd'] if last in ('t', 'd', 'dx') else ['t'] if last in voiceless else ['d'],
+                        'es': ['ih', 'z'] if last in ('s', 'z', 'sh', 'ch', 'jh', 'zh') else ['s'] if last in voiceless | {'t'} else ['z'],
+                        's': ['ih', 'z'] if last in ('s', 'z', 'sh', 'ch', 'jh', 'zh') else ['s'] if last in voiceless | {'t'} else ['z']}[suf]
+                if suf == 'ed' and last == 'dx':
+                    b = b[:-1] + ['t']
+                return b + tail
+        return None
 
     def spell(self, w):
         """Last resort for a word in no dictionary: a rough reading letter by letter."""
