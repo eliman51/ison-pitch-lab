@@ -140,6 +140,17 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   (22 dots, any selection joined into one song and opened in Loop a part). `window.isonSongRec()` (localhost only)
   hands the practice-song record to the packing step.
 
+## Fit each line (13 November 2026)
+
+- The Song Maker setting "Fit each line" (`s.fit`, `sgFit`) makes a fixed melody take one phrase per line of words.
+  Long notes are cut into beats so extra words go there first, then a note is repeated mid-phrase; short lines get
+  slurs. No syllable shares a note shorter than a beat. Eli asked for this because at about 190 a minute words were
+  being swallowed (two syllables on one short note). On stanza 1 with Monastery (`d2`) at 150% speed: 23 syllables
+  under a quarter second before, none after.
+- Planned next, once Eli approves the sample by ear: sing all 22 Psalm 118 stanzas on Monastery with Fit each line
+  (speed about 150%, 189 a minute) and add a melody drop-down to the review box (sets live in `r118/`; a second set
+  needs its own folder and a name in the JSON).
+
 ## Every change
 
 1. Edit `index.html` (or the other files).

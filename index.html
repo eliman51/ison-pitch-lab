@@ -1700,6 +1700,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="field chsl"><label class="label" for="chUp">Height: <b id="chUpV"></b></label><input type="range" id="chUp" min="-9" max="9" step="1"><div class="row"><button id="chUpAuto" class="lpplay">Back to the center of the range</button></div></div>
     <details class="opts"><summary>Fine tuning: breaths and the last note</summary>
       <div class="field chsl"><label class="label" for="sgBreath">Length of the breaths: <b id="sgBreathV"></b></label><input type="range" id="sgBreath" min="0" max="250" step="25"></div>
+      <label class="row" style="gap:8px;font-size:.9rem"><input type="checkbox" id="sgFitOn"> Fit each line: every line of words is one phrase of the melody, long notes take extra words, and no word is squeezed onto a split-second note (the melody stretches a little for long lines)</label>
       <div class="field chsl"><label class="label" for="chHold">Hold the very last note: <b id="chHoldV"></b></label><input type="range" id="chHold" min="1" max="4" step="0.25"></div>
     </details>
     <details class="opts" id="sgFixBox"><summary>Fix a spot by hand</summary>
@@ -7984,7 +7985,27 @@ function sgFollow(M,S){const F=M.follow,tok=[],lines=[];let i=0;while(i<S.length
       d=String(d);if(!/[:_]/.test(d)){if(last)len=f.end||2;if(len!==1)d+=':'+len}tok.push((q===la&&!tail?'>':'')+d)}
     tok.push(end?'//':'/'+(f.rest||(ln%2?2:1)))});
   return Object.assign({},M,{id:M.id+'~follow',m:tok.join(' ')})}
-function sgPlan(F,seg,o){const{S,ref}=sgSylList(seg);if(o.mels[0]&&o.mels[0].follow)o=Object.assign({},o,{mels:[sgFollow(o.mels[0],S)],pat:[0],lam:0});const cyc=sgCycle(o.mels,o.pat),R=sgAlign(S,cyc,{lam:o.lam,ov:o.ov}),A=R.A,beat=60/o.bpm,TL=sgTimes(S,A,{beat,breath:o.breath,hold:o.hold,ov:o.ov,lead:0.15}),N=S.length,sr=KEY_SR;
+/* "Fit each line" for a fixed melody: every line of words takes one phrase of the melody, and no two syllables ever share a
+   note shorter than a beat. The phrase is cut into beats ("atoms": a 2-beat note is two atoms on one pitch). A line with more
+   syllables than seats spreads into the long notes first, then gets a repeated note in the middle of the phrase; a line with
+   fewer takes slurs. Which syllable gets what is chosen so that accented syllables start on the melody's own note starts and
+   sit on the long notes, and weak syllables stay short. */
+function sgFit(M,S){const P=sgParse(M),phs=[];let cur=[];P.slots.forEach(sl=>{cur.push(sl);if(sl.pe){phs.push(cur);cur=[]}});if(cur.length)phs.push(cur);const lines=[],tok=[];let i=0;while(i<S.length){let j=i+1;while(j<S.length&&!S[j].nl)j++;lines.push([i,j]);i=j}
+  const fm=x=>{x=Math.round(x*100)/100;return x===1?'':':'+String(x).replace(/^0\./,'.')};
+  lines.forEach(([a,b],ln)=>{const k=b-a,ph=phs[ln%phs.length],at=[];
+    ph.forEach((sl,si)=>sl.n.forEach(([d,len],ni)=>{const lastNote=si===ph.length-1&&ni===sl.n.length-1;let parts=Math.max(1,Math.floor(len+1e-6));if(lastNote&&parts>1)parts--;/* the phrase's last note keeps a long ending */
+      for(let q=0;q<parts;q++)at.push({d,len:q===parts-1?len-(parts-1):1,head:q===0&&ni===0,nh:q===0})}));
+    while(at.length<k){const m=Math.max(1,Math.min(at.length-1,Math.floor(at.length/2)));at.splice(m,0,{d:at[m-1].d,len:1,head:false,nh:false,add:true})}
+    const A=at.length,INF=1e9,f=Array.from({length:A+1},()=>new Float64Array(k+1).fill(INF)),bk=Array.from({length:A+1},()=>new Int16Array(k+1));f[0][0]=0;
+    const cost=(j,p,q)=>{const st=S[a+j].st||0,last=j===k-1;let dur=0,pit=1;for(let x=p;x<q;x++){dur+=at[x].len;if(x>p&&at[x].d!==at[x-1].d)pit++}let c=0;
+      if(st>=3){if(!at[p].head)c+=at[p].nh?0.8:2;if(dur<2)c+=0.5;c+=(pit-1)*0.15}else if(st>=1){c+=Math.max(0,dur-2)*0.6+(pit-1)*0.5;if(!at[p].nh)c+=0.3}else{if(!last)c+=Math.max(0,dur-1)*1.3;c+=(pit-1)*0.9}
+      if(q-p>3)c+=(q-p-3);return c};
+    for(let q=1;q<=A;q++)for(let j=1;j<=Math.min(k,q);j++)for(let p=j-1;p<q;p++){if(f[p][j-1]>=INF)continue;const c=f[p][j-1]+cost(j-1,p,q);if(c<f[q][j]){f[q][j]=c;bk[q][j]=p}}
+    const cuts=[];let q=A;for(let j=k;j>0;j--){const p=bk[q][j];cuts.unshift([p,q]);q=p}
+    cuts.forEach(([p,q],j)=>{const n=[];for(let x=p;x<q;x++){if(n.length&&n[n.length-1][0]===at[x].d)n[n.length-1][1]+=at[x].len;else n.push([at[x].d,at[x].len])}tok.push(((S[a+j].st||0)>=3?'>':'')+n.map(([d,len])=>d+fm(len)).join('_'))});
+    const rest=ph[ph.length-1].rest||1;tok.push(ln===lines.length-1?'//':'/'+String(rest).replace(/^0\./,'.'))});
+  return Object.assign({},M,{id:M.id+'~fit',m:tok.join(' ')})}
+function sgPlan(F,seg,o){const{S,ref}=sgSylList(seg);if(o.fit&&o.mels[0]&&!o.mels[0].follow)o=Object.assign({},o,{mels:[sgFit(o.mels[0],S)],pat:[0],lam:0});if(o.mels[0]&&o.mels[0].follow)o=Object.assign({},o,{mels:[sgFollow(o.mels[0],S)],pat:[0],lam:0});const cyc=sgCycle(o.mels,o.pat),R=sgAlign(S,cyc,{lam:o.lam,ov:o.ov}),A=R.A,beat=60/o.bpm,TL=sgTimes(S,A,{beat,breath:o.breath,hold:o.hold,ov:o.ov,lead:0.15}),N=S.length,sr=KEY_SR;
   const notes=TL.notes.map(q=>{const r=ref[q.sy],x=A[q.sy];return{t:q.t,d:q.d,m:o.home+o.semi(q.deg),deg:q.deg,p:r[0],s:r[1],sy:q.sy,k:q.k,last:q.last&&(x.rest>0||q.sy===N-1),fin:q.sy===N-1,gap:q.last&&TL.syl[q.sy].rest>0}});
   const phr=seg.phr.map((p,pi)=>({t:0,e:0,syl:[],kind:'A',v:''}));
   S.forEach((x,i)=>{const r=ref[i],s=seg.phr[r[0]].syl[r[1]],y=TL.syl[i],a=A[i];phr[r[0]].syl.push({t:y.t,d:y.d,deg:a.n.map(q=>q[0]),acc:x.st>=3,x:s.x?x:null,role:a.pu?'up':a.op>1?'slur':a.op<0?'share':'',br:y.rest>0?(a.mid?2:1):0,i,src:s.a!=null&&F?[(s.a*F.hop+F.off)/sr,(s.b*F.hop+F.off)/sr]:null,m:s.m});if(x.v&&!phr[r[0]].v)phr[r[0]].v=x.v});
@@ -8295,7 +8316,7 @@ function chMatch(){const txt=$('chText').value,st=$('chTxtSt');
 function chOpts(s,mel){const M=sgMelById(mel||s.mel)||SG_MEL[0],M2=s.mel2&&!mel&&s.mel2!==M.id?sgMelById(s.mel2):null,mels=M2?[M,M2]:[M],pat=M2?(s.pat==='aab'?[0,0,1]:s.pat==='aabb'?[0,0,1,1]:[0,1]):[0],semi=sgSemiFn(M,s.scale);
   let lo=1e9,hi=-1e9;mels.forEach(m=>{const P=sgParse(m);lo=Math.min(lo,semi(P.lo));hi=Math.max(hi,semi(P.hi))});
   const vr=s.vr||'auto',cen=vr==='bass'?43:vr==='bari'?48:vr==='ten'?53:(CHM.V||!CHM.F)?47:CHM.seg.med;
-  return{mels,pat,semi,mel:M.id,center:cen,home:Math.round(cen-(lo+hi)/2)+s.up,bpm:M.bpm*s.speed/100,lam:+s.lam,breath:s.breath/100,hold:s.hold,ov:sgOvGet(),vib:0.2,glide:9,drone:s.drone,guide:s.guide}}
+  return{mels,pat,semi,mel:M.id,center:cen,home:Math.round(cen-(lo+hi)/2)+s.up,bpm:M.bpm*s.speed/100,lam:+s.lam,fit:!!s.fit,breath:s.breath/100,hold:s.hold,ov:sgOvGet(),vib:0.2,glide:9,drone:s.drone,guide:s.guide}}
 /* the melody list: every melody tried on the first part of these words, with how easily the words sit on it */
 function chMelStats(){const box=$('chMels'),s=chSet(),all=sgMelAll(),fams=['all'].concat([...new Set(all.map(m=>m.g))]),fam=fams.includes(s.fam)?s.fam:'all';
   $('sgFam').innerHTML=fams.map(f=>'<button data-f="'+chEsc(f)+'" aria-pressed="'+(f===fam)+'">'+(f==='all'?'All ('+all.length+')':chEsc(f))+'</button>').join('');$('sgFam').querySelectorAll('button').forEach(b=>b.onclick=()=>{chSave({fam:b.dataset.f});chMelStats()});
@@ -8334,7 +8355,7 @@ function chAudio(mix,was,frac){const a=$('chAud'),P=CHM.P,W=CHM.win||{},off=CHM.
 /* a long song is loaded a few minutes at a time: when one stretch ends, the next begins */
 function sgNextPage(){const P=CHM.P,W=CHM.win;if(!P||!W||W.page==null)return;const nx=W.page+1<W.pages?W.page+1:(chSet().loop?0:-1);if(nx<0){CHM.page=0;chAudio(chMixBuf(),false,0);chLabels();return}CHM.page=nx;chAudio(chMixBuf(),true,P.phr[P.pages[nx][0]].t/P.dur);CHM.kpi=-1;chLabels();sgFixRender()}
 /* everything that shapes the melody (the mix levels do not) */
-function chSig(s){return JSON.stringify([s.scale,s.mel,s.mel2||'',s.pat,s.up,s.speed,s.lam,s.breath,s.hold,s.vr||'auto',JSON.stringify(sgOvGet())])}
+function chSig(s){return JSON.stringify([s.scale,s.mel,s.mel2||'',s.pat,s.up,s.speed,s.lam,s.breath,s.hold,s.vr||'auto',JSON.stringify(sgOvGet())])+(s.fit?'|fit':'')}
 function chPlanPack(P){return{mo:P.mo,mi:P.mi,tm:P.tm,g:P.g,len:P.len,dur:P.dur,lo:P.lo,hi:P.hi,notes:P.notes,phr:P.phr,fit:P.fit||null}}
 /* the exact melody as a song for the rest of the app: every note as written, the syllable under each note, nothing re-measured */
 function chSongRec(nm){const P=CHM.P,notes=P.notes.map(q=>({t0:+q.t.toFixed(3),t1:+(q.t+q.d).toFixed(3),m:+q.m.toFixed(3)})),ct=[];for(let t=0;t<P.dur;t+=0.02){const v=P.tm[Math.min(P.tm.length-1,Math.round(t/0.005))];ct.push([+t.toFixed(3),v>0?+v.toFixed(2):null])}
@@ -8407,7 +8428,7 @@ function chMineRender(){const list=store.get('ison-chants',[]),box=$('chMineList
   box.querySelectorAll('[data-d]').forEach(b=>b.onclick=()=>{if(b.dataset.armed){const list=store.get('ison-chants',[]),c=list.splice(+b.dataset.d,1)[0];store.set('ison-chants',list);if(c&&c.src.startsWith('c:')){BlobDB.put('chant-rec:'+c.id,null).catch(()=>{});BlobDB.put('chant-an2:'+c.src,null).catch(()=>{})}if(c&&c.src.startsWith('s:'))BlobDB.put('sg-sung:'+c.id,null).catch(()=>{});
       BlobDB.put('chant-plan:'+(c?c.id:''),null).catch(()=>{});$('chMineSt').textContent='Deleted "'+(c?c.name:'')+'". Anything already added to your practice songs stays there.';chSrcList(!!store.get('ison-chant-mine',0));chMineRender();return}
     b.dataset.armed='1';b.textContent='Tap again to delete';setTimeout(()=>{if(b.isConnected){delete b.dataset.armed;b.textContent='Delete'}},3500)})}
-function chSyncUI(){const s=chSet();$('chScale').value=s.scale;if(!$('chScale').value)$('chScale').value='own';$('chVr').value=s.vr||'auto';$('chUp').value=s.up;$('sgSpeed').value=s.speed;$('sgBreath').value=s.breath;$('chHold').value=s.hold;chMixLab()}
+function chSyncUI(){const s=chSet();$('chScale').value=s.scale;if(!$('chScale').value)$('chScale').value='own';$('chVr').value=s.vr||'auto';$('chUp').value=s.up;$('sgSpeed').value=s.speed;$('sgBreath').value=s.breath;$('chHold').value=s.hold;$('sgFitOn').checked=!!s.fit;chMixLab()}
 async function chOpenChant(c){if(!c)return;chStop();CHM.lock=null;try{const pl=await BlobDB.get('chant-plan:'+c.id);if(pl&&pl.P)CHM.lock=Object.assign({},pl,{src:pl.src||c.src,sig:pl.P.fit?pl.sig:null})}catch(e){}store.set('ison-chant-text:'+(c.src==='tone'||/^s:/.test(c.src)?'tts':c.src),c.text||'');store.set('ison-sg-ov',{h:chHash(c.text||''),m:c.ov||{}});store.set('ison-chant-set',Object.assign({},c.set));chSyncUI();$('chName').value=c.name;$('chMineSt').textContent='Opened "'+c.name+'".';
   chSrcList(!!store.get('ison-chant-mine',0));CHM.busy=false;chLoad(c.src);setTimeout(()=>{const e=$('chPlayer');if(!e.hidden)window.scrollTo({top:e.getBoundingClientRect().top+window.scrollY-80,behavior:'smooth'})},1200)}
 function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
@@ -8448,7 +8469,7 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
       st.textContent=ok?'Brought in '+got.length+' sets of words ('+nu+' new, '+up+' replaced). Choose one above to open it.':'This device would not keep them. Its storage may be full or switched off.'}catch(err){st.textContent='That file could not be read. It needs to be a plain text file.'}};
   $('sgTxtOut').onclick=e=>{const L=store.get('ison-sg-texts',[]),a=e.currentTarget,st=$('sgTxtSt');if(!L.length){e.preventDefault();st.textContent='The notebook is empty.';return}if(CHM.turl)URL.revokeObjectURL(CHM.turl);CHM.turl=URL.createObjectURL(new Blob([L.map(x=>'=== '+x.name+' ===\n'+x.text.trim()+'\n').join('\n')],{type:'text/plain'}));a.href=CHM.turl;st.textContent='Saved '+L.length+' sets of words to a file.'};
   $('sgTxtDel').onclick=()=>{const d=$('sgTxtDel'),i=$('sgTxtSel').value;if(i==='')return;if(!d.dataset.armed){d.dataset.armed='1';d.textContent='Tap again to delete';setTimeout(()=>{if(d.dataset.armed){delete d.dataset.armed;d.textContent='Delete'}},3500);return}const L=store.get('ison-sg-texts',[]),x=L.splice(+i,1)[0];store.set('ison-sg-texts',L);sgTxtList();$('sgTxtSt').textContent='Deleted "'+(x?x.name:'')+'" from the saved words. The words in the box are untouched.'};
-  const sl=(id,key,stats)=>{const e=$(id);e.oninput=()=>{const p={};p[key]=+e.value;chSave(p);chLabels();chMakeSoon()}};sl('sgSpeed','speed');sl('chUp','up');sl('sgBreath','breath');sl('chHold','hold');
+  const sl=(id,key,stats)=>{const e=$(id);e.oninput=()=>{const p={};p[key]=+e.value;chSave(p);chLabels();chMakeSoon()}};sl('sgSpeed','speed');sl('chUp','up');sl('sgBreath','breath');sl('chHold','hold');$('sgFitOn').onchange=()=>{chSave({fit:$('sgFitOn').checked});chLabels();chMakeSoon()};
   let rm=0;const lvl=(id,key)=>{const e=$(id+'N'),set=v=>{v=Math.max(0,Math.min(10,Math.round(v)));if(isNaN(v))return;const p={};p[key]=v;chSave(p);e.value=v;clearTimeout(rm);rm=setTimeout(chRemix,250)};
     e.oninput=()=>{if(e.value!=='')set(+e.value)};$(id+'Dn').onclick=()=>set(chSet()[key]-1);$(id+'Up').onclick=()=>set(chSet()[key]+1)};lvl('chVoice','voice');lvl('chTone','guide');lvl('chDrone','drone');
   $('chOct').querySelectorAll('button').forEach(b=>b.onclick=()=>{chSave({oct:+b.dataset.v});chRemix()});chMixLab();
