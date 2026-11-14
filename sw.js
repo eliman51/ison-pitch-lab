@@ -1,7 +1,7 @@
 /* Ison Pitch Lab offline cache. The app is one page, so after one visit with internet it can open
    anywhere, even in airplane mode. Pages are fetched fresh when the connection is good (so updates
    arrive), and from the cache when the network is down or too slow (4 seconds). */
-const CACHE='ison-pitch-lab-v23';
+const CACHE='ison-pitch-lab-v24';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(['./','./index.html']).catch(()=>{})));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
 function fromCache(){return caches.match('./index.html').then(m=>m||caches.match('./'))}

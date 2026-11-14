@@ -151,6 +151,16 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   (speed about 150%, 189 a minute) and add a melody drop-down to the review box (sets live in `r118/`; a second set
   needs its own folder and a name in the JSON).
 
+## Learning a formula from a recording (14 November 2026)
+
+- `t7p91` is Tone 7 learned from the built-in Psalm 91/121 recording: words heard by faster-whisper and corrected
+  (`~/ison-singer/p91/words.txt`), letters aligned, every syllable's pitch measured, then the line formulas read off
+  by hand from 54 lines of Psalm 91. Ladder above home: 0, 1.1, 2, 3, 3.8, 5.1 semitones (home about MIDI 51).
+  Applied back to his own Psalm 91 words it puts 90% of syllables on the note he sang (86% exactly; the rest mostly
+  his two close upper notes). The Psalm 121 part and the ending (lines 55 on) use other patterns and are not in it.
+- `sgFollow` knows refrains (`M.refrain`): a line of only Hallelujah/Alleluia is sung the refrain way, and with
+  refrains present the first line after one takes the first formula and the rest the second.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
