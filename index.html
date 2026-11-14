@@ -1089,7 +1089,10 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <li><b>4. The whole part, slowly.</b></li>
           <li><b>Tone pitch.</b> "Nearest note" rounds each note to the closest half step in the singer's own key, a clean target to lock onto. "Exactly as the singer sings" plays his real pitch, including notes that sit between Western notes. The notes list shows how far those are, in cents (100 cents is a half step).</li>
           <li><b>The turns.</b> Inside many words the singer moves quickly up and down around the main note. With "Add the turns" on, each piece is followed by the same piece with every turn, slower, and the whole part is sung once with the turns. Learn the main notes first, then add the turns.</li>
-          <li><b>5. With the recording.</b> The real singer at full volume and real speed: listen, sing along, sing it alone, then check.</li>
+          <li><b>5. With the recording.</b> The real singer at full volume and real speed: listen, then sing along with him several times.</li>
+          <li><b>Times through each bit.</b> How many times you sing each note, move and piece with the tone before the lesson moves on. "Set by the pace" is the old amount. A higher number gives more repetition on each bit, and nothing is cut: when the whole lesson is longer than your session, the next session picks up where the last one stopped, and the whole part and the recording come at the end of the lesson. The line under the settings says how long the lesson is and where the next session starts. Picking a new part starts it from the top.</li>
+          <li><b>Extra time on the hard spots.</b> The app rates every note, move and piece from 1 (easy) to 10 (hard) by the size of the jump (big jumps and jumps up are hardest), notes between piano keys, quick notes, very high or low notes, little turns, and how much a piece changes direction. Off gives every bit the same number of times. Full shares the same total out by difficulty: with 5 picked, an easy move might get 2 and the hardest 9 or more. With "Set by the pace", when not everything fits, the hardest moves are the ones kept.</li>
+          <li><b>Singing on your own.</b> "Short bits only" keeps the quiet "on your own" pass and the check for notes, moves and pieces, and drops it for joined pieces, the whole part and the recording: you sing along once more instead. "Never" drops it everywhere. "Everywhere" is the old way.</li>
           <li><b>Longer sessions go deeper.</b> When there is time, the lesson adds: pieces in mixed order (find each start note fresh), think it then sing it (hear it, imagine it in silence, then sing it alone), hold the long notes, and the whole part closer to real speed. Short sessions keep the core steps.</li>
           <li>As your minutes on this part grow (level 2 after 20 minutes, level 3 after 50), the early steps shrink and the tempo moves closer to the real song. Then move the part forward to the next phrase.</li>
           <li>The parts come from the pauses the app finds in the recording, so pick the From and To that match what you hear.</li>
@@ -1099,6 +1102,10 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <p class="status" id="earVoiceTxt" style="margin:4px 0 0"></p></div>
         <div class="field"><label class="label" for="earSongPitch">Tone pitch</label><select id="earSongPitch"><option value="note">Nearest note, in the singer's key</option><option value="exact">Exactly as the singer sings</option></select></div>
         <label class="check"><input type="checkbox" id="earSongTurns"> Add the turns: the little ups and downs inside each word (best once the main notes feel solid)</label>
+        <div class="field"><label class="label" for="earSongReps">Times through each note, move and piece</label><select id="earSongReps"><option value="auto">Set by the pace (about 1 to 3)</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>10</option><option>12</option><option>15</option><option>20</option></select></div>
+        <div class="field"><label class="label" for="earSongWeight">Extra time on the hard spots</label><select id="earSongWeight"><option value="0">Off: every bit gets the same</option><option value="25">A little</option><option value="50">Medium</option><option value="75">A lot</option><option value="100">Full: hard bits get the most, easy ones the least</option></select></div>
+        <div class="field"><label class="label" for="earSongAlone">Singing on your own, from memory</label><select id="earSongAlone"><option value="short">Short bits only: notes, moves and pieces</option><option value="never">Never: always sing with the tone</option><option value="all">Everywhere, the whole part too (the old way)</option></select></div>
+        <p class="status" id="earSongPlan" style="margin:4px 0 0"></p>
       </div>
       <div id="earMasterBox" class="earnotes" hidden>
         <h3>Master a song</h3>
@@ -4908,13 +4915,18 @@ const stretch=(sq,k)=>sq.map(n=>({...n,d:n.d*k}));
 function lwac(sq,lv,o){o=o||{};const P=earPace(),out=[],single=sq.filter(n=>n.m!=null).length===1,T=o.noTempo?sq:stretch(sq,P.tempo);
   const Ls=single?stretch(sq,P.l):T,Ws=single?stretch(sq,P.w):T,Cs=single?stretch(sq,P.c):T,bt=(o.beat||sq[0].d)*(o.noTempo?1:P.tempo);
   out.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:Ls});
-  let reps=(lv<3||o.always||earSet().pace!=='hard')?P.reps:0;if(lv===1&&!o.once&&reps)reps++;
+  let reps=o.reps!=null?o.reps:(lv<3||o.always||earSet().pace!=='hard')?P.reps:0;if(o.reps==null&&lv===1&&!o.once&&reps)reps++;
+  /* noAlone: no silent pass and no check; with no set count, the silent pass becomes one more pass with the tone */
+  if(o.noAlone){if(o.reps==null)reps++;reps=Math.max(1,reps)}
   for(let i=0;i<reps;i++)out.push({k:'cue',ph:'W',say:i?'Again':null},{k:'play',ph:'W',seq:Ws});
-  out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(T)*(single?P.a:1),beat:bt});
-  out.push({k:'cue',ph:'C'},{k:'play',ph:'C',seq:Cs},{k:'gap',d:1});return out}
+  if(!o.noAlone)out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(T)*(single?P.a:1),beat:bt},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:Cs});
+  out.push({k:'gap',d:1});return out}
 /* a held note with the tone dropping out in the middle */
 function hold(m,lv,o){o=o||{};const P=earPace(),L0=(o.listen||3)*P.l,W=(o.with||(lv===1?8:lv===2?6:4))*P.hw,A=(o.alone||(lv===1?4:lv===2?6:8))*P.a,C=(o.check||4)*P.c;
-  const sr=o.src;return[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0,src:sr}]},{k:'cue',ph:'W',say:o.withSay},{k:'play',ph:'W',seq:[{m,d:W,src:sr}],swell:o.swell},{k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m,d:C,src:sr}]},{k:'gap',d:1.2}]}
+  const sr=o.src,R=o.reps!=null?Math.max(1,o.reps):1,out=[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m,d:L0,src:sr}]}];
+  for(let i=0;i<R;i++)out.push({k:'cue',ph:'W',say:i?'Again':o.withSay},{k:'play',ph:'W',seq:[{m,d:o.noAlone&&R===1?W+A:W,src:sr}],swell:o.swell});
+  if(!o.noAlone)out.push({k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A,beat:1},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:[{m,d:C,src:sr}]});
+  out.push({k:'gap',d:1.2});return out}
 const say=t=>({k:'say',text:t});
 /* ---- the units ---- */
 function earDrills(u,lv){if(u===13)return lpDrills(EARS.goal||1200);if(u===14)return mpDrills(EARS.goal||1200);if(u===5)return earSongFit(lv,EARS.goal||1200);if(u===6)return smPlanDrills();if(u===11||u===12)return lesDrills(u);const inRf=r=>{const R0=earRange();return S.home+r>=R0.lo&&S.home+r<=R0.hi};
@@ -5127,10 +5139,49 @@ function wsolaMap(x,A,sr){const kq=sr/11025,N=Math.round(512*kq),Hs=N>>1,tol=Mat
 function wsola(x,rate){const d=x.length/VO_SR;return wsolaMap(x,[[0,0],[d/rate,d]],VO_SR)}
 async function earSongVoices(specs,src,rates){const V=src||ES;if(!V.seg)return{};const hq=V.hq,x=hq||V.seg,sr=hq?PB_SR:VO_SR,z=hq?(V.hqT0||0):(V.segT0||0),C=hq?(V.sth=V.sth||{}):(V.st=V.st||{}),o={};let n=0;
   for(const k of Object.keys(specs)){if(!C[k]){C[k]=wsolaMap(x,specs[k].map(([a,b])=>[a,Math.max(0,b-z)]),sr);if(++n%4===0)await new Promise(r=>setTimeout(r,0))}o[k]=C[k];if(rates)rates[k]=sr}return o}
-function earSongFit(lv,budget){const o={notes:7,pairs:lv===1?10:8,joins:true,wholeTwice:lv<3,deep:4,turns:!!earSet().songTurns,turnsWhole:!!earSet().songTurns};let D=earSongDrills(lv,o);const tot=()=>D.reduce((a,d)=>a+earStepsSec(d.steps)+2,0);
-  const tries=[()=>o.deep>0&&(o.deep-=1),()=>o.turnsWhole&&!(o.turnsWhole=false),()=>o.pairs>4&&(o.pairs-=2),()=>o.notes>4&&(o.notes-=1),()=>o.wholeTwice&&!(o.wholeTwice=false),()=>o.joins&&!(o.joins=false),()=>o.pairs>2&&(o.pairs-=1),()=>o.notes>2&&(o.notes-=1),()=>o.pairs>0&&(o.pairs=0),()=>o.notes>0&&(o.notes=0)];
-  let k=0;while(tot()>budget*0.95&&k<40){let did=false;for(const f of tries){if(f()){did=true;break}}if(!did)break;D=earSongDrills(lv,o);k++}return D}
+/* ---- how hard each bit of the part is, 1 (easy) to 10 (hard) ----
+   A guess from the notes alone (in Ears only the app does not listen to you). What makes a bit harder:
+   bigger jumps (untrained singers shrink big jumps: Pfordresher and Brown, 2007), jumps up a little more than
+   down, the tritone, notes that sit between piano keys, quick notes, notes well above or below the middle of
+   the part, little turns inside the words, and in a piece, changes of direction and a wide spread of notes. */
+const esClamp=d=>Math.max(1,Math.min(10,d));
+function esMid(){const a=ES.core.map(n=>n.m).sort((p,q)=>p-q);return a.length?a[a.length>>1]:S.home}
+function esCents(n){return n.mX!=null&&n.mR!=null?Math.abs(n.mX-n.mR)*100:0}
+function esTurns(a,b){return(ES.fine||[]).filter(n=>n.t0>=a-0.06&&n.t0<b).length}
+function esNoteD(n,mid){const ex=earSet().songPitch==='exact';return esClamp(1+Math.min(2.5,esCents(n)/25*(ex?1:0.5))+Math.max(0,n.m-mid-2)*0.5+Math.max(0,mid-n.m-4)*0.3+(n.t1-n.t0<0.3?0.8:0))}
+function esMoveD(A,B,mid){const s=B.m-A.m,iv=Math.round(Math.abs(s)),ex=earSet().songPitch==='exact',q=Math.min(A.t1-A.t0,B.t1-B.t0);
+  return esClamp(1+(iv<=2?0.5*iv:1+0.8*(iv-2))+(s>0&&iv>=3?0.7:0)+(iv===6||iv===11?1:0)+Math.min(2,esCents(B)/25*(ex?0.9:0.45))+Math.max(0,B.m-mid-2)*0.45+Math.max(0,mid-B.m-4)*0.25
+    +(q<0.22?1.4:q<0.38?0.7:0)+Math.min(1.5,Math.max(0,esTurns(A.t0,B.t1)-2)*0.4))}
+function esSeqD(ns,mid){if(ns.length<2)return ns.length?esNoteD(ns[0],mid):1;const mv=[];let back=0;
+  for(let i=1;i<ns.length;i++){mv.push(Math.round(ns[i].m)===Math.round(ns[i-1].m)?1:esMoveD(ns[i-1],ns[i],mid));if(i>1&&(ns[i-1].m-ns[i-2].m)*(ns[i].m-ns[i-1].m)<0)back++}
+  const span=ns[ns.length-1].t1-ns[0].t0,rate=ns.length/Math.max(0.3,span),ms=ns.map(n=>n.m),rng=Math.max(...ms)-Math.min(...ms),mean=mv.reduce((a,b)=>a+b,0)/mv.length;
+  return esClamp(0.6*Math.max(...mv)+0.4*mean+0.35*back+(rate>3?0.8:rate>2.2?0.4:0)+Math.max(0,rng-5)*0.15+Math.min(1,Math.max(0,esTurns(ns[0].t0,ns[ns.length-1].t1)-ns.length)*0.2))}
+/* "Extra time on the hard spots": 0 shares the times out evenly; 100 gives each bit times in proportion to how hard it is
+   measured from 1 up, so a bit rated 1 gets the least (average stays what you picked; never below 1, at most 2.5 times the average) */
+function esWeight(){return Math.max(0,Math.min(100,+earSet().songWeight||0))/100}
+function esShare(base,d,ds){const w=esWeight();if(!w||ds.length<2||base<=0)return base;const mean=ds.reduce((a,b)=>a+b-1,0)/ds.length;if(!(mean>0.05))return base;return Math.max(1,Math.round(base*((1-w)+w*Math.max(0.2,Math.min(2.5,(d-1)/mean)))))}
+/* when not everything fits: in order of the song, or with weighting on, the hardest ones */
+function esKeep(n,ds,k){const ix=[...Array(n).keys()];if(k>=n)return ix;if(!esWeight())return ix.slice(0,k);return ix.sort((a,b)=>ds[b]-ds[a]||a-b).slice(0,k).sort((a,b)=>a-b)}
+function esSetReps(){const v=earSet().songReps;return v==null||v==='auto'?null:Math.max(1,Math.min(30,Math.round(+v)||1))}
+/* where a long lesson picks up: the step you were on when the last session stopped (kept per song and part) */
+function esPosGet(){const st=earState();return((st.songPos||{})[earSongKey()])||null}
+function esPosSave(d){if(!d||!d.lk||!d.multi||!ES.id)return;const st=earState();st.songPos=st.songPos||{};const k=earSongKey(),o=st.songPos[k];if(o&&o.lk===d.lk)return;st.songPos[k]={lk:d.lk,frac:d.lf};store.set('ison-ears',st)}
+function earSongFit(lv,budget){const fixed=esSetReps()!=null,o=fixed?{notes:12,pairs:200,joins:true,wholeTwice:lv<3,deep:4,turns:!!earSet().songTurns,turnsWhole:!!earSet().songTurns}:{notes:7,pairs:lv===1?10:8,joins:true,wholeTwice:lv<3,deep:4,turns:!!earSet().songTurns,turnsWhole:!!earSet().songTurns};
+  let D=earSongDrills(lv,o);const tot=()=>D.reduce((a,d)=>a+earStepsSec(d.steps)+2,0);
+  /* with your own count, nothing is cut but the extras: a lesson longer than the session goes on next session.
+     Set by the pace, the lesson shrinks to fit first (as before), and only goes on next time if it still does not fit. */
+  const tries=fixed?[()=>o.deep>0&&(o.deep-=1),()=>o.turnsWhole&&!(o.turnsWhole=false)]
+    :[()=>o.deep>0&&(o.deep-=1),()=>o.turnsWhole&&!(o.turnsWhole=false),()=>o.pairs>4&&(o.pairs-=2),()=>o.notes>4&&(o.notes-=1),()=>o.wholeTwice&&!(o.wholeTwice=false),()=>o.joins&&!(o.joins=false),()=>o.pairs>2&&(o.pairs-=1),()=>o.notes>2&&(o.notes-=1),()=>o.pairs>0&&(o.pairs=0),()=>o.notes>0&&(o.notes=0)];
+  let k=0;while(tot()>budget*0.95&&k<80){let did=false;for(const f of tries){if(f()){did=true;break}}if(!did)break;D=earSongDrills(lv,o);k++}
+  const T=tot(),multi=T>budget*1.02;D.forEach((d,i)=>{d.lk=d.name.replace(/, \d+ times?$/,'');d.lf=i/D.length;d.multi=multi});let at=0;
+  if(multi){const pos=ES.sessFrom!==undefined?ES.sessFrom:esPosGet();if(pos){at=D.findIndex(d=>d.lk===pos.lk);if(at<0)at=Math.min(D.length-1,Math.floor((pos.frac||0)*D.length))}if(at>0)D=D.slice(at).concat(D.slice(0,at))}
+  ES.fit={total:T,budget,multi,at,len:D.length,next:D[0]&&D[0].lk};return D}
 function earSongDrills(lv,o){o=Object.assign({notes:7,pairs:10,joins:true,wholeTwice:true,deep:0},o||{});const P=earPace(),D=[],add=(name,vo,steps,x)=>D.push(Object.assign({name,intro:'',vo,steps,vsrc:'ES'},x||{}));
+  /* your settings: times through each bit (or the pace decides), extra time on the hard spots, and where you sing on your own */
+  const ST=earSet(),RS=esSetReps(),AL=ST.songAlone||'short',aShort=AL!=='never',aLong=AL==='all',mid0=esMid(),
+    autoR=once=>{let r=(lv<3||(ST.pace||'gentle')!=='hard')?P.reps:0;if(lv===1&&!once&&r)r++;return r},
+    times=(d,ds,once,alone)=>{const b=RS!=null?RS:autoR(once)+(alone?0:1);return Math.max(alone?0:1,esShare(b,d,ds))},
+    nm=m=>nameOf(m).replace(/-?\d+$/,''),plan={notes:[],moves:[],pieces:[],joins:[],nTot:0,mTot:0};ES.plan=plan;
   /* Song speed never goes past the singer. Each pace has its own speeds (fraction of real speed); a level adds 5%,
      capped at 100%. Harder paces don't go faster: they add real-speed passes after the slow ones, longer
      stretches from memory, and fewer sing-along repeats. */
@@ -5141,41 +5192,52 @@ function earSongDrills(lv,o){o=Object.assign({notes:7,pairs:10,joins:true,wholeT
   const mid=n=>{if(n.hs)return n.hs;const w=n.t1-n.t0;return[n.t0+w*0.22,n.t1-w*0.22]};
   const uniq=[];ES.core.forEach(n=>{const u=uniq.find(x=>Math.round(x.m)===Math.round(n.m));if(!u)uniq.push(n);else if(n.t1-n.t0>u.t1-u.t0)uniq[uniq.indexOf(u)]=n});
   const uOrder=[];ES.core.forEach(n=>{const u=uniq.find(x=>Math.round(x.m)===Math.round(n.m));if(!uOrder.includes(u))uOrder.push(u)});
-  if(lv<3&&o.notes>0)add('The notes in this part',['st_notes'],[].concat(...uOrder.slice(0,o.notes).map(n=>hold(n.m,lv,{with:lv===1?6:4,alone:3,src:mid(n)}))));
+  const nD=uOrder.map(n=>esNoteD(n,mid0));plan.nTot=uOrder.length;
+  if(lv<3&&o.notes>0){const keep=esKeep(uOrder.length,nD,o.notes),kd=keep.map(i=>nD[i]),noteR=i=>esShare(RS!=null?RS:1,nD[i],kd);keep.forEach(i=>plan.notes.push({lab:nm(uOrder[i].m),d:nD[i],r:noteR(i)}));
+    add('The notes in this part',['st_notes'],[].concat(...keep.map(i=>{const n=uOrder[i];return hold(n.m,lv,{with:lv===1?6:4,alone:3,src:mid(n),reps:noteR(i),noAlone:!aShort})})))}
   if(o.deep>=3){const lg=ES.core.slice().sort((a,b)=>(b.t1-b.t0)-(a.t1-a.t0)).slice(0,3).sort((a,b)=>a.t0-b.t0);
-    add('Hold the long notes',['dp_long'],[].concat(...lg.map(n=>hold(n.m,lv,{with:lv===1?9:7,alone:lv===1?5:7,src:mid(n),swell:true}))))}
+    add('Hold the long notes',['dp_long'],[].concat(...lg.map(n=>hold(n.m,lv,{with:lv===1?9:7,alone:lv===1?5:7,src:mid(n),swell:true,noAlone:!aShort}))))}
   const pairs=[];for(let i=1;i<ES.core.length;i++){const A=ES.core[i-1],B=ES.core[i];if(Math.round(A.m)!==Math.round(B.m)&&!pairs.some(p=>Math.round(p[0].m)===Math.round(A.m)&&Math.round(p[1].m)===Math.round(B.m)))pairs.push([A,B])}
-  if((lv<3||pairs.length<=4)&&o.pairs>0)add('The moves',['st_moves'],[].concat(...pairs.slice(0,o.pairs).map(([A,B])=>lwac([{m:A.m,d:2,src:[mid(A)[0],B.t0]},{m:B.m,d:3,src:[B.t0,mid(B)[1]]}],lv,{once:true}))));
-  const pcs=earSongPieces();
+  const pD=pairs.map(([A,B])=>esMoveD(A,B,mid0));plan.mTot=pairs.length;
+  if((lv<3||pairs.length<=4||RS!=null)&&o.pairs>0){const keep=esKeep(pairs.length,pD,o.pairs),kd=keep.map(i=>pD[i]);
+    const mv=keep.map(i=>{const[A,B]=pairs[i],r=times(pD[i],kd,true,aShort),lab=nm(A.m)+' to '+nm(B.m);plan.moves.push({lab,d:pD[i],r});
+      return{lab,r,st:lwac([{m:A.m,d:2,src:[mid(A)[0],B.t0]},{m:B.m,d:3,src:[B.t0,mid(B)[1]]}],lv,{once:true,reps:r,noAlone:!aShort})}});
+    /* with your own count each move is its own step, so a long lesson can stop and pick up between moves */
+    if(RS!=null)mv.forEach((x,k)=>add('Move '+(k+1)+' of '+mv.length+': '+x.lab+', '+x.r+(x.r===1?' time':' times'),k?[]:['st_moves'],x.st));
+    else add('The moves',['st_moves'],[].concat(...mv.map(x=>x.st)))}
+  const pcs=earSongPieces(),cD=pcs.map(pc=>esSeqD(pc,mid0)),jD=pcs.slice(1).map((pc,i)=>esClamp(esSeqD(pcs[i].concat(pc),mid0)+0.3));
   /* the turns: the same piece again with every little up and down inside the words, a touch slower */
   const fineIn=(a,b)=>(ES.fine||[]).filter(n=>n.t0>=a-0.06&&n.t0<b),quietAnn=st=>{st.forEach(s=>{if(s.k==='cue')s.noAnn=true});return st};
-  pcs.forEach((pc,i)=>{add('Piece '+(i+1)+' of '+pcs.length,['pc_'+Math.min(8,i+1)],[].concat(lwac(mk(pc,slow),lv,NT),hardish&&spd[0]<1?[atSpeed(1)].concat(lwac(mk(pc,1),lv,{noTempo:true,once:true})):[]));
-    if(o.turns){const f=fineIn(pc[0].t0,pc[pc.length-1].t1);if(f.length>pc.length)add('Piece '+(i+1)+' with the turns',['pc_'+Math.min(8,i+1),'dp_turns'],quietAnn(lwac(mk(f,slow*1.15),lv,NT)))}});
-  if(pcs.length>1&&o.joins)for(let i=0;i+1<pcs.length;i++)add('Join pieces '+(i+1)+' and '+(i+2),['join'],lwac(mk(pcs[i].concat(pcs[i+1]),slow),lv,NT));
+  pcs.forEach((pc,i)=>{const r=times(cD[i],cD,false,aShort);plan.pieces.push({lab:'Piece '+(i+1),d:cD[i],r});
+    add('Piece '+(i+1)+' of '+pcs.length+(RS!=null||esWeight()?', '+r+(r===1?' time':' times'):''),['pc_'+Math.min(8,i+1)],[].concat(lwac(mk(pc,slow),lv,{noTempo:true,reps:r,noAlone:!aShort}),hardish&&spd[0]<1?[atSpeed(1)].concat(lwac(mk(pc,1),lv,{noTempo:true,once:true,noAlone:!aShort})):[]));
+    if(o.turns){const f=fineIn(pc[0].t0,pc[pc.length-1].t1);if(f.length>pc.length)add('Piece '+(i+1)+' with the turns',['pc_'+Math.min(8,i+1),'dp_turns'],quietAnn(lwac(mk(f,slow*1.15),lv,{noTempo:true,reps:r,noAlone:!aShort})))}});
+  /* joins are longer stretches: no singing on your own there unless "Everywhere" is picked */
+  if(pcs.length>1&&o.joins)for(let i=0;i+1<pcs.length;i++){const r=times(jD[i],jD,false,aLong);plan.joins.push({lab:'Pieces '+(i+1)+' and '+(i+2),d:jD[i],r});
+    add('Join pieces '+(i+1)+' and '+(i+2)+(RS!=null||esWeight()?', '+r+(r===1?' time':' times'):''),['join'],lwac(mk(pcs[i].concat(pcs[i+1]),slow),lv,{noTempo:true,reps:r,noAlone:!aLong}))}
   /* mixed-order review: pulling pieces out of order makes you find each start note fresh (interleaved practice) */
   if(o.deep>=1&&pcs.length>2){const ord=pcs.map((_,i)=>i);for(let i=ord.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[ord[i],ord[j]]=[ord[j],ord[i]]}
-    add('Pieces in mixed order',['dp_mix'],[].concat(...ord.map(i=>lwac(mk(pcs[i],slow),lv,{noTempo:true,once:true}))))}
+    add('Pieces in mixed order',['dp_mix'],[].concat(...ord.map(i=>lwac(mk(pcs[i],slow),lv,{noTempo:true,once:true,noAlone:!aShort}))))}
   /* think it first: hear the piece, imagine singing it in silence, then sing it alone and check */
-  if(o.deep>=2){const st=[];pcs.forEach(pc=>{const q=mk(pc,slow),d=seqDur(q);st.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:q},{k:'cue',ph:'T'},{k:'quiet',ph:'T',d,beat:0},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:q},{k:'gap',d:1})});
+  if(o.deep>=2&&aShort){const st=[];pcs.forEach(pc=>{const q=mk(pc,slow),d=seqDur(q);st.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:q},{k:'cue',ph:'T'},{k:'quiet',ph:'T',d,beat:0},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:q},{k:'gap',d:1})});
     add('Think it, then sing it',['dp_think'],st)}
-  {const W=[];spd.forEach((x,i)=>{W.push(atSpeed(x),...lwac(mk(ES.core,1/x),lv,{noTempo:true,once:i>0}))});const lx=spd[spd.length-1];if(o.wholeTwice)W.push(atSpeed(lx),...lwac(mk(ES.core,1/lx),lv,{noTempo:true,once:true}));
+  {const W=[];spd.forEach((x,i)=>{W.push(atSpeed(x),...lwac(mk(ES.core,1/x),lv,{noTempo:true,once:i>0,noAlone:!aLong}))});const lx=spd[spd.length-1];if(o.wholeTwice)W.push(atSpeed(lx),...lwac(mk(ES.core,1/lx),lv,{noTempo:true,once:true,noAlone:!aLong}));
     add(lx>=1?'The whole part, slow to real speed':'The whole part, slowly',[lx>=1?'st_wholeup':'st_whole'],W)}
   /* from memory: only the starting note, then the whole part alone at real speed, then the check */
-  if(hardish){const f=ES.core[0],dur=ES.t1-ES.t0+0.3,M=[];for(let r=0;r<(pace==='extra'?2:1);r++)M.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m:f.m,d:2.5,src:mid(f)}]},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:dur,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:mk(ES.core,1)},{k:'gap',d:1.2});
+  if(hardish&&aLong){const f=ES.core[0],dur=ES.t1-ES.t0+0.3,M=[];for(let r=0;r<(pace==='extra'?2:1);r++)M.push({k:'cue',ph:'L'},{k:'play',ph:'L',seq:[{m:f.m,d:2.5,src:mid(f)}]},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:dur,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:mk(ES.core,1)},{k:'gap',d:1.2});
     add('From memory',['dp_memory'],M)}
-  if(o.turnsWhole&&ES.fine&&ES.fine.length>ES.core.length)add('The whole part, with the turns',['dp_wturns'],quietAnn(lwac(mk(fineIn(ES.t0,ES.t1),slow),lv,{noTempo:true,once:true})));
-  if(o.deep>=4)add('The whole part at real speed',['dp_real'],lwac(mk(ES.core,1),lv,{noTempo:true,once:true}));
+  if(o.turnsWhole&&ES.fine&&ES.fine.length>ES.core.length)add('The whole part, with the turns',['dp_wturns'],quietAnn(lwac(mk(fineIn(ES.t0,ES.t1),slow),lv,{noTempo:true,once:true,noAlone:!aLong})));
+  if(o.deep>=4)add('The whole part at real speed',['dp_real'],lwac(mk(ES.core,1),lv,{noTempo:true,once:true,noAlone:!aLong}));
   const recLen=ES.t1-ES.t0+0.65,rs=lv===1?2:lv===2?3:4,steps=[];
   if(ES.seg){steps.push({k:'cue',ph:'L',say:'Listen to the recording',noAnn:true},{k:'rec',ph:'L',d:recLen});
-    for(let i=0;i<rs;i++)steps.push({k:'cue',ph:'W',say:i?'Again':'Sing along with the recording'},{k:'rec',ph:'W',d:recLen});
-    steps.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:recLen,beat:0},{k:'cue',ph:'C'},{k:'rec',ph:'C',d:recLen},{k:'gap',d:1})}
-  else{const real=mk(ES.full,1);steps.push(...lwac(real,lv,{always:true,noTempo:true}))}
+    for(let i=0;i<rs+(aLong?0:1);i++)steps.push({k:'cue',ph:'W',say:i?'Again':'Sing along with the recording'},{k:'rec',ph:'W',d:recLen});
+    if(aLong)steps.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:recLen,beat:0},{k:'cue',ph:'C'},{k:'rec',ph:'C',d:recLen});steps.push({k:'gap',d:1})}
+  else{const real=mk(ES.full,1);steps.push(...lwac(real,lv,{always:true,noTempo:true,noAlone:!aLong}))}
   add(ES.seg?'With the recording':'The whole part at full speed',[ES.seg?'st_rec':'st_whole'],steps);
   return D}
 const VOICE_WORDS=['off','barely there','very, very quiet','very quiet','quiet','soft','medium soft','medium','medium loud','loud','full volume'];
 function earVoiceShow(){const n=songVoiceLvl();$('earVoiceN').value=String(n);$('earVoiceN2').value=String(n);if($('smVoiceN'))$('smVoiceN').value=String(n);if($('smVoiceTxt'))$('smVoiceTxt').textContent=n+' of 10: '+VOICE_WORDS[n]+'.';$('earVoiceTxt').textContent=n+' of 10: '+VOICE_WORDS[n]+'. 1 is barely there, 10 is full volume, 0 turns the singer off.'}
 function earVoiceSet(n){n=Math.max(0,Math.min(10,Math.round(+n)||0));const was=songVoiceLvl();earSave({songVoiceLvl:n});earVoiceShow();if(n!==was&&EARS.run&&EARS.bg){clearTimeout(earVoiceSet.t);earVoiceSet.t=setTimeout(()=>bgReplanFromNext('Singer volume '+n),700)}}
-async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s.unit!==5;if(s.unit!==5)return;$('earSongPitch').value=s.songPitch==='exact'?'exact':'note';$('earSongTurns').checked=!!s.songTurns;earVoiceShow();
+async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s.unit!==5;if(s.unit!==5)return;$('earSongPitch').value=s.songPitch==='exact'?'exact':'note';$('earSongTurns').checked=!!s.songTurns;$('earSongReps').value=s.songReps==null?'auto':String(s.songReps);$('earSongWeight').value=String(s.songWeight||0);$('earSongAlone').value=s.songAlone||'short';earVoiceShow();
   const sel=$('earSong'),list=await earSongList(),mine=list.filter(x=>x.id.startsWith('my-')).length;
   $('earSongWhere').textContent=mine?mine+' of your own recording'+(mine>1?'s':'')+' saved in this browser, plus the built-in songs. Psalm 23 is built in, so it stays through every update.':'No recordings of your own are saved in this browser yet. Recordings live in the browser you added them in (the home-screen app, Safari and Chrome each keep their own), so add it again here with "Add a recording". Psalm 23 is built in and never needs adding.';sel.innerHTML='';list.forEach(x=>{const o=document.createElement('option');o.value=x.id;o.textContent=x.name+(x.audio?' · with recording':'');sel.appendChild(o)});
   if(!list.length){$('earSongInfo').textContent='No songs yet.';return}
@@ -5186,7 +5248,16 @@ async function renderEarSong(){const box=$('earSongBox'),s=earSet();box.hidden=s
   if(ES.rec.audio&&!ES.seg){$('earSongInfo').textContent='Measuring the singer...';await earSongAudio()}
   const off0=ES.an.off||0,ex=s.songPitch==='exact',names=[];let between=0;ES.core.forEach(n=>{let nm=nameOf(n.mR!=null?n.mR:n.m).replace(/-?\d+$/,'');if(n.mX!=null){const c=Math.round((n.mX-n.mR)*100);if(Math.abs(c)>=25){between++;if(ex)nm+=(c>0?' +':' ')+c+'¢'}}names.push(nm)});
   $('earParts').textContent=names.join(' · ');
-  const m=earSongMin();$('earSongInfo').textContent='This part: '+fmtT(ES.t0)+' to '+fmtT(ES.t1)+' ('+Math.round(ES.t1-ES.t0)+' s), '+ES.core.length+' main notes. '+(ES.rec.audio?'The singer plays softly under every tone, then in full at the end. ':want==='b:psalm23'?'The recording is locked, so tones are used until you unlock it. ':'No recording saved with this song, so tones are used throughout. ')+(ES.fine?between+' of '+ES.core.length+' main notes sit between Western notes (25 cents or more away). '+'The singer adds '+Math.max(0,ES.fine.length-ES.core.length)+' little turns inside the words. ':'')+'Practiced: '+fmtHM(m)+', level '+earSongLevel()+' of 3.'+(ES.shift?' Tones are moved '+Math.abs(ES.shift/12)+' octave'+(Math.abs(ES.shift)>12?'s':'')+' '+(ES.shift>0?'up':'down')+' to suit your voice; the note names stay the same.':'')}
+  const m=earSongMin();$('earSongInfo').textContent='This part: '+fmtT(ES.t0)+' to '+fmtT(ES.t1)+' ('+Math.round(ES.t1-ES.t0)+' s), '+ES.core.length+' main notes. '+(ES.rec.audio?'The singer plays softly under every tone, then in full at the end. ':want==='b:psalm23'?'The recording is locked, so tones are used until you unlock it. ':'No recording saved with this song, so tones are used throughout. ')+(ES.fine?between+' of '+ES.core.length+' main notes sit between Western notes (25 cents or more away). '+'The singer adds '+Math.max(0,ES.fine.length-ES.core.length)+' little turns inside the words. ':'')+'Practiced: '+fmtHM(m)+', level '+earSongLevel()+' of 3.'+(ES.shift?' Tones are moved '+Math.abs(ES.shift/12)+' octave'+(Math.abs(ES.shift)>12?'s':'')+' '+(ES.shift>0?'up':'down')+' to suit your voice; the note names stay the same.':'');earSongPlanTxt()}
+/* the line under the settings: what a session of your length holds, how many times each bit, and the hardest bits */
+function earSongPlanTxt(){const el=$('earSongPlan');if(!el)return;el.textContent='';if(!ES.core||ES.core.length<2)return;const s=earSet(),mins=s.min||20;try{earSongFit(earSongLevel(),mins*60)}catch(e){return}const P=ES.plan;if(!P)return;
+  const rg=a=>{const r=a.map(x=>x.r),lo=Math.min(...r),hi=Math.max(...r);return lo===hi?lo+(lo===1?' time':' times')+' each':lo+' to '+hi+' times'},
+    part=(lab,a,tot)=>a.length?a.length+(tot>a.length?' of '+tot:'')+' '+(a.length===1&&!(tot>1)?lab.replace(/s$/,''):lab)+', '+rg(a):'',
+    hard=P.moves.concat(P.pieces).slice().sort((a,b)=>b.d-a.d).slice(0,3).map(x=>x.lab+' ('+Math.round(x.d)+' of 10)'),cut=P.mTot>P.moves.length&&P.moves.length;
+  el.textContent=(ES.fit&&ES.fit.multi?'This lesson at level '+earSongLevel()+': ':'A '+mins+' minute session at level '+earSongLevel()+': ')+[part('notes',P.notes,P.nTot),part('moves',P.moves,P.mTot),part('pieces',P.pieces,0),part('joins',P.joins,0)].filter(Boolean).join('; ')+'; then the whole part and the recording.'
+    +(cut?(esWeight()?' The hardest moves are kept.':' The first moves are kept; turn on extra time on the hard spots to keep the hardest instead.'):'')
+    +(ES.fit&&ES.fit.multi?' All of it takes about '+Math.round(ES.fit.total/60)+' minutes, more than one session, so each session picks up where the last one stopped and the whole part and the recording come at the end of the lesson, about every '+Math.ceil(ES.fit.total/Math.max(60,ES.fit.budget))+' sessions. Next session starts at: '+ES.fit.next+'.':'')
+    +(hard.length?' Hardest here: '+hard.join(', ')+'.':'')}
 function earSongSavePart(){const st=earState();st.songs=st.songs||{};st.songs[ES.id]={from:ES.from,to:ES.to};store.set('ison-ears',st)}
 /* Play this part: play, pause, resume and stop. The rendered part is kept, so resuming and replaying are instant. */
 const PV={st:'idle',url:null,key:null,tone:false,iv:null};
@@ -7041,7 +7112,7 @@ function bgRender(D,progress){return new Promise((res,rej)=>{let w=null;
   w.onerror=()=>{try{w.terminate()}catch(x){}BG.worker=null;if(!gotMsg)bgSynth(D,progress).then(res,rej)};w.postMessage(D)})}
 async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.st='idle';pvUI()}}catch(e){}const s=earSet();if(!resumeAt)BG.total=0;earUnlock();BG.prep=true;BG.pending=null;BG.replan=false;EARS.bg=true;EARS.run=true;EARS.paused=false;EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.home=null;EARS.goal=s.min*60;EARS.el=resumeAt||0;EARS.ph='';EARS.note=null;
   renderEars();$('earPrep').hidden=false;$('earPrepTxt').textContent='Preparing your '+s.min+'-minute session...';$('earPrepBar').style.width='2%';setTimeout(()=>$('earsPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
-  try{await voLoad();if(EARS.u===5){if(!(await earSongLoad(s.song||'')))throw new Error('choose a song first');$('earPrepTxt').textContent='Preparing the song...';await earSongAudio();EARS.lv=earSongLevel();EARS.home=ES.tonic}
+  try{await voLoad();if(EARS.u===5){if(!(await earSongLoad(s.song||'')))throw new Error('choose a song first');$('earPrepTxt').textContent='Preparing the song...';await earSongAudio();EARS.lv=earSongLevel();EARS.home=ES.tonic;if(!resumeAt)ES.sessFrom=esPosGet()}
     LES_PLAN=null;if(EARS.u!==5&&EARS.u!==6&&EARS.u!==13&&EARS.u!==14){EARS.home=S.home;if(s.model!=='tone'||EARS.u===10||EARS.u===11){$('earPrepTxt').textContent='Loading the song map...';try{await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})}catch(e){}}
       if(EARS.u===11){if(!SM.ok)throw new Error('the song could not be measured');EARS.home=smIsonM()}
       if(EARS.u===10){DAILY.plan=null;SM.sess=null;SM.lastIds=[];SM.plan=null;dailyPlan(Math.max(300,EARS.goal-(resumeAt||0)));$('earPrepTxt').textContent='Lining up the singer with the tones...'}}
@@ -7060,7 +7131,7 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
     bgLoop()}
   catch(e){BG.prep=false;$('earPrep').hidden=true;EARS.run=false;EARS.bg=false;if(EARS.u>=5){$('earsMsg').textContent='Could not prepare the song lesson ('+(e&&e.message||e)+').'}else{$('earsMsg').textContent='Could not prepare the session on this device ('+(e&&e.message||e)+'). Switching to step-by-step mode.';earSave({engine:'media'})}renderEars()}}
 function bgPos(){return earAudio?earAudio.currentTime||0:0}
-function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if(pos>BG.logPos+0.5){const a=BG.logPos,b=pos;BG.total=(BG.total||0)+b-a;
+function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if(EARS.u===5){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});if(di>=0)esPosSave(EARS.drills[di])}if(pos>BG.logPos+0.5){const a=BG.logPos,b=pos;BG.total=(BG.total||0)+b-a;
   /* time goes to the unit each drill belongs to (a daily session spreads over several units) */
   const spans={},S0=BG.starts,D=EARS.drills;let cov=0;for(let i=0;i<S0.length;i++){const s=S0[i];if(s<0)continue;let e=BG.dur;for(let j=i+1;j<S0.length;j++)if(S0[j]>=0){e=S0[j];break}const x0=Math.max(a,s),x1=Math.min(b,e);if(x1>x0){const u=D[i]&&D[i].u!=null?D[i].u:BG.u;spans[u]=(spans[u]||0)+(x1-x0);cov+=x1-x0;if(D[i]&&D[i].les)lesAdd(D[i].lesU,D[i].les,x1-x0)}}
   if(b-a-cov>0.01)spans[BG.u]=(spans[BG.u]||0)+(b-a-cov);
@@ -7118,7 +7189,7 @@ function earPause(){if(!EARS.run)return;if(EARS.bg){if(BG.prep||!earAudio)return
   const dr=EARS.drills[EARS.di];if(dr&&EARS.si>0){let k=EARS.si;while(k>0&&!(dr.steps[k].k==='cue'&&dr.steps[k].ph==='L')&&dr.steps[k].k!=='hold')k--;EARS.si=k}}earUI();earMediaState()}
 function earSkip(){if(!EARS.run)return;if(EARS.bg){if(!BG.prep)bgSeekDrill(1);return}earSilence();EARS.paused=false;EARS.di++;EARS.si=-1;if(!earDone())earStep();earUI()}
 function earRepeat(){if(!EARS.run)return;if(EARS.bg){if(!BG.prep)bgSeekDrill(-1);return}earSilence();EARS.paused=false;EARS.si=-1;earStep();earUI()}
-function earFinish(complete){if(!EARS.run)return;const wasBg=EARS.bg;
+function earFinish(complete){if(!EARS.run)return;const wasBg=EARS.bg;if(wasBg&&EARS.u===5)try{bgLog()}catch(e){}ES.sessFrom=undefined;
   if(wasBg){bgLog();cancelAnimationFrame(BG.raf);BG.raf=null;if(BG.worker){try{BG.worker.terminate()}catch(e){}BG.worker=null}if(earAudio){earAudio.onended=earAudio.ontimeupdate=earAudio.onpause=earAudio.onplay=null;earAudio.pause()}
     if(!BG.prep)EARS.el=BG.offset+Math.min(bgPos(),BG.dur);BG.prep=false;$('earPrep').hidden=true;$('earTapPlay').hidden=true;EARS.bg=false}
   else{earSilence();clearInterval(EARS.iv);const left=EARS.el-EARS.logged;if(left>1)addPractice('ears',EARS.u,left);EARS.logged=EARS.el}
@@ -7154,7 +7225,7 @@ function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%
   {const pb=$('earPause'),want=EARS.paused?'play':'pause';if(pb.dataset.st!==want){pb.dataset.st=want;pb.innerHTML=want==='play'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/></svg><span>Resume</span>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg><span>Pause</span>';pb.setAttribute('aria-label',want==='play'?'Resume':'Pause')}}$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earVoiceLive').hidden=!(EARS.bg&&EARS.u>=5);$('smShakyLive').hidden=!(EARS.bg&&EARS.u===6);if(document.activeElement!==$('earVoiceN2'))$('earVoiceN2').value=String(songVoiceLvl());$('earPaceNow').textContent='Pace: '+earPace().n;$('lpLive').hidden=!(EARS.bg&&(EARS.u===13||EARS.u===14));if(EARS.u===13||EARS.u===14)lpLiveShow();
   ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
 function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;if(earSet().unit===10)return P.n+': how long each note plays, how long you hold alone, and how slowly the song starts. After each session, "That session felt" nudges this for next time.';if(earSet().unit===6){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';return P.n+': new material at '+pc(sp[0])+' of the singer\'s speed, first reviews at '+pc(sp[Math.min(1,sp.length-1)])+', then real speed once a piece is settled. Pace also sets how long each held note and each "on your own" lasts. Nothing ever goes faster than the singer.'}if(earSet().unit===5){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';
-    return P.n+': pieces at '+pc(sp[0])+' of the singer\'s speed'+(k==='hard'||k==='extra'?', each followed by a pass at real speed':'')+'; the whole part works up through '+sp.map(pc).join(', ')+(k==='hard'||k==='extra'?', plus the whole part from memory':'')+'. Each level adds 5%. Nothing ever goes faster than the singer.'}return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
+    return P.n+': pieces at '+pc(sp[0])+' of the singer\'s speed'+(k==='hard'||k==='extra'?', each followed by a pass at real speed':'')+'; the whole part works up through '+sp.map(pc).join(', ')+(k==='hard'||k==='extra'?', plus the whole part from memory when "Singing on your own" is set to Everywhere':'')+'. Each level adds 5%. Nothing ever goes faster than the singer.'}return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
 function earToneVol(){const s=earSet(),u=EARS.run?EARS.u:s.unit;return u===13?lpSet().tone/10:u===14?mpSet().tone/10:(s.vol||0.8)}
 function earPaceShift(d){if([13,14].includes(EARS.run?EARS.u:earSet().unit)){lpSpeedStep(d*5);return}const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){if(EARS.run)earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
   earSave({pace:EAR_PACES[j]});if(EARS.run&&EARS.bg){bgReplanFromNext('Pace '+EAR_PACE[EAR_PACES[j]].n);earUI();return}
@@ -7189,7 +7260,8 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earStart').onclick=earStart;smInit();lpInit();mpInit();vxInit();earViewInit();dailyInit();keyInit();lesInit();
   $('earAnnSet').onchange=()=>earSave({ann:$('earAnnSet').checked});
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
-  $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
+  $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});earSongPlanTxt();if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
+  [['earSongReps','songReps'],['earSongWeight','songWeight'],['earSongAlone','songAlone']].forEach(([id,k])=>{$(id).onchange=()=>{const v=$(id).value;earSave({[k]:k==='songWeight'?+v:v});earSongPlanTxt();if(EARS.run&&EARS.bg)bgReplanFromNext('Practice settings changed')}});
 $('earVoiceN').onchange=()=>earVoiceSet($('earVoiceN').value);$('earVoiceN2').onchange=()=>earVoiceSet($('earVoiceN2').value);$('earVoiceDn2').onclick=()=>earVoiceSet(songVoiceLvl()-1);$('earVoiceUp2').onclick=()=>earVoiceSet(songVoiceLvl()+1);$('earVoiceDn').onclick=()=>earVoiceSet(songVoiceLvl()-1);$('earVoiceUp').onclick=()=>earVoiceSet(songVoiceLvl()+1);
 $('earSong').onchange=()=>{earSave({song:$('earSong').value});ES.id=null;renderEars()};
 $('earPwGo').onclick=async()=>{const pw=$('earPw').value;if(!pw.trim())return;$('earPwGo').disabled=true;const ok=await unlockPriv('psalm23',pw,$('earPwMsg'));$('earPwGo').disabled=false;if(ok){P23A=await privAudio('psalm23');ES.id=null;$('earPw').value='';if(BZ_MEL_LOCKED){try{if(await unlockPriv('bzmel',pw,{textContent:''}))await bzMelLoad()}catch(e){}}renderEars()}};
@@ -8239,7 +8311,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=24;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=25;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
@@ -8500,7 +8572,7 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
       if(also){const rec=chSongRec(nm);let id=null;try{id=await MyDB.put(rec)}catch(e1){rec.audio=null;id=await MyDB.put(rec)}try{refreshMySongs()}catch(e){}CHM.savedId=id;$('sgToLoop').hidden=id==null}
       st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs, with every note exactly as written here.':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
   $('sgToLoop').onclick=()=>{if(CHM.savedId==null)return;try{earSave({unit:13});lpSave({song:'my-'+CHM.savedId});SM.id=null}catch(e){}showTab('practice');try{renderEars()}catch(e){}setTimeout(()=>{const b=$('lpBox');if(b){let d=b.closest('details');while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}b.scrollIntoView({behavior:'smooth',block:'start'})}},400)};
-  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgSylList,sgFollow,sgMelById,CHM};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
+  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
   chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?'tone':s.src)}
 

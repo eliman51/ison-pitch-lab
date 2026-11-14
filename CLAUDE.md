@@ -161,6 +161,19 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - `sgFollow` knows refrains (`M.refrain`): a line of only Hallelujah/Alleluia is sung the refrain way, and with
   refrains present the first line after one takes the first formula and the rest the second.
 
+## Learn a song settings (14 November 2026)
+
+- Ears only, Learn a song (unit 5, `earSongDrills`, `earSongFit`). Eli asked to drop the "on your own" (from memory)
+  pass on long stretches: he only waits through it. Setting `songAlone`: `short` (default; notes, moves, pieces keep
+  it; joins, whole part and recording sing along once more instead), `never`, `all` (old way). `lwac`/`hold` take
+  `noAlone` and `reps`.
+- `songReps` (auto or a number): times each note, move, piece and join is sung with the tone. With a number, moves
+  are one step each, nothing is cut, and a lesson longer than the session continues next session from the step
+  saved in `ison-ears` `songPos` (per song and part, `esPosSave` from `bgLog`).
+- `songWeight` 0 to 100: shares the count out by difficulty (`esShare`, rated 1 to 10 by `esNoteD`, `esMoveD`,
+  `esSeqD` from the notes alone: jump size, jumps up, tritone, cents off the piano note, quick notes, high or low,
+  turns, direction changes). A first guess; Eli has not judged the ratings yet. In Ears only the app does not hear him.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
