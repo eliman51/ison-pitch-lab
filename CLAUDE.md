@@ -175,7 +175,8 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   turns, direction changes). A first guess; Eli has not judged the ratings yet. In Ears only the app does not hear him.
 - Master a song (unit 6) has the same three settings, kept separately: `smReps`, `smWeight`, `smAlone` (`smSetReps`,
   `smDx` rates every note, move, formula, phrase, piece and hard spot with the same `esNoteD`/`esMoveD`/`esSeqD`, `smTimes`).
-  `short` keeps the on-your-own pass on notes, moves, formulas and hard spots; whole phrases, joins, runs and the finish
+  Default `never` (Eli, 15 November 2026: singing from memory is not useful to him, so by default none of it). `short`
+  keeps the on-your-own pass on notes, moves, formulas and hard spots; whole phrases, joins, runs and the finish
   are sung with the tone, and Start anywhere and Fill the gap are left out. The Memory focus counts as `all`. A number in
   `smReps` replaces the fading stages' counts (mature items are sung with the tone that many times too). Daily practice
   uses the same plan, so the settings apply there as well.
