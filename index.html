@@ -1125,14 +1125,20 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <div class="grid2"><div class="field"><label class="label" for="smPitch">Tone pitch</label><select id="smPitch"><option value="scale">The singer's scale</option><option value="exact">Exactly as sung</option><option value="western">Nearest Western note</option></select></div>
           <div class="field"><label class="label" for="smDroneSel">Ison drone</label><select id="smDroneSel"><option value="drills">In note and memory drills</option><option value="always">Under everything</option><option value="off">Off</option></select></div></div>
         <div class="field"><label class="label" for="smVoiceN">Singer's voice under the tones: 1 to 10</label><div class="row voicerow"><button id="smVoiceDn" aria-label="Quieter">−</button><input type="number" id="smVoiceN" inputmode="numeric" min="0" max="10" step="1"><button id="smVoiceUp" aria-label="Louder">+</button></div><p class="status" id="smVoiceTxt" style="margin:4px 0 0"></p></div>
+        <div class="field"><label class="label" for="smRepsSel">Times through each note, move and phrase</label><select id="smRepsSel"><option value="auto">Set by the pace and how well you know it</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>10</option><option>12</option><option>15</option><option>20</option></select></div>
+        <div class="field"><label class="label" for="smWeightSel">Extra time on the hard spots</label><select id="smWeightSel"><option value="0">Off: every bit gets the same</option><option value="25">A little</option><option value="50">Medium</option><option value="75">A lot</option><option value="100">Full: hard bits get the most, easy ones the least</option></select></div>
+        <div class="field"><label class="label" for="smAloneSel">Singing on your own, from memory</label><select id="smAloneSel"><option value="short">Short bits only: notes, moves, formulas, hard spots</option><option value="never">Never: always sing with the tone</option><option value="all">Everywhere, whole phrases and the finish too (the old way)</option></select></div>
+        <p class="status" id="smPlanNote" style="margin:4px 0 0"></p>
         <details class="opts"><summary id="smPlanSum">Next session</summary><ol class="hlib smplan" id="smPlanList"></ol></details>
         <details class="opts"><summary>How Master a song works</summary><ul class="hlib">
           <li><b>The song map.</b> The whole recording is measured once. Every main note gets the singer's exact pitch. His notes cluster into his own scale (some of them sit between Western notes), and the app lists every move between two of his notes, every melodic formula that comes back (chant melodies reuse formulas, many of them cadences that close a phrase), the turns inside words, and the hard spots: big leaps, in-between notes, quick notes, dense turns and rare notes.</li>
           <li><b>Just in time.</b> Before each new phrase you meet the notes it needs over the ison, its tricky moves, and any formula that starts there. Then the phrase itself (in pieces, then whole), then its hard spot. A new phrase only opens when no more than one other is still settling, so depth comes before breadth.</li>
           <li><b>Spaced and mixed.</b> Everything you have met comes back on a schedule: about 10 hours, then 1, 2, 4, 8 and 16 days. Reviews are mixed together instead of grouped, which feels harder but sticks better.</li>
-          <li><b>Support fades.</b> New: slow, with the singer and the tone, several times. Learning: one pass, then on your own. Reviewing: real speed, then only the first note and you sing the rest from memory. Mastered: from memory, checked against the singer alone. Never faster than the singer.</li>
+          <li><b>Support fades.</b> New: slow, with the singer and the tone, several times. Learning: one pass, then on your own. Reviewing: real speed, then only the first note and you sing the rest from memory. Mastered: from memory, checked against the singer alone. Never faster than the singer. With "Singing on your own" set to short bits only (the default), whole phrases at every stage are sung with the tone instead, one more time.</li>
+          <li><b>Times through each bit.</b> "Set by the pace" uses the counts above. Pick a number and every note, move, formula, phrase and hard spot is sung with the tone that many times, at every stage.</li>
+          <li><b>Extra time on the hard spots.</b> Every note, move, formula, phrase and hard spot is rated 1 to 10 from the notes alone (the same rating as Learn a song): big jumps, jumps up, notes between piano keys, quick notes, very high or low notes, turns and changes of direction. Off gives every bit the same count; Full gives hard bits up to about 2.5 times the average and easy ones as few as 1. The average stays what you picked.</li>
           <li><b>Hard spots, deliberately.</b> Zoom in on the hardest move, the window slowly, then with one note before and after, then from memory at real speed.</li>
-          <li><b>Memory work.</b> Start anywhere (a random phrase from its first note), fill the gap (the singer drops out for one phrase in the middle), everything so far, and every session ends from memory over the ison.</li>
+          <li><b>Memory work.</b> Only with "Singing on your own" set to Everywhere, or the Memory focus: start anywhere (a random phrase from its first note), fill the gap (the singer drops out for one phrase in the middle), everything so far, and the session ends from memory over the ison. Otherwise everything so far is sung twice with the tone and the session ends singing it through with the tone.</li>
           <li><b>Fine detail.</b> "Which is the singer's note?" plays his in-between note and the nearest Western note; then you sing his. Phrases with every turn come in once the main notes are settled.</li>
           <li><b>Your ratings.</b> After a session, tap what felt shaky or easy. During a session, "This one felt shaky" marks the current drill.</li>
           <li><b>Tone pitch.</b> "The singer's scale" plays each note at the pitch he uses for that step on average, so the same note is always the same pitch. "Exactly as sung" follows each note as he sang it that time. "Nearest Western note" rounds to the closest half step in his key.</li>
@@ -5148,18 +5154,20 @@ const esClamp=d=>Math.max(1,Math.min(10,d));
 function esMid(){const a=ES.core.map(n=>n.m).sort((p,q)=>p-q);return a.length?a[a.length>>1]:S.home}
 function esCents(n){return n.mX!=null&&n.mR!=null?Math.abs(n.mX-n.mR)*100:0}
 function esTurns(a,b){return(ES.fine||[]).filter(n=>n.t0>=a-0.06&&n.t0<b).length}
-function esNoteD(n,mid){const ex=earSet().songPitch==='exact';return esClamp(1+Math.min(2.5,esCents(n)/25*(ex?1:0.5))+Math.max(0,n.m-mid-2)*0.5+Math.max(0,mid-n.m-4)*0.3+(n.t1-n.t0<0.3?0.8:0))}
-function esMoveD(A,B,mid){const s=B.m-A.m,iv=Math.round(Math.abs(s)),ex=earSet().songPitch==='exact',q=Math.min(A.t1-A.t0,B.t1-B.t0);
+function esNoteD(n,mid,o){const ex=o?o.ex:earSet().songPitch==='exact';return esClamp(1+Math.min(2.5,esCents(n)/25*(ex?1:0.5))+Math.max(0,n.m-mid-2)*0.5+Math.max(0,mid-n.m-4)*0.3+(n.t1-n.t0<0.3?0.8:0))}
+function esMoveD(A,B,mid,o){const s=B.m-A.m,iv=Math.round(Math.abs(s)),ex=o?o.ex:earSet().songPitch==='exact',tu=o?o.tu:esTurns,q=Math.min(A.t1-A.t0,B.t1-B.t0);
   return esClamp(1+(iv<=2?0.5*iv:1+0.8*(iv-2))+(s>0&&iv>=3?0.7:0)+(iv===6||iv===11?1:0)+Math.min(2,esCents(B)/25*(ex?0.9:0.45))+Math.max(0,B.m-mid-2)*0.45+Math.max(0,mid-B.m-4)*0.25
-    +(q<0.22?1.4:q<0.38?0.7:0)+Math.min(1.5,Math.max(0,esTurns(A.t0,B.t1)-2)*0.4))}
-function esSeqD(ns,mid){if(ns.length<2)return ns.length?esNoteD(ns[0],mid):1;const mv=[];let back=0;
-  for(let i=1;i<ns.length;i++){mv.push(Math.round(ns[i].m)===Math.round(ns[i-1].m)?1:esMoveD(ns[i-1],ns[i],mid));if(i>1&&(ns[i-1].m-ns[i-2].m)*(ns[i].m-ns[i-1].m)<0)back++}
+    +(q<0.22?1.4:q<0.38?0.7:0)+Math.min(1.5,Math.max(0,tu(A.t0,B.t1)-2)*0.4))}
+function esSeqD(ns,mid,o){if(ns.length<2)return ns.length?esNoteD(ns[0],mid,o):1;const mv=[];let back=0;
+  for(let i=1;i<ns.length;i++){mv.push(Math.round(ns[i].m)===Math.round(ns[i-1].m)?1:esMoveD(ns[i-1],ns[i],mid,o));if(i>1&&(ns[i-1].m-ns[i-2].m)*(ns[i].m-ns[i-1].m)<0)back++}
   const span=ns[ns.length-1].t1-ns[0].t0,rate=ns.length/Math.max(0.3,span),ms=ns.map(n=>n.m),rng=Math.max(...ms)-Math.min(...ms),mean=mv.reduce((a,b)=>a+b,0)/mv.length;
-  return esClamp(0.6*Math.max(...mv)+0.4*mean+0.35*back+(rate>3?0.8:rate>2.2?0.4:0)+Math.max(0,rng-5)*0.15+Math.min(1,Math.max(0,esTurns(ns[0].t0,ns[ns.length-1].t1)-ns.length)*0.2))}
+  return esClamp(0.6*Math.max(...mv)+0.4*mean+0.35*back+(rate>3?0.8:rate>2.2?0.4:0)+Math.max(0,rng-5)*0.15+Math.min(1,Math.max(0,(o?o.tu:esTurns)(ns[0].t0,ns[ns.length-1].t1)-ns.length)*0.2))}
 /* "Extra time on the hard spots": 0 shares the times out evenly; 100 gives each bit times in proportion to how hard it is
-   measured from 1 up, so a bit rated 1 gets the least (average stays what you picked; never below 1, at most 2.5 times the average) */
+   measured from 1 up, so a bit rated 1 gets the least (never below 1, at most 2.5 times your number). The yardstick is the
+   average rating of that kind of bit, held between 3.5 and 6.5 on the 1 to 10 scale: so a kind that is all easy (single notes)
+   gets fewer than your number and a kind that is all hard (hard spots) more, while moves and pieces average about your number. */
 function esWeight(){return Math.max(0,Math.min(100,+earSet().songWeight||0))/100}
-function esShare(base,d,ds){const w=esWeight();if(!w||ds.length<2||base<=0)return base;const mean=ds.reduce((a,b)=>a+b-1,0)/ds.length;if(!(mean>0.05))return base;return Math.max(1,Math.round(base*((1-w)+w*Math.max(0.2,Math.min(2.5,(d-1)/mean)))))}
+function esShare(base,d,ds,w){if(w==null)w=esWeight();if(!w||ds.length<2||base<=0)return base;const mean=Math.max(2.5,Math.min(5.5,ds.reduce((a,b)=>a+b-1,0)/ds.length));return Math.max(1,Math.round(base*((1-w)+w*Math.max(0.2,Math.min(2.5,(d-1)/mean)))))}
 /* when not everything fits: in order of the song, or with weighting on, the hardest ones */
 function esKeep(n,ds,k){const ix=[...Array(n).keys()];if(k>=n)return ix;if(!esWeight())return ix.slice(0,k);return ix.sort((a,b)=>ds[b]-ds[a]||a-b).slice(0,k).sort((a,b)=>a-b)}
 function esSetReps(){const v=earSet().songReps;return v==null||v==='auto'?null:Math.max(1,Math.min(30,Math.round(+v)||1))}
@@ -6370,7 +6378,7 @@ function smDegrees(){const ns=[];SM.phr.forEach(p=>p.core.forEach(n=>ns.push(n))
     return{i,m:d.m,mR,c,n:mine.length,dur,share:dur/T,name:nameOf(mR).replace(/-?\d+$/,''),src:best?(best.hs||[best.t0+(best.t1-best.t0)*0.22,best.t1-(best.t1-best.t0)*0.22]):null,srcM:best?best.mX:d.m}})}
 const smDegName=d=>d?d.name+(Math.abs(d.c)>=20?(d.c>0?' +':' ')+d.c+'¢':''):'';
 function smIntervalWords(s){const a=Math.abs(s),r=Math.round(a);return(s>0?'up ':'down ')+(r===0?'a tiny bit':r===1?'a half step':r===2?'a whole step':r===3?'a minor third':r===4?'a major third':r===5?'a fourth':r===6?'a tritone':r===7?'a fifth':r===8?'a minor sixth':r===9?'a major sixth':r===12?'an octave':r+' half steps')}
-function smLoadMap(map){SM.off=map.off;SM.phr=map.phr.map((p,i)=>({i,t0:p.t0,t1:p.t1,mel:p.mel||null,core:p.core.map(n=>Object.assign({},n)),fine:p.fine||[]}));SM.vx=map.vx||null;SM.fine=!!map.audio;
+function smLoadMap(map){SM.dx=null;SM.off=map.off;SM.phr=map.phr.map((p,i)=>({i,t0:p.t0,t1:p.t1,mel:p.mel||null,core:p.core.map(n=>Object.assign({},n)),fine:p.fine||[]}));SM.vx=map.vx||null;SM.fine=!!map.audio;
   SM.deg=smDegrees();const st=smSong();
   const tn=(map.tonicR!=null?Math.round(map.tonicR)+map.off:SM.deg[0]&&SM.deg[0].m);let ti=0,bd=99;SM.deg.forEach((d,i)=>{const e=Math.abs(d.m-tn);if(e<bd){bd=e;ti=i}});
   SM.isonAuto=ti;SM.isonD=st.ison!=null&&SM.deg[st.ison]?st.ison:ti;
@@ -6427,7 +6435,7 @@ function smCur(){const[a,b]=smRange(),out=[],seenD={},seenM={},seenF={};const pu
     push('p'+p);SM.hs.filter(h=>h.p===p).forEach(h=>push('h'+h.i))}
   return out}
 function smLabel(id){const t=id[0],r=id.slice(1);if(t==='d'){const d=SM.deg[+r];return'Note '+smDegName(d)+(+r===SM.isonD?' (the ison)':'')}
-  if(t==='m'){const m=SM.mv.find(x=>x.k===r);return m?'Move '+m.name:'Move'}if(t==='f'){const f=SM.fm[+r];return f?f.name+', '+smOccIn(f.occ).length+' times':'Formula'}
+  if(t==='m'){const m=SM.mv.find(x=>x.k===r);return m?'Move '+m.name:'Move'}if(t==='f'){const f=SM.fm[+r];return f?f.name+' ('+smOccIn(f.occ).length+' places in the song)':'Formula'}
   if(t==='p')return'Phrase '+(+r+1);if(t==='h'){const h=SM.hs[+r];return h?h.name:'Hard spot'}return id}
 /* ---- building the drills ---- */
 function smPitchMode(){return earSet().smPitch||'scale'}
@@ -6450,7 +6458,7 @@ function smLWAC(seq,o){o=o||{};const dr=o.drone!=null?o.drone:smDrone(),out=[],q
   if(o.listen!==false)out.push({k:'cue',ph:'L',noAnn:o.noAnn},{k:'play',ph:'L',seq,drone:dr});
   for(let i=0;i<(o.reps==null?1:o.reps);i++)out.push({k:'cue',ph:'W',say:i?'Again':null,vo:(!i&&o.wVo)?o.wVo:undefined},{k:'play',ph:'W',seq,drone:dr,vMode:o.wMode});
   if(o.solo)out.push({k:'cue',ph:'W',say:'Singer only'},{k:'play',ph:'W',seq,drone:dr,vMode:'solo'});
-  out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:q*(o.aloneX||1),beat:0,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq,drone:dr,vMode:o.cMode},{k:'gap',d:1});return out}
+  if(!o.noAlone)out.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:q*(o.aloneX||1),beat:0,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq,drone:dr,vMode:o.cMode});out.push({k:'gap',d:1});return out}
 /* first note only, then the rest from memory, then the check */
 function smCueAlone(seq,o){o=o||{};const dr=o.drone!=null?o.drone:smDrone(),f=seq[0];return[{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:[{m:f.m,d:2.2,src:f.src}],drone:dr},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(seq),beat:0,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq,drone:dr,vMode:o.cMode},{k:'gap',d:1.2}]}
 function smPieces(c){const out=[];let cur=[];c.forEach((n,i)=>{cur.push(n);const nx=c[i+1],gap=nx?nx.t0-n.t1:1,long=n.t1-n.t0>0.9;if(!nx||(cur.length>=3&&(gap>0.15||long))||cur.length>=4){out.push(cur);cur=[]}});
@@ -6458,8 +6466,34 @@ function smPieces(c){const out=[];let cur=[];c.forEach((n,i)=>{cur.push(n);const
 const smNumVo=n=>n>=1&&n<=30?['num_'+n]:[];
 function smPhraseVo(p){return['sm_phrase'].concat(smNumVo(p+1))}
 function smDegSeq(d,secs){return[{m:smPitchMode()==='western'?d.mR:d.m,d:secs,src:smDegSrc(d)}]}
+/* ---- Master a song: the same practice settings as Learn a song, kept separately (smReps, smWeight, smAlone) ----
+   smReps: times each bit is sung with the tone (auto: by pace and stage). smWeight 0 to 100: extra times on the hard bits,
+   rated 1 to 10 from the notes alone with the Learn a song rating. smAlone: 'short' (default: notes, moves, formulas and
+   hard spots keep the on-your-own pass; whole phrases, joins, runs and the finish are sung with the tone instead, and the
+   memory-only drills, start anywhere and fill the gap, are left out), 'never', 'all' (the old way). The Memory focus
+   always counts as 'all'. */
+function smSetReps(){const v=earSet().smReps;return v==null||v==='auto'?null:Math.max(1,Math.min(30,Math.round(+v)||1))}
+function smWeight(){return Math.max(0,Math.min(100,+earSet().smWeight||0))/100}
+function smAloneMode(){const s=earSet();return s.smFocus==='mem'?'all':(s.smAlone||'short')}
+function smDx(){const[a,b]=smRange(),key=SM.id+'|'+SM.key+'|'+smPitchMode()+'|'+a+'-'+b+'|'+SM.isonD;if(SM.dx&&SM.dx.key===key)return SM.dx;
+  const ft=[];SM.phr.forEach(p=>(p.fine||[]).forEach(f=>ft.push(f.t0)));
+  const o={ex:smPitchMode()!=='western',tu:(x,y)=>{let c=0;for(const t of ft)if(t>=x-0.06&&t<y)c++;return c}},nn=n=>({m:n.m,mX:n.mX,mR:n.m,t0:n.t0,t1:n.t1});
+  const ms=[];for(let p=a;p<=b;p++)SM.phr[p].core.forEach(n=>ms.push(n.m));ms.sort((x,y)=>x-y);const mid=ms.length?ms[ms.length>>1]:60;
+  const d={},ks={d:[],m:[],f:[],p:[],h:[],pc:[]};
+  smCur().forEach(id=>{const t=id[0],r=id.slice(1);let v=null;
+    if(t==='d'){const g=SM.deg[+r];if(g)v=esNoteD({m:g.mR,mX:g.m,mR:g.mR,t0:0,t1:1},mid,o)}
+    else if(t==='m'){const m=SM.mv.find(x=>x.k===r);if(m){const q=smOccIn(m.occ)[0],c=SM.phr[q.p].core;v=esMoveD(nn(c[q.j-1]),nn(c[q.j]),mid,o)}}
+    else if(t==='f'){const f=SM.fm[+r];if(f){const q=smOccIn(f.occ)[0];v=esSeqD(SM.phr[q.p].core.slice(q.j,q.j+f.n).map(nn),mid,o)}}
+    else if(t==='p'){const c=SM.phr[+r].core;v=esSeqD(c.map(nn),mid,o);smPieces(c).forEach((pc,k)=>{const x=esSeqD(pc.map(nn),mid,o);d['pc'+r+'.'+k]=x;ks.pc.push(x)})}
+    else if(t==='h'){const h=SM.hs[+r];if(h)v=esSeqD(SM.phr[h.p].core.slice(h.j,h.j+h.w).map(nn),mid,o)}
+    if(v!=null){d[id]=v;ks[t].push(v)}});
+  SM.dx={key,d,ks,o,mid,nn};return SM.dx}
+/* times through one bit: your number (or the stage's own count, one more when its on-your-own pass is dropped), shared out by difficulty */
+function smTimes(auto,kind,dv,dropped){const RS=smSetReps(),b=RS!=null?RS:auto+(dropped?1:0);if(dv==null)return b;return esShare(b,dv,smDx().ks[kind]||[],smWeight())}
+const smX=n=>(smSetReps()!=null||smWeight()>0)?', '+n+(n===1?' time':' times'):'';
 function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s!=null?it.s:smIt(id).s,mode=it.mode||'rev',isNew=mode==='new'||s===0;
   const D=(name,vo,steps,items)=>({name,intro:'',vo,steps,smItems:items||(id?[id]:[]),smMode:mode,vsrc:'SM'});
+  const AL=smAloneMode(),aS=AL!=='never',aL=AL==='all',RS=smSetReps(),X=smDx(),dv=X.d[id];
   if(it.k==='scale'){const RD=smRangeDegs(),intro=SM.deg.filter(d=>RD.has(d.i)&&(smIt('d'+d.i).s>=1||d.i===SM.isonD)).sort((a,b)=>a.m-b.m),ison=smIsonM(),idr=smIsonDr(),beat=1.3*P.l;
     const up=intro.map(d=>({m:smPitchMode()==='western'?d.mR:d.m,d:beat,src:smDegSrc(d)})),walk=up.concat(up.slice(0,-1).reverse());
     const done=intro.length>1&&intro.every(d=>smIt('d'+d.i).s>=3);const st=[{k:'cue',ph:'L',say:'Listen',noAnn:true},{k:'play',ph:'L',seq:[{m:ison,d:3*P.l,src:smDegSrc(SM.deg[SM.isonD])}],drone:idr}];
@@ -6467,50 +6501,59 @@ function smDrill(it){const P=earPace(),id=it.id||'',t=id[0],r=id.slice(1),s=it.s
     else st.push({k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ison,d:6*P.hw,src:smDegSrc(SM.deg[SM.isonD])}],drone:idr});
     st.push({k:'gap',d:0.8});return D('The ison and the scale',['sm_scale'],st,[])}
   if(t==='d'){const d=SM.deg[+r];if(!d)return null;const isI=d.i===SM.isonD,dr=isI?null:smIsonDr(),near=Math.abs(d.c)>=25?[d.c>0?'sm_hi':'sm_lo']:[];
-    if(isNew||s<=2){const L0=3*P.l,Wd=(isNew?8:5)*P.hw,A0=(isNew?4:5)*P.a,C0=4*P.c,st=[{k:'say',text:'',vo:[voNote(d.mR)].concat(near)},{k:'cue',ph:'L'},{k:'play',ph:'L',seq:smDegSeq(d,L0),drone:dr},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:smDegSeq(d,Wd),drone:dr,swell:!isNew}];
-      if(isNew&&P.reps>1)st.push({k:'cue',ph:'W',say:'Again'},{k:'play',ph:'W',seq:smDegSeq(d,Wd*0.7),drone:dr});
-      st.push({k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A0,beat:1,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,C0),drone:dr},{k:'gap',d:1});
-      return D(smLabel(id)+(isNew?' (new)':''),['sm_note'],st)}
+    if(isNew||s<=2||RS!=null||!aS){const L0=3*P.l,Wd=(isNew?8:5)*P.hw,A0=(isNew?4:5)*P.a,C0=4*P.c,n=smTimes(isNew&&P.reps>1?2:1,'d',dv,!aS),st=[{k:'say',text:'',vo:[voNote(d.mR)].concat(near)},{k:'cue',ph:'L'},{k:'play',ph:'L',seq:smDegSeq(d,L0),drone:dr},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:smDegSeq(d,Wd),drone:dr,swell:!isNew}];
+      for(let k=1;k<n;k++)st.push({k:'cue',ph:'W',say:'Again'},{k:'play',ph:'W',seq:smDegSeq(d,Wd*0.7),drone:dr});
+      if(aS)st.push({k:'cue',ph:'A',say:'Keep it going'},{k:'quiet',ph:'A',d:A0,beat:1,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,C0),drone:dr});st.push({k:'gap',d:1});
+      return D(smLabel(id)+(isNew?' (new)':'')+smX(n),['sm_note'],st)}
     const idr=smIsonDr(),st=[{k:'say',text:'',vo:['sm_findn',voNote(d.mR)].concat(near)}];if(idr==null)st.push({k:'play',ph:'L',seq:[{m:smIsonM(),d:2,src:smDegSrc(SM.deg[SM.isonD])}]});st.push({k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:4.5*P.a,beat:0,drone:idr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smDegSeq(d,3.5),drone:idr},{k:'gap',d:1});
     return D('Find '+smDegName(d)+' from the ison',['sm_find'],st)}
   if(t==='m'){const m=SM.mv.find(x=>x.k===r);if(!m)return null;const o=smOccIn(m.occ)[0],c=SM.phr[o.p].core,A=c[o.j-1],B=c[o.j];
     const seq=[{m:smM(A),d:2,src:[smMid(A)[0],B.t0]},{m:smM(B),d:3,src:[B.t0,smMid(B)[1]]}];
-    if(isNew||s<=2)return D(smLabel(id)+(isNew?' (new)':''),['sm_move'],smLWAC(seq,{reps:isNew?P.reps:1}));
+    if(isNew||s<=2||RS!=null||!aS){const n=smTimes(isNew?P.reps:1,'m',dv,!aS);return D(smLabel(id)+(isNew?' (new)':'')+smX(n),['sm_move'],smLWAC(seq,{reps:n,noAlone:!aS}))}
     return D('Find the move '+m.name,['sm_move'],[{k:'cue',ph:'L'},{k:'play',ph:'L',seq:[seq[0]]},{k:'cue',ph:'A',noAnn:true},{k:'quiet',ph:'A',d:3,beat:0},{k:'cue',ph:'C'},{k:'play',ph:'C',seq},{k:'gap',d:1}])}
   if(t==='f'){const f=SM.fm[+r];if(!f)return null;const occ=smOccIn(f.occ).map(o=>SM.phr[o.p].core.slice(o.j,o.j+f.n)),vo=['sm_formula'].concat(smNumVo(f.i+1),f.cad?['sm_cadence']:[]);
-    if(isNew)return D(smLabel(id)+' (new)',vo,smLWAC(smSeq(occ[0],smSpeed(0)),{reps:P.reps}));
-    if(s<=2){const st=smLWAC(smSeq(occ[0],smSpeed(s)),{reps:1,noAnn:true});if(occ[1])st.unshift({k:'say',text:'',vo:['sm_same']},{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:smSeq(occ[0],1),vMode:'solo'},{k:'gap',d:0.5},{k:'play',ph:'L',seq:smSeq(occ[1],1),vMode:'solo'},{k:'gap',d:0.8});return D(smLabel(id),vo,st)}
+    if(isNew){const n=smTimes(P.reps,'f',dv,!aS);return D(smLabel(id)+' (new)'+smX(n),vo,smLWAC(smSeq(occ[0],smSpeed(0)),{reps:n,noAlone:!aS}))}
+    if(s<=2||RS!=null||!aS){const n=smTimes(1,'f',dv,!aS),st=smLWAC(smSeq(occ[0],smSpeed(s)),{reps:n,noAnn:true,noAlone:!aS});if(occ[1])st.unshift({k:'say',text:'',vo:['sm_same']},{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:smSeq(occ[0],1),vMode:'solo'},{k:'gap',d:0.5},{k:'play',ph:'L',seq:smSeq(occ[1],1),vMode:'solo'},{k:'gap',d:0.8});return D(smLabel(id)+smX(n),vo,st)}
     const k=(smSong().sessions||0)%occ.length;return D(smLabel(id)+' from memory',vo,smCueAlone(smSeq(occ[k],1)))}
   if(t==='p'){const p=SM.phr[+r];if(!p)return null;const c=p.core,vo=smPhraseVo(p.i);
-    if(isNew){const st=[];smPieces(c).forEach(pc=>st.push(...smLWAC(smSeq(pc,smSpeed(0)),{reps:P.reps,wVo:['sm_hum']})));st.push(...smLWAC(smSeq(c,smSpeed(0)),{reps:1,noAnn:true,wVo:['sm_hum']}));
-      const sp=smSpeeds();if(sp.length>1)st.push({k:'say',text:'',vo:['pct_'+Math.round(sp[sp.length-1]*100)]},...smLWAC(smSeq(c,sp[sp.length-1]),{listen:false,reps:1,noAnn:true}));return D('Phrase '+(p.i+1)+' (new)',vo.concat(['sm_new']),st)}
-    if(s<=2)return D('Phrase '+(p.i+1)+' review',vo,smLWAC(smSeq(c,smSpeed(s)),{reps:1,noAnn:true,solo:earSet().smFocus==='fine'}).concat(smCueAlone(smSeq(c,1))));
-    if(s<=4)return D('Phrase '+(p.i+1)+' at real speed',vo,[{k:'cue',ph:'W',vo:['sm_words']},{k:'play',ph:'W',seq:smSeq(c,1),drone:smDrone()}].concat(smCueAlone(smSeq(c,1))));
+    if(isNew){const st=[],pn=[];smPieces(c).forEach((pc,k)=>{const n=smTimes(P.reps,'pc',X.d['pc'+p.i+'.'+k],!aS);pn.push(n);st.push(...smLWAC(smSeq(pc,smSpeed(0)),{reps:n,wVo:['sm_hum'],noAlone:!aS}))});
+      const n=smTimes(1,'p',dv,!aL);st.push(...smLWAC(smSeq(c,smSpeed(0)),{reps:n,noAnn:true,wVo:['sm_hum'],noAlone:!aL}));
+      const sp=smSpeeds();if(sp.length>1)st.push({k:'say',text:'',vo:['pct_'+Math.round(sp[sp.length-1]*100)]},...smLWAC(smSeq(c,sp[sp.length-1]),{listen:false,reps:1,noAnn:true,noAlone:!aL}));
+      const tx=(RS!=null||smWeight()>0)?', pieces '+(Math.min(...pn)===Math.max(...pn)?pn[0]:Math.min(...pn)+' to '+Math.max(...pn))+' times, whole '+n:'';return D('Phrase '+(p.i+1)+' (new)'+tx,vo.concat(['sm_new']),st)}
+    const dr=smDrone();
+    if(s<=2){const n=smTimes(1,'p',dv,!aL);return D('Phrase '+(p.i+1)+' review'+smX(n),vo,smLWAC(smSeq(c,smSpeed(s)),{reps:n,noAnn:true,solo:earSet().smFocus==='fine',noAlone:!aL}).concat(aL?smCueAlone(smSeq(c,1)):[]))}
+    const Wn=n=>{const o=[];for(let k=0;k<n;k++)o.push({k:'cue',ph:'W',vo:k?undefined:['sm_words'],say:k?'Again':null},{k:'play',ph:'W',seq:smSeq(c,1),drone:dr});return o};
+    if(s<=4){const n=smTimes(1,'p',dv,!aL);return D('Phrase '+(p.i+1)+' at real speed'+smX(n),vo,Wn(n).concat(aL?smCueAlone(smSeq(c,1)):[{k:'gap',d:1}]))}
+    if(!aL){const n=smTimes(1,'p',dv,false);return D('Phrase '+(p.i+1)+', with the tone and then the singer alone'+smX(n),vo,smLWAC(smSeq(c,1),{listen:false,reps:n,noAnn:true,solo:true,noAlone:true}))}
+    if(RS!=null){const n=smTimes(1,'p',dv,false);return D('Phrase '+(p.i+1)+' from memory'+smX(n),vo.concat(['dp_memory']),Wn(n).concat(smCueAlone(smSeq(c,1),{cMode:'solo'})))}
     return D('Phrase '+(p.i+1)+' from memory',vo.concat(['dp_memory']),smCueAlone(smSeq(c,1),{cMode:'solo'}))}
   if(t==='h'){const h=SM.hs[+r];if(!h)return null;const c=SM.phr[h.p].core,win=c.slice(h.j,h.j+h.w),ext=c.slice(Math.max(0,h.j-1),Math.min(c.length,h.j+h.w+1)),st=[];
     let zi=-1,zs=0;for(let q=1;q<win.length;q++){const z=Math.abs(SM.deg[win[q].deg].m-SM.deg[win[q-1].deg].m);if(z>zs){zs=z;zi=q}}
-    if(zi>0&&zs>=2){const A=win[zi-1],B=win[zi];st.push({k:'say',text:'',vo:['sm_zoom']},...smLWAC([{m:smM(A),d:1.8,src:[smMid(A)[0],B.t0]},{m:smM(B),d:2.6,src:[B.t0,smMid(B)[1]]}],{reps:isNew?2:1}))}
-    st.push(...smLWAC(smSeq(win,smSpeed(Math.min(s,1))),{reps:isNew?2:1}));
-    st.push({k:'say',text:'',vo:['sm_context']},...smLWAC(smSeq(ext,smSpeed(Math.max(1,Math.min(s,2)))),{reps:1,noAnn:true}));
-    st.push(...smCueAlone(smSeq(win,1)));
-    return D(h.name+(h.why.length?': '+h.why.slice(0,2).join(', '):''),['sm_hot'].concat(smPhraseVo(h.p)),st)}
-  if(it.k==='turns'){const p=SM.phr[it.p],f=(p.fine||[]);if(f.length<=p.core.length)return null;return D('Phrase '+(p.i+1)+' with the turns',smPhraseVo(p.i).concat(['dp_turns']),smLWAC(smSeq(f,Math.min(smSpeed(1),0.8),true),{reps:1,noAnn:true}),['p'+p.i])}
+    if(zi>0&&zs>=2){const A=win[zi-1],B=win[zi],zn=smTimes(isNew?2:1,'m',esMoveD(X.nn(A),X.nn(B),X.mid,X.o),!aS);st.push({k:'say',text:'',vo:['sm_zoom']},...smLWAC([{m:smM(A),d:1.8,src:[smMid(A)[0],B.t0]},{m:smM(B),d:2.6,src:[B.t0,smMid(B)[1]]}],{reps:zn,noAlone:!aS}))}
+    const n=smTimes(isNew?2:1,'h',dv,!aS);st.push(...smLWAC(smSeq(win,smSpeed(Math.min(s,1))),{reps:n,noAlone:!aS}));
+    st.push({k:'say',text:'',vo:['sm_context']},...smLWAC(smSeq(ext,smSpeed(Math.max(1,Math.min(s,2)))),{reps:RS!=null?Math.max(1,Math.ceil(n/2)):aS?1:2,noAnn:true,noAlone:!aS}));
+    st.push(...(aS?smCueAlone(smSeq(win,1)):smLWAC(smSeq(win,1),{listen:false,reps:1,noAnn:true,noAlone:true})));
+    return D(h.name+(h.why.length?': '+h.why.slice(0,2).join(', '):'')+smX(n),['sm_hot'].concat(smPhraseVo(h.p)),st)}
+  if(it.k==='turns'){const p=SM.phr[it.p],f=(p.fine||[]);if(f.length<=p.core.length)return null;const n=smTimes(1,'p',X.d['p'+p.i],!aL);return D('Phrase '+(p.i+1)+' with the turns'+smX(n),smPhraseVo(p.i).concat(['dp_turns']),smLWAC(smSeq(f,Math.min(smSpeed(1),0.8),true),{reps:n,noAnn:true,noAlone:!aL}),['p'+p.i])}
   if(it.k==='quiz'){const nn=it.n?SM.phr[it.n.p].core[it.n.j]:null,d=nn?SM.deg[nn.deg]:SM.deg[it.d];if(!d)return null;const ex=nn?nn.mX:d.m,ro=nn?d.m:d.mR,first=it.flip?ro:ex,second=it.flip?ex:ro,qsrc=nn?smMid(nn):smDegSrc(d);
     return D(nn?'How did he sing this '+d.name+' in phrase '+(it.n.p+1)+'?':'Which is the singer\'s '+d.name+'?',['sm_quiz'],[{k:'cue',ph:'L',noAnn:true},{k:'play',ph:'L',seq:[{m:first,d:1.6}],vMode:'tone'},{k:'gap',d:0.5},{k:'play',ph:'L',seq:[{m:second,d:1.6}],vMode:'tone'},{k:'cue',ph:'Q'},{k:'quiet',ph:'Q',d:3,beat:0},
       {k:'say',text:'',vo:[it.flip?'sm_second':'sm_first']},{k:'play',ph:'C',seq:[{m:ex,d:2.5,src:qsrc}],vMode:'solo'},{k:'cue',ph:'W'},{k:'play',ph:'W',seq:[{m:ex,d:4*P.hw,src:qsrc}]},{k:'gap',d:1}],nn?['p'+it.n.p]:['d'+d.i])}
-  if(it.k==='join'){const a=SM.phr[it.a],b=SM.phr[it.b];return D('Join phrases '+(a.i+1)+' and '+(b.i+1),['sm_join'],smLWAC(smSeq(a.core.concat(b.core),it.speed||smSpeed(2)),{reps:1,noAnn:true}),[])}
-  if(it.k==='gap'){const a=SM.phr[it.a],b=SM.phr[it.a+1],c=SM.phr[it.a+2],dr=smDrone();
+  if(it.k==='join'){const a=SM.phr[it.a],b=SM.phr[it.b],n=smTimes(1,'p',Math.max(X.d['p'+a.i]||1,X.d['p'+b.i]||1),!aL);return D('Join phrases '+(a.i+1)+' and '+(b.i+1)+smX(n),['sm_join'],smLWAC(smSeq(a.core.concat(b.core),it.speed||smSpeed(2)),{reps:n,noAnn:true,noAlone:!aL}),[])}
+  if(it.k==='gap'){if(!aL)return null;const a=SM.phr[it.a],b=SM.phr[it.a+1],c=SM.phr[it.a+2],dr=smDrone();
     return D('Fill the gap: phrase '+(b.i+1),['sm_gap'].concat(smPhraseVo(b.i)),[{k:'cue',ph:'W',noAnn:true},{k:'play',ph:'W',seq:smSeq(a.core,1),drone:dr},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(smSeq(b.core,1)),beat:0,drone:dr},{k:'cue',ph:'W',noAnn:true},{k:'play',ph:'W',seq:smSeq(c.core,1),drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq:smSeq(b.core,1),drone:dr},{k:'gap',d:1}],['p'+b.i])}
-  if(it.k==='any'){const p=SM.phr[it.p];return D('Start anywhere: phrase '+(p.i+1),['sm_anywhere'].concat(smPhraseVo(p.i)),smCueAlone(smSeq(p.core,1)),['p'+p.i])}
+  if(it.k==='any'){if(!aL)return null;const p=SM.phr[it.p];return D('Start anywhere: phrase '+(p.i+1),['sm_anywhere'].concat(smPhraseVo(p.i)),smCueAlone(smSeq(p.core,1)),['p'+p.i])}
   if(it.k==='run'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);const seq=smSeq(ns,1),dr=smDrone();
+    if(!aL)return D('Everything so far, twice with the tone: phrases '+(it.a+1)+' to '+(it.b+1),['sm_run'],[{k:'cue',ph:'W',say:'Sing with the singer',noAnn:true},{k:'play',ph:'W',seq,drone:dr},{k:'cue',ph:'W',say:'Again'},{k:'play',ph:'W',seq,drone:dr},{k:'gap',d:1.2}],[]);
     return D('Everything so far: phrases '+(it.a+1)+' to '+(it.b+1),['sm_run'],[{k:'cue',ph:'W',say:'Sing with the singer',noAnn:true},{k:'play',ph:'W',seq,drone:dr},{k:'cue',ph:'A'},{k:'quiet',ph:'A',d:seqDur(seq),beat:0,drone:dr},{k:'cue',ph:'C'},{k:'play',ph:'C',seq,drone:dr,vMode:'solo'},{k:'gap',d:1.2}],[])}
-  if(it.k==='final'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);const idr=smIsonDr();return D((idr==null?'From memory':'From memory over the ison')+': phrases '+(it.a+1)+' to '+(it.b+1),idr==null?['dp_memory']:['sm_isonmem'],smCueAlone(smSeq(ns,1),{drone:idr,cMode:'solo'}),[])}
+  if(it.k==='final'){const ns=[];for(let q=it.a;q<=it.b;q++)ns.push(...SM.phr[q].core);const idr=smIsonDr();
+    if(!aL)return D((idr==null?'Sing it through':'Sing it through over the ison')+': '+(it.a===it.b?'phrase '+(it.a+1):'phrases '+(it.a+1)+' to '+(it.b+1)),['sm_run'],[{k:'cue',ph:'W',say:'Sing with the singer',noAnn:true},{k:'play',ph:'W',seq:smSeq(ns,1),drone:idr==null?smDrone():idr},{k:'gap',d:1.2}],[]);
+    return D((idr==null?'From memory':'From memory over the ison')+': phrases '+(it.a+1)+' to '+(it.b+1),idr==null?['dp_memory']:['sm_isonmem'],smCueAlone(smSeq(ns,1),{drone:idr,cMode:'solo'}),[])}
   return null}
 const smDur=it=>{const d=smDrill(it);return d?earStepsSec(d.steps)+3:0};
 /* ---- the session planner ---- */
 const SM_FOCUS={bal:{n:'Balanced',rev:0.4,new:0.3,int:0.25,hot:1,txt:'Reviews that are due, new material, one hard spot, joining and memory work.'},
   hard:{n:'Hard spots',rev:0.35,new:0.15,int:0.15,hot:3,txt:'More time on the hardest moves and windows of the song, zoomed in, then back in context.'},
-  mem:{n:'Memory',rev:0.35,new:0.15,int:0.45,hot:1,txt:'More singing from memory: start anywhere, fill the gap, first note only.'},
+  mem:{n:'Memory',rev:0.35,new:0.15,int:0.45,hot:1,txt:'More singing from memory: start anywhere, fill the gap, first note only. This focus brings memory work back everywhere, whatever "Singing on your own" says.'},
   fine:{n:'Fine detail',rev:0.35,new:0.2,int:0.15,hot:1,txt:'The in-between notes and the turns: which is the singer\'s note, singer-only passes, phrases with every turn.'},
   whole:{n:'Whole song',rev:0.3,new:0.1,int:0.55,hot:0,txt:'Long runs of everything you have learned in your From to To part, with the singer, alone, and from memory over the ison.'}};
 function smPlan(budget){const now=Date.now(),F=SM_FOCUS[earSet().smFocus||'bal']||SM_FOCUS.bal,cur=smCur(),S0=smSong(),I=id=>smIt(id),sess=S0.sessions||0;
@@ -6591,11 +6634,20 @@ async function renderMaster(){const box=$('earMasterBox'),s=earSet();box.hidden=
   $('smProgress').textContent='Met '+st.intro+' of '+st.tot+' things to learn · '+st.mast+' mastered · phrases: '+st.phL+' solid, '+st.phI+' started, of '+st.ph+(st.due?' · '+st.due+' due for review':'')+'. '+(S0.sessions?S0.sessions+' session'+(S0.sessions>1?'s':'')+' so far. ':'')+(left?(()=>{const remP=smCur().filter(id=>id[0]==='p'&&smIt(id).s===0).length,cap=smCap(s.min*60);const perDay=s.min>=40?2:1;return'A new phrase opens only once the newest ones have had a second session, so at '+s.min+' minutes a day you meet about '+perDay+' new phrase'+(perDay>1?'s':'')+' a day: the remaining '+remP+' in roughly '+Math.max(1,Math.ceil(remP/perDay))+' days. Everything then comes back on a spaced schedule (about 1, 2, 4, 8 and 16 days) until it is mastered, so plan on a few months for the whole song to be solid from memory.'})():'Everything in this range has been met; sessions are now reviews, hard spots and memory work.');
   {const fc=$('smFocus');if(!fc.children.length)Object.keys(SM_FOCUS).forEach(k=>{const bt=document.createElement('button');bt.textContent=SM_FOCUS[k].n;bt.dataset.k=k;bt.onclick=()=>{earSave({smFocus:k});renderMaster()};fc.appendChild(bt)});
     const f=s.smFocus||'bal';[...fc.children].forEach(bt=>bt.setAttribute('aria-pressed',String(bt.dataset.k===f)));$('smFocusTxt').textContent=SM_FOCUS[f].txt}
-  $('smPitch').value=s.smPitch||'scale';$('smDroneSel').value=s.smDrone||'drills';earVoiceShow();
+  $('smPitch').value=s.smPitch||'scale';$('smDroneSel').value=s.smDrone||'drills';$('smRepsSel').value=s.smReps==null?'auto':String(s.smReps);$('smWeightSel').value=String(s.smWeight||0);$('smAloneSel').value=s.smAlone||'short';earVoiceShow();
   smDrawMap();smPhraseInfo();
   const pl=smPlan(Math.max(60,s.min*60-25)),ol=$('smPlanList');ol.innerHTML='';let tt=0;pl.forEach(it=>{const d=smDrill(it);if(!d)return;const sec=earStepsSec(d.steps)+3;const li=document.createElement('li');li.textContent=fmtT(tt)+'  '+d.name;tt+=sec;ol.appendChild(li)});
-  $('smPlanSum').textContent='Next session ('+s.min+' min): '+pl.length+' drills.';
+  $('smPlanSum').textContent='Next session ('+s.min+' min): '+pl.length+' drills.';smPlanNote(pl);
   smRenderRate()}
+/* the line under the practice settings: how the times are shared out, and the hardest bits of the part */
+function smPlanNote(pl){const el=$('smPlanNote');if(!el)return;const s=earSet(),X=smDx(),RS=smSetReps(),w=smWeight(),AL=smAloneMode(),out=[];
+  const fmt=a=>a.length?(Math.min(...a)===Math.max(...a)?String(a[0]):Math.min(...a)+' to '+Math.max(...a)):'';
+  if(RS!=null||w>0){if(RS!=null){const t=k=>X.ks[k].map(v=>esShare(RS,v,X.ks[k],w));out.push('Each bit is sung with the tone '+(w>0?fmt([].concat(t('d'),t('m'),t('pc'),t('h')))+' times (your '+RS+' for a bit of middle difficulty)':RS+(RS===1?' time':' times'))+'.')}
+    else out.push('The pace sets the times; extra time on the hard spots shares them out by difficulty.')}
+  out.push(AL==='never'?'Everything is sung with the tone, nothing from memory.':AL==='all'?(s.smFocus==='mem'&&s.smAlone!=='all'?'The Memory focus brings back singing from memory everywhere.':'Singing on your own after short bits, whole phrases and the finish.'):'On your own only after notes, moves, formulas and hard spots; whole phrases, joins and the finish are sung with the tone.');
+  const top=Object.keys(X.d).filter(id=>id[0]==='m'||id[0]==='h'||id[0]==='f').sort((a,b)=>X.d[b]-X.d[a]).slice(0,3);
+  if(top.length)out.push('Hardest in your part: '+top.map(id=>smLabel(id)+' ('+Math.round(X.d[id])+' of 10)').join(', ')+'.');
+  el.textContent=out.join(' ')}
 function smRenderRate(){const R=$('smRate'),ids=SM.lastIds||[];R.hidden=!ids.length;if(R.hidden)return;const ch=$('smRateChips');ch.innerHTML='';SM.rateSel=SM.rateSel||{};
   ids.forEach(id=>{const bt=document.createElement('button'),v=SM.rateSel[id]||'';bt.textContent=smLabel(id)+(v==='shaky'?' · shaky':v==='easy'?' · easy':'');bt.className=v==='shaky'?'smshaky':v==='easy'?'smeasy':'';
     bt.onclick=()=>{SM.rateSel[id]=v===''?'shaky':v==='shaky'?'easy':'';smRenderRate()};ch.appendChild(bt)})}
@@ -6605,6 +6657,7 @@ function smInit(){
   $('smTo').onchange=()=>{const b=+$('smTo').value,a=Math.min(b,+$('smFrom').value);smPut({from:a,to:b});renderMaster()};
   $('smPitch').onchange=()=>{earSave({smPitch:$('smPitch').value});if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed');else renderMaster()};
   $('smDroneSel').onchange=()=>{earSave({smDrone:$('smDroneSel').value});if(EARS.run&&EARS.bg)bgReplanFromNext('Ison changed');else renderMaster()};
+  [['smRepsSel','smReps'],['smWeightSel','smWeight'],['smAloneSel','smAlone']].forEach(([id,k])=>{$(id).onchange=()=>{const v=$(id).value;earSave({[k]:k==='smWeight'?+v:v});if(EARS.run&&EARS.bg)bgReplanFromNext('Practice settings changed');else renderMaster()}});
   $('smVoiceN').onchange=()=>earVoiceSet($('smVoiceN').value);$('smVoiceDn').onclick=()=>earVoiceSet(songVoiceLvl()-1);$('smVoiceUp').onclick=()=>earVoiceSet(songVoiceLvl()+1);
   $('smMap').onclick=e=>{const r=$('smMap').getBoundingClientRect(),x=e.clientX-r.left;let k=-1;(SM.mapX||[]).forEach(([x0,x1],i)=>{if(x>=x0-2&&x<=x1+2)k=i});if(k<0)return;SM.selP=k;smDrawMap();smPhraseInfo()};
   $('smMarkShaky').onclick=()=>{if(SM.selP==null)return;smRate('p'+SM.selP,'shaky');SM.hs.filter(h=>h.p===SM.selP).forEach(h=>{if(smIt('h'+h.i).s)smRate('h'+h.i,'shaky')});renderMaster()};
@@ -8311,7 +8364,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=25;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=26;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
@@ -8572,7 +8625,7 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
       if(also){const rec=chSongRec(nm);let id=null;try{id=await MyDB.put(rec)}catch(e1){rec.audio=null;id=await MyDB.put(rec)}try{refreshMySongs()}catch(e){}CHM.savedId=id;$('sgToLoop').hidden=id==null}
       st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs, with every note exactly as written here.':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
   $('sgToLoop').onclick=()=>{if(CHM.savedId==null)return;try{earSave({unit:13});lpSave({song:'my-'+CHM.savedId});SM.id=null}catch(e){}showTab('practice');try{renderEars()}catch(e){}setTimeout(()=>{const b=$('lpBox');if(b){let d=b.closest('details');while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}b.scrollIntoView({behavior:'smooth',block:'start'})}},400)};
-  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
+  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel,SM,smPlan,smDrill,smDx,smDur,earSave,earSet,renderMaster,earStepsSec};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
   chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?'tone':s.src)}
 

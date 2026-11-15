@@ -173,6 +173,14 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - `songWeight` 0 to 100: shares the count out by difficulty (`esShare`, rated 1 to 10 by `esNoteD`, `esMoveD`,
   `esSeqD` from the notes alone: jump size, jumps up, tritone, cents off the piano note, quick notes, high or low,
   turns, direction changes). A first guess; Eli has not judged the ratings yet. In Ears only the app does not hear him.
+- Master a song (unit 6) has the same three settings, kept separately: `smReps`, `smWeight`, `smAlone` (`smSetReps`,
+  `smDx` rates every note, move, formula, phrase, piece and hard spot with the same `esNoteD`/`esMoveD`/`esSeqD`, `smTimes`).
+  `short` keeps the on-your-own pass on notes, moves, formulas and hard spots; whole phrases, joins, runs and the finish
+  are sung with the tone, and Start anywhere and Fill the gap are left out. The Memory focus counts as `all`. A number in
+  `smReps` replaces the fading stages' counts (mature items are sung with the tone that many times too). Daily practice
+  uses the same plan, so the settings apply there as well.
+- `esShare` measures against the average rating of that kind of bit, held between 3.5 and 6.5, so all-easy kinds (single
+  notes) get fewer than the chosen number and all-hard kinds (hard spots) more.
 
 ## Every change
 
