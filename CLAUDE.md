@@ -183,6 +183,24 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - `esShare` measures against the average rating of that kind of bit, held between 3.5 and 6.5, so all-easy kinds (single
   notes) get fewer than the chosen number and all-hard kinds (hard spots) more.
 
+## Bible tab: listen and memorize (17 November 2026)
+
+- Eli memorizes scripture (now Psalm 118, Septuagint) by listening while he works with his hands or at the computer,
+  following along with a plain reading voice. The Bible tab (`bbOpen`, everything named `bb...`) is that: pick
+  stanzas (bubbles 1 to 22 with the Hebrew letter names), they are read in order and start over, each stanza
+  once or N times in a row, until a time limit (counted only while it plays; then it stops at the end of the
+  verse). Voice pitch (half steps, -7 to +5) and speed (60% to 180%) change live, also while paused. Tap a verse
+  to read from there. Lock screen: play, pause, next and previous stanza. "Keep all 22 on this phone" saves them
+  for no-internet use (`BlobDB` keys `bb118:N:rev`).
+- The readings: `rd118/N.bin` (packed by `tools/pack118.py <folder> NB_KEY rd118`, run with the singer's Python,
+  which has the lock library). Each holds `{name,text,dur,v}` (`v` = start and end of each of the 8 verses,
+  found by counting words against the syllable timings) and a 64 kbps m4a. Made by the singer (TIGER, defaults)
+  on the `rd2` reading tone at speed 160 (the Song Maker's top speed; about 68 s a stanza). A speech recognizer
+  heard nearly every word of stanza 1. Raise `BB_REV` when the readings are made again.
+- Pitch uses the songs' natural key change (`keyDecode`, `keyRun`), cached in `KeyDB` with only the newest voice
+  per stanza (`ison-bb-keys`); speed is the audio element's own `playbackRate` with the pitch kept.
+- More books later: the Book drop-down is ready for them, but only Psalm 118 exists.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
