@@ -196,7 +196,7 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   which has the lock library). Each holds `{name,text,dur,v}` (`v` = start and end of each of the 8 verses,
   found by counting words against the syllable timings) and a 64 kbps m4a. Made by the singer (TIGER, defaults)
   on the `rd2` reading tone at speed 160 (the Song Maker's top speed; about 68 s a stanza). A speech recognizer
-  heard nearly every word of stanza 1. Raise `BB_REV` when the readings are made again.
+  heard nearly every word of stanza 1. When a stanza is read again, give it a new number in `BB_REVS` so phones fetch it (stanza 20 is 2: Eli changed "pursue" to "persecute" in verse 157, 17 November 2026, also in `n118.bin` and the notebook).
 - Pitch uses the songs' natural key change (`keyDecode`, `keyRun`), cached in `KeyDB` with only the newest voice
   per stanza (`ison-bb-keys`); speed is the audio element's own `playbackRate` with the pitch kept.
 - More books later: the Book drop-down is ready for them, but only Psalm 118 exists.

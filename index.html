@@ -8402,7 +8402,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=28;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=29;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
@@ -8435,19 +8435,19 @@ async function rv118Build(){const st=$('rv118St'),bt=$('rv118Go'),sel=[...$('rv1
    natural key change the songs use (keyDecode, keyRun = psolaShift in a worker), the speed is the player's own
    playbackRate with the pitch kept, so both can change while it reads. */
 const BB_HEB=['Aleph','Beth','Gimel','Daleth','He','Vav','Zayin','Heth','Teth','Yod','Kaph','Lamed','Mem','Nun','Samekh','Ayin','Pe','Tsadi','Qoph','Resh','Shin','Tav'];
-const BB_REV=1;/* raise when the readings are made again, so phones fetch the new ones */
+const BB_REVS={20:2},bbRev=n=>BB_REVS[n]||1;/* a stanza read again gets a new number here, so phones fetch the new one (20: "persecute" in verse 157, Eli's wording) */
 const BB={inited:false,a:null,st:'idle',cur:0,shown:0,rep:0,tok:0,played:0,wall:0,ending:false,endAt:null,verse:-1,mem:{},km:{},kb:{},url:null,silent:null,ld:null,pendT:null,swapping:false,shiftT:0,subT:0};
 function bbSet(){return Object.assign({sel:[],reps:1,mins:60,semi:0,rate:1},store.get('ison-bible',{})||{})}
 function bbSave(o){store.set('ison-bible',Object.assign(bbSet(),o))}
 const bbSel=()=>bbSet().sel.slice().sort((a,b)=>a-b);
 function bbMsg(t){const m=$('bbMsg');if(m)m.textContent=t||''}
 /* one stanza: from this device if it was fetched before, else downloaded once and kept */
-async function bbGet(n){if(BB.mem[n])return BB.mem[n];const k='bb118:'+n+':'+BB_REV;let r=null;try{r=await BlobDB.get(k)}catch(e){}
+async function bbGet(n){if(BB.mem[n])return BB.mem[n];const k='bb118:'+n+':'+bbRev(n);let r=null;try{r=await BlobDB.get(k)}catch(e){}
   if(!r||!r.blob||!r.J){const buf=await privOpen('rd118/'+n+'.bin',NB_KEY);if(!buf)throw new Error('open');const jl=new DataView(buf).getUint32(0);
     r={J:JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl))),blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'})};try{await BlobDB.put(k,r)}catch(e){}}
   BB.mem[n]=r;return r}
 /* the stanza's recording in the chosen voice; each stanza keeps its newest voice on the device */
-async function bbBlob(n,semi){const r=await bbGet(n);if(!semi)return r.blob;const ck='bb118|'+n+'|'+BB_REV+'|'+semi;if(BB.km[ck])return BB.km[ck];if(BB.kb[ck])return BB.kb[ck];
+async function bbBlob(n,semi){const r=await bbGet(n);if(!semi)return r.blob;const ck='bb118|'+n+'|'+bbRev(n)+'|'+semi;if(BB.km[ck])return BB.km[ck];if(BB.kb[ck])return BB.kb[ck];
   BB.kb[ck]=(async()=>{let b=await KeyDB.get(ck);if(!b){const x=await keyDecode(r.blob),w=await keyRun(x,semi);b=new Blob([w],{type:'audio/wav'});
       const idx=store.get('ison-bb-keys',{})||{};if(idx[n]&&idx[n]!==ck)KeyDB.del(idx[n]);idx[n]=ck;store.set('ison-bb-keys',idx);await KeyDB.put(ck,b)}
     const ks=Object.keys(BB.km);if(ks.length>=4)delete BB.km[ks[0]];BB.km[ck]=b;return b})();
@@ -8475,7 +8475,7 @@ function bbStart(n,t){const a=bbEl();try{if(navigator.audioSession)navigator.aud
   bbQuietOthers();BB.played=0;BB.wall=0;BB.ending=false;BB.endAt=null;BB.rep=0;BB.st='loading';bbMsg('');bbMediaStart();bbPlay(n,t,true)}
 async function bbPlay(n,t,play){if(play==null)play=BB.st!=='paused';const tok=++BB.tok;BB.cur=n;BB.ld={n,t:t||0};BB.verse=-1;if(play)BB.st='loading';bbUI();
   let r;try{r=await bbGet(n)}catch(e){if(tok!==BB.tok)return;bbMsg('Stanza '+n+' could not be downloaded. Check the internet, then tap Play. (Use "Keep all 22 on this phone" while you have internet, so it works anywhere.)');BB.st='paused';bbUI();return}
-  if(tok!==BB.tok)return;bbText(n);const semi=bbSet().semi;if(semi&&!BB.km['bb118|'+n+'|'+BB_REV+'|'+semi])bbMsg('Moving the voice for stanza '+n+'. A few seconds, only the first time.');
+  if(tok!==BB.tok)return;bbText(n);const semi=bbSet().semi;if(semi&&!BB.km['bb118|'+n+'|'+bbRev(n)+'|'+semi])bbMsg('Moving the voice for stanza '+n+'. A few seconds, only the first time.');
   let b;try{b=await bbBlob(n,semi)}catch(e){if(tok!==BB.tok)return;bbMsg('The voice could not be moved for stanza '+n+'; reading it as recorded.');b=r.blob}
   if(tok!==BB.tok)return;BB.ld=null;bbMsg('');bbSwap(b,t,play);if(!play){BB.st='paused'}bbUI();bbMedia();bbPrefetch()}
 const bbNextOf=n=>{const sel=bbSel();return sel.find(x=>x>n)||sel[0]};
@@ -8507,7 +8507,7 @@ const bbPitchWords=k=>k===0?'Voice as recorded':'Voice '+Math.abs(k)+(Math.abs(k
 function bbPitch(d){const s=bbSet(),semi=Math.max(-7,Math.min(5,s.semi+d));if(semi===s.semi)return;bbSave({semi});bbUI();clearTimeout(BB.shiftT);BB.shiftT=setTimeout(bbRekey,700)}
 async function bbRekey(){if(BB.st==='idle'||!BB.cur)return;if(BB.ld||!BB.url){const L=BB.ld||{n:BB.cur,t:0};bbPlay(L.n,L.t,BB.st!=='paused');return}/* a stanza still on its way: get it again in the new voice */
   const n=BB.cur,semi=bbSet().semi,tok=++BB.tok;
-  if(semi&&!BB.km['bb118|'+n+'|'+BB_REV+'|'+semi])bbMsg('Moving the voice. A few seconds; it keeps reading meanwhile.');
+  if(semi&&!BB.km['bb118|'+n+'|'+bbRev(n)+'|'+semi])bbMsg('Moving the voice. A few seconds; it keeps reading meanwhile.');
   let b;try{b=await bbBlob(n,semi)}catch(e){if(tok===BB.tok)bbMsg('The voice could not be moved.');return}
   if(tok!==BB.tok||BB.st==='idle'||BB.cur!==n)return;const a=bbEl(),play=BB.st==='playing'||BB.st==='loading';bbSwap(b,a.currentTime||0,play);bbMsg('');bbPrefetch()}
 function bbRate(d){const s=bbSet(),rate=Math.round(Math.max(0.6,Math.min(1.8,s.rate+d))*100)/100;if(rate===s.rate)return;bbSave({rate});const a=BB.a;if(a){a.defaultPlaybackRate=rate;a.playbackRate=rate}bbUI()}
