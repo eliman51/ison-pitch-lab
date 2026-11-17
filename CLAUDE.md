@@ -199,6 +199,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   heard nearly every word of stanza 1. When a stanza is read again, give it a new number in `BB_REVS` so phones fetch it (stanza 20 is 2: Eli changed "pursue" to "persecute" in verse 157, 17 November 2026, also in `n118.bin` and the notebook).
 - Pitch uses the songs' natural key change (`keyDecode`, `keyRun`), cached in `KeyDB` with only the newest voice
   per stanza (`ison-bb-keys`); speed is the audio element's own `playbackRate` with the pitch kept.
+- Ison (Eli asked 17 November 2026): a soft organ tone (same harmonics as the app's tone) mixed into the stanza's audio
+  itself (`bbBlob` over `bbKeyed`), so it keeps going with the phone locked. Volume 0 to 10 (default 3, about a third
+  of the voice's loudness), note: "auto" = the reading note C3 (MIDI 48, `BB_READ_NOTE`) moved with the voice, or any
+  note C2 to C4 (A4 = 440, like the singer). Changes rebuild the current stanza and carry on from the same spot.
 - More books later: the Book drop-down is ready for them, but only Psalm 118 exists.
 
 ## Every change
