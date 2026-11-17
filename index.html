@@ -1771,9 +1771,9 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="bbbar" style="margin-top:0"><button id="bbStop" class="lpplay">Stop</button></div>
     <div class="bbctl"><button id="bbLow" class="lpplay">Lower</button><output id="bbPitchV">Voice as recorded</output><button id="bbHigh" class="lpplay">Higher</button></div>
     <div class="bbctl"><button id="bbSlow" class="lpplay">Slower</button><output id="bbRateV">Speed 100%</output><button id="bbFast" class="lpplay">Faster</button></div>
-    <div class="bbctl"><button id="bbIsoDn" class="lpplay">Quieter</button><output id="bbIsoV">Ison 3 of 10</output><button id="bbIsoUp" class="lpplay">Louder</button></div>
-    <div class="field"><label class="label" for="bbIsoN">Ison note (a held tone under the reading)</label><select id="bbIsoN"></select></div>
-    <p class="status" style="margin:4px 0 0">Change the voice, the speed and the ison any time, even while it reads; it carries on from the same word. The lock screen buttons pause it and skip between stanzas. Tap a verse below to read from there.</p>
+    <div class="bbctl"><button id="bbIsoDn" class="lpplay">Quieter</button><output id="bbIsoV">Tone 3 of 10</output><button id="bbIsoUp" class="lpplay">Louder</button></div>
+    <div class="field"><label class="label" for="bbIsoN">Tone under the reading</label><select id="bbIsoN"></select></div>
+    <p class="status" style="margin:4px 0 0">Change the voice, the speed and the tone any time, even while it reads; it carries on from the same word. The lock screen buttons pause it and skip between stanzas. Tap a verse below to read from there.</p>
     <div class="bbtxt" id="bbTxt"></div>
   </section>
   </div>
@@ -8404,7 +8404,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=30;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=31;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
@@ -8439,7 +8439,7 @@ async function rv118Build(){const st=$('rv118St'),bt=$('rv118Go'),sel=[...$('rv1
 const BB_HEB=['Aleph','Beth','Gimel','Daleth','He','Vav','Zayin','Heth','Teth','Yod','Kaph','Lamed','Mem','Nun','Samekh','Ayin','Pe','Tsadi','Qoph','Resh','Shin','Tav'];
 const BB_REVS={20:2},bbRev=n=>BB_REVS[n]||1;/* a stanza read again gets a new number here, so phones fetch the new one (20: "persecute" in verse 157, Eli's wording) */
 const BB={inited:false,a:null,st:'idle',cur:0,shown:0,rep:0,tok:0,played:0,wall:0,ending:false,endAt:null,verse:-1,mem:{},km:{},kb:{},pcm:{},fm:{},url:null,silent:null,ld:null,pendT:null,swapping:false,shiftT:0,subT:0};
-function bbSet(){return Object.assign({sel:[],reps:1,mins:60,semi:0,rate:1,isoN:'auto',isoV:3},store.get('ison-bible',{})||{})}
+function bbSet(){return Object.assign({sel:[],reps:1,mins:60,semi:0,rate:1,isoT:'follow',isoV:3},store.get('ison-bible',{})||{})}
 function bbSave(o){store.set('ison-bible',Object.assign(bbSet(),o))}
 const bbSel=()=>bbSet().sel.slice().sort((a,b)=>a-b);
 function bbMsg(t){const m=$('bbMsg');if(m)m.textContent=t||''}
@@ -8457,15 +8457,24 @@ async function bbKeyed(n,semi){const r=await bbGet(n);if(!semi)return r.blob;con
 /* the ison: a soft organ tone mixed into the reading itself (so it keeps going with the screen locked). The reading
    sits on C3 (MIDI 48) for almost every syllable; "auto" follows it when the voice is moved. */
 const BB_READ_NOTE=48;
-const bbIsoNote=()=>{const s=bbSet();return s.isoN==='auto'?BB_READ_NOTE+s.semi:+s.isoN};
-async function bbBlob(n,semi){const s=bbSet(),v=s.isoV;if(!v)return bbKeyed(n,semi);const note=bbIsoNote(),fk=n+'|'+bbRev(n)+'|'+semi+'|'+note+'|'+v;if(BB.fm[fk])return BB.fm[fk];
+const bbIsoNote=()=>{const s=bbSet();return s.isoT==='auto'?BB_READ_NOTE+s.semi:+s.isoT};
+/* the reader's own notes (rd118/notes.json: for each stanza [start, end, MIDI note] with same-note neighbours joined),
+   so the tone can follow every rise and dip; measured 96 to 97% of the time within half a step of his voice */
+const BB_NOTES_REV=1;
+async function bbNotes(){if(BB.notes)return BB.notes;const k='bb118notes:'+BB_NOTES_REV;let J=null;try{J=await BlobDB.get(k)}catch(e){}
+  if(!J||!J.s){const r=await fetch('rd118/notes.json?r='+BB_NOTES_REV,{cache:'no-cache'});if(!r.ok)throw new Error('notes');J=await r.json();try{await BlobDB.put(k,J)}catch(e){}}BB.notes=J;return J}
+async function bbBlob(n,semi){const s=bbSet(),v=s.isoV;if(!v)return bbKeyed(n,semi);const fol=s.isoT==='follow',note=fol?'f':bbIsoNote(),fk=n+'|'+bbRev(n)+'|'+semi+'|'+note+'|'+v;let seg=null;if(fol){try{seg=(await bbNotes()).s[n]}catch(e){}if(!seg)return bbKeyed(n,semi)}if(BB.fm[fk])return BB.fm[fk];
   const pk=n+'|'+bbRev(n)+'|'+semi;let x=BB.pcm[pk];if(!x){x=await keyDecode(await bbKeyed(n,semi));const ks=Object.keys(BB.pcm);if(ks.length>=3)delete BB.pcm[ks[0]];BB.pcm[pk]=x}
   const sr=KEY_SR,L=x.length,y=new Float32Array(L),T=2048,tab=new Float32Array(T),amps=[0,1,0.9,0.75,0.6,0.42,0.3,0.2,0.14,0.09,0.06];let pk2=0;
   for(let i=0;i<T;i++){let a=0;for(let k=1;k<amps.length;k++)a+=amps[k]*Math.sin(2*Math.PI*k*i/T);tab[i]=a;pk2=Math.max(pk2,Math.abs(a))}
   const amp=0.025*v/pk2,inc=T*440*Math.pow(2,(note-69)/12)/sr,fi=Math.round(sr*1.2),fo=Math.round(sr*0.4);let ph=0;
-  for(let i=0;i<L;i++){const e=Math.min(1,i/fi,(L-1-i)/fo);const j=ph|0,f=ph-j;y[i]=x[i]+amp*e*(tab[j]+(tab[(j+1)%T]-tab[j])*f);ph+=inc;if(ph>=T)ph-=T}
+  if(!fol)for(let i=0;i<L;i++){const e=Math.min(1,i/fi,(L-1-i)/fo);const j=ph|0,f=ph-j;y[i]=x[i]+amp*e*(tab[j]+(tab[(j+1)%T]-tab[j])*f);ph+=inc;if(ph>=T)ph-=T}
+  else{/* one tone that moves with the reader: a quick slide between notes, a soft start and end around his breaths */
+    const fq=m=>T*440*Math.pow(2,(m+semi-69)/12)/sr,ga=1-Math.exp(-1/(sr*0.012)),gf=1-Math.exp(-1/(sr*0.018));let k=0,g=0,cur=fq(seg[0][2]);
+    for(let i=0;i<L;i++){const t=i/sr;while(k<seg.length&&t>=seg[k][1])k++;const on=k<seg.length&&t>=seg[k][0];if(on)cur+=(fq(seg[k][2])-cur)*gf;g+=((on?1:0)-g)*ga;
+      const j=ph|0,f=ph-j;y[i]=x[i]+amp*g*(tab[j]+(tab[(j+1)%T]-tab[j])*f);ph+=cur;if(ph>=T)ph-=T}}
   const b=new Blob([keyWav(y,sr)],{type:'audio/wav'}),ks=Object.keys(BB.fm);if(ks.length>=3)delete BB.fm[ks[0]];BB.fm[fk]=b;return b}
-function bbIso(dv,note){const s=bbSet(),o={};if(dv)o.isoV=Math.max(0,Math.min(10,s.isoV+dv));if(note!=null)o.isoN=note;if(o.isoV===s.isoV&&note==null)return;bbSave(o);bbUI();clearTimeout(BB.shiftT);BB.shiftT=setTimeout(bbRekey,600)}
+function bbIso(dv,note){const s=bbSet(),o={};if(dv)o.isoV=Math.max(0,Math.min(10,s.isoV+dv));if(note!=null)o.isoT=note;if(o.isoV===s.isoV&&note==null)return;bbSave(o);bbUI();clearTimeout(BB.shiftT);BB.shiftT=setTimeout(bbRekey,600)}
 function bbEl(){if(BB.a)return BB.a;const a=BB.a=new Audio();a.setAttribute('playsinline','');a.preload='auto';setPitchKeep(a);
   const real=()=>!BB.silent||a.src!==BB.silent;/* the short silent sound that opens the way for sound on a phone is not the reading */
   a.onended=()=>{if(real())bbEnded()};a.ontimeupdate=()=>{if(real())bbTick()};
@@ -8537,14 +8546,14 @@ function bbSub(){const e=$('bbSub');if(!e)return;if(BB.st==='idle'){e.textConten
   e.textContent=(BB.st==='loading'?'Getting it ready · ':BB.st==='paused'?'Paused · ':'')+vn+fmtT(a?a.currentTime||0:0)+' of '+fmtT(dur)+(s.reps>1?' · time '+(BB.rep+1)+' of '+s.reps:'')+' · '+(BB.ending?'stopping after this verse':'stops in '+(left>=3600?Math.floor(left/3600)+' h '+Math.round(left%3600/60)+' min':Math.ceil(left/60)+' min'))}
 function bbUI(){if(!BB.inited)return;const s=bbSet();$('bbGo').textContent=BB.st==='playing'||BB.st==='loading'?'Pause':BB.st==='paused'?'Go on':'Play';
   $('bbNow').textContent=BB.st==='idle'?'Not playing':'Psalm 118, stanza '+BB.cur+' · '+BB_HEB[BB.cur-1];$('bbStop').disabled=BB.st==='idle';
-  $('bbPitchV').textContent=bbPitchWords(s.semi);$('bbLow').disabled=s.semi<=-7;$('bbHigh').disabled=s.semi>=5;$('bbRateV').textContent='Speed '+Math.round(s.rate*100)+'%';$('bbIsoV').textContent=s.isoV?'Ison '+s.isoV+' of 10':'Ison off';$('bbIsoDn').disabled=s.isoV<=0;$('bbIsoUp').disabled=s.isoV>=10;{const o=$('bbIsoN').options[0];o.textContent='The reading note, now '+nameOf(BB_READ_NOTE+s.semi)+' (follows the voice)';$('bbIsoN').value=String(s.isoN)}$('bbSlow').disabled=s.rate<=0.6;$('bbFast').disabled=s.rate>=1.8;
+  $('bbPitchV').textContent=bbPitchWords(s.semi);$('bbLow').disabled=s.semi<=-7;$('bbHigh').disabled=s.semi>=5;$('bbRateV').textContent='Speed '+Math.round(s.rate*100)+'%';$('bbIsoV').textContent=s.isoV?'Tone '+s.isoV+' of 10':'Tone off';$('bbIsoDn').disabled=s.isoV<=0;$('bbIsoUp').disabled=s.isoV>=10;{const o=$('bbIsoN').options[1];o.textContent='Steady, on his reading note (now '+nameOf(BB_READ_NOTE+s.semi)+')';$('bbIsoN').value=String(s.isoT)}$('bbSlow').disabled=s.rate<=0.6;$('bbFast').disabled=s.rate>=1.8;
   $('bbSt').querySelectorAll('button').forEach(b=>b.classList.toggle('auto',BB.st!=='idle'&&+b.dataset.n===BB.cur));bbMark();bbSub()}
 /* the lock screen */
 function bbMediaStart(){try{if(!('mediaSession' in navigator))return;const ms=navigator.mediaSession;ms.setActionHandler('play',()=>{if(BB.st==='paused')bbGo()});ms.setActionHandler('pause',()=>{if(BB.st==='playing'||BB.st==='loading')bbGo()});
   try{ms.setActionHandler('nexttrack',()=>bbSkip(1));ms.setActionHandler('previoustrack',()=>bbSkip(-1));ms.setActionHandler('stop',bbStop)}catch(e){}}catch(e){}}
 function bbMedia(){try{if('mediaSession' in navigator&&BB.cur)navigator.mediaSession.metadata=new MediaMetadata({title:'Psalm 118, stanza '+BB.cur+' ('+BB_HEB[BB.cur-1]+')',artist:'Ison Pitch Lab · Bible',album:'Psalm 118'})}catch(e){}}
 function bbMediaState(){try{if('mediaSession' in navigator)navigator.mediaSession.playbackState=BB.st==='playing'?'playing':'paused'}catch(e){}}
-async function bbKeepAll(){const b=$('bbKeep');if(b.disabled)return;b.disabled=true;let ok=0;try{for(let n=1;n<=22;n++){bbMsg('Saving stanza '+n+' of 22 on this phone.');try{await bbGet(n);ok++}catch(e){}}}finally{b.disabled=false}
+async function bbKeepAll(){const b=$('bbKeep');if(b.disabled)return;b.disabled=true;let ok=0;try{try{await bbNotes()}catch(e){}for(let n=1;n<=22;n++){bbMsg('Saving stanza '+n+' of 22 on this phone.');try{await bbGet(n);ok++}catch(e){}}}finally{b.disabled=false}
   bbMsg(ok===22?'All 22 stanzas are on this phone now. They play without internet.':ok+' of 22 are on this phone. The rest could not be downloaded; try again with a better connection.')}
 function bbOpen(){if(BB.inited){bbUI();return}BB.inited=true;const s=bbSet();
   $('bbSt').innerHTML=Array.from({length:22},(_,i)=>'<button data-n="'+(i+1)+'" aria-pressed="'+s.sel.includes(i+1)+'">'+(i+1)+'<small>'+BB_HEB[i]+'</small></button>').join('');
@@ -8554,7 +8563,7 @@ function bbOpen(){if(BB.inited){bbUI();return}BB.inited=true;const s=bbSet();
   $('bbReps').value=String(s.reps);if(!$('bbReps').value)$('bbReps').value='1';$('bbReps').onchange=()=>{bbSave({reps:+$('bbReps').value});BB.rep=Math.min(BB.rep,+$('bbReps').value-1);bbUI()};
   $('bbMins').value=String(s.mins);if(!$('bbMins').value)$('bbMins').value='60';$('bbMins').onchange=()=>{bbSave({mins:+$('bbMins').value});if(bbLeft()>0){BB.ending=false;BB.endAt=null}bbUI()};
   $('bbGo').onclick=bbGo;$('bbStop').onclick=()=>{bbStop();bbMsg('')};$('bbPrev').onclick=()=>bbSkip(-1);$('bbNext').onclick=()=>bbSkip(1);
-  $('bbIsoN').innerHTML='<option value="auto"></option>'+Array.from({length:25},(_,i)=>36+i).map(m=>'<option value="'+m+'">'+nameOf(m)+(m===BB_READ_NOTE?' (the reading note as recorded)':'')+'</option>').join('');$('bbIsoN').onchange=()=>{const v=$('bbIsoN').value;bbIso(0,v==='auto'?'auto':+v)};$('bbIsoDn').onclick=()=>bbIso(-1);$('bbIsoUp').onclick=()=>bbIso(1);
+  $('bbIsoN').innerHTML='<option value="follow">Follows his voice: every rise and dip</option><option value="auto"></option>'+Array.from({length:25},(_,i)=>36+i).map(m=>'<option value="'+m+'">Steady on '+nameOf(m)+'</option>').join('');$('bbIsoN').onchange=()=>{const v=$('bbIsoN').value;bbIso(0,v==='follow'||v==='auto'?v:+v)};$('bbIsoDn').onclick=()=>bbIso(-1);$('bbIsoUp').onclick=()=>bbIso(1);
   $('bbLow').onclick=()=>bbPitch(-1);$('bbHigh').onclick=()=>bbPitch(1);$('bbSlow').onclick=()=>bbRate(-0.05);$('bbFast').onclick=()=>bbRate(0.05);
   const first=bbSel()[0]||1;bbGet(first).then(()=>{if(BB.st==='idle'&&!BB.shown)bbText(first)}).catch(()=>{});bbUI()}
 if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonBB=BB;/* for testing on the Mac only */
