@@ -15,7 +15,8 @@ cells, a cell being the notes he puts on one syllable. A line of the shape score
   ~x        a silence. The singer's own lifts and breaths are put in by themselves after the cell that carries them,
             unless a ~ is written there (write ~0 for none). When the cell ends in the middle of a word the lift is
             left out, unless the file has the line  #! singer-pauses  (then every pause is the singer's own, measured,
-            and a word is broken where his melody pauses, as he breaks "shep-herd" and "bri-dal"); list/c7~1 writes such a lift by hand, list/c7~0 forbids it
+            a word is broken where his melody pauses, as he breaks "shep-herd" and "bri-dal", and a shorter pause
+            written by hand inside a shape gives way to his); list/c7~1 writes such a lift by hand, list/c7~0 forbids it
   D!        the last close of a stanza (longer, no breath after). Fs is the climb F with one syllable to a note.
   nan/c9-   a word that runs on into the next shape; the next line then starts with  -ces/c1
   |         end of a line of the words (for reading)         # a comment         {t1.06} and the like pass through
@@ -49,6 +50,7 @@ REST = {'A': {7: 1.2, 9: .5}, 'B': {3: .6, 5: 2.2}, 'C': {4: 1, 9: .3}, 'D': {1:
 # 0.18 s after cell 5; in G 0.2 s after cells 2 and 6 (com-fort); none in E or F
 REST2 = {'A': {7: 1.45, 9: 1.0}, 'B': {5: 2.0}, 'C': {4: .8, 7: .9, 9: .3}, 'D': {1: 1.3, 4: 2.0}, 'E': {7: .2}, 'H': {4: 1.4, 7: 2.0},
          'I': {2: 1.0, 5: .7, 7: .5}, 'F': {}, 'Fs': {}, 'G': {2: .6, 6: .7, 8: .3}}
+SOMETIMES = {('G', 2)}                                   # a pause he makes only some of the time: ~0 after it is obeyed
 LOUD = {'A': 'mf', 'B': 'mp', 'C': 'mf', 'D': 'mp', 'E': 'mf', 'H': 'p', 'I': 'mf', 'F': 'mf', 'Fs': 'mf', 'G': 'mf'}
 JOIN = {'A': 'B', 'B': 'AC', 'C': 'D', 'D': 'AEF', 'E': 'H', 'H': 'I', 'I': 'D', 'F': 'G', 'G': 'D'}
 PICKUP = {'B': [(-2, 1)]}                                 # c0
@@ -77,15 +79,18 @@ def main():
         if final:
             cells[-1] = [(0, 3), (1, .75), (-1, 1.35), (0, 2.8)]; rest.pop(len(cells), None)
         used = set(); toks = body[1:]; items = []; nsyl = 0           # items: ['w', syllables, head, tail] | ['r', units] | ['|']
+        his = 0                                          # the singer's pause after the cell just sung, when it is one he always makes
         for ti, tok in enumerate(toks):
             if tok == '|':
                 items.append(['|']); continue
             if tok[0] == '~':
-                if tok != '~0':
-                    items.append(['r', float(tok[1:])])
-                continue
+                r = max(float(tok[1:]), his) if INWORD else float(tok[1:])      # his pause wins over a shorter one written by hand
+                if r:
+                    items.append(['r', r])
+                his = 0; continue
+            his = 0
             head = tok.startswith('-'); tail = tok.endswith('-'); tok = tok.strip('-')      # a word that runs over from one shape into the next:  nan/c9-   then   -ces/c1
-            parts = re.split(r'-(?=[A-Za-z])', tok); word = []; pend = None; nsyl += len(parts)
+            parts = re.split(r'-(?=[A-Za-z])', tok); word = []; pend = None; lastk = None; nsyl += len(parts)
             for pi, p in enumerate(parts):
                 if '/' not in p:
                     sys.exit('line %d: no notes on "%s"' % (ln, p))
@@ -102,7 +107,7 @@ def main():
                             sys.exit('line %d: cell %d of %s has only %d notes' % (ln, k, sh, len(c)))
                         f = float(m.group(3)) if m.group(3) else 1.0
                         notes += [(c[i][0], c[i][1] * f) for i in idx]; used.add(k)
-                        pend = rest.get(k) if idx[-1] == len(c) - 1 else None
+                        pend = rest.get(k) if idx[-1] == len(c) - 1 else None; lastk = k
                     elif q in SHORT:
                         notes += SHORT[q]; pend = None
                     else:
@@ -117,6 +122,7 @@ def main():
                 if tilde:
                     pend = None
             items.append(['w', word, head, tail])
+            his = pend if (pend and lastk is not None and lastk < len(cells) and (sh, lastk) not in SOMETIMES) else 0
             nxt = toks[ti + 1] if ti + 1 < len(toks) else ''
             if pend and not nxt.startswith('~') and not tail:
                 items.append(['r', pend])

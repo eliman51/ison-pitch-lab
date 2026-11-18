@@ -298,6 +298,13 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   of that shape, and the stanza's rate (1.5 a second) equals the song's. Waiting on his ear; he will then name exact
   words and sentences. The song's own load, for reference: 175 syllables, 138 words, 26 shapes, 6.7 syllables a shape;
   by shape A 8 to 9, B 5 to 6, C 9, D 5 to 7, E 7, H 7, I 6 to 7, F 5, G 8.
+  Eli on trial C: "Overall, this is good", fine with the two climbs in a row, nothing he would change by listening; he
+  will sing along with it for a while and come back with exact spots. Trial C is now also stanza 4 of the main set
+  (`r118p`, letter `d`, `4.s.txt`; the layout before it is `4.s.v3.txt`). The trial entries `r118q` and `r118r` are still
+  in the menu; remove them when he no longer needs the comparison. Not done yet, and not asked for: the singer's pauses
+  in the other stanzas (2 and 11 have no `.s.txt`), and the same un-crowding for their fullest lines. In singer-pauses
+  mode a pause written by hand inside a shape gives way to his longer one, so old `~0` and `~.5` marks need no editing;
+  the shortened held notes in A (`c7*.6` and the like) should go back to full length when a stanza is converted.
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
