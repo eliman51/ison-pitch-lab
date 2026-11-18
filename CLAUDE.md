@@ -308,6 +308,19 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
+## Notes on each line (18 November 2026)
+
+- Eli stopped the roll-out of stanza 4's changes to the other stanzas: he thinks stanza 4 was overcompensated and wants to
+  refine one stanza at a time, with notes down to the word, before anything is copied to all 22. Do not roll out until he
+  says a stanza is final. `tools/lay.py` (a helper that lays a stanza out from a hand-written plan) is unfinished and unused.
+- To make his notes easy: Loop a part has "Notes on each line" (`lnBox`, everything named `ln...`). It lists every line of
+  the picked part (for the Psalm 23 melody sets one line is one melody shape, named in plain words from `R118_FORM`, the
+  syllable counts of each stanza's shapes; other songs fall back to half lines or phrases), with a note box beside each.
+  While a session runs the panel moves into the running screen, the line being sung lights up, and typing never stops
+  the audio. Notes are kept as typed (`ison-ln-draft`). "Save these notes to the log" stores them (`ison-ln-log`, newest 40)
+  and copies the text; he pastes it into a message. Claude cannot read his phone, so pasting is the hand-over.
+- If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
+
 ## Learning a formula from a recording (14 November 2026)
 
 - `t7p91` is Tone 7 learned from the built-in Psalm 91/121 recording: words heard by faster-whisper and corrected
