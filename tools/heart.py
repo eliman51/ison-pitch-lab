@@ -2,6 +2,7 @@
 """A song written by hand, every syllable on its own notes: score -> notes file -> the singer -> the app's review set.
 
     ~/ison-singer/venv/bin/python -I tools/heart.py <score.txt> <stanza number> <out folder> [--sing] [--unit 0.2]
+                                                    [--home 45] [--scale hijaz|p23] [--set r118h]
 
 The score (kept outside this repository, it holds the words) is plain text. Words are written syllable by syllable,
 each syllable with its notes after a slash, syllables of one word joined by a hyphen:
@@ -30,8 +31,18 @@ NOTEBOOK = os.path.expanduser('~/ison-singer/notebook/Psalm 118 notebook.txt')
 HERE = os.path.dirname(os.path.abspath(__file__))
 
 
+# the Psalm 23 (Tone 3) singer's own ladder, measured from the recording built into the app (tools/scan.py): a Kurd-type
+# scale; step 0 is the note the song ends on, and his top note is a little sharp of the octave of his bottom note
+P23 = {-4: -7.10, -3: -5.12, -2: -4.04, -1: -1.98, 0: 0.0, 1: 0.96, 2: 2.98, 3: 5.22}
+SCALE = HIJAZ
+
+
 def pitch(deg, home):
-    return home + 12 * (deg // 7) + HIJAZ[deg % 7]
+    if isinstance(SCALE, dict):
+        if deg not in SCALE:
+            sys.exit('Step %d is not in this scale' % deg)
+        return home + SCALE[deg]
+    return home + 12 * (deg // 7) + SCALE[deg % 7]
 
 
 def parse(path, home, unit):
@@ -104,12 +115,16 @@ def stanza_text(n):
 
 
 def main():
-    a = [x for x in sys.argv[1:] if not x.startswith('--')]
+    skip = {i + 1 for i, x in enumerate(sys.argv) if x in ('--unit', '--home', '--scale', '--set')}
+    a = [x for i, x in enumerate(sys.argv) if i and i not in skip and not x.startswith('--')]
     if len(a) < 3:
         sys.exit(__doc__)
     score, n, out = a[0], int(a[1]), a[2]; os.makedirs(out, exist_ok=True)
     opt = lambda k, d: float(sys.argv[sys.argv.index(k) + 1]) if k in sys.argv else d
     unit, home = opt('--unit', 0.2), int(opt('--home', 45))
+    sopt = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
+    global SCALE
+    SCALE = {'hijaz': HIJAZ, 'p23': P23}[sopt('--scale', 'hijaz')]; SET = sopt('--set', 'r118h')
     syl, end = parse(score, home, unit)
     name, text = stanza_text(n)
     # 1. the words are the stanza's words
@@ -166,7 +181,7 @@ def main():
     for s in syl:
         for j, x in enumerate(s['notes']):
             notes.append({'t': x['t'], 'd': x['d'], 'm': x['m'], 'ly': '-' if j else (s['lyr'] if s['ws'] else '+')})
-    base = os.path.join(out, 'r118h-%d' % n)
+    base = os.path.join(out, '%s-%d' % (SET, n))
     open(base + '.mid', 'wb').write(midi_file(notes, name))
     jn = [{'t0': round(x['t'], 3), 't1': round(x['t'] + x['d'], 3), 'm': round(x['m'], 3)} for x in notes]
     ct, k = [], 0

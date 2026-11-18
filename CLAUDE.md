@@ -29,6 +29,8 @@ written for him.
 - `sw.js` offline cache. `tools/check.py` must say OK before every push.
 - `tools/sing.py` sings a notes file from the app with a free voice on this Mac (see "The singer on this Mac").
 - `tools/lexicon.mjs` rebuilds the syllable word list inside index.html (not needed for normal changes).
+- `tools/scan.py` the deep scan of a recording (words, letters, notes, loud and soft); `tools/heart.py` turns a score
+  written by hand into a sung stanza (see "Heart song" and "The Psalm 23 melody on Psalm 118").
 
 ## What Eli wants from it (keep these in mind for every change)
 
@@ -195,6 +197,47 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Eli's long aim (18 November 2026): a library of such styles over the years, master a few, then sing the whole
   psalm himself for YouTube. The TIGER voice is personal, non-commercial, no re-hosting: it teaches, it is not
   what gets published. Melodies written for the app are his to use.
+
+## The Psalm 23 melody on Psalm 118 (18 November 2026)
+
+- What Eli asked for: the deepest possible scan of the Psalm 23 Tone 3 recording (he spent 20 to 25 hours learning it),
+  then that same melody rebuilt, stanza by stanza and by hand, on Psalm 118. Quality over time: up to 2 minutes a
+  stanza is fine. Trial: stanza 2 (the fewest syllables, 130) and stanza 11 (the most, 162). Waiting on his ear.
+- The scan: `~/ison-singer/venv/bin/python -I tools/scan.py psalm23.mp3 ~/ison-singer/p23/words.txt ~/ison-singer/p23/scan
+  --spoken "tone three" --home 55.82 --ladder 48.72,50.70,51.78,53.84,55.82,56.78,58.80,61.04` writes `scan.txt` (read
+  it) and `scan.json`. Pitch is measured twice (Praat through parselmouth, and pyin), laid on the singer's own ladder,
+  every letter is placed by the MMS aligner, and each syllable gets its notes, loudness, vibrato and an emphasis mark.
+  The words were confirmed by faster-whisper large-v3 (now on this Mac) and small.en: the same words both times.
+- What it found. Ladder (steps from the home note G sharp 3, 18 cents flat): -4 = -7.10 half steps, -3 = -5.12,
+  -2 = -4.04, -1 = -1.98, 0, +1 = +0.96, +2 = +2.98, +3 = +5.22: a Kurd-type scale (half step above home), no drift.
+  The song is nine short shapes, in this order, and the whole order runs twice (about 59 s each):
+  `A B A B C D | E H I D | F G D`. Notes per syllable (step:quarter seconds, ~ = silence):
+  - A opening: `-4:2.4 | -4:2.2 | 0:2 | 0:1.8 | -1:1.2_0:1 | -2:1.1_-1:1 | 0:2.5 ~1.5 | 1:.9_0:1.2 | -1:1.9_-2:1`
+  - B low close: `[-2:1] | -1:1.8 | -2:1.1_-1:1 | 0:.8_1:.4_0:.6_-1:1.6 ~.6 | -2:1_-3:1.05_-2:.95_-1:.8 | -4:2.5 ~2`
+  - C middle: `0:1.8 | 1:1_0:.8 | -1:2.5 | 0:2.1_1:1 ~1 | 1:.7_2:.8_1:1.6 | 0:1.5 | 0:2.1 | -1:.8_0:.9 | 0:2.1`
+  - D full close: `0:2 (one to three, more when reciting) | 1:1.8_0:.85 ~1.5 | -1:2.3 | 2:.35_1:1.15 | 0:2.2_1:.75_-1:1.1_0:1.75 ~2.2`
+    (the last one of a stanza: `0:3_1:.75_-1:1.35_0:2.8`)
+  - E second opening: `-2:2.1 | -1:2.3 | 0:1.8 | 0:2.1 | 0:1.1_2:.7 | 1:1.05_0:.8 | -1:.8_-2:1`
+  - H the descent: `-1:1.9 | 0:.85_-1:.8 | -2:.85_-3:1 | -2:1.9_-1:.7 ~1.5 | -2:.9_-1:.7 | -2:.5_-3:.45_-4:1.2 | -4:1.7 ~2.2`
+  - I the recovery: `-1:.8_0:3.4 | 1:1.8_0:.9 ~1.2 | -1:2.6 | 2:.3_1:.9_0:.4 | 0:1.4 | -1:.7_0:1 | 0:1.6`
+  - F the climb: `-2:2.1 | -1:.65_-2:.35_-1:1 | 0:1.1_1:.65 | 0:1.2_1:1 | 2:1_3:.8`
+  - G the height: `2:.85_1:.75 | 0:1.75 | 1:.8_2:1.9_1:1.45 | 0:2.05 | 1:2.05 | 2:1.45 ~.85 | 2:.8_0:1.2 | 0:2`
+  Heard joins only: A to B; B to A or C; C to D; D to A, E or F; E to H; H to I; I to D; F to G; G to D. The singer is
+  softest on H (about 4 dB down), a little soft on B and D, level elsewhere. He often holds little words (of, and, the).
+- How a stanza is set: blocks `A B (A B) C D`, `E H I D`, `F G D` in the song's order, ending on `F G D` (as the song
+  ends). One shape per half line; a half line of 11 or more syllables takes two shapes. Extra syllables go on repeated
+  home notes at the front of D (reciting), on A's -4 and 0, on E's and G's 0; never two syllables on a short note.
+  Accents go where the singer puts his (D: the +1, then the leap 2 to 1, last syllable on the closing figure). D lands on
+  sentence ends where the words allow. F G D goes on the plea or praise of the stanza; H on the darkest line.
+  Stanza 2: `A B | C D | E H | I D | F G | D E H | I D | F G D`. Stanza 11: `A B | A B | C D | F G D | E H I | D E | H I D | F G D`.
+- Making one: the score is `~/ison-singer/p23m/N.txt` (heart.py's notation; it holds the words, so not in this repo), then
+  `heart.py ~/ison-singer/p23m/N.txt N <out> --unit 0.25 --home 51 --scale p23 --set r118p --sing` (home E flat 3, five
+  half steps under the singer, for Eli's lower voice; `{t1.06}` at the top because the shapes come out a little quick
+  without the singer's consonant gaps), then `pack118.py <out> NB_KEY r118p`. In the app: review menu value `r118p`,
+  `R118_HAVE.r118p` lists the stanzas that exist (bubbles for the others are dimmed).
+- Checked by measurement: stanza 2 lasts 83 s, stanza 11 93 s; a speech recognizer heard 97% and 95% of the words
+  ("declared" on the quick climb of stanza 2 is the one it never caught); every note within half a step; and laid over the singer's own recording (timing lined up, five half steps down) the
+  sung line is within three quarters of a half step of his 96% of the time.
 
 ## Learning a formula from a recording (14 November 2026)
 
