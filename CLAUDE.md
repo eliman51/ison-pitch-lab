@@ -189,6 +189,9 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   words in every stanza, 99 to 100% of notes within half a step. Crowded words (transgressed, persecute) need 1.5 to
   2 units on their syllables or they blur. To change one spot: edit `~/ison-singer/heart/N.txt`, run
   `heart.py ... --sing`, pack, and give that stanza a new name in the app so phones fetch it (as `R118M_REV` does).
+- The review box has two buttons (18 November 2026, Eli's request): "Learn it" builds the picked stanzas and opens them in
+  Master a song (`rv118Build('sm')`: unit 6, `smSong`), "Review it" opens them in Loop a part as before. His way of
+  working: Master a song first, until he knows a melody by heart, then Loop a part for repetition.
 - Eli's long aim (18 November 2026): a library of such styles over the years, master a few, then sing the whole
   psalm himself for YouTube. The TIGER voice is personal, non-commercial, no re-hosting: it teaches, it is not
   what gets published. Melodies written for the app are his to use.
