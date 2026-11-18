@@ -202,7 +202,8 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 
 - What Eli asked for: the deepest possible scan of the Psalm 23 Tone 3 recording (he spent 20 to 25 hours learning it),
   then that same melody rebuilt, stanza by stanza and by hand, on Psalm 118. Quality over time: up to 2 minutes a
-  stanza is fine. Trial: stanza 2 (the fewest syllables, 130) and stanza 11 (the most, 162). Waiting on his ear.
+  stanza is fine. Stanzas 2 and 11 were the trial; he called them "absolutely beautiful" and asked for the rest, so all
+  22 are now set (18 November 2026, 76 to 97 seconds each). He will come back with small changes stanza by stanza.
 - The scan: `~/ison-singer/venv/bin/python -I tools/scan.py psalm23.mp3 ~/ison-singer/p23/words.txt ~/ison-singer/p23/scan
   --spoken "tone three" --home 55.82 --ladder 48.72,50.70,51.78,53.84,55.82,56.78,58.80,61.04` writes `scan.txt` (read
   it) and `scan.json`. Pitch is measured twice (Praat through parselmouth, and pyin), laid on the singer's own ladder,
@@ -224,20 +225,29 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   - G the height: `2:.85_1:.75 | 0:1.75 | 1:.8_2:1.9_1:1.45 | 0:2.05 | 1:2.05 | 2:1.45 ~.85 | 2:.8_0:1.2 | 0:2`
   Heard joins only: A to B; B to A or C; C to D; D to A, E or F; E to H; H to I; I to D; F to G; G to D. The singer is
   softest on H (about 4 dB down), a little soft on B and D, level elsewhere. He often holds little words (of, and, the).
-- How a stanza is set: blocks `A B (A B) C D`, `E H I D`, `F G D` in the song's order, ending on `F G D` (as the song
-  ends). One shape per half line; a half line of 11 or more syllables takes two shapes. Extra syllables go on repeated
-  home notes at the front of D (reciting), on A's -4 and 0, on E's and G's 0; never two syllables on a short note.
-  Accents go where the singer puts his (D: the +1, then the leap 2 to 1, last syllable on the closing figure). D lands on
-  sentence ends where the words allow. F G D goes on the plea or praise of the stanza; H on the darkest line.
-  Stanza 2: `A B | C D | E H | I D | F G | D E H | I D | F G D`. Stanza 11: `A B | A B | C D | F G D | E H I | D E | H I D | F G D`.
-- Making one: the score is `~/ison-singer/p23m/N.txt` (heart.py's notation; it holds the words, so not in this repo), then
-  `heart.py ~/ison-singer/p23m/N.txt N <out> --unit 0.25 --home 51 --scale p23 --set r118p --sing` (home E flat 3, five
-  half steps under the singer, for Eli's lower voice; `{t1.06}` at the top because the shapes come out a little quick
-  without the singer's consonant gaps), then `pack118.py <out> NB_KEY r118p`. In the app: review menu value `r118p`,
-  `R118_HAVE.r118p` lists the stanzas that exist (bubbles for the others are dimmed).
-- Checked by measurement: stanza 2 lasts 83 s, stanza 11 93 s; a speech recognizer heard 97% and 95% of the words
-  ("declared" on the quick climb of stanza 2 is the one it never caught); every note within half a step; and laid over the singer's own recording (timing lined up, five half steps down) the
-  sung line is within three quarters of a half step of his 96% of the time.
+- How a stanza is set: blocks `(A B)+ C D`, `E H I D`, `F G D`, always starting on A and ending on a D with the long
+  last close; every stanza has `F G D` at least once (on its plea or praise), H on its darkest line where it has one.
+  One shape per half line; a long half line is cut in two, or its extra syllables are recited on the home note at
+  the front of D (up to 8), on A's -4 and 0, on E's 0, on B's -1; never two syllables on a short note. Accents go where
+  the singer puts his (D: the +1, then the leap 2 to 1, last syllable on the closing figure; a word like "righteousness"
+  shares the closing figure). D lands on sentence ends where the words allow. A word may run from F into G ("mer-cy").
+  A short half line may use only the first half of G (cells 1 to 4).
+- Making one: write `~/ison-singer/p23m/N.s.txt` shape by shape (`tools/shapes.py` explains the notation: `A  My/c1
+  soul/c2 ...`, cells of the shapes above); `shapes.py N.s.txt N.txt` turns it into heart.py's notation and warns about
+  very short syllables and about joins the singer never makes; then `heart.py ~/ison-singer/p23m/N.txt N <out> --unit 0.25
+  --home 51 --scale p23 --set r118p --sing` (home E flat 3, five half steps under the singer, for Eli's lower voice;
+  `{t1.06}` at the top because the shapes come out a little quick without the singer's consonant gaps), then
+  `pack118.py <out> NB_KEY r118p`. Stanzas 2 and 11 were written straight in heart.py's notation (no `.s.txt`). The
+  scores hold the words, so none of this is in the repo. In the app: review menu value `r118p`. If a stanza is sung
+  again, give it a letter in `R118P_REV` (as `R118M_REV` does for Monastery) so phones fetch it.
+- Checked by measurement, all 22 (76 to 97 s each, 31:37 together): every stanza has 99 to 100% of its notes within
+  half a step; a speech recognizer heard 91 to 100% of the words (17 the lowest at 88%; most misses are near
+  sound-alikes such as "searched" heard as "search"); and laid over the singer's own recording (timing lined up, five
+  half steps down) the sung line is within three quarters of a half step of his 94 to 97% of the time. Every join
+  between shapes is one the singer makes (shapes.py checks this). The measuring scripts (verify.py, similar.py,
+  singall.sh) were scratch files; verify.py's method is the one described under "Heart song".
+- Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
+  notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
 ## Learning a formula from a recording (14 November 2026)
 
