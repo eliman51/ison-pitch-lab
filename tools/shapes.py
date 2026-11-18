@@ -18,6 +18,9 @@ cells, a cell being the notes he puts on one syllable. A line of the shape score
   nan/c9-   a word that runs on into the next shape; the next line then starts with  -ces/c1
   |         end of a line of the words (for reading)         # a comment         {t1.06} and the like pass through
 
+  B@1.2     that whole line 1.2 times slower (rarely the right cure: a crowded line wants another shape, and the tool
+            says so when a line runs quicker than 2.3 syllables a second).
+
 Loud and soft follow the singer: H soft, B and D a little soft, the rest level. It warns when a syllable is shorter
 than 0.8 unit (a fifth of a second), when a cell of the shape was left out, and when two shapes are joined in a way the
 singer never joins them. It also writes <stanza.txt>.form, the shapes with their syllable counts (A9 B5 ...).
@@ -45,28 +48,33 @@ fm = lambda x: ('%.2f' % x).rstrip('0').rstrip('.')
 
 
 def main():
-    src, dst = sys.argv[1:3]; out = []; warn = 0; form = []; carry = None
+    src, dst = sys.argv[1:3]; out = []; warn = 0; form = []; carry = None; tempo = 1.0
+    FAST = 2.3                                           # syllables a second: a line quicker than this is called crowded
+    fmt = lambda syls: '-'.join(s + '/' + '_'.join('%d:%s' % (d, fm(u)) for d, u in n) for s, n in syls)
     for ln, line in enumerate(open(src, encoding='utf-8'), 1):
         raw = line.rstrip('\n'); body = raw.split('#')[0].split()
         if not body:
             out.append(raw); continue
         if body[0][0] == '{':
+            for t in body:
+                if re.fullmatch(r'\{t\d*\.?\d+\}', t):
+                    tempo = float(t[2:-1])
             out.append(raw); continue
-        sh = body[0]; final = sh.endswith('!'); sh = sh.rstrip('!')
+        sh, _, force = body[0].partition('@'); final = sh.endswith('!'); sh = sh.rstrip('!')
         if sh not in S:
             sys.exit('line %d: no shape called "%s"' % (ln, sh))
         cells = [list(c) for c in S[sh]]; rest = dict(REST[sh])
         if final:
             cells[-1] = [(0, 3), (1, .75), (-1, 1.35), (0, 2.8)]; rest.pop(len(cells), None)
-        used = set(); toks = body[1:]; res = ['{%s}' % LOUD[sh]]; nsyl = 0
+        used = set(); toks = body[1:]; items = []; nsyl = 0           # items: ['w', syllables, head, tail] | ['r', units] | ['|']
         for ti, tok in enumerate(toks):
-            if tok == '|' or tok[0] == '~':
+            if tok == '|':
+                items.append(['|']); continue
+            if tok[0] == '~':
                 if tok != '~0':
-                    res.append(tok)
+                    items.append(['r', float(tok[1:])])
                 continue
             head = tok.startswith('-'); tail = tok.endswith('-'); tok = tok.strip('-')      # a word that runs over from one shape into the next:  nan/c9-   then   -ces/c1
-            if head != (carry is not None):
-                sys.exit('line %d: a word carried over needs "-" at the end of one line and at the start of the next' % ln)
             parts = re.split(r'-(?=[A-Za-z])', tok); word = []; pend = None; nsyl += len(parts)
             for pi, p in enumerate(parts):
                 if '/' not in p:
@@ -93,18 +101,44 @@ def main():
                                 sys.exit('line %d: cannot read "%s" in "%s"' % (ln, z, tok))
                             notes.append((int(m2.group(1)), float(m2.group(2) or 1)))
                         pend = None
+                word.append([syl, notes])
+            items.append(['w', word, head, tail])
+            nxt = toks[ti + 1] if ti + 1 < len(toks) else ''
+            if pend and not nxt.startswith('~') and not tail:
+                items.append(['r', pend])
+        # a crowded line is slowed down: its notes and the lifts inside it, not the breath after it
+        last = max([i for i, it in enumerate(items) if it[0] == 'w'], default=-1)
+        units = sum(u for it in items[:last + 1] if it[0] == 'w' for _, n in it[1] for _, u in n) + sum(it[1] for it in items[:last + 1] if it[0] == 'r')
+        rate = nsyl / (units * 0.25 * tempo) if units else 0
+        f = float(force) if force else 1.0              # only when asked: crowding is cured by giving the words another shape, not by slowing down
+        if not force and rate > FAST:
+            print('line %d (%s): %d syllables in %.1f s is crowded; give it another shape' % (ln, sh, nsyl, units * 0.25 * tempo))
+        if f != 1.0:
+            for i, it in enumerate(items[:last + 1]):
+                if it[0] == 'w':
+                    it[1] = [[s_, [(d, u * f) for d, u in n]] for s_, n in it[1]]
+                elif it[0] == 'r':
+                    it[1] *= f
+            if not force:
+                print('line %d (%s, %d syllables): slowed %.2f times' % (ln, sh, nsyl, f))
+        res = ['{%s}' % LOUD[sh]]
+        for it in items:
+            if it[0] == '|':
+                res.append('|'); continue
+            if it[0] == 'r':
+                res.append('~' + fm(it[1])); continue
+            _, word, head, tail = it
+            for syl, notes in word:
                 if sum(u for _, u in notes) < 0.8:
-                    print('line %d: "%s" in "%s" is very short (%s units)' % (ln, syl, tok, fm(sum(u for _, u in notes)))); warn += 1
-                word.append(syl + '/' + '_'.join('%d:%s' % (d, fm(u)) for d, u in notes))
-            w = '-'.join(word)
+                    print('line %d: "%s" is very short (%s units)' % (ln, syl, fm(sum(u for _, u in notes)))); warn += 1
+            if head != (carry is not None):
+                sys.exit('line %d: a word carried over needs "-" at the end of one line and at the start of the next' % ln)
+            w = fmt(word)
             if head:
                 w = carry + '-' + w; carry = None
             if tail:
                 carry = w; continue
             res.append(w)
-            nxt = toks[ti + 1] if ti + 1 < len(toks) else ''
-            if pend and not nxt.startswith('~'):
-                res.append('~' + fm(pend))
         miss = [k for k in range(1, len(cells) + 1) if k not in used]
         if miss:
             print('line %d (%s): cells left out: %s' % (ln, sh, ' '.join(map(str, miss))))

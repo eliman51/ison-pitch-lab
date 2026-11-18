@@ -240,10 +240,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   `pack118.py <out> NB_KEY r118p`. Stanzas 2 and 11 were written straight in heart.py's notation (no `.s.txt`). The
   scores hold the words, so none of this is in the repo. In the app: review menu value `r118p`. If a stanza is sung
   again, give it a letter in `R118P_REV` (as `R118M_REV` does for Monastery) so phones fetch it.
-- Checked by measurement, all 22 (76 to 97 s each, 31:37 together): every stanza has 99 to 100% of its notes within
-  half a step; a speech recognizer heard 91 to 100% of the words (17 the lowest at 88%; most misses are near
-  sound-alikes such as "searched" heard as "search"); and laid over the singer's own recording (timing lined up, five
-  half steps down) the sung line is within three quarters of a half step of his 94 to 97% of the time. Every join
+- Checked by measurement, all 22 after the re-laying (81 to 103 s each, 33:48 together): every stanza has 99 to 100%
+  of its notes within half a step; a speech recognizer heard 88 to 98% of the words (17 the lowest; most misses are
+  near sound-alikes such as "searched" heard as "search"); and laid over the singer's own recording (timing lined up,
+  five half steps down) the sung line is within three quarters of a half step of his 94 to 97% of the time. Every join
   between shapes is one the singer makes (shapes.py checks this). The measuring scripts (verify.py, similar.py,
   singall.sh) were scratch files; verify.py's method is the one described under "Heart song".
 - Eli is working through the stanzas one at a time, starting at 4, changing each until it is the one version he will
@@ -251,12 +251,28 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   carries on up to the held home note and ends there, a short lift, then a quick "Give me" on the next two notes (before,
   "Give" was the held note and the th of "earth" ran into it).
   Stanza 4 `c`: from "and I shall meditate" on, rebuilt as `A B | A B | C D | E H | I D | F G D` (86 s; the earlier
-  layout is kept as `4.s.v2.txt`). What he asked, and it is a rule for every stanza from now on: nothing crammed, and no
-  two sentences run together as if they were one. A sentence must end on a shape that closes and breathes (B, H or D);
-  A, C, E, I, F and G run straight on, so they only carry the first half of a sentence. In sentence pairs the song
-  allows: `A|B`, `C|D`, `E|H`, `I|D`, `F|G D` or `F G|D`. Making a stanza longer for this is fine with him. The other
-  stanzas were laid out before this rule and several break it (a sentence ending on E, I, F or G); fix each as he
-  reaches it.
+  layout is kept as `4.s.v2.txt`). He called it "fantastic" and "very well balanced": it is the model for the rest.
+- What Eli wants from every stanza (his words, 18 November 2026): "every part of every sentence and every word is
+  intentionally placed", the way the singer's own words each have their spot. It is not about speed: a crowded line
+  "doesn't have a place, it's just trying to get past that part". The cure for crowding is another shape (for example
+  the opening pair A B again), never a slower tempo; up to about 2 minutes a stanza is fine, but no dragging for its own
+  sake. The rules that follow from it:
+  1. A sentence ends on a shape that closes and breathes: B, H or D. A, E and F never end one. C, I and G end on the
+     home note, so they may end a sentence only with a breath written after them (`~2`), as the song itself does
+     ("they comfort me." on G, then "O Lord, protect me" on D).
+  2. Sentence pairs the song allows: `A|B`, `C|D`, `E|H`, `I|D`, `F|G D` or `F G|D`; in order `(A B)+ C D`, `E H I D`,
+     `F G D`. A long verse takes two pairs, one per half line.
+  3. Fullest lines he has approved (stanzas 2, 4, 11): A 11, B 8, C 10, D 11 or 12 (up to 7 recited on the home note
+     before the +1), E 11 (recited), H 9, I 10, the climb F 9 one syllable to a note, G 10. Over that, split the line
+     across two shapes. Fewer syllables than the singer's own count is fine (a word drawn over several notes).
+  4. Word ends: a word's last consonant should fall at the end of a held note with a lift after it, not run into the
+     next word on a new long note (the "earth" then "Give" fix).
+- All stanzas were re-laid by these rules on 18 November 2026 (`R118P_REV` letter `b`; the first layouts are kept as
+  `N.s.v1.txt`). Left as they were: 2 and 11 (he called them beautiful; 2 still closes on "I delight in the way" before
+  "of Your testimonies", and 11 runs "help me" on E into H), 9, 19 and 21 (already right). Still fuller than the rule
+  and worth his ear: 13 "it is my meditation the whole day long" (B 11), 17 "for this reason my soul searches them
+  out" (B 10), 6 "with a word, for I hope in Your words" (B 9). `shapes.py` no longer slows anything by itself; it
+  prints "crowded" for a line quicker than 2.3 syllables a second (the climb F always is).
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
