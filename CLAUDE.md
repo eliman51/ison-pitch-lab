@@ -161,6 +161,28 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 
 - `p118l` "Psalm 118, the long song" (17 November 2026; sung for all 22 stanzas at speed 120 as the review set `r118l/`, about 90 s each): written for the app, Hijaz, 16 phrases = one stanza arc (low opening, rise to the tense 2nd step, high cry from the top Pa, return and sealed ending). With Fit each line each 16-line stanza sings it once and ends home. Not traditional; no melody from David's time survives.
 
+## Heart song: hand-scored stanzas (18 November 2026)
+
+- What Eli asked for: a step above the reading tone, melodic and expressive, but quick (about 45 seconds a stanza, under
+  a minute), words at speaking pace, and ONE drawn-out, beautiful moment per stanza placed where the heart of that
+  stanza is, tailored stanza by stanza, every syllable decided. He will sing along daily for about a month to
+  memorize it. Monastery and the long song stay; this is a third thing. First trial: stanzas 1 to 3 only.
+- How: `tools/heart.py` turns a score written by hand (every syllable with its own notes and length; format at the top
+  of the file) into the notes file, the practice-song record and a loudness line, sings it with `sing.py`, shapes loud
+  and soft afterwards (the voice has none of its own; the range is kept narrow for the loud shop), and writes
+  `r118h-N.m4a`/`.json` for `pack118.py ... r118h`. The scores hold the words, so they live in `~/ison-singer/heart/N.txt`,
+  not here. Review menu value `r118h`; `R118_HAVE` says how many stanzas a set has.
+- The style (written for the app, not traditional): Hijaz on A2, one unit = 0.2 s (a quick syllable), accented syllables
+  1.5 to 2 units and often a step higher. Three registers: calm or pleading lines recite on the home note with the
+  step below it; affirming lines recite on the fourth; the high point reaches the fifth and sixth, never the octave.
+  Lines end by walking down the Hijaz steps to home (the signature close is the half step onto home), or stay open on
+  the fourth when the thought continues. The drawn-out word follows the shape measured from the Hallelujah Eli loves
+  in the Psalm 91/121 recording (step up, climb, hold, quick flick to the top, stepwise fall, small closing turn, about
+  3 seconds). High points chosen: stanza 1 "O Lord" (verse 7), stanza 2 "Blessed are You, O Lord" (verse 12),
+  stanza 3 "My soul longed" (verse 20). Eli found the long song's climb too high, held too long and slow to return.
+- Checked by measurement: 52, 47 and 51 seconds; a speech recognizer heard 97%, 98% and 91% of the words; 99 to 100% of
+  notes within half a step. Waiting on Eli's ear before scoring more stanzas.
+
 ## Learning a formula from a recording (14 November 2026)
 
 - `t7p91` is Tone 7 learned from the built-in Psalm 91/121 recording: words heard by faster-whisper and corrected
