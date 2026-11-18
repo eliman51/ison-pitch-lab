@@ -246,6 +246,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   half steps down) the sung line is within three quarters of a half step of his 94 to 97% of the time. Every join
   between shapes is one the singer makes (shapes.py checks this). The measuring scripts (verify.py, similar.py,
   singall.sh) were scratch files; verify.py's method is the one described under "Heart song".
+- Eli is working through the stanzas one at a time, starting at 4, changing each until it is the one version he will
+  master. Changes so far (each re-sung stanza gets its letter in `R118P_REV`): stanza 4 `b`: "earth" in the first line
+  carries on up to the held home note and ends there, a short lift, then a quick "Give me" on the next two notes (before,
+  "Give" was the held note and the th of "earth" ran into it).
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
