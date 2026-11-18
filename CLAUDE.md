@@ -147,6 +147,14 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   slurs. No syllable shares a note shorter than a beat. Eli asked for this because at about 190 a minute words were
   being swallowed (two syllables on one short note). On stanza 1 with Monastery (`d2`) at 150% speed: 23 syllables
   under a quarter second before, none after.
+- Whole-stanza fitting (`sgFitLines`, 17 November 2026, Eli's request "begin with the end in mind"): the words are cut
+  into a whole number of passes through the melody's phrases, so the text always ends on the closing phrase. Before,
+  a semicolon, colon or period inside a line started an extra phrase ("I cry out to You; save me" made "save me" its
+  own phrase), so stanzas 11, 12, 16 and 19 ended mid-melody and short scraps were drawn out. Cuts prefer typed line
+  breaks, then periods, semicolons, commas; never after a little word like "the" or "when". Each piece gets about
+  0.85 of its phrase's beats in syllables. Typed line breaks are a preference, not a rule (Eli does not care where
+  his breaks fall). Stanzas 10, 11, 12, 14, 16, 19, 20 and 22 of the Monastery review set were sung again
+  (`R118M_REV`). `sgFollow` (reading tones) still starts a phrase at a mid-line semicolon.
 - Planned next, once Eli approves the sample by ear: sing all 22 Psalm 118 stanzas on Monastery with Fit each line
   (speed about 150%, 189 a minute) and add a melody drop-down to the review box (sets live in `r118/`; a second set
   needs its own folder and a name in the JSON).

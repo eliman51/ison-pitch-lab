@@ -8161,7 +8161,23 @@ function sgFollow(M,S){const F=M.follow,tok=[],lines=[],RF=/^(hallelujah|allelui
    syllables than seats spreads into the long notes first, then gets a repeated note in the middle of the phrase; a line with
    fewer takes slurs. Which syllable gets what is chosen so that accented syllables start on the melody's own note starts and
    sit on the long notes, and weak syllables stay short. */
-function sgFit(M,S){const P=sgParse(M),phs=[];let cur=[];P.slots.forEach(sl=>{cur.push(sl);if(sl.pe){phs.push(cur);cur=[]}});if(cur.length)phs.push(cur);const lines=[],tok=[];let i=0;while(i<S.length){let j=i+1;while(j<S.length&&!S[j].nl)j++;lines.push([i,j]);i=j}
+/* how the words of a whole stanza are shared out over a fixed melody's phrases (Eli, 17 November 2026): the text is cut
+   into a whole number of passes through the melody, so it always ends on the closing phrase; each piece gets about as
+   many syllables as its phrase has beats (no short scrap like "save me" stretched over a whole phrase, no crowding),
+   and the cuts go where the words allow: a line break or a period first, then a semicolon or colon, then a comma,
+   and in the middle of a sentence only when nothing else fits (never after "the", "of" and the like). Typed line
+   breaks are a preference, not a rule. */
+function sgFitLines(S,cap){const n=S.length,P=cap.length;if(!n)return[];
+  const brk=j=>{if(j>=n)return 0;if(!S[j].ws)return null;const a=S[j-1],line=a.li!=null&&S[j].li!=null?a.li!==S[j].li:!!S[j].nl;
+    let c=line?0:a.pc>=3?1:a.pc>=2?1.2:a.pc>=1?1.8:4;if(!a.pc&&!line){const w=(a.word||'').toLowerCase();if(a.fn||SG_FN0.has(w)||SG_FN1.has(w))c+=2.5}return c};
+  const fitC=(k,r)=>{const t=cap[r]*0.85,x=(k-t)/t;return 1.2*x*x+(k<4?1.5*(4-k):0)+(k>cap[r]+3?1.5*(k-cap[r]-3):0)};
+  const Kmax=Math.ceil(n/2)+P,INF=1e9,f=Array.from({length:n+1},()=>new Float64Array(Kmax+1).fill(INF)),bk=Array.from({length:n+1},()=>new Int16Array(Kmax+1));f[0][0]=0;
+  for(let a=0;a<n;a++)for(let K=0;K<Kmax;K++){if(f[a][K]>=INF)continue;const r=K%P;for(let b=a+1;b<=Math.min(n,a+Math.round(cap[r]*2.2)+2);b++){const bc=brk(b);if(bc==null)continue;const c=f[a][K]+bc+fitC(b-a,r);if(c<f[b][K+1]){f[b][K+1]=c;bk[b][K+1]=a}}}
+  let bestK=-1;for(let K=P;K<=Kmax;K+=P)if(f[n][K]<INF&&(bestK<0||f[n][K]<f[n][bestK]))bestK=K;
+  if(bestK<0){const L=[];let i=0;while(i<n){let j=i+1;while(j<n&&!S[j].nl)j++;L.push([i,j]);i=j}return L}
+  const L=[];let b=n,K=bestK;while(K>0){const a=bk[b][K];L.unshift([a,b]);b=a;K--}return L}
+function sgFit(M,S){const P=sgParse(M),phs=[];let cur=[];P.slots.forEach(sl=>{cur.push(sl);if(sl.pe){phs.push(cur);cur=[]}});if(cur.length)phs.push(cur);const tok=[];
+  const cap=phs.map(ph=>ph.reduce((t,sl,si)=>t+sl.n.reduce((u,[d,len],ni)=>{let parts=Math.max(1,Math.floor(len+1e-6));if(si===ph.length-1&&ni===sl.n.length-1&&parts>1)parts--;return u+parts},0),0)),lines=sgFitLines(S,cap);
   const fm=x=>{x=Math.round(x*100)/100;return x===1?'':':'+String(x).replace(/^0\./,'.')};
   lines.forEach(([a,b],ln)=>{const k=b-a,ph=phs[ln%phs.length],at=[];
     ph.forEach((sl,si)=>sl.n.forEach(([d,len],ni)=>{const lastNote=si===ph.length-1&&ni===sl.n.length-1;let parts=Math.max(1,Math.floor(len+1e-6));if(lastNote&&parts>1)parts--;/* the phrase's last note keeps a long ending */
@@ -8404,8 +8420,9 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=31;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
-const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
+const APP_VER=32;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
+const rvKey=(m,n)=>m+':'+R118_REV+(m==='r118m'&&R118M_REV[n]?R118M_REV[n]:'')+':'+n;/* stanzas re-sung after a pronunciation fix get a new name here, so devices fetch the corrected recording */
 async function sg118Open(n){const st=$('sg118St'),id='p118s'+n+(S118_REV[n]||'');let c=store.get('ison-chants',[]).find(x=>x.id===id);
   if(!c&&S118_REV[n]){const L=store.get('ison-chants',[]),k=L.findIndex(x=>x.id==='p118s'+n);if(k>=0){L.splice(k,1);store.set('ison-chants',L);BlobDB.put('sg-sung:p118s'+n,null).catch(()=>{});chMineRender()}}
   if(!c){const pw=NB_KEY;if(!pw){st.textContent='One time only: type your passphrase in the box just above and tap Unlock. Then tap the stanza again.';return}st.textContent='Getting stanza '+n+'. This happens once.';
@@ -8418,8 +8435,8 @@ function rvRanges(a){const o=[];let i=0;while(i<a.length){let j=i;while(j+1<a.le
 async function rv118Build(){const st=$('rv118St'),bt=$('rv118Go'),sel=[...$('rv118').querySelectorAll('button[aria-pressed="true"]')].map(b=>+b.dataset.n).sort((a,b)=>a-b);if(bt.disabled)return;if(!sel.length){st.textContent='Tap at least one stanza first.';return}
   const pw=NB_KEY;if(!pw){st.textContent='One time only: type your passphrase in the box at the top of this section and tap Unlock. Then build again.';return}
   const mset=$('rv118Mel').value==='r118m'?'r118m':'r118';bt.disabled=true;try{const recs=[];let total=0;
-    for(const n of sel){st.textContent='Getting stanza '+n+' ('+(recs.length+1)+' of '+sel.length+').';let rec=await BlobDB.get(mset+':'+R118_REV+':'+n);
-      if(!rec||!rec.j||!rec.j.notes){let buf;try{buf=await privOpen(mset+'/'+n+'.bin',pw)}catch(e){throw new Error('net')}if(!buf)throw new Error('pw');const jl=new DataView(buf).getUint32(0);rec={j:JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl))),blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'})};try{await BlobDB.put(mset+':'+R118_REV+':'+n,rec)}catch(e){}}
+    for(const n of sel){st.textContent='Getting stanza '+n+' ('+(recs.length+1)+' of '+sel.length+').';let rec=await BlobDB.get(rvKey(mset,n));
+      if(!rec||!rec.j||!rec.j.notes){let buf;try{buf=await privOpen(mset+'/'+n+'.bin',pw)}catch(e){throw new Error('net')}if(!buf)throw new Error('pw');const jl=new DataView(buf).getUint32(0);rec={j:JSON.parse(new TextDecoder().decode(new Uint8Array(buf,4,jl))),blob:new Blob([new Uint8Array(buf,4+jl)],{type:'audio/mp4'})};try{await BlobDB.put(rvKey(mset,n),rec)}catch(e){}}
       rec.k=Math.ceil((rec.j.dur+0.5)/0.02);total+=rec.k*Math.round(KEY_SR*0.02);recs.push(rec)}
     const hop=Math.round(KEY_SR*0.02),buf=new ArrayBuffer(44+total*2),dv=new DataView(buf),ws=(o,t)=>{for(let i=0;i<t.length;i++)dv.setUint8(o+i,t.charCodeAt(i))};ws(0,'RIFF');dv.setUint32(4,36+total*2,true);ws(8,'WAVEfmt ');dv.setUint32(16,16,true);dv.setUint16(20,1,true);dv.setUint16(22,1,true);dv.setUint32(24,KEY_SR,true);dv.setUint32(28,KEY_SR*2,true);dv.setUint16(32,2,true);dv.setUint16(34,16,true);ws(36,'data');dv.setUint32(40,total*2,true);
     const notes=[],words=[],ct=[];let o=0,fi=0;
@@ -8803,7 +8820,7 @@ function chOpen(){if(CHM.inited)return;CHM.inited=true;const s=chSet();
       if(also){const rec=chSongRec(nm);let id=null;try{id=await MyDB.put(rec)}catch(e1){rec.audio=null;id=await MyDB.put(rec)}try{refreshMySongs()}catch(e){}CHM.savedId=id;$('sgToLoop').hidden=id==null}
       st.textContent='Saved "'+nm+'" to My chants at the top of this screen'+(also?', and to your practice songs, with every note exactly as written here.':'.')}catch(e){st.textContent='It could not be saved on this device.'}};
   $('sgToLoop').onclick=()=>{if(CHM.savedId==null)return;try{earSave({unit:13});lpSave({song:'my-'+CHM.savedId});SM.id=null}catch(e){}showTab('practice');try{renderEars()}catch(e){}setTimeout(()=>{const b=$('lpBox');if(b){let d=b.closest('details');while(d){d.open=true;d=d.parentElement&&d.parentElement.closest('details')}b.scrollIntoView({behavior:'smooth',block:'start'})}},400)};
-  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel,SM,smPlan,smDrill,smDx,smDur,earSave,earSet,renderMaster,earStepsSec};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
+  if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgFitLines,chText,sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel,SM,smPlan,smDrill,smDx,smDur,earSave,earSet,renderMaster,earStepsSec};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
   chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?'tone':s.src)}
 
