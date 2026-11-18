@@ -42,7 +42,7 @@ S = {
     'G': [[(2, .85), (1, .75)], [(0, 1.75)], [(1, .8), (2, 1.9), (1, 1.45)], [(0, 2)], [(1, 2)], [(2, 1.5)], [(2, .8), (0, 1.2)], [(0, 2)]],
 }
 REST = {'A': {7: 1.2, 9: .5}, 'B': {3: .6, 5: 2.2}, 'C': {4: 1, 9: .3}, 'D': {1: 1.2, 4: 2.2}, 'E': {7: .3}, 'H': {4: 1, 7: 2.2}, 'I': {2: 1, 7: .3}, 'F': {}, 'Fs': {}, 'G': {2: .4, 6: .5, 8: .3}}
-# the singer's pauses exactly as measured (19 November 2026), in quarter seconds, used when the file has the line  #! singer-pauses :
+# the singer's pauses exactly as measured (18 November 2026), in quarter seconds, used when the file has the line  #! singer-pauses :
 # after A's held home note 0.38 s every time (twice inside a word: shep-herd, e-nemies) and 0.3 s after A; nothing after B's
 # turn (be-fore, a-noint are sung through); in C 0.21 s after cell 4 and 0.24 s after cell 7; in D 0.35 s after the +1 0
 # every time (fol-low, bri-dal) and half a second after the close; in H 0.37 s after cell 4; in I 0.27 s after cell 2 and

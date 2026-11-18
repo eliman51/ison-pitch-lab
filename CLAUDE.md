@@ -273,7 +273,7 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   and worth his ear: 13 "it is my meditation the whole day long" (B 11), 17 "for this reason my soul searches them
   out" (B 10), 6 "with a word, for I hope in Your words" (B 9). `shapes.py` no longer slows anything by itself; it
   prints "crowded" for a line quicker than 2.3 syllables a second (the climb F always is).
-- The singer's pauses (19 November 2026). Eli heard that "the perfect pauses at the right times for the breath" were
+- The singer's pauses (18 November 2026). Eli heard that "the perfect pauses at the right times for the breath" were
   slightly off, and that the pause is often in the middle of a word. Measured in the recording (37 pauses of 0.15 s or
   more; 6 inside a word: shep-herd, e-nemies, bri-dal, fol-low, com-fort, res-tores): the pauses belong to the melody,
   not the words. He pauses at the same cell of a shape every time, as long inside a word as between words: A 0.38 s
