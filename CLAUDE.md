@@ -288,6 +288,16 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   words (`or/1:1.8_0:.85~1.3-di/...` in heart.py's notation). Trial: stanza 4 this way is the review set `r118q`
   (`~/ison-singer/p23m/4q.s.txt`, 89 s), beside the unchanged `r118p` stanza 4, for Eli to compare by ear. If he
   prefers it: add the line to every `.s.txt`, re-sing, give each a new letter in `R118P_REV`, and remove `r118q`.
+  Eli's answer on trial B: "definitely better", the breath "a lot better and more natural". So the singer's pauses are
+  right; they are not yet rolled out to the other stanzas.
+- Trial C (`r118r`, `4r.s.txt`, 95 s, 22 shapes): Eli found the last 30 to 40 seconds of stanza 4 still crammed and asked
+  for more of the melody there, even 10 to 20 seconds longer. Verses 29 to 32 went from 9 shapes to 12:
+  `C D | E H | I D | F G D | F G D` (half a C for "Remove the way", D "of unrighteousness from me", E "and with Your
+  law", H "have mercy on me", I and D for verse 30, the climb for "I cleave to Your testimonies, O Lord", the close
+  "do not disappoint me", then the final climb as before). No line now has more syllables than the singer's own lines
+  of that shape, and the stanza's rate (1.5 a second) equals the song's. Waiting on his ear; he will then name exact
+  words and sentences. The song's own load, for reference: 175 syllables, 138 words, 26 shapes, 6.7 syllables a shape;
+  by shape A 8 to 9, B 5 to 6, C 9, D 5 to 7, E 7, H 7, I 6 to 7, F 5, G 8.
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
