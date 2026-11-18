@@ -273,6 +273,21 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   and worth his ear: 13 "it is my meditation the whole day long" (B 11), 17 "for this reason my soul searches them
   out" (B 10), 6 "with a word, for I hope in Your words" (B 9). `shapes.py` no longer slows anything by itself; it
   prints "crowded" for a line quicker than 2.3 syllables a second (the climb F always is).
+- The singer's pauses (19 November 2026). Eli heard that "the perfect pauses at the right times for the breath" were
+  slightly off, and that the pause is often in the middle of a word. Measured in the recording (37 pauses of 0.15 s or
+  more; 6 inside a word: shep-herd, e-nemies, bri-dal, fol-low, com-fort, res-tores): the pauses belong to the melody,
+  not the words. He pauses at the same cell of a shape every time, as long inside a word as between words: A 0.38 s
+  after the held home note (cell 7) and about 0.3 s after the shape; B none after the turn (be-fore, a-noint are sung
+  through), half a second at its close; C 0.21 s after cell 4 and 0.24 s after cell 7; D 0.35 s after the +1 0 (cell 1)
+  and half a second after the close; H 0.37 s after cell 4; I 0.27 s after cell 2 and 0.18 s after cell 5; G 0.2 s
+  after cells 2 and 6; E and F none. His shapes' highest note is mid-word 9 times of 26. His sentences do not always
+  end on closing shapes ("name's sake" runs into "Though I walk"); ours are tidier, which Eli likes.
+  Our first layouts left a pause out whenever it fell inside a word (about half the pause points in stanza 4, because
+  Psalm 118 has longer words) and had small errors (a pause after B's turn, none after C's cell 7 or I's cell 5).
+  `#! singer-pauses` at the top of a `.s.txt` makes `shapes.py` use the measured pauses (`REST2`) and keep them inside
+  words (`or/1:1.8_0:.85~1.3-di/...` in heart.py's notation). Trial: stanza 4 this way is the review set `r118q`
+  (`~/ison-singer/p23m/4q.s.txt`, 89 s), beside the unchanged `r118p` stanza 4, for Eli to compare by ear. If he
+  prefers it: add the line to every `.s.txt`, re-sing, give each a new letter in `R118P_REV`, and remove `r118q`.
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 

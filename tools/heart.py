@@ -14,6 +14,7 @@ each syllable with its notes after a slash, syllables of one word joined by a hy
   lengths    in units (one unit = one quick syllable): nothing = 1, ' = 1.5 (an accented syllable), " = 2,
              :x = x units. A ! after a note makes that syllable a little stronger.
   pauses     ,  a lift with no breath (0.75 unit)     /  a breath (1.75 units)     ~x  x units of silence
+             or/1:1.8~1.2-di/-1:2   a lift inside a word: ~x straight after a syllable's notes
   marks      {p} {mp} {mf} {f} {ff} how loud from here on     {t1.2} everything 1.2 times slower from here on
              |  a new line of the words (only for reading the score)       # starts a comment
 
@@ -73,6 +74,7 @@ def parse(path, home, unit):
             if '/' not in p:
                 sys.exit('No notes on "%s" in "%s"' % (p, tok))
             s, spec = p.split('/', 1); notes, acc = [], False
+            spec, _, lift = spec.partition('~')            # or/1:1.8_0:.85~1.2 : a lift (silence) after this syllable, inside the word
             for q in spec.split('_'):
                 m = re.fullmatch(r"(-?\d+)(?:(')|(\")|:(\d*\.?\d+))?(!)?", q)
                 if not m:
@@ -83,6 +85,8 @@ def parse(path, home, unit):
             for deg, u in notes:
                 d = u * unit * tempo; ns.append({'t': t, 'd': d, 'm': pitch(deg, home), 'deg': deg, 'u': u}); t += d
             syl.append({'s': s, 'ws': k == 0, 'word': word, 'k': k, 'nk': len(parts), 'line': line, 'notes': ns, 'db': db + (1.6 if acc else 0.0)})
+            if lift:
+                t += float(lift) * unit * tempo
     return syl, t
 
 

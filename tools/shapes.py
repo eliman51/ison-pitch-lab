@@ -13,7 +13,9 @@ cells, a cell being the notes he puts on one syllable. A line of the shape score
   c8+c9     two cells on one syllable          *.7            that cell a little shorter (or longer)
   r q h     a recited home note: 2, 1 or 1.5 units           anything else is a note written out as heart.py reads it
   ~x        a silence. The singer's own lifts and breaths are put in by themselves after the cell that carries them,
-            unless a ~ is written there (write ~0 for none) or the cell ends in the middle of a word
+            unless a ~ is written there (write ~0 for none). When the cell ends in the middle of a word the lift is
+            left out, unless the file has the line  #! singer-pauses  (then every pause is the singer's own, measured,
+            and a word is broken where his melody pauses, as he breaks "shep-herd" and "bri-dal"); list/c7~1 writes such a lift by hand, list/c7~0 forbids it
   D!        the last close of a stanza (longer, no breath after). Fs is the climb F with one syllable to a note.
   nan/c9-   a word that runs on into the next shape; the next line then starts with  -ces/c1
   |         end of a line of the words (for reading)         # a comment         {t1.06} and the like pass through
@@ -40,6 +42,13 @@ S = {
     'G': [[(2, .85), (1, .75)], [(0, 1.75)], [(1, .8), (2, 1.9), (1, 1.45)], [(0, 2)], [(1, 2)], [(2, 1.5)], [(2, .8), (0, 1.2)], [(0, 2)]],
 }
 REST = {'A': {7: 1.2, 9: .5}, 'B': {3: .6, 5: 2.2}, 'C': {4: 1, 9: .3}, 'D': {1: 1.2, 4: 2.2}, 'E': {7: .3}, 'H': {4: 1, 7: 2.2}, 'I': {2: 1, 7: .3}, 'F': {}, 'Fs': {}, 'G': {2: .4, 6: .5, 8: .3}}
+# the singer's pauses exactly as measured (19 November 2026), in quarter seconds, used when the file has the line  #! singer-pauses :
+# after A's held home note 0.38 s every time (twice inside a word: shep-herd, e-nemies) and 0.3 s after A; nothing after B's
+# turn (be-fore, a-noint are sung through); in C 0.21 s after cell 4 and 0.24 s after cell 7; in D 0.35 s after the +1 0
+# every time (fol-low, bri-dal) and half a second after the close; in H 0.37 s after cell 4; in I 0.27 s after cell 2 and
+# 0.18 s after cell 5; in G 0.2 s after cells 2 and 6 (com-fort); none in E or F
+REST2 = {'A': {7: 1.45, 9: 1.0}, 'B': {5: 2.0}, 'C': {4: .8, 7: .9, 9: .3}, 'D': {1: 1.3, 4: 2.0}, 'E': {7: .2}, 'H': {4: 1.4, 7: 2.0},
+         'I': {2: 1.0, 5: .7, 7: .5}, 'F': {}, 'Fs': {}, 'G': {2: .6, 6: .7, 8: .3}}
 LOUD = {'A': 'mf', 'B': 'mp', 'C': 'mf', 'D': 'mp', 'E': 'mf', 'H': 'p', 'I': 'mf', 'F': 'mf', 'Fs': 'mf', 'G': 'mf'}
 JOIN = {'A': 'B', 'B': 'AC', 'C': 'D', 'D': 'AEF', 'E': 'H', 'H': 'I', 'I': 'D', 'F': 'G', 'G': 'D'}
 PICKUP = {'B': [(-2, 1)]}                                 # c0
@@ -50,7 +59,8 @@ fm = lambda x: ('%.2f' % x).rstrip('0').rstrip('.')
 def main():
     src, dst = sys.argv[1:3]; out = []; warn = 0; form = []; carry = None; tempo = 1.0
     FAST = 2.3                                           # syllables a second: a line quicker than this is called crowded
-    fmt = lambda syls: '-'.join(s + '/' + '_'.join('%d:%s' % (d, fm(u)) for d, u in n) for s, n in syls)
+    fmt = lambda syls: '-'.join(x[0] + '/' + '_'.join('%d:%s' % (d, fm(u)) for d, u in x[1]) + ('~' + fm(x[2]) if x[2] else '') for x in syls)
+    INWORD = any(l.startswith('#! singer-pauses') for l in open(src, encoding='utf-8'))
     for ln, line in enumerate(open(src, encoding='utf-8'), 1):
         raw = line.rstrip('\n'); body = raw.split('#')[0].split()
         if not body:
@@ -63,7 +73,7 @@ def main():
         sh, _, force = body[0].partition('@'); final = sh.endswith('!'); sh = sh.rstrip('!')
         if sh not in S:
             sys.exit('line %d: no shape called "%s"' % (ln, sh))
-        cells = [list(c) for c in S[sh]]; rest = dict(REST[sh])
+        cells = [list(c) for c in S[sh]]; rest = dict((REST2 if INWORD else REST)[sh])
         if final:
             cells[-1] = [(0, 3), (1, .75), (-1, 1.35), (0, 2.8)]; rest.pop(len(cells), None)
         used = set(); toks = body[1:]; items = []; nsyl = 0           # items: ['w', syllables, head, tail] | ['r', units] | ['|']
@@ -80,6 +90,7 @@ def main():
                 if '/' not in p:
                     sys.exit('line %d: no notes on "%s"' % (ln, p))
                 syl, spec = p.split('/', 1); notes = []; pend = None
+                spec, tilde, own = spec.partition('~')         # list/c7~1 : a lift written by hand after this syllable
                 for q in spec.split('+'):
                     m = re.fullmatch(r'c(\d)([a-d]*)(?:\*(\d*\.?\d+))?', q)
                     if m:
@@ -101,14 +112,17 @@ def main():
                                 sys.exit('line %d: cannot read "%s" in "%s"' % (ln, z, tok))
                             notes.append((int(m2.group(1)), float(m2.group(2) or 1)))
                         pend = None
-                word.append([syl, notes])
+                inside = pi < len(parts) - 1 or tail            # the melody's lift falls inside the word: the singer lifts there all the same
+                word.append([syl, notes, float(own) if tilde else (pend if (INWORD and inside and pend) else 0)])
+                if tilde:
+                    pend = None
             items.append(['w', word, head, tail])
             nxt = toks[ti + 1] if ti + 1 < len(toks) else ''
             if pend and not nxt.startswith('~') and not tail:
                 items.append(['r', pend])
         # a crowded line is slowed down: its notes and the lifts inside it, not the breath after it
         last = max([i for i, it in enumerate(items) if it[0] == 'w'], default=-1)
-        units = sum(u for it in items[:last + 1] if it[0] == 'w' for _, n in it[1] for _, u in n) + sum(it[1] for it in items[:last + 1] if it[0] == 'r')
+        units = sum(u for it in items[:last + 1] if it[0] == 'w' for _, n, _r in it[1] for _, u in n) + sum(it[1] for it in items[:last + 1] if it[0] == 'r') + sum(x[2] for it in items[:last + 1] if it[0] == 'w' for x in it[1])
         rate = nsyl / (units * 0.25 * tempo) if units else 0
         f = float(force) if force else 1.0              # only when asked: crowding is cured by giving the words another shape, not by slowing down
         if not force and rate > FAST:
@@ -116,7 +130,7 @@ def main():
         if f != 1.0:
             for i, it in enumerate(items[:last + 1]):
                 if it[0] == 'w':
-                    it[1] = [[s_, [(d, u * f) for d, u in n]] for s_, n in it[1]]
+                    it[1] = [[s_, [(d, u * f) for d, u in n], r_ * f] for s_, n, r_ in it[1]]
                 elif it[0] == 'r':
                     it[1] *= f
             if not force:
@@ -128,7 +142,7 @@ def main():
             if it[0] == 'r':
                 res.append('~' + fm(it[1])); continue
             _, word, head, tail = it
-            for syl, notes in word:
+            for syl, notes, _r in word:
                 if sum(u for _, u in notes) < 0.8:
                     print('line %d: "%s" is very short (%s units)' % (ln, syl, fm(sum(u for _, u in notes)))); warn += 1
             if head != (carry is not None):
