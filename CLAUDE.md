@@ -250,6 +250,13 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   master. Changes so far (each re-sung stanza gets its letter in `R118P_REV`): stanza 4 `b`: "earth" in the first line
   carries on up to the held home note and ends there, a short lift, then a quick "Give me" on the next two notes (before,
   "Give" was the held note and the th of "earth" ran into it).
+  Stanza 4 `c`: from "and I shall meditate" on, rebuilt as `A B | A B | C D | E H | I D | F G D` (86 s; the earlier
+  layout is kept as `4.s.v2.txt`). What he asked, and it is a rule for every stanza from now on: nothing crammed, and no
+  two sentences run together as if they were one. A sentence must end on a shape that closes and breathes (B, H or D);
+  A, C, E, I, F and G run straight on, so they only carry the first half of a sentence. In sentence pairs the song
+  allows: `A|B`, `C|D`, `E|H`, `I|D`, `F|G D` or `F G|D`. Making a stanza longer for this is fine with him. The other
+  stanzas were laid out before this rule and several break it (a sentence ending on E, I, F or G); fix each as he
+  reaches it.
 - Key advice given to Eli (18 November 2026): this melody sits in the middle and only touches the top, while its low
   notes are long, so choose the key by the low notes; stay at "As sung" or at most 1 or 2 down, and keep one key.
 
