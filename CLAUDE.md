@@ -180,8 +180,18 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   in the Psalm 91/121 recording (step up, climb, hold, quick flick to the top, stepwise fall, small closing turn, about
   3 seconds). High points chosen: stanza 1 "O Lord" (verse 7), stanza 2 "Blessed are You, O Lord" (verse 12),
   stanza 3 "My soul longed" (verse 20). Eli found the long song's climb too high, held too long and slow to return.
-- Checked by measurement: 52, 47 and 51 seconds; a speech recognizer heard 97%, 98% and 91% of the words; 99 to 100% of
-  notes within half a step. Waiting on Eli's ear before scoring more stanzas.
+- Eli approved the style by ear on 18 November 2026 ("keep this as a full style") and all 22 stanzas are scored and
+  sung (`r118h/`, 46 to 54 seconds each, 18:49 together). Each stanza's score begins with a comment naming its
+  high point (4 "enlarged", 5 "Behold", 6 "which I love", 7 "Your name", 8 "mercy", 9 "good", 10 "live",
+  11 "help me" as a weeping fall, 12 "Forever" at the opening, 13 "sweet", 14 "joy", 15 "saved", 16 "the Lord",
+  17 "shine", 18 "home" landing on the home note, 19 "cry" at the opening, 20 "life", 21 "peace", 22 "overflow",
+  and the psalm's last line slow and gentle). Checked by measurement: a speech recognizer heard 91 to 98% of the
+  words in every stanza, 99 to 100% of notes within half a step. Crowded words (transgressed, persecute) need 1.5 to
+  2 units on their syllables or they blur. To change one spot: edit `~/ison-singer/heart/N.txt`, run
+  `heart.py ... --sing`, pack, and give that stanza a new name in the app so phones fetch it (as `R118M_REV` does).
+- Eli's long aim (18 November 2026): a library of such styles over the years, master a few, then sing the whole
+  psalm himself for YouTube. The TIGER voice is personal, non-commercial, no re-hosting: it teaches, it is not
+  what gets published. Melodies written for the app are his to use.
 
 ## Learning a formula from a recording (14 November 2026)
 
