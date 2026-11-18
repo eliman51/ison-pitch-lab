@@ -159,6 +159,8 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   (speed about 150%, 189 a minute) and add a melody drop-down to the review box (sets live in `r118/`; a second set
   needs its own folder and a name in the JSON).
 
+- `p118l` "Psalm 118, the long song" (17 November 2026): written for the app, Hijaz, 16 phrases = one stanza arc (low opening, rise to the tense 2nd step, high cry from the top Pa, return and sealed ending). With Fit each line each 16-line stanza sings it once and ends home. Not traditional; no melody from David's time survives.
+
 ## Learning a formula from a recording (14 November 2026)
 
 - `t7p91` is Tone 7 learned from the built-in Psalm 91/121 recording: words heard by faster-whisper and corrected
