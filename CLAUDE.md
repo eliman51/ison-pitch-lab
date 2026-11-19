@@ -383,6 +383,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   end mid-thought ("Remove the way of / unrighteousness from me. And with / Your law have mercy on me", "O / Lord"), and
   the climb comes three times. The first half is not exact yet (B7 on his 6, C6 on 9, D4, F4, G7). Waiting on his ear.
   If he likes it: do the first half the same way, then it replaces stanza 4 of `r118p` and `r118v` leaves the menu.
+- Eli on trial F (19 November 2026): "this sounded very, very good", make it the current version. It is now stanza 4 of
+  `r118p` (letter `g`, version 53; `~/ison-singer/p23m/4u.txt` is trial F, the one before is `4u.trialE.txt`), and `r118v`
+  is gone from the menu and the repo. So the one-syllable-to-each-of-his rule is confirmed by ear for the second half.
+  Not done and not asked for: the first half of stanza 4 by the same rule, and the other 21 stanzas.
 
 ## The lessons file and the Tone 4 melody (19 November 2026)
 
