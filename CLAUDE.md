@@ -327,6 +327,18 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   last two cells). (3) "I ran on the path of Your commandments": quick syllabic climb (Fs) to "com-", the height's first
   three cells all on "-mand-"; "When You enlarged my heart" quick, "heart" on the leap and the whole last figure.
   The lesson: little words quick, and the melody's long figures on the one word that carries the meaning.
+- The singer's spacing, measured from the scan (18 November 2026, Eli asked for rules found in the recording to guide every
+  change). His syllables are even: 10th to 90th percentile 0.34 to 0.97 s, middle half 0.43 to 0.65 s, median 0.54; only 8% are
+  under 0.3 s and 9% over 1 s. Little words (the, of, and, me) are as long as accented syllables (median 0.53 against 0.54);
+  figures of 3 or 4 notes fall on little words and weak syllables as often as on accents (the melody decides, one syllable to
+  a cell); the long closing figure (1.3 to 2 s) sits on the last syllable of a line whatever its accent (shep-HERD, e-VIL,
+  cham-BER); extra syllables are recited on home notes of half a second, not a quarter. Our stanza 4 was two-speed: 27% of
+  syllables under 0.3 s (the q recitations and split cells) and 13% over 1 s (cells stacked on one syllable). The lines Eli
+  approved earliest ("I made known my ways and You heard me") are exactly the even, one-syllable-to-a-cell ones.
+  Rules from it: one syllable to a cell where possible; no syllable under about 0.33 s (recite on `h`, not `q`; lengthen
+  split cells); mid-line no stacking over about 1 s, drop a cell (a repeated or rebound one: H 4, E 7, G 2, D 2) instead;
+  the long figure only at a line's end or on the one word Eli asked for. Trial D (`r118s`, `4s.s.txt`, 96.5 s) is stanza 4
+  by these rules on top of his three notes: 3% under 0.3 s, 12% over 1 s; waiting on his ear. `r118p` stanza 4 stays at `e`.
 - If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
 
 ## Learning a formula from a recording (14 November 2026)
