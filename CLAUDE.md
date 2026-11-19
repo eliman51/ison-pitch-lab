@@ -353,6 +353,24 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   "O Lord do not"). Stanza 4 came out as A B A B A B C D F G D E H I D A B C D F G D with a median syllable of 0.55 s
   (his 0.54). Its weights are a first guess. Waiting on his ear. The older shape tools (shapes.py, lay.py) alter the melody
   and should not be used for new versions unless he asks.
+- Rolled out to all 22 stanzas at Eli's word (18 November 2026, version 50, `R118P_REV` letter `f` for every stanza; the
+  trial sets `r118q` to `r118t` were removed from the menu and the repo). `r118p` is now this exact-phrase method
+  everywhere; the older shape scores (`N.s.txt`, `N.txt`) stay on disk as history. The scores sung are
+  `~/ison-singer/p23m/Nu.txt` (+ `.form`). Stanza 4 is trial E as he heard it (`4u.txt`, rebuilt from its sung record
+  after the working file was overwritten). Stanza 1 is a layout written by hand (`1.oplan.txt`, run with `--plan`);
+  the other 20 are the tool's fit steered by `~/ison-singer/p23m/overlay.pins.txt` (one line a stanza: `word=F` puts a
+  word on a phrase, `/word` a phrase begins there, `+word` no phrase begins there, `#2` the second time the word comes).
+  To change a spot: edit that line (or write `N.oplan.txt`), run `overlay.py N Nu --free` (or `--plan`), read the layout
+  it prints, then `heart.py ~/ison-singer/p23m/Nu.txt N <out> --unit 0.25 --home 51 --scale p23 --set r118p --sing`,
+  `pack118.py <out> NB_KEY r118p`, a new letter in `R118P_REV`, and that stanza's entry in `R118_FORM`.
+- What the tool holds to (all from Eli's notes and the scan): his phrases whole and unaltered, joined only as he joins
+  them; a verse never ends on an opening phrase (A, E, F) and best on B, D or H; a phrase never ends on a word that
+  leans on the next (the, of, and, I, shall ...); breaks prefer line ends, punctuation, or just before a word that opens
+  a group (of, in, for, that, and ...); no syllable under about 0.3 s where it can be helped; only his closing figures
+  are long; the climb once or twice, not twice in a row; his descent on a dark line when one fits. Honest limits: 20
+  stanzas were read line by line and corrected by direction, not polished line by line as stanza 4 was; a few phrases
+  still carry only three or four syllables (so those words are drawn out), a few breaths fall inside a word (he does
+  that too), and stanza 1 has its only climb on "Would that my ways were led". Eli refines one stanza at a time from here.
 - If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
 
 ## Learning a formula from a recording (14 November 2026)
