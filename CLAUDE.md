@@ -387,6 +387,11 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   `r118p` (letter `g`, version 53; `~/ison-singer/p23m/4u.txt` is trial F, the one before is `4u.trialE.txt`), and `r118v`
   is gone from the menu and the repo. So the one-syllable-to-each-of-his rule is confirmed by ear for the second half.
   Not done and not asked for: the first half of stanza 4 by the same rule, and the other 21 stanzas.
+- Trial G (`r118w`, stanza 4 only, `~/ison-singer/p23m/4g.txt`, plan `4.oplan.txt`, 92 s, version 54): the first half laid
+  the same way, `A9 B6 | A9 B7 | C9 D5 | E7 H7 I7 D7`, then trial F's second half unchanged. Every phrase has his count
+  except "Teach me Your ordinances" (7 on his 6; 73 syllables do not divide otherwise). The climb on "My soul fainted" is
+  gone from the first half; those words are now on his descent (unused before), so the stanza has two climbs, both in
+  the second half. Waiting on his ear; if he likes it, it becomes stanza 4 of `r118p` and `r118w` leaves the menu.
 
 ## The lessons file and the Tone 4 melody (19 November 2026)
 
