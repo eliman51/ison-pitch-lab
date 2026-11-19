@@ -372,6 +372,17 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   still carry only three or four syllables (so those words are drawn out), a few breaths fall inside a word (he does
   that too), and stanza 1 has its only climb on "Would that my ways were led". Eli refines one stanza at a time from here.
 - If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
+- One syllable to each of his (19 November 2026). Stanza 4 has 105 words and 140 syllables (the song: 138 and 175, on 26
+  phrases). Eli felt the stretch just past halfway was off; there "Remove the way" had 4 syllables on a phrase where the
+  singer has 7. His rule now, above where sentences begin and end: where the singer has three syllables on some notes we
+  may not put one or two there; our syllable count on a phrase should be his. `overlay.py N name --plan --exact` does this
+  for a hand plan (`N.oplan.txt`): a line with his count is laid one to one, a line one or two short joins neighbouring
+  syllables of his (never across a breath), a line with more falls back to the old fit. Trial F (`r118v`, stanza 4 only,
+  `~/ison-singer/p23m/4w.txt`, 95 s): first half as trial E, second half `F5 G8 D7 | A9 B6 | C9 D7 | F5 G7 D4`, exact except
+  two joins in the last climb ("When" and "heart"; verse 32 is 16 syllables, his climb and close need 18). The cost: phrases
+  end mid-thought ("Remove the way of / unrighteousness from me. And with / Your law have mercy on me", "O / Lord"), and
+  the climb comes three times. The first half is not exact yet (B7 on his 6, C6 on 9, D4, F4, G7). Waiting on his ear.
+  If he likes it: do the first half the same way, then it replaces stanza 4 of `r118p` and `r118v` leaves the menu.
 
 ## Learning a formula from a recording (14 November 2026)
 

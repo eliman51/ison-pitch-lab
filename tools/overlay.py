@@ -239,6 +239,32 @@ def freefit(syl, ALL, high=None, pins={}):
     return N, C, best[endkey][0]
 
 
+EXACT = False                                            # --exact: one of our syllables to each of his (Eli, 19 November 2026)
+
+
+def exact(syl, I, i0, k):
+    """k syllables on one of his phrases, cut only where his own syllables end. The same count as his: one to one. Fewer:
+    neighbouring syllables of his are joined, never across a breath, as few as can be. More: no."""
+    ends = [j for j, x in enumerate(I) if x['sl']]; S = len(ends)
+    if k > S:
+        return None
+    starts = [0] + [e + 1 for e in ends[:-1]]
+    best = {(0, 0): (0.0, [])}                             # (syllables laid, his syllables used)
+    for q in range(k):
+        for u in range(q, S):
+            if (q, u) not in best:
+                continue
+            c0, cuts = best[(q, u)]
+            for v in range(u, S):
+                if v > u and I[ends[v - 1]]['gap'] >= BREATH:
+                    break
+                c = c0 + 40.0 * (v - u) + min(cost(syl, I, i0 + q, starts[u], ends[v]), 500.0)
+                if (q + 1, v + 1) not in best or c < best[(q + 1, v + 1)][0]:
+                    best[(q + 1, v + 1)] = (c, cuts + [(starts[u], ends[v])])
+    r = best.get((k, S))
+    return (r[0] + 1000.0 * (S - k), r[1]) if r else None
+
+
 def planfit(syl, ALL, plan):
     """a layout written by hand (~/ison-singer/p23m/N.oplan.txt, as tools/lay.py reads plans: a shape letter and the words it
     carries on each line): each phrase is his, whole; of his two to four singings of that phrase the one that fits best"""
@@ -253,7 +279,10 @@ def planfit(syl, ALL, plan):
         for I in inst.values():
             if I[0]['name'] != t:
                 continue
-            r = inner(syl, I, p0).get(p1 - p0)
+            r = exact(syl, I, p0, p1 - p0) if EXACT else None
+            if r:
+                r = (r[0] - 1e6, r[1])                      # his own syllable count comes before any other fit
+            r = r or inner(syl, I, p0).get(p1 - p0)
             if r and (bestc is None or r[0] < bestc[0]):
                 bestc = (r[0], I, r[1])
         if bestc is None:
@@ -270,14 +299,14 @@ def main():
             for part in a[7:].split(','):
                 lo, _, hi = part.partition('-'); skip |= set(range(int(lo) - 1, int(hi or lo)))
     n = int(args[0]); name = args[1] if len(args) > 1 else '%dx' % n
-    args = [a for a in args if a not in ('--free', '--plan') and not a.startswith('--pin=')]
+    args = [a for a in args if a not in ('--free', '--plan', '--exact') and not a.startswith('--pin=')]
     pinspec = [a[6:] for a in sys.argv if a.startswith('--pin=')]      # --pin=mercy=H,ran=F,way#2=I : that word is sung on that shape
     n = int(args[0]); name = args[1] if len(args) > 1 else '%dx' % n
     syl, N = lay.read(n), melody(skip)
     pf = os.path.expanduser('~/ison-singer/p23m/%d.oplan.txt' % n)
     if '--plan' in sys.argv:
-        global HAND
-        HAND = True
+        global HAND, EXACT
+        HAND = True; EXACT = '--exact' in sys.argv
         import shutil, tempfile
         tmp = os.path.expanduser('~/ison-singer/p23m/%d.plan.txt' % n); had = os.path.exists(tmp)
         if had:
