@@ -319,6 +319,14 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   While a session runs the panel moves into the running screen, the line being sung lights up, and typing never stops
   the audio. Notes are kept as typed (`ison-ln-draft`). "Save these notes to the log" stores them (`ison-ln-log`, newest 40)
   and copies the text; he pastes it into a message. Claude cannot read his phone, so pasting is the hand-over.
+- First notes from the log (stanza 4, letter `e`, 18 November 2026; the layout before is `4.s.v4.txt` and still in the menu as
+  trial C). He felt trial C had overcompensated into slowness. (1) "and with Your law have mercy on me": too much on "law",
+  no weight wanted on "Your"; now E carries "and with Your law have" with the first four quick and the rise and fall on
+  "have", H carries "mercy on me" with the steps down spread over "mercy", a quick "on", a long "me". (2) "I chose the way of
+  truth": quicker, the weight on "truth" as it hands over (held note on "chose" halved, no pause after "the", "truth" on the
+  last two cells). (3) "I ran on the path of Your commandments": quick syllabic climb (Fs) to "com-", the height's first
+  three cells all on "-mand-"; "When You enlarged my heart" quick, "heart" on the leap and the whole last figure.
+  The lesson: little words quick, and the melody's long figures on the one word that carries the meaning.
 - If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
 
 ## Learning a formula from a recording (14 November 2026)
