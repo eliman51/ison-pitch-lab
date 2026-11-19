@@ -339,6 +339,20 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   split cells); mid-line no stacking over about 1 s, drop a cell (a repeated or rebound one: H 4, E 7, G 2, D 2) instead;
   the long figure only at a line's end or on the one word Eli asked for. Trial D (`r118s`, `4s.s.txt`, 96.5 s) is stanza 4
   by these rules on top of his three notes: 3% under 0.3 s, 12% over 1 s; waiting on his ear. `r118p` stanza 4 stays at `e`.
+- Eli on trial D (18 November 2026): a step in the wrong direction. Changing lengths, dropping cells and adding recited
+  notes "leaves the melody": the beats and their timing are what give the melody its identity. His rule: the melody the
+  same in tone and timing, only which words fall on which notes changes. He added: follow the heart of that, not the
+  letter; a little exaggeration here and there is fine, and it must not be so rigid that a stanza cannot fit.
+  So no `*.6` factors, no cells left out, no q/r/h recitation, no half shapes, no Fs.
+- `tools/overlay.py` does this (trial E, `r118t`, `4t.txt`, 97.4 s). It reads the singer's real performance from the scan
+  (every note, length and pause of each of his 26 phrases) and lays a stanza's syllables on the notes, each syllable on
+  one or more notes in a row. `--free` picks his whole phrases in the best order for the words (only joins he makes,
+  begins on A, ends on D, a verse ends on B, D or H); without it the whole song is used in his order, which for stanza 4
+  (140 syllables on his 175) stretches too many words. `--pin=word=SHAPE,...` puts a word on a shape (stanza 4:
+  life=A, unrighteousness=H, from=I, have=D, ran=F, when=D); three lines were then corrected by hand (first line, "meditate",
+  "O Lord do not"). Stanza 4 came out as A B A B A B C D F G D E H I D A B C D F G D with a median syllable of 0.55 s
+  (his 0.54). Its weights are a first guess. Waiting on his ear. The older shape tools (shapes.py, lay.py) alter the melody
+  and should not be used for new versions unless he asks.
 - If a stanza of `r118p` is laid out again, update its entry in `R118_FORM` (from `N.txt.form`) or its lines fall back to half lines.
 
 ## Learning a formula from a recording (14 November 2026)
