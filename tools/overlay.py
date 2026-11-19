@@ -25,6 +25,20 @@ OUT = os.path.expanduser('~/ison-singer/p23m/%s.txt')
 SHAPES = [('A', 8), ('B', 6), ('A', 9), ('B', 5), ('C', 9), ('D', 7), ('E', 7), ('H', 7), ('I', 6), ('D', 6), ('F', 5), ('G', 8), ('D', 5),
           ('A', 9), ('B', 5), ('A', 9), ('B', 5), ('C', 8), ('D', 7), ('E', 7), ('H', 7), ('I', 7), ('D', 5), ('F', 5), ('G', 8), ('D', 5)]   # his syllables in each
 LOUD = {'A': 'mf', 'B': 'mp', 'C': 'mf', 'D': 'mp', 'E': 'mf', 'H': 'p', 'I': 'mf', 'F': 'mf', 'G': 'mf'}
+OPEN, CLOSE, CLOSELONG, END, SCOOP = 'AEF', 'BDH', 'BDCH', 'D', False     # phrases that never end a verse; that end one best; whose last figure is long; that may end a stanza
+
+
+def use(path):
+    """another recording's melody (--mel tools/p23t4.mel.json): its scan, its phrases and how he joins them"""
+    global SCAN, OUT, SHAPES, LOUD, JOIN, OPEN, CLOSE, CLOSELONG, END, SCOOP
+    M = json.load(open(path))
+    SCAN = os.path.expanduser(M['scan']); OUT = os.path.expanduser(M['out']); os.makedirs(os.path.dirname(OUT), exist_ok=True)
+    SHAPES = [tuple(x) for x in M['shapes']]; LOUD = M['loud']; JOIN = M['join']
+    OPEN, CLOSE, CLOSELONG, END, SCOOP = M['open'], M['close'], M['closelong'], M['end'], M.get('scoop', False)
+    global MUST
+    MUST = M.get('must', '')
+    for t, _ in SHAPES:
+        lay.LOAD.setdefault(t, (0, 0, 99))
 SHAPECOST = 3.0                                          # every phrase costs time: no more of them than the words need
 DARK = set('affliction afflict sinners enemies perished persecute persecuted arrogant transgressors transgressed lawlessness humbled ashamed snares ensnared wander tears trouble evil unrighteous unrighteousness hate hated kill fainted reproach contempt accursed despondency curdled frost evildoers wrong falsely lost astray shamed insult vanity greediness blame listlessness sin slander foolishly'.split())
 STARTERS = set('of in on at by for from with to and but or nor that which who whom when where because according as than like so if before upon unto into toward more rather'.split())
@@ -44,6 +58,8 @@ def melody(skip=()):
             s = S[si]; ns = [[a, b] for a, b, _ in s['notes']]
             while len(ns) > 1 and (ns[-1][1] < 0.13 or (ns[-1][1] <= 0.2 and abs(ns[-1][0] - ns[-2][0]) >= 4)):     # a blip as the syllable lets go: not a note
                 ns[-2][1] += ns[-1][1]; ns.pop()
+            while SCOOP and len(ns) > 1 and ns[0][1] < 0.2 and ns[1][0] - ns[0][0] >= 2:      # a low creak as the syllable starts: not a note
+                ns[1][1] += ns[0][1]; ns.pop(0)
             m = []
             for a, b in ns:
                 if m and m[-1][0] == a:
@@ -77,7 +93,7 @@ def cost(syl, N, i, a, b):
     nxt = syl[i + 1]['w'] if i + 1 < n else ''
     starter = nxt in STARTERS                          # the next word opens a new group of words: a good place to break
     c += 30 if D < 0.18 else (16 if st == 2 else 9) if D < 0.25 else (7 if st == 2 else 2.5) if D < 0.32 else 0
-    close = last['sh'] and last['name'] in 'BDCH'      # only his closing figures are long: a word before a small breath is not
+    close = last['sh'] and last['name'] in CLOSELONG      # only his closing figures are long: a word before a small breath is not
     lim = ((1.2 if little else 2.3) if close or i == n - 1 else 1.0 if little else 1.3) if fin else 1.3 if st == 2 else 1.1 if st == 1 else 0.75 if little else 0.85
     if D > lim:
         c += 3 + 12 * (D - lim)
@@ -117,9 +133,9 @@ def cost(syl, N, i, a, b):
         if not endw:
             return INF
         if s['ve']:
-            if last['name'] in 'AEF':
+            if last['name'] in OPEN:
                 return INF                                # a verse never ends on a phrase of his that opens
-            c += -2 if last['name'] in 'BDH' else 8      # a verse closes best on his closing phrases
+            c += -2 if last['name'] in CLOSE else 8      # a verse closes best on his closing phrases
         elif s['pu']:
             c -= 1.5
         elif s['hl']:
@@ -242,27 +258,129 @@ def freefit(syl, ALL, high=None, pins={}):
 EXACT = False                                            # --exact: one of our syllables to each of his (Eli, 19 November 2026)
 
 
+AUTO = False                                             # --auto: the tool chooses the phrases too
+JOINCOST = 10.0                                          # with --auto; 40 without, as trial F was made
+SPLITCOST = 16.0
+MUST = ''                                                # phrases a stanza uses at least once
+
+
+def cost2(syl, N, i, a, b):
+    """the cost of syllable i on his notes a..b when the tool chooses the phrases itself. Eli's order of weight: his own
+    number of syllables first (JOINCOST), then whole words in a phrase, then where verses and sentences end, then accents."""
+    s, last, n = syl[i], N[b], len(syl)
+    D = sum(N[j]['d'] for j in range(a, b + 1)); R = last['gap'] if last['gap'] >= BREATH else 0.0
+    endw = s['k'] == s['nk'] - 1; st = s['st']; little = s['w'] in lay.LITTLE and s['nk'] == 1
+    hang = endw and (s['w'] in HANG and s['nk'] == 1 or s['w'] in STARTERS) and not s['pu']
+    c = 0.0
+    if last['sh']:
+        if not endw:
+            c += 200
+        elif s['ve']:
+            c += -8 if last['name'] in CLOSE else 6 if last['name'] in OPEN else -3
+        elif s['hl']:
+            c -= 4
+        elif s['pu']:
+            c -= 3
+        else:
+            c += 15 if hang else 6
+    else:
+        if endw and s['ve']:
+            c += 5 if R else 12
+        elif endw and (s['hl'] or s['pu']) and not R:
+            c += 2.5
+        if R:
+            c += 7 if not endw else -2 if (s['hl'] or s['pu']) else 4 if hang else 0.5
+    heavy = D >= 0.62
+    if heavy:
+        c += -1.5 if st == 2 else 0.0 if (st == 1 or (endw and (R or last['sh']))) else 2.5 if little else 1.5
+    if D < 0.25 and st == 2:
+        c += 2.0
+    if D < 0.2:
+        c += 5.0
+    if D < 0.3 and (a == 0 or not N[a - 1]['sl'] or not last['sl']):
+        c += 8.0                                         # a piece cut from one of his syllables must not be a scrap
+    return c
+
+
 def exact(syl, I, i0, k):
-    """k syllables on one of his phrases, cut only where his own syllables end. The same count as his: one to one. Fewer:
-    neighbouring syllables of his are joined, never across a breath, as few as can be. More: no."""
-    ends = [j for j, x in enumerate(I) if x['sl']]; S = len(ends)
-    if k > S:
+    """k syllables on one of his phrases, his own syllables kept: the same count as his is one to one. One fewer: two
+    neighbouring syllables of his are joined (never across a breath). One more (only when the tool chooses, --auto, or the
+    plan says so): one of his syllables that has two or more notes carries two of ours. As few of either as can be."""
+    m = len(I); S = sum(1 for x in I if x['sl'])
+    if k > S and not AUTO:
         return None
-    starts = [0] + [e + 1 for e in ends[:-1]]
-    best = {(0, 0): (0.0, [])}                             # (syllables laid, his syllables used)
+    best = {(0, 0): (0.0, [])}                             # (syllables laid, notes used)
     for q in range(k):
-        for u in range(q, S):
-            if (q, u) not in best:
+        for a in range(q, m):
+            if (q, a) not in best:
                 continue
-            c0, cuts = best[(q, u)]
-            for v in range(u, S):
-                if v > u and I[ends[v - 1]]['gap'] >= BREATH:
+            c0, cuts = best[(q, a)]
+            if a and not I[a - 1]['sl'] and sum(x['d'] for x in I[cuts[-1][0]:a]) < 0.2:
+                continue
+            joins = 0
+            for b in range(a, m):
+                if b > a and I[b - 1]['gap'] >= BREATH:
                     break
-                c = c0 + 40.0 * (v - u) + min(cost(syl, I, i0 + q, starts[u], ends[v]), 500.0)
-                if (q + 1, v + 1) not in best or c < best[(q + 1, v + 1)][0]:
-                    best[(q + 1, v + 1)] = (c, cuts + [(starts[u], ends[v])])
-    r = best.get((k, S))
-    return (r[0] + 1000.0 * (S - k), r[1]) if r else None
+                if b > a and I[b - 1]['sl']:
+                    joins += 1
+                if not I[b]['sl'] and not AUTO:
+                    continue
+                D = sum(x['d'] for x in I[a:b + 1])
+                c = c0 + (JOINCOST if AUTO else 40.0) * joins + (0 if I[b]['sl'] else SPLITCOST + (20 if D < 0.2 else 0))
+                c += cost2(syl, I, i0 + q, a, b) if AUTO else min(cost(syl, I, i0 + q, a, b), 500.0)
+                if (q + 1, b + 1) not in best or c < best[(q + 1, b + 1)][0]:
+                    best[(q + 1, b + 1)] = (c, cuts + [(a, b)])
+    r = best.get((k, m))
+    return (r[0] + (0.0 if AUTO else 1000.0 * abs(S - k)), r[1]) if r else None
+
+
+def exactfit(syl, ALL):
+    """the phrases chosen by the tool, every one whole and carrying his own number of syllables (one or two of his joined
+    only where nothing else fits): the cheapest row of phrases that he joins this way, from his opening to his close"""
+    inst = {}
+    for x in ALL:
+        inst.setdefault(x['shape'], []).append(x)
+    inst = list(inst.values()); n = len(syl)
+    kinds = {}
+    for I in inst:
+        kinds.setdefault(I[0]['name'], []).append(I)
+    memo = {}
+    def lay1(t, i0, k):
+        if (t, i0, k) not in memo:
+            best = None
+            for I in kinds[t]:
+                r = exact(syl, I, i0, k)
+                if r and (best is None or r[0] < best[0]):
+                    best = (r[0], I, r[1])
+            memo[(t, i0, k)] = best
+        return memo[(t, i0, k)]
+    best = {(0, '', ''): (0.0, None, None)}
+    for i in range(n):
+        for (j, prev, used) in [k_ for k_ in best if k_[0] == i]:
+            c0 = best[(j, prev, used)][0]
+            for t in JOIN[prev]:
+                S = sorted({sum(1 for x in I if x['sl']) for I in kinds[t]})
+                for k in range(S[0] - 2, S[-1] + 2):
+                    if k < 2 or i + k > n:
+                        continue
+                    r = lay1(t, i, k)
+                    if not r:
+                        continue
+                    c = c0 + r[0] + SHAPECOST
+                    u2 = ''.join(sorted(set(used) | ({t} & set(MUST)))); key = (i + k, t, u2)
+                    if key not in best or c < best[key][0]:
+                        best[key] = (c, (i, prev, used), r)
+    full = ''.join(sorted(MUST))
+    ends = [(best[(n, t, full)][0], t) for t in END if (n, t, full) in best]
+    if not ends:
+        sys.exit('no row of his phrases carries these %d syllables' % n)
+    total, t = min(ends); key = (n, t, full); row = []
+    while best[key][1] is not None:
+        row.append(best[key][2]); key = best[key][1]
+    N, C = [], []
+    for hi, (_, I, cuts) in enumerate(row[::-1]):
+        off = len(N); N += [dict(x, shape=hi) for x in I]; C += [(a + off, b + off) for a, b in cuts]
+    return N, C, total
 
 
 def planfit(syl, ALL, plan):
@@ -280,7 +398,7 @@ def planfit(syl, ALL, plan):
             if I[0]['name'] != t:
                 continue
             r = exact(syl, I, p0, p1 - p0) if EXACT else None
-            if r:
+            if r and p1 - p0 == sum(1 for x in I if x['sl']):
                 r = (r[0] - 1e6, r[1])                      # his own syllable count comes before any other fit
             r = r or inner(syl, I, p0).get(p1 - p0)
             if r and (bestc is None or r[0] < bestc[0]):
@@ -292,23 +410,27 @@ def planfit(syl, ALL, plan):
 
 
 def main():
-    args = [a for a in sys.argv[1:] if not a.startswith('--skip=')]
+    global EXACT, HAND, AUTO
+    args = [a for a in sys.argv[1:] if not a.startswith('--skip=') and not a.startswith('--mel=') and a not in ('--exact', '--auto')]
     skip = set()
     for a in sys.argv[1:]:
         if a.startswith('--skip='):                      # --skip=20-23 : leave those of his 26 shapes out (counted from 1)
             for part in a[7:].split(','):
                 lo, _, hi = part.partition('-'); skip |= set(range(int(lo) - 1, int(hi or lo)))
     n = int(args[0]); name = args[1] if len(args) > 1 else '%dx' % n
-    args = [a for a in args if a not in ('--free', '--plan', '--exact') and not a.startswith('--pin=')]
+    args = [a for a in args if a not in ('--free', '--plan', '--exact', '--auto') and not a.startswith('--pin=') and not a.startswith('--mel=')]
     pinspec = [a[6:] for a in sys.argv if a.startswith('--pin=')]      # --pin=mercy=H,ran=F,way#2=I : that word is sung on that shape
     n = int(args[0]); name = args[1] if len(args) > 1 else '%dx' % n
+    for a in sys.argv:
+        if a.startswith('--mel='):
+            use(a[6:])
+    AUTO = '--auto' in sys.argv
     syl, N = lay.read(n), melody(skip)
-    pf = os.path.expanduser('~/ison-singer/p23m/%d.oplan.txt' % n)
+    pf = os.path.join(os.path.dirname(OUT), '%d.oplan.txt' % n)
     if '--plan' in sys.argv:
-        global HAND, EXACT
         HAND = True; EXACT = '--exact' in sys.argv
         import shutil, tempfile
-        tmp = os.path.expanduser('~/ison-singer/p23m/%d.plan.txt' % n); had = os.path.exists(tmp)
+        tmp = lay.PLAN % n; had = os.path.exists(tmp)
         if had:
             shutil.move(tmp, tmp + '.keep')
         shutil.copy(pf, tmp)
@@ -319,6 +441,9 @@ def main():
             if had:
                 shutil.move(tmp + '.keep', tmp)
         N, cuts, total = planfit(syl, N, plan)
+    elif '--auto' in sys.argv:
+        EXACT = AUTO = True
+        N, cuts, total = exactfit(syl, N)
     elif '--free' in sys.argv:
         hw = lay.HIGH.get(n); hi = next((i for i, s_ in enumerate(syl) if s_['w'] == hw and s_['st'] == 2), None)
         pins = {}
@@ -342,7 +467,7 @@ def main():
     else:
         cuts, total = fit(syl, N)
     fm = lambda x: ('%.2f' % x).rstrip('0').rstrip('.')
-    out = ['# Psalm 118, stanza %d on the Psalm 23 (Tone 3) melody exactly as the singer sings it: his notes, lengths and pauses; only the words are new.' % n,
+    out = ['# Psalm 118, stanza %d on the melody of %s exactly as the singer sings it: his notes, lengths and pauses; only the words are new.' % (n, os.path.basename(os.path.dirname(os.path.dirname(SCAN)))),
            '# Written by tools/overlay.py. One unit = a quarter second.']
     line, word, shape, form, rows, cur = [], [], -1, [], [], []
     for i, (s, (a, b)) in enumerate(zip(syl, cuts)):
@@ -397,7 +522,7 @@ def main():
         if f: print('   ? %s (%s, %s): %s' % (s['s'], s['w'], N[a]['name'], '; '.join(f)))
     d = sorted(sum(N[j]['d'] for j in range(a, b + 1)) for a, b in cuts)
     if '--plan' not in sys.argv:                           # the layout as a plan, to correct by hand and run again with --plan
-        with open(os.path.expanduser('~/ison-singer/p23m/%d.oplan.auto.txt' % n), 'w', encoding='utf-8') as f_:
+        with open(os.path.join(os.path.dirname(OUT), '%d.oplan.auto.txt' % n), 'w', encoding='utf-8') as f_:
             k = 0
             for t, cnt in form:
                 ws = []

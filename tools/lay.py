@@ -19,6 +19,7 @@ import os, re, sys
 HEART = os.path.expanduser('~/ison-singer/heart/%d.txt')
 NOTEBOOK = os.path.expanduser('~/ison-singer/notebook/Psalm 118 notebook.txt')
 OUT = os.path.expanduser('~/ison-singer/p23m/%d.auto.s.txt')
+PLAN = os.path.expanduser('~/ison-singer/p23m/%d.plan.txt')
 JOIN = {'A': 'B', 'B': 'AC', 'C': 'D', 'D': 'AEF', 'E': 'H', 'H': 'I', 'I': 'D', 'F': 'G', 'G': 'D'}
 # the singer's own load of each shape, and how far a line may go either way. c and g are the first halves of C and G.
 LOAD = {'A': (9, 5, 11), 'B': (5.5, 4, 8), 'C': (9, 6, 10), 'c': (4.5, 4, 5), 'D': (6, 4, 10), 'E': (7, 4, 8), 'H': (7, 5, 8), 'I': (6.5, 5, 8),
@@ -202,7 +203,7 @@ def fromplan(syl, n):
     testimonies:3 = only the first 3 syllables of that word here, the rest opens the next line (written there as -nies or
     left out); c and g are the first halves of C and G; ~2 at the end is a breath; after = the cells may be written out,
     one for each syllable (  B  on Your wonders = c1 c2 c3+c4 c5  )."""
-    pf = os.path.expanduser('~/ison-singer/p23m/%d.plan.txt' % n)
+    pf = PLAN % n
     if not os.path.exists(pf):
         return None
     row, p, N = [], 0, len(syl)

@@ -384,6 +384,20 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the climb comes three times. The first half is not exact yet (B7 on his 6, C6 on 9, D4, F4, G7). Waiting on his ear.
   If he likes it: do the first half the same way, then it replaces stanza 4 of `r118p` and `r118v` leaves the menu.
 
+## The lessons file and the Tone 4 melody (19 November 2026)
+
+- `notes/psalm23-melody-lessons.md` (on this Mac only: `notes/` is in `.gitignore` because the file quotes the psalm
+  wording) is the running record of what was learned putting Psalm 118 on the singer's melodies: Eli's rules in order of
+  weight, every trial and his verdict, the measured facts, how a stanza is made, open points. Eli asked for it so nothing
+  is lost when a long conversation is summarized. Read it before changing a stanza of these sets, and add to it whenever
+  he gives a verdict or a new rule.
+- Tone 4 (`psalm23-tone4.mp3`, same singer, same words): scanned the same way (`~/ison-singer/p23t4/scan/`), 26 phrases of
+  eight kinds, `A K | A K S J | A K V W X Y K` twice (A opening, K cadence, S rise and fall, J pickup and cadence, V turn,
+  W low line, X way back, Y level line). `tools/p23t4.mel.json` + `overlay.py --mel=...`; `heart.py --scale p23t4 --home 49`
+  (as sung: his Tone 4 already sits in the range Tone 3 has after lowering). Review set `r118t4`, stanza 4 only, version 1
+  (76 s, 14 of 20 phrases on his exact syllable count, six syllables over in all, none stretched), waiting on his ear.
+  The layout and its weak spots are in section 8 of the lessons file.
+
 ## Learning a formula from a recording (14 November 2026)
 
 - `t7p91` is Tone 7 learned from the built-in Psalm 91/121 recording: words heard by faster-whisper and corrected

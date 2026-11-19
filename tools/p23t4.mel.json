@@ -1,0 +1,15 @@
+{
+  "about": "Psalm 23, Tone 4, the recording built into the app (psalm23-tone4.mp3). Phrases read by hand from tools/scan.py's scan, 19 November 2026. A opening, K cadence, S rise and fall, J pickup and cadence, V turn, W low line, X way back, Y level line. His syllables in each, in his order.",
+  "scan": "~/ison-singer/p23t4/scan/scan.json",
+  "out": "~/ison-singer/p23t4m/%s.txt",
+  "shapes": [["A",9],["K",5],["A",9],["K",5],["S",9],["J",7],["A",9],["K",5],["V",6],["W",6],["X",5],["Y",8],["K",5],
+             ["A",9],["K",5],["A",9],["K",5],["S",8],["J",7],["A",8],["K",5],["V",5],["W",7],["X",5],["Y",8],["K",5]],
+  "join": {"": "A", "A": "K", "K": "ASV", "S": "J", "J": "A", "V": "W", "W": "X", "X": "Y", "Y": "K"},
+  "end": "KJ",
+  "open": "VX",
+  "close": "KJ",
+  "closelong": "KJWY",
+  "loud": {"A": "mf", "K": "mp", "S": "mf", "J": "mp", "V": "mf", "W": "p", "X": "mf", "Y": "mf"},
+  "must": "SV",
+  "scoop": true
+}

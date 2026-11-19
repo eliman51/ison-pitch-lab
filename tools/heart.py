@@ -2,7 +2,7 @@
 """A song written by hand, every syllable on its own notes: score -> notes file -> the singer -> the app's review set.
 
     ~/ison-singer/venv/bin/python -I tools/heart.py <score.txt> <stanza number> <out folder> [--sing] [--unit 0.2]
-                                                    [--home 45] [--scale hijaz|p23] [--set r118h]
+                                                    [--home 45] [--scale hijaz|p23|p23t4] [--set r118h]
 
 The score (kept outside this repository, it holds the words) is plain text. Words are written syllable by syllable,
 each syllable with its notes after a slash, syllables of one word joined by a hyphen:
@@ -35,6 +35,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 # the Psalm 23 (Tone 3) singer's own ladder, measured from the recording built into the app (tools/scan.py): a Kurd-type
 # scale; step 0 is the note the song ends on, and his top note is a little sharp of the octave of his bottom note
 P23 = {-4: -7.10, -3: -5.12, -2: -4.04, -1: -1.98, 0: 0.0, 1: 0.96, 2: 2.98, 3: 5.22}
+# the same singer's Psalm 23 in Tone 4 (psalm23-tone4.mp3), measured the same way: home is 48.88 (a C3, 12 cents flat), so run it
+# with --home 49; a whole step above home, then a slightly low third, the fourth and the fifth; below home a wide step
+P23T4 = {-2: -4.92, -1: -2.90, 0: -0.12, 1: 1.90, 2: 3.76, 3: 5.04, 4: 7.10}
 SCALE = HIJAZ
 
 
@@ -128,7 +131,7 @@ def main():
     unit, home = opt('--unit', 0.2), int(opt('--home', 45))
     sopt = lambda k, d: sys.argv[sys.argv.index(k) + 1] if k in sys.argv else d
     global SCALE
-    SCALE = {'hijaz': HIJAZ, 'p23': P23}[sopt('--scale', 'hijaz')]; SET = sopt('--set', 'r118h')
+    SCALE = {'hijaz': HIJAZ, 'p23': P23, 'p23t4': P23T4}[sopt('--scale', 'hijaz')]; SET = sopt('--set', 'r118h')
     syl, end = parse(score, home, unit)
     name, text = stanza_text(n)
     # 1. the words are the stanza's words

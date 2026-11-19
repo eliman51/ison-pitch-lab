@@ -1,3 +1,6 @@
 dist/
 __pycache__/
 .claude/
+
+# Eli asked for the lessons file to stay on this Mac; it also quotes his psalm wording
+notes/
