@@ -604,8 +604,8 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - In the app: `song-evlogitaria-byz` ("Byzantine, Tone 5"), 615 notes with three rests, bpm 211, written G4 home (two
   steps under the score's A), men's octave E flat 3 to E flat 4, home G3. Kazan's short forms destroy'ng, pow'r,
   t'ward and the old word spake are in `tools/sing.py`'s SAY.
-- Sung file `blessed-art-thou-byz.m4a` (BlobDB key `evlogitaria-byz-g`): the voice plus a drone from Kazan's small
-  notes (mostly the home note G, the step below F), an octave under with a softer octave above.
+- Sung file `blessed-art-thou-byz-voice.m4a` (BlobDB key `evlogitaria-byz-v`): the voice only. Version 64 and before also
+  had a drone from Kazan's small notes mixed in; it was taken out in version 65 (see "Nothing mixed under a sung voice").
 
 ## The *Ncense recording as the singer's voice (20 November 2026)
 
@@ -658,7 +658,7 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 
 - The guess "about G2 to A3" (from the Psalm 118 sets at home 51) was wrong for these hymns: Eli found the Our Father at
   A2 to A3 too low and had to raise it five half steps "just to get it to a relatively normal range". So version 60 put
-  the Our Father back in the choir's own D (men's octave **D3 to D4**, file `ourfather-d.m4a`), the Kievan Blessed art
+  the Our Father back in the choir's own D (men's octave **D3 to D4**, file `ourfather-d.m4a`, voice only since v65 as `ourfather-d-voice.m4a`), the Kievan Blessed art
   Thou in its score's own F (**F3 to C4**, `blessed-art-thou-f.m4a`) and the Byzantine one in G (**E flat 3 to E flat 4**, home G3).
   Older notes above that give A2 to A3 and C3 to G3 describe version 59. A key he had saved on those two songs is lowered
   by five once (`ison-key60`), so they sound where he had them. Choose new songs' keys around D3 to D4, not G2 to A3.
@@ -666,6 +666,20 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   `_0ZLVAMbSpE`): "Our Father, who art in heaven" 12 s there, about 15 s in the app; "Give us this day our daily bread"
   10 s in both. Choir recordings of it run 2:16 to 4:25; the app's 2:31. So the speed is right: it is written Adagio.
 - A new sung file must have a new BlobDB key and file name: `pubAudio` keeps the first copy it fetched forever.
+
+## Nothing mixed under a sung voice (20 November 2026)
+
+- Eli heard a "sputtering" while matching his voice in Learn a song and Loop a part, as if two tones were playing. Three
+  computer-voice files had a soft organ sound mixed in by Claude (Our Father in D: alto, tenor and bass; Kievan Blessed
+  art Thou: the lower voices; Kazan Blessed art Thou: a drone), built with the same harmonics as the app's own tone, so
+  with the app's tone on there were two organ layers. His rule: **never mix a tone, drone, pad or chord into a song
+  file; the app adds its tone (and its own ison, "Ison drone under everything") when it plays.** Version 65 uses the
+  voice alone: `ourfather-d-voice.m4a` (`ourfather-dv`), `blessed-art-thou-f-voice.m4a` (`evlogitaria-fv`),
+  `blessed-art-thou-byz-voice.m4a` (`evlogitaria-byz-v`), made from `~/ison-singer/out/key60/* sung.wav`.
+- The choir recordings (*Ncense, the church Our Father) have nothing added, but the *Ncense singers hold their own ison
+  the whole way (about two thirds of the file's sound is held steady, against about a third for a solo voice), and a
+  choir sits a little off any exact note: measured on held notes, median 10 to 20 cents from the written note (10 cent
+  steps), which against the app's steady tone gives a slow waver of about 1 to 3 a second. That is the choir, not the file.
 
 ## Every change
 
