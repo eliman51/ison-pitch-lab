@@ -533,6 +533,27 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - The words are the ones most parishes say (who art, on earth, those who trespass). Kilpatrick's edition uses the 1662
   Book of Common Prayer wording (which art, in earth, them that trespass); the swap is one syllable for one, so the
   notes are untouched.
+- **Sung in his key (20 November 2026).** Eli asked for it mapped to his range and sung by the voice on this Mac so he
+  can follow along, with no lock on the file. His range was taken from what he already sings daily: the Psalm 23 melody
+  on Psalm 118 sits G2 to G#3 (home 51), the heart songs are Hijaz on A2, so about **G2 to A3**. The chant is therefore
+  written in A (five steps under the choir's D): `A3` to `A4` as typed, which the men's octave sings as **A2 to A3**.
+- `tools/songmid.py <song id> <out.mid> [--shift -17]` turns any built-in chant in index.html into the singer's notes
+  file (it reads SONGS out of index.html, so the app stays the only copy of the melody; hyphenated syllables become the
+  word + `+` + `-` the singer wants). Then `tools/sing.py`, then `tools/scorepdf.py`'s own voices as a quiet organ
+  chorus under it (the scratchpad's render_pad.py; alto, tenor and bass five steps down, 13 dB under the voice, the one
+  low octave in the last Amen raised). The result is `ourfather.m4a` (1.8 MB, 96 kbps, 2:31) in the repo, unlocked.
+- Checked by measurement: all 85 notes within a quarter step of the score, 4 cents off on average; a speech recognizer
+  heard 52 of 56 words (93%), missing only "and lead" run together and the long held "evil. Amen".
+- How it is wired: `SUNG` holds the file (`pubAudio('ourfather','ourfather.m4a')`, cached in BlobDB like psalm23), the
+  SONGS entry names it with `sung:'ourfather'`, and `builtinRec` returns it with `builtinRecording` and **`exact:true`**
+  so `smEnsure` trusts the written notes instead of measuring the audio (without that it heard the low voice an octave
+  down in places). The Songs tab plays it as the guide, but only while Transpose is at the men's octave it was sung in.
+  Note for next time: the song map is cached in localStorage as `ison-smap-<ver>-<id>-a|-n`, so clear that when testing.
+- `tools/scorepdf.py` is the reader that got the notes out of the PDF, saved as a tool: staff lines from the page's
+  drawings, noteheads and dots from the music font's glyphs (SMuFL codepoints), pitch from where each notehead sits.
+  `--check` says whether every system's voices add up, which is what catches a missed dot. It needs the Mac's own
+  python3 (PyMuPDF is there, not in the singer's venv). For engraved PDFs this beats any music-reading program because
+  nothing is guessed; for scans and photos it is useless and homr or Audiveris is the right tool (not installed here).
 - Not done, and worth asking him: whether his parish sings this one at all. The other candidates, if he says it is not
   the one, are the Antiochian Archdiocese English setting (the app already holds other Antiochian settings), the Greek
   Byzantine "Pater imon" in English, Rimsky-Korsakov's Our Father in English, and the Syriac "Abun d'bashmayo".
