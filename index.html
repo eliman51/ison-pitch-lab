@@ -1503,6 +1503,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <option value="song-cross">Before Thy Cross</option>
             <option value="song-praise">Praise the Lord from the Heavens</option>
             <option value="song-blessed">Blessed Be the Name of the Lord</option>
+            <option value="song-ourfather">Our Father: the Lord's Prayer (Kedrov)</option>
           </optgroup>
           <optgroup label="My songs" id="mySongs"></optgroup>
           <optgroup label="Practice">
@@ -2891,6 +2892,21 @@ const PRAISE='F4:1:Praise G4:1 A4:1 G4:1 F4:1:the E4:1 F4:2:Lord A4:1:from Bb4:1
 /* Blessed Be the Name of the Lord: Antiochian Archdiocese, setting #2. */
 const BLESSED='F4:1:Bless- G4:1:ed A4:1:be A4:1:the A4:1:name A4:1:of G4:1:the A4:2:Lord, '+
   'A4:1:hence- A4:1:forth A4:1:and Bb4:1:for- A4:2:ev- G4:2:er- F4:4:more.';
+/* The Lord's Prayer (Our Father) as Orthodox choirs sing it: the melody line of "Otche Nash" by Nikolai Kedrov Sr.
+ (1871 to 1940), written in Paris in 1922. Read note by note out of John Kilpatrick's free English edition (2006, "may be
+ freely copied and performed"), which sets Kedrov's music to the 1662 Book of Common Prayer words. Every notehead was taken
+ from the engraving by position, not by ear, and checked twice: the four voices together make a plain triad or one of this
+ piece's own suspensions at 83 of 83 chords, and three passages were read back off the page by eye. The wording here is the
+ one most parishes say (who art, on earth, those who trespass), which fits the same notes one syllable for one. Written in
+ D with no beat, free and slow; the app's men's octave puts it at D3 to D4. Kedrov's music is out of copyright. */
+const OURFATHER=
+  'F#4:2:Our F#4:2:Fa- F#4:4:ther, F#4:1:who F#4:2:art F#4:1:in G4:2:hea- G4:4:ven, G4:1:hal- G4:2:lowed A4:2:be A4:1:Thy A4:2:name, '+
+  'A4:2:Thy A4:2:king- G4:1:dom F#4:1:come, F#4:2 G4:4 G4:2:Thy G4:2:will F#4:1 A4:1:be E4:2:done E4:1:on E4:2:earth E4:1:as F#4:1:it G4:2:is F#4:1:in E4:2:hea- D4:2 E4:4:ven. '+
+  'F#4:2:Give F#4:1:us F#4:1:this F#4:1:day F#4:1:our G4:2:dai- G4:1:ly G4:2:bread, G4:1:and G4:1:for- A4:2:give A4:1:us A4:2:our A4:2:tres- G4:1:pass- G4:2:es, '+
+  'G4:2:as F#4:1:we A4:1:for- E4:2:give E4:1:those F#4:1 G4:1:who G4:2:tres- F#4:2:pass D4:1:a- E4:2:gainst D4:2 E4:4:us, '+
+  'F#4:1:and F#4:2:lead F#4:1:us A4:1 D5:2:not C#5:1:in- B4:1 A4:1:to A4:2:temp- G4:2:ta- F#4:2:tion, E4:1:but E4:1:de- A4:2:li- E4:1:ver A4:2:us '+
+  'D4:1:from E4:1 F#4:4:e- F#4:4 F#4:4:vil. '+
+  'F#4:2:A- F#4:4:men.';
 const SONGS={
   'song-trisagion':{text:TRISAGION,bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow). Written in F major, starting on A.'},
   'song-trisagion3':{text:[TRISAGION,TRISAGION,TRISAGION].join(' R:2 '),bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow), sung three times as in the Liturgy.'},
@@ -2898,7 +2914,8 @@ const SONGS={
   'song-meet':{text:MEET,bpm:84,credit:'Hymn to the Theotokos, Antiochian Archdiocese 17-A (Bortniansky, adapted by Michael Gelsinger). Soprano melody. Circled numbers mark the phrases; follow the words in your service book.'},
   'song-cross':{text:CROSS,bpm:84,credit:'Antiochian Archdiocese 10-D, traditional Russian melody. Melody line in G.'},
   'song-praise':{text:PRAISE,bpm:92,credit:'Sunday communion hymn, Antiochian Archdiocese 22-D (Michael G. Farrow), with one Alleluia. Melody line in F.'},
-  'song-blessed':{text:BLESSED,bpm:96,credit:'Antiochian Archdiocese setting #2, sung three times near the end of the Liturgy. Melody line in F.'}
+  'song-blessed':{text:BLESSED,bpm:96,credit:'Antiochian Archdiocese setting #2, sung three times near the end of the Liturgy. Melody line in F.'},
+  'song-ourfather':{text:OURFATHER,bpm:60,credit:'Melody line of "Otche Nash" (Our Father) by Nikolai Kedrov Sr., Paris 1922, the setting most Orthodox choirs sing. Taken note by note from John Kilpatrick\'s free English edition; the words are the usual Orthodox ones, which fit the same notes. Written in D, free and slow, no beat: the lengths are the note values, so it ends with one Amen. Kedrov\'s music is out of copyright.'}
 };
 function exercise(kind){
   const r=S.ref,beat=0.9,seq=[];
@@ -7749,7 +7766,7 @@ function renderPractice(){
   if(mode==='song')renderSongSummary();
   drawHistory();
 }
-const BUILTIN=[['psalm23',P23.name],['psalm23t4',P23T4.name],['song-trisagion','Holy God: the Trisagion (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord']];
+const BUILTIN=[['psalm23',P23.name],['psalm23t4',P23T4.name],['song-trisagion','Holy God: the Trisagion (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord'],['song-ourfather','Our Father: the Lord\'s Prayer (Kedrov)']];
 function fillCourseSongs(){refreshMySongsList().then(list=>{const s=$('courseSong');s.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent='Choose a song';s.appendChild(o0);
   const g1=document.createElement('optgroup');g1.label=list.length?'My songs (recordings)':'My songs: none saved yet';list.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;g1.appendChild(o)});s.appendChild(g1);
   const g2=document.createElement('optgroup');g2.label='Built-in chants';BUILTIN.forEach(([k,n])=>{const o=document.createElement('option');o.value='b:'+k;o.textContent=n;g2.appendChild(o)});s.appendChild(g2)})}
@@ -8700,7 +8717,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=56;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=57;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

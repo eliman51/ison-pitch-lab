@@ -505,6 +505,38 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   top), not measured from him; sessions longer than about 46 minutes are rendered at 11 kHz by `bgSessionSr`, so his
   voice is duller in a 60 or 90 minute session; the app does not hear him, so nothing is scored.
 
+## The Lord's Prayer, Kedrov (20 November 2026)
+
+- What Eli asked for: the English version of "that most popular Our Father hymn that they sing during liturgy, usually a
+  whole choir", the sheet music, which version fits his range, and it put into the app. He said it is old and not
+  copyrighted, which is right for the music itself.
+- What it is: **"Otche Nash" by Nikolai Kedrov Sr. (1871 to 1940), written in Paris in 1922**, the four-part setting
+  Orthodox choirs everywhere sing. Kedrov died in 1940 and it was published in 1922, so the music is out of copyright
+  (United States: published before 1930; life plus 70 countries: since 2011). Editions and arrangements of it are not:
+  Musica Russica's English edition is in copyright, and the usual CPDL and MuseScore files each carry their own licence.
+- The score used: John Kilpatrick's free English edition, `https://www.johnkilpatrick.co.uk/music/misc/Kedrov-Ourfather-D.pdf`
+  ("©2006 John Kilpatrick; may be freely copied and performed"), SATB in D, Adagio, free rhythm, two alternative Amens.
+  The PDF, its two pages as pictures and the transcription are in `notes/our-father/` (gitignored, so on this Mac only).
+  CPDL and cpdl.org file links are behind a bot check and cannot be fetched; the browser pane gets the same block.
+- How the melody was read (and this is the method to reuse for any engraved PDF): MuseScore and Sibelius PDFs carry the
+  noteheads as glyphs of a music font, so nothing has to be read by eye. PyMuPDF is on this Mac's system python3 (`import
+  fitz`; there is no poppler, no pdftotext). Staff lines come from `page.get_drawings()`, noteheads from
+  `page.get_text('rawdict')` where the font is `MScore` and the codepoint is U+E0A2 whole, U+E0A3 half, U+E0A4 black,
+  U+E1E7 dot; the glyph's `origin` y against the staff lines gives the exact staff degree. Checks done: all four voices
+  together make a plain triad or one of the piece's own suspensions at 83 of 83 chords, and three passages were zoomed
+  and read by eye. The scripts are in the session scratchpad only.
+- In the app: a built-in chant, id `song-ourfather`, in `SONGS` with its `credit`, in `BUILTIN`, and as an `<option>` in
+  the Songs tab list (that list is hand-written in the HTML; the Ears-only pickers build themselves from `BUILTIN`).
+  85 notes, 150 seconds at bpm 60, written D4 to D5, which the men's octave (`S.shift` = -12) sings as **D3 to D4**.
+  That is almost the same ground as Psalm 23 Tone 3 as sung (C3 to C#4), so "as sung" should fit him; down 2 puts the
+  top D4 on "not" at C4 and the bottom at C3. The key sheet (Change the key) says whether it fits his range.
+- The words are the ones most parishes say (who art, on earth, those who trespass). Kilpatrick's edition uses the 1662
+  Book of Common Prayer wording (which art, in earth, them that trespass); the swap is one syllable for one, so the
+  notes are untouched.
+- Not done, and worth asking him: whether his parish sings this one at all. The other candidates, if he says it is not
+  the one, are the Antiochian Archdiocese English setting (the app already holds other Antiochian settings), the Greek
+  Byzantine "Pater imon" in English, Rimsky-Korsakov's Our Father in English, and the Syriac "Abun d'bashmayo".
+
 ## Every change
 
 1. Edit `index.html` (or the other files).
