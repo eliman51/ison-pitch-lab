@@ -493,8 +493,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - **Engine additions** (small and additive, they serve any unit): step kinds `wob` (a tone swinging: `m`, `r` swings a
   second, `c` cents wide, `sg` seconds held straight first) and `clip` (a span of the recording at a speed, pitch
   kept), both in `bgTimeline` and `earStepsSec`; event type `wob` in `bgSynth`; source `'VB'` in `bgRecs`. Clips are
-  cut by the existing `wsolaMap`, so slowing keeps his pitch. `VB` is the recording decoded once at 22050 (in his
-  chosen key through `keyedAudio`), and spot times are plain seconds in the mp3.
+  cut by the existing `wsolaMap`, so slowing keeps his pitch. `VB` is the recording decoded once at 22050 (in the song's
+  key through `keyedAudio`), and spot times are plain seconds in the mp3. The key is the app's own key for that song
+  (`keyRowIds` entry `vb`, the same Change row as Loop a part; Eli asked for that on 19 November 2026 after a
+  drop-down of my own looked out of place), so the tones move with `vbKey()` and his voice is moved by `keyedAudio`.
 - **Checked by measurement only, Claude cannot hear it.** Rendering a spot and measuring the result: the tone lands
   within 0.03 of a half step of his pitch and within 0.15 swings a second of his rate; the slowed moment keeps his
   pitch within 0.1 of a half step and halves the swing; his voice is there at the right pitch in every pass. Eli

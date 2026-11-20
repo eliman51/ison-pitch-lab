@@ -1272,7 +1272,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         </div>
         <div class="grid2">
           <div class="field"><span class="label">Times through each piece</span><div class="row voicerow"><button id="vbRpDn" aria-label="Fewer">&minus;</button><input type="number" id="vbReps" inputmode="numeric" min="1" max="6" aria-label="Times through each piece"><button id="vbRpUp" aria-label="More">+</button></div></div>
-          <div class="field"><label class="label" for="vbKey">Key</label><select id="vbKey"></select></div>
+          <div class="field"><span class="label">Key</span><div class="keyrow"><span class="label">Key</span><b data-key-for="vb">As sung</b><button data-key-open="vb" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div></div>
           <div class="field"><span class="label">Tone volume</span><div class="row voicerow"><button id="vbToDn" aria-label="Quieter">&minus;</button><input type="number" id="vbTone" inputmode="numeric" min="0" max="10" aria-label="Tone volume, 0 to 10"><button id="vbToUp" aria-label="Louder">+</button></div></div>
           <div class="field"><span class="label">His voice volume</span><div class="row voicerow"><button id="vbVoDn" aria-label="Quieter">&minus;</button><input type="number" id="vbVoice" inputmode="numeric" min="0" max="10" aria-label="His voice volume, 0 to 10"><button id="vbVoUp" aria-label="Louder">+</button></div></div>
         </div>
@@ -5751,7 +5751,7 @@ function keyFit(R,U){const fits=k=>R.a+k>=U.lo-0.5&&R.b+k<=U.hi+0.5;for(let d=0;
 /* ---- the Key sheet ---- */
 const KS={id:null,k0:0,k:0,rec:null,an:null,aud:null,which:'B',url:{},busy:false,tok:0};
 const KEY_ICON={play:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>'};
-function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23',lp:lpSongId(),mp:mpSongId()}}
+function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23',lp:lpSongId(),mp:mpSongId(),vb:vbSongId()}}
 function renderKeyRows(){const ids=keyRowIds();document.querySelectorAll('[data-key-for]').forEach(el=>{const k=songKey(ids[el.dataset.keyFor]);el.textContent=keyWords(k);el.classList.toggle('moved',k!==0)})}
 async function keySheetOpen(id){KS.id=id;KS.k0=KS.k=songKey(id);KS.which='B';KS.tok++;KS.rec=await songRecFor(id);KS.an=KS.rec?analyzeSong4Course(KS.rec):null;KS.span=KS.rec?songSpan(KS.an?[].concat(...KS.an.phrases.map(p=>p.notes)):KS.rec.notes):null;
   keyStopAudio();Object.values(KS.url).forEach(u=>URL.revokeObjectURL(u));KS.url={};$('kSong').textContent=KS.rec?KS.rec.name||'This song':'Choose a song first.';
@@ -7262,12 +7262,14 @@ const VB_DAT={
   ['X',24,3,1,50.86,93.48,93.95,93.50,93.93,92.70,94.76,7.5,44,'of'],['Y',25,1,0,48.73,94.97,95.35,94.78,95.33,94.76,97.87,7.6,24,'And'],['Y',25,4,0,48.87,95.93,96.36,95.95,96.34,94.76,97.87,8.1,26,'dwell'],
   ['Y',25,8,1,51.18,97.47,97.87,97.44,98.09,94.76,97.87,6.8,23,'home'],['K',26,2,1,50.93,98.77,99.27,98.77,99.25,98.34,101.72,5.7,22,'bridal'],['K',26,3,3,53.91,99.27,99.92,99.29,100.14,98.34,101.72,4.8,25,'bridal'],
   ['K',26,4,2,52.75,100.19,100.66,100.13,100.88,98.34,101.72,6.9,31,'chamber']]}};
-const VB_DEF={song:'p23',order:'due',parts:null,reps:2,from:1,rungs:4,slow:'half',hear:true,slowOn:true,pulse:true,ticks:true,release:true,sing:true,phrase:true,alone:false,mix:true,every:8,key:0,tone:7,voice:10};
-const VB_KEYS=[0,-1,-2,-3,-4,-5,-7,-12];
+const VB_DEF={song:'p23',order:'due',parts:null,reps:2,from:1,rungs:4,slow:'half',hear:true,slowOn:true,pulse:true,ticks:true,release:true,sing:true,phrase:true,alone:false,mix:true,every:8,tone:7,voice:10};
 function vbSet(){return Object.assign({},VB_DEF,earSet().vb||{})}
 function vbSave(o){earSave({vb:Object.assign(vbSet(),o)})}
 function vbDat(){return VB_DAT[vbSet().song]||VB_DAT.p23}
-function vbHome(){return vbDat().home+(+vbSet().key||0)}
+function vbSongId(){return vbDat().id}
+/* the key is the song's own key, the same one Loop a part and the Songs tab use (Change the key) */
+function vbKey(){return songKey(vbSongId())}
+function vbHome(){return vbDat().home+vbKey()}
 const vbRateTxt=r=>String(+(Math.round(r*10)/10))+' a second';
 function vbAll(){const S=vbSet();return vbDat().spots.map((r,i)=>({i,sh:r[0],ph:r[1],ce:r[2],st:r[3],m:r[4],a:r[5],b:r[6],c0:r[7],c1:r[8],p0:r[9],p1:r[10],rate:r[11],w:r[12],word:r[13],key:S.song+'|'+r[1]+'|'+r[2]+'|'+r[5].toFixed(2)}))}
 function vbShapes(){const o=[];vbDat().spots.forEach(r=>{if(!o.includes(r[0]))o.push(r[0])});return o}
@@ -7288,7 +7290,7 @@ function vbWob(m,rate,w,d,sg,tick){return{k:'wob',ph:'W',m,r:rate,c:w,d,sg:sg||0
 const vbTickCue=()=>({k:'quiet',ph:'W',d:0.5,beat:0.6});
 function vbRungs(S,s){const n=Math.max(2,Math.min(6,Math.round(+S.rungs||4))),r0=Math.min(Math.max(0.6,+S.from||1),s.rate*0.85),w0=Math.max(s.w,90),out=[];
   for(let j=0;j<n;j++){const f=n<2?1:j/(n-1);out.push({r:Math.round(r0*Math.pow(s.rate/r0,f)*10)/10,w:Math.round(w0*Math.pow(s.w/w0,f))})}return out}
-function vbDrill(s){const S=vbSet(),R=Math.max(1,Math.min(6,Math.round(+S.reps||2))),m=s.m+(+S.key||0),st=[];
+function vbDrill(s){const S=vbSet(),R=Math.max(1,Math.min(6,Math.round(+S.reps||2))),m=s.m+vbKey(),st=[];
   if(S.hear){st.push({k:'cue',ph:'L',noAnn:true},vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.5});
     for(let j=1;j<Math.min(2,R);j++)st.push(vbTickCue(),vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.5})}
   if(S.slowOn){const sp=S.slow==='three'?[0.75]:S.slow==='both'?[0.5,0.75]:[0.5];
@@ -7301,7 +7303,7 @@ function vbDrill(s){const S=vbSet(),R=Math.max(1,Math.min(6,Math.round(+S.reps||
   if(S.phrase)st.push({k:'cue',ph:'W',noAnn:true},vbClip(S,'W',s.p0,s.p1,1,null),{k:'gap',d:1});
   if(!st.length)st.push({k:'cue',ph:'L',noAnn:true},vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.6});
   return{name:vbName(s)+' · '+vbRateTxt(s.rate)+', '+s.w+' cents',intro:'',vo:[],steps:st,u:15,vb:s.key}}
-function vbMix(list){const S=vbSet(),k=+S.key||0,st=[];
+function vbMix(list){const S=vbSet(),k=vbKey(),st=[];
   list.forEach((s,i)=>{st.push(i?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbClip(S,'W',s.c0,s.c1,1,s.m+k),{k:'gap',d:0.3},vbWob(s.m+k,s.rate,s.w,2.4,0,false),{k:'gap',d:0.8})});
   return{name:'All of them again, one after another',intro:'',vo:[],steps:st,u:15,vb:null}}
 function vbWarm(){const S=vbSet(),m=vbHome(),st=[];
@@ -7316,7 +7318,7 @@ function vbDrills(goal){const S=vbSet(),sp=vbPicked();if(!sp.length)return[];
   return out}
 /* the recording this unit cuts its moments out of: decoded once, in the key he picked (times stay the same) */
 const VB={hq:null,hqT0:0,sth:{},seg:null,segT0:0,st:{},sig:''};
-async function vbLoad(prog){const S=vbSet(),D=vbDat(),k=+S.key||0,sig=S.song+'|'+k;if(VB.sig===sig&&VB.hq)return true;
+async function vbLoad(prog){const S=vbSet(),D=vbDat(),k=vbKey(),sig=S.song+'|'+k;if(VB.sig===sig&&VB.hq)return true;
   try{await privReady}catch(e){}
   let blob=D.blob();if(!blob)throw new Error('the recording is not on this phone yet');
   if(k)blob=await keyedAudio(D.id,blob,k,prog);
@@ -7331,7 +7333,7 @@ async function vbHearBlob(s){await vbLoad();const S=vbSet(),T=earTimbre(),vS={},
   const clip=(a,b,spd,nm)=>{const d=(b-a)/spd,key='VB|'+a.toFixed(2)+'-'+b.toFixed(2)+'@'+spd;vS[key]={src:'VB',map:[[0,a],[d,b]]};
     ev.push({type:'recx',t,key,from:0,d,g:Math.max(0.1,(+S.voice||10)/10)});at[nm]=[t,t+d];t+=d+0.35};
   clip(s.c0,s.c1,1,'his');clip(s.c0,s.c1,0.5,'slow');
-  ev.push({type:'wob',f:m2f(s.m+(+S.key||0)),r:s.rate,c:s.w,sg:0,t,d:2.6,h:T.h,lp:T.lp});at.tone=[t,t+2.6];t+=2.9;
+  ev.push({type:'wob',f:m2f(s.m+vbKey()),r:s.rate,c:s.w,sg:0,t,d:2.6,h:T.h,lp:T.lp});at.tone=[t,t+2.6];t+=2.9;
   clip(s.c0,s.c1,1,'again');
   BG.recSr=BG.recSr||{};const recs=await bgRecs({vSpecs:vS});
   const blob=await bgSynth({ev,dur:t+0.4,sr:PB_SR,voSr:VO_SR,vol:Math.max(0.15,(+S.tone||7)/10),vo:{},recs,recSr:BG.recSr||{}},()=>{});
@@ -7348,7 +7350,6 @@ function renderVib(){const box=$('vbBox');if(!box)return;const s=earSet();box.hi
   $('vbSong').value=S.song;$('vbOrder').value=S.order;$('vbSlow').value=S.slow;$('vbFrom').value=String(S.from);
   [['vbHear','hear'],['vbSlowOn','slowOn'],['vbPulse','pulse'],['vbTicks','ticks'],['vbRelease','release'],['vbSing','sing'],['vbPhrase','phrase'],['vbAlone','alone'],['vbMix','mix']].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!S[k]});
   ['vbReps|reps','vbRungs|rungs','vbTone|tone','vbVoice|voice'].forEach(x=>{const[id,k]=x.split('|');lpSetV(id,S[k])});
-  const ky=$('vbKey');if(ky){if(!ky.children.length)VB_KEYS.forEach(k=>{const o=document.createElement('option');o.value=String(k);o.textContent=keyWords(k);ky.appendChild(o)});ky.value=String(+S.key||0)}
   $('vbSlowRow').classList.toggle('dim',!S.slowOn);$('vbPulseRow').classList.toggle('dim',!S.pulse);
   const pc=$('vbParts'),shapes=vbShapes(),on=vbPartsOn();
   if(pc.dataset.song!==S.song){pc.dataset.song=S.song;pc.innerHTML='';
@@ -7360,7 +7361,7 @@ function renderVib(){const box=$('vbBox');if(!box)return;const s=earSet();box.hi
   const cnt={};vbAll().forEach(x=>{cnt[x.sh]=(cnt[x.sh]||0)+1});
   $('vbPartsTxt').textContent=shapes.map(sh=>(LN_SH[sh]||sh)+' '+cnt[sh]).join(', ')+'. The parts are the melody shapes found in the recording; the full close holds the most.';
   const P=vbProg(),picked=vbPicked(),done=picked.filter(x=>((P[x.key]||{}).n||0)>0).length,one=picked.length?earStepsSec(vbDrill(picked[0]).steps)+2:0;
-  $('vbSum').textContent=picked.length?picked.length+' of '+D.spots.length+' spots picked, '+done+' of them worked before. About '+Math.round(one)+' seconds each, so '+s.min+' minutes covers about '+Math.max(1,Math.round(s.min*60/Math.max(12,one)))+' of them.':'No spots picked: tap at least one part of the song.';
+  $('vbSum').textContent=picked.length?picked.length+' of '+D.spots.length+' spots picked, '+done+' of them worked before. About '+Math.round(one)+' seconds each, so '+s.min+' minutes covers about '+Math.max(1,Math.round(s.min*60/Math.max(12,one)))+' of them. Key: '+keyWords(vbKey()).toLowerCase()+(vbKey()?', so his voice and the tones are both moved there.':'.'):'No spots picked: tap at least one part of the song.';
   const L=$('vbList');if(L&&!VBP.on){L.innerHTML='';
     vbAll().forEach(sp=>{const row=document.createElement('div');row.className='vbrow';
       const b=document.createElement('b');b.textContent=vbName(sp);
@@ -7368,8 +7369,8 @@ function renderVib(){const box=$('vbBox');if(!box)return;const s=earSet();box.hi
       sx.textContent=vbRateTxt(sp.rate)+', '+sp.w+' cents · '+fmtT(sp.a)+(n?' · done '+n+'×':'');
       const btn=document.createElement('button');btn.className='lpplay';btn.textContent='Hear it';btn.onclick=()=>vbHear(sp,btn);
       row.appendChild(b);row.appendChild(sx);row.appendChild(btn);L.appendChild(row)})}}
-function vbInit(){const sel=(id,key,num)=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[key]:num?(+el.value||0):el.value});if(key==='song'||key==='key')VB.sig='';renderVib()}};
-  sel('vbSong','song');sel('vbOrder','order');sel('vbSlow','slow');sel('vbFrom','from',true);sel('vbKey','key',true);
+function vbInit(){const sel=(id,key,num)=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[key]:num?(+el.value||0):el.value});if(key==='song')VB.sig='';renderVib();if(key==='song')renderKeyRows()}};
+  sel('vbSong','song');sel('vbOrder','order');sel('vbSlow','slow');sel('vbFrom','from',true);
   [['vbHear','hear'],['vbSlowOn','slowOn'],['vbPulse','pulse'],['vbTicks','ticks'],['vbRelease','release'],['vbSing','sing'],['vbPhrase','phrase'],['vbAlone','alone'],['vbMix','mix']].forEach(([id,k])=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[k]:el.checked});renderVib()}});
   const num=(id,k,lo,hi)=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[k]:Math.max(lo,Math.min(hi,Math.round(+el.value)||lo))});renderVib()}};
   num('vbReps','reps',1,6);num('vbRungs','rungs',2,6);num('vbTone','tone',0,10);num('vbVoice','voice',0,10);
@@ -8699,7 +8700,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=55;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=56;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
