@@ -607,6 +607,30 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Sung file `blessed-art-thou-byz.m4a` (BlobDB key `evlogitaria-byz-g`): the voice plus a drone from Kazan's small
   notes (mostly the home note G, the step below F), an octave under with a softer octave above.
 
+## The *Ncense recording as the singer's voice (20 November 2026)
+
+- Eli sent the *Ncense recording of the Evlogitaria (3:31, the same as the YouTube video) and asked for a complete
+  breakdown, every lyric and note, lined up with the sheet music, with the recording itself as the singer's voice and
+  matched to the score's pitch. He expects to sing it six half steps down.
+- It is a released commercial recording, so it is **not in this public repository**. The repo holds only the timings.
+  Eli adds his own copy once on the Songs tab (`ownBox`, `ownFile`, BlobDB `own:ncense` and `own:ncense-d`); a SONGS
+  entry with `own:` shows the picker. Songs `song-evl-ncense` (A flat, as sung) and `song-evl-ncense-d` (6 lower, D).
+  Use the 6 lower entry rather than the key setting: the app's key change (`keyedAudio`) is made for one voice.
+- Work folder `~/ison-singer/ncense` (outside the repo): `drone.json` (the ison every 20 ms), `align.py` (MMS forced
+  alignment of every word of Kazan's text, syllables split by letters), `align2.py` (notes inside each syllable by a
+  dynamic programme on the melody's harmonic salience with the drone's steady partials taken out, the score's rhythm as a
+  strong prior; `--second` retunes from the melody itself), `check.py`, `build_app.py` (typed notes in seconds at bpm 60,
+  breaths as rests, the last note to where the voices fade), `gen_report.py` (the breakdown page,
+  `notes/blessed-art-thou-byz/ncense-breakdown.html`, gitignored).
+- Measured: 615 notes, 471 syllables; about 215 a minute (0.28 s a quarter); the choir drifts from about 60 to about 150
+  cents under A. 85% of notes are plainly Kazan's note; most others are covered by the drone's overtones. Possible real
+  differences (a G for Kazan's A) in "and didst give to Eve joy in place of sadness" and "those who had fallen"; the
+  app keeps Kazan's notes. They sing the scale close to piano tuning (steps within about 6 cents).
+- Retuning: `rubberband -3 --formant --pitchmap` along the measured curve onto exact A flat (after: every half minute
+  within 0 to 10 cents of the notes, 91% of notes within a quarter step); the 6 lower copy is the same file through
+  Rubber Band `-p -6` (88% within a quarter step of D). The files sent to Eli: `~/ison-singer/ncense/Blessed art Thou -
+  Ncense (retuned to A flat).m4a` and `(6 lower, D).m4a`.
+
 ## His range, corrected (20 November 2026)
 
 - The guess "about G2 to A3" (from the Psalm 118 sets at home 51) was wrong for these hymns: Eli found the Our Father at

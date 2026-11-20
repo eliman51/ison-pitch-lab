@@ -1505,6 +1505,8 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <option value="song-blessed">Blessed Be the Name of the Lord</option>
             <option value="song-ourfather">Our Father: the Lord's Prayer (Kedrov)</option>
             <option value="song-evlogitaria-byz">Blessed Art Thou, O Lord (Byzantine, Tone 5)</option>
+            <option value="song-evl-ncense">Blessed Art Thou, O Lord (Byzantine, *Ncense recording)</option>
+            <option value="song-evl-ncense-d">Blessed Art Thou, O Lord (*Ncense recording, 6 lower)</option>
             <option value="song-evlogitaria">Blessed Art Thou, O Lord (Russian, Kievan, Tone 5)</option>
           </optgroup>
           <optgroup label="My songs" id="mySongs"></optgroup>
@@ -1517,6 +1519,11 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           </optgroup>
         </select></div></div>
     <p class="status" id="songCredit" hidden></p>
+    <div class="field" id="ownBox" hidden>
+      <label class="label" for="ownFile">Your copy of the recording</label>
+      <input class="file" type="file" id="ownFile" accept=".mp3,.m4a,.wav,.aac,audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/aac">
+      <span class="status" id="ownSt"></span>
+    </div>
     <div class="field" id="typedBox" hidden>
       <label class="label" for="typed">Notes (name and octave, then beats)</label>
       <textarea id="typed" rows="4" spellcheck="false"></textarea>
@@ -3015,6 +3022,153 @@ const EVLOGITARIA_BYZ=
   'C5:1 Bb4:2:a. Bb4:1:Glo- C5:1 Bb4:1:ry A4:1:to G4:1:thee, A4:1:O Bb4:2:God. A4:1:O '+
   'Bb4:1:our C5:2:God Bb4:1:and A4:1:our G4:2:hope, G4:1:glo- A4:1 G4:1:ry F4:1:to Bb4:2:thee. '+
   'Bb4:0.5 A4:0.5 G4:1 A4:2 A4:0.5 G4:0.5 F4:1 G4:4 ';
+/* The same Byzantine Evlogitaria (Kazan's notes) timed to the *Ncense recording itself, so that recording can be the
+ singer's voice. Each length here is in seconds (bpm 60), measured from the recording: every word placed by the MMS
+ forced aligner, every note inside its syllable from the melody's own pitch (the drone left out), the breaths as rests.
+ The notes are Kazan's, moved to A flat, because the recording is retuned onto exact A flat (the choir starts about 60
+ cents under A and sinks to about 150 under). The recording is theirs and is NOT in this public repository: Eli adds his
+ own copy once (Songs tab), and it is kept on his phone only (BlobDB "own:ncense"). Made with ~/ison-singer/ncense. */
+const EVLOGITARIA_NCENSE=
+  'r:1.720 Ab4:0.708:Bless- Bb4:0.110 Ab4:0.279:ed F#4:0.180:art Ab4:0.379:thou, Bb4:0.200:O B4:0.599:Lord: Bb4:0.319:teach '+
+  'Ab4:0.330 Bb4:0.240:me B4:0.260:thy Bb4:0.200:stat- B4:0.199 Bb4:0.190 Ab4:0.189 Ab4:1.078:utes. Ab4:0.280:The '+
+  'Ab4:0.350:com- Bb4:0.269 Ab4:0.569:pan- F#4:0.100:y Ab4:0.180:of Bb4:0.360:the B4:0.220:an- Bb4:0.340:gels Ab4:0.360:was '+
+  'Bb4:0.160:a- B4:0.938:mazed, Bb4:0.260:when B4:0.299:they C#5:0.319:be- Eb5:0.269:held C#5:0.269 B4:0.588:thee Ab4:0.299:num- '+
+  'A4:0.259 Ab4:0.399:bered G4:0.139:a- E4:0.319:mong G4:0.279:the Ab4:1.117:dead, Ab4:0.239:yet Bb4:0.279:thy- B4:0.359:self, '+
+  'Bb4:0.219:O B4:0.289:Sav- C#5:0.100 B4:0.519:iour, B4:0.259:des- B4:0.299:troy\'ng Bb4:0.219:the Ab4:0.439:pow\'r Bb4:0.179:of '+
+  'B4:0.698:death, B4:0.239:and C#5:0.279:with B4:0.559:thee B4:0.369:rais- Bb4:0.359 Ab4:0.239:ing Bb4:0.319:up Bb4:0.239:Ad- '+
+  'B4:0.260 B4:0.639:am, Bb4:0.240:and Ab4:0.240:re- Ab4:0.339:leas- F#4:0.340 Ab4:0.279:ing Bb4:0.180:all B4:0.180:men '+
+  'C#5:0.159 B4:0.270 Bb4:0.180:from B4:0.159 Bb4:0.140 Ab4:0.160 Ab4:1.257:hell. Ab4:0.339:Bless- Bb4:0.340 '+
+  'Ab4:0.220:ed F#4:0.200:art Ab4:0.379:thou, Bb4:0.180:O B4:0.579:Lord: Bb4:0.310:teach Ab4:0.299 Bb4:0.220:me B4:0.260:thy '+
+  'Bb4:0.190:stat- B4:0.190 Bb4:0.189 Ab4:0.190 Ab4:1.118:utes. Ab4:0.330:Where- Bb4:0.189 Ab4:0.400:fore, Bb4:0.180:O '+
+  'B4:0.269:wo- Bb4:0.259 Ab4:0.279:men Bb4:0.259:dis- Bb4:0.309:ci- B4:0.309 B4:0.598:ples, B4:0.239:do C#5:0.279:ye '+
+  'Eb5:0.219:min- C#5:0.299:gle B4:0.259:sweet C#5:0.259 B4:0.439:smell- Bb4:0.159:ing Ab4:0.379:spic- Bb4:0.389 B4:0.479:es '+
+  'Bb4:0.239:with Ab4:0.219:your Bb4:0.419:tears B4:0.179:of Bb4:0.169:pit- B4:0.170 Bb4:0.170 Ab4:0.169 Ab4:0.858:y? '+
+  'F#4:0.239:The Ab4:0.279:ra- Bb4:0.409:diant B4:0.209:an- C#5:0.210 B4:0.319:gel Bb4:0.339:with- B4:0.160:in C#5:0.279:the '+
+  'Eb5:0.289:sep- C#5:0.290 B4:0.220:ul- Bb4:0.279:chre B4:1.038:cried Ab4:0.200:un- Ab4:0.279:to F#4:0.269:the F#4:0.399:myrrh- '+
+  'Ab4:0.180 F#4:0.399:bear- E4:0.200:ing F#4:0.329:wo- Ab4:0.190 Ab4:0.978:men: F#4:0.280:Be- Ab4:0.220:hold Bb4:0.240:the '+
+  'B4:0.419:grave Bb4:0.220:and Ab4:0.190:un- Bb4:0.260:der- B4:0.639:stand, B4:0.260:for B4:0.260:the Bb4:0.290:Sav- B4:0.289 '+
+  'C#5:0.559 Ab4:0.360:iour Ab4:0.220:is Ab4:0.300:ris- F#4:0.180:en B4:0.170:from C#5:0.160 B4:0.299 Bb4:0.140:the '+
+  'B4:0.140 Bb4:0.140 Ab4:0.139 Ab4:1.237:tomb. Ab4:0.319:Bless- Bb4:0.319 Ab4:0.259:ed F#4:0.179:art Ab4:0.379:thou, '+
+  'Bb4:0.199:O B4:0.558:Lord: Bb4:0.419:teach Ab4:0.209 Bb4:0.219:me B4:0.259:thy Bb4:0.209:stat- B4:0.190 Bb4:0.189 '+
+  'Ab4:0.190 Ab4:0.748:utes. r:0.292 Ab4:0.379:Ver- Ab4:0.100:y Ab4:0.339:ear- F#4:0.299:ly Ab4:0.219:in Bb4:0.309:the '+
+  'B4:0.349:morn- C#5:0.349 B4:0.479:ing B4:0.239:did Bb4:0.259:the B4:0.349:myrrh- C#5:0.230 B4:0.399:bear- Bb4:0.200:ing '+
+  'B4:0.259:wo- Bb4:0.279:men Ab4:0.259:run Ab4:0.279:la- Ab4:0.339:ment- A4:0.349 Ab4:0.240:ing G4:0.180:un- E4:0.240:to '+
+  'G4:0.299:thy Ab4:1.157:tomb, F#4:0.379:but F#4:0.280:an Ab4:0.240:an- Bb4:0.279 B4:0.259 C#5:0.260 B4:0.569:gel '+
+  'B4:0.210:came Bb4:0.090 Ab4:0.549:t\'ward Bb4:0.309 B4:0.539:them Bb4:0.220:say- B4:0.169 Bb4:0.170 Ab4:0.120 '+
+  'Ab4:0.838:ing: Ab4:0.220:The B4:0.360:time Bb4:0.270:for Ab4:0.380:lam- A4:0.180:en- Ab4:0.260:ta- G4:0.259 E4:0.400:tion '+
+  'G4:0.199:is Ab4:0.618:passed; C#5:0.289:weep Bb4:0.269 B4:0.578:not; B4:0.339:but C#5:0.159:an- Eb5:0.389:nounce C#5:0.199:un- '+
+  'B4:0.269:to Bb4:0.269 Ab4:0.339:the Bb4:0.179:A- Bb4:0.309:pos- B4:0.269 B4:0.299:tles F#4:0.279:the B4:0.359:Res- '+
+  'B4:0.219:ur- Bb4:0.149:rec- B4:0.150 Bb4:0.150 Ab4:0.129 Ab4:1.187:tion. Ab4:0.319:Bless- Bb4:0.319 Ab4:0.259:ed '+
+  'F#4:0.160:art Ab4:0.439:thou, Bb4:0.160:O B4:0.519:Lord: Bb4:0.319:teach Ab4:0.280 Bb4:0.239:me B4:0.279:thy Bb4:0.180:stat- '+
+  'B4:0.189 Bb4:0.200 Ab4:0.159 Ab4:0.978:utes. F#4:0.279:The F#4:0.279:myrrh- Ab4:0.379:bear- Bb4:0.220:ing B4:0.269:wo- '+
+  'C#5:0.270 B4:0.539:men B4:0.379:mourned, Bb4:0.200:as B4:0.369:bear- Bb4:0.140:ing Ab4:0.359:spic- Bb4:0.360 B4:0.180:es '+
+  'B4:0.260:they Bb4:0.150:drew B4:0.140 C#5:0.269 Ab4:0.280:near Ab4:0.260:thy Bb4:0.359:tomb, B4:0.200:O Bb4:0.120:Sav- '+
+  'B4:0.110 Bb4:0.110 Ab4:0.079 Ab4:1.307:iour. F#4:0.280:But F#4:0.320:the Ab4:0.180:an- Bb4:0.240:gel B4:0.360:spake '+
+  'C#5:0.339 B4:0.180:un- Bb4:0.280:to Ab4:0.270:them Bb4:0.269 Bb4:0.379:say- B4:0.279 B4:0.808:ing: B4:0.299:Why '+
+  'C#5:0.239:num- Bb4:0.279:ber Ab4:0.279:ye Ab4:0.259:the Ab4:0.319:liv- A4:0.319 Ab4:0.279:ing G4:0.139:a- E4:0.299:mong '+
+  'G4:0.279:the Ab4:1.127:dead? B4:0.159:In B4:0.319:that Ab4:0.299:he Bb4:0.219:is B4:0.578:God, Ab4:0.279:he Bb4:0.239:is '+
+  'Ab4:0.259:ris- F#4:0.199:en B4:0.150:from C#5:0.149 B4:0.300 Bb4:0.140:the B4:0.139 Bb4:0.140 Ab4:0.140 '+
+  'Ab4:0.668:grave. Ab4:0.838:Glo- F#4:0.259:ry Ab4:0.259:to Bb4:0.299:the B4:0.299:Fa- C#5:0.260 B4:0.319:ther Bb4:0.220:and '+
+  'Ab4:0.259:to Bb4:0.260:the B4:0.379:Son B4:0.200:and Bb4:0.270:to Ab4:0.319:the Bb4:0.220:Ho- B4:0.220:ly Bb4:0.290:Spir- '+
+  'B4:0.199 Bb4:0.140 Ab4:0.169 Ab4:1.018:it. Ab4:0.320:We Ab4:0.180:a- Bb4:0.300:dore F#4:0.220:the Ab4:0.340:Fa- '+
+  'Bb4:0.299 B4:0.249 C#5:0.300 B4:0.360:ther, Bb4:0.380:as B4:0.170:al- Bb4:0.170 Ab4:0.300:so Bb4:0.260:the '+
+  'B4:0.400:Son, Bb4:0.439:and Ab4:0.340:the Bb4:0.240:Ho- B4:0.220:ly Bb4:0.219:Spir- B4:0.190 Bb4:0.189 Ab4:0.170 '+
+  'Ab4:0.778:it, B4:0.299:the B4:0.219:Ho- C#5:0.239:ly Eb5:0.359:Trin- C#5:0.359 B4:0.139:i- Bb4:0.119:ty Ab4:0.299:in '+
+  'Bb4:0.538:one Bb4:0.229:es- B4:0.230 B4:0.548:sence; Ab4:0.419:cry- Ab4:0.199:ing Bb4:0.259:with B4:0.239:the Bb4:0.419:Ser- '+
+  'Ab4:0.100:a- Ab4:1.277:phim: Ab4:0.299:Ho- Bb4:0.280 B4:0.259 Bb4:0.349:ly, B4:0.259:Ho- C#5:0.260 B4:0.619:ly, '+
+  'B4:0.239:Ho- Bb4:0.240 Ab4:0.359:ly F#4:0.219:art B4:0.190:thou, C#5:0.189 B4:0.379 Bb4:0.110:O B4:0.100 '+
+  'Bb4:0.109 Ab4:0.100 Ab4:0.968:Lord. Ab4:0.359:Both Bb4:0.319:now F#4:0.319:and Ab4:0.260:ev- Bb4:0.259 B4:0.280:er, '+
+  'B4:0.280:and B4:0.180:un- B4:0.379:to Bb4:0.230:a- Ab4:0.229 Ab4:0.379:ges Ab4:0.300:of Bb4:0.210:a- B4:0.209 '+
+  'Bb4:0.409:ges. Ab4:0.200:A- Ab4:1.218:men. F#4:0.140:In F#4:0.260:that Ab4:0.320:thou Bb4:0.280:didst B4:0.300:bear Bb4:0.260:the '+
+  'B4:0.330:Giv- C#5:0.329 B4:0.240:er Bb4:0.210:of Ab4:0.340:Life, Bb4:0.180:O Bb4:0.309:Vir- B4:0.269 B4:0.878:gin, '+
+  'B4:0.279:thou B4:0.299:didst Bb4:0.239:re- Ab4:0.658:deem Bb4:0.239:Ad- B4:0.159:am Bb4:0.159:from B4:0.160 Bb4:0.329 '+
+  'Ab4:1.097:sin, F#4:0.199:and Ab4:0.279:didst A4:0.239:give Ab4:0.239:to F#4:0.598:Eve F#4:0.359:joy F#4:0.159:in Ab4:0.359:place '+
+  'E4:0.199:of F#4:0.399:sad- Ab4:0.209 Ab4:0.978:ness; B4:0.239:and B4:0.239:he Bb4:0.239:who B4:0.359:was C#5:0.180:in- '+
+  'Eb5:0.279:car- C#5:0.280 B4:0.339:nate Bb4:0.200:of B4:0.828:thee, Ab4:0.359:both Ab4:0.319:God Bb4:0.180:and B4:0.559:man, '+
+  'B4:0.299:hath Bb4:0.160:re- C#5:0.319:stored C#5:0.280:to Ab4:0.599:life F#4:0.559:those Ab4:0.200:who Bb4:0.310:had B4:0.359:fall- '+
+  'B4:0.200:en Bb4:0.140:there- B4:0.140 Bb4:0.129 Ab4:0.130 Ab4:1.277:from. Ab4:0.180:Al- Ab4:0.280:le- Ab4:0.380:lu- '+
+  'Bb4:0.299 Ab4:0.220:i- F#4:0.180:a, Ab4:0.240:Al- Bb4:0.310:le- B4:0.280:lu- C#5:0.419 B4:0.200:i- Bb4:0.200 '+
+  'B4:0.559:a, B4:0.159:Al- B4:0.299:le- C#5:0.379:lu- Bb4:0.219:i- B4:0.419:a. B4:0.169:Glo- Bb4:0.130 Ab4:0.239 '+
+  'Bb4:0.259:ry B4:0.289:to Bb4:0.299:thee, Ab4:0.219:O Ab4:1.157:God. Ab4:0.199:Al- Ab4:0.259:le- Ab4:0.349:lu- Bb4:0.349 '+
+  'Ab4:0.259:i- F#4:0.239:a, Ab4:0.159:Al- Bb4:0.299:le- B4:0.359:lu- C#5:0.369 B4:0.239:i- Bb4:0.240 B4:0.519:a, '+
+  'B4:0.199:Al- B4:0.299:le- C#5:0.379:lu- Bb4:0.239:i- B4:0.419:a. B4:0.140:Glo- Bb4:0.179 Ab4:0.260 Bb4:0.239:ry '+
+  'B4:0.319:to Bb4:0.339:thee, Ab4:0.210:O Ab4:1.337:God. Ab4:0.140:Al- Ab4:0.299:le- Ab4:0.329:lu- Bb4:0.330 Ab4:0.260:i- '+
+  'F#4:0.240:a, Ab4:0.180:Al- Bb4:0.319:le- B4:0.329:lu- C#5:0.350 B4:0.080:i- Bb4:0.080 B4:0.529:a, B4:0.778:Al- '+
+  'C#5:0.320:le- Eb5:0.359:lu- E5:0.360 Eb5:0.240:i- C#5:0.339 B4:0.539:a. B4:0.389:Glo- C#5:0.350 B4:0.310:ry '+
+  'Bb4:0.419:to Ab4:0.380:thee, Bb4:0.300:O B4:1.347:God. r:0.214 Bb4:0.359:O B4:0.299:our C#5:0.927:God B4:0.419:and '+
+  'Bb4:0.339:our Ab4:0.718:hope, Ab4:1.137:glo- Bb4:0.459 Ab4:0.399:ry F#4:0.499:to B4:1.187:thee. B4:0.150 Bb4:0.149 '+
+  'Ab4:0.280 Bb4:0.578 Bb4:0.140 Ab4:0.080 F#4:0.768 Ab4:2.565 ';
+/* The same, six half steps lower (D), for Eli's voice: his copy of the recording for this one is lowered by Rubber Band
+ on the Mac, which keeps a whole choir clean, rather than by the app's one-voice key change. */
+const EVLOGITARIA_NCENSE_D='r:1.720 D4:0.708:Bless- E4:0.110 D4:0.279:ed C4:0.180:art D4:0.379:thou, E4:0.200:O F4:0.599:Lord: E4:0.319:teach '+
+  'D4:0.330 E4:0.240:me F4:0.260:thy E4:0.200:stat- F4:0.199 E4:0.190 D4:0.189 D4:1.078:utes. D4:0.280:The '+
+  'D4:0.350:com- E4:0.269 D4:0.569:pan- C4:0.100:y D4:0.180:of E4:0.360:the F4:0.220:an- E4:0.340:gels D4:0.360:was '+
+  'E4:0.160:a- F4:0.938:mazed, E4:0.260:when F4:0.299:they G4:0.319:be- A4:0.269:held G4:0.269 F4:0.588:thee D4:0.299:num- '+
+  'Eb4:0.259 D4:0.399:bered C#4:0.139:a- Bb3:0.319:mong C#4:0.279:the D4:1.117:dead, D4:0.239:yet E4:0.279:thy- F4:0.359:self, '+
+  'E4:0.219:O F4:0.289:Sav- G4:0.100 F4:0.519:iour, F4:0.259:des- F4:0.299:troy\'ng E4:0.219:the D4:0.439:pow\'r E4:0.179:of '+
+  'F4:0.698:death, F4:0.239:and G4:0.279:with F4:0.559:thee F4:0.369:rais- E4:0.359 D4:0.239:ing E4:0.319:up E4:0.239:Ad- '+
+  'F4:0.260 F4:0.639:am, E4:0.240:and D4:0.240:re- D4:0.339:leas- C4:0.340 D4:0.279:ing E4:0.180:all F4:0.180:men '+
+  'G4:0.159 F4:0.270 E4:0.180:from F4:0.159 E4:0.140 D4:0.160 D4:1.257:hell. D4:0.339:Bless- E4:0.340 '+
+  'D4:0.220:ed C4:0.200:art D4:0.379:thou, E4:0.180:O F4:0.579:Lord: E4:0.310:teach D4:0.299 E4:0.220:me F4:0.260:thy '+
+  'E4:0.190:stat- F4:0.190 E4:0.189 D4:0.190 D4:1.118:utes. D4:0.330:Where- E4:0.189 D4:0.400:fore, E4:0.180:O '+
+  'F4:0.269:wo- E4:0.259 D4:0.279:men E4:0.259:dis- E4:0.309:ci- F4:0.309 F4:0.598:ples, F4:0.239:do G4:0.279:ye '+
+  'A4:0.219:min- G4:0.299:gle F4:0.259:sweet G4:0.259 F4:0.439:smell- E4:0.159:ing D4:0.379:spic- E4:0.389 F4:0.479:es '+
+  'E4:0.239:with D4:0.219:your E4:0.419:tears F4:0.179:of E4:0.169:pit- F4:0.170 E4:0.170 D4:0.169 D4:0.858:y? '+
+  'C4:0.239:The D4:0.279:ra- E4:0.409:diant F4:0.209:an- G4:0.210 F4:0.319:gel E4:0.339:with- F4:0.160:in G4:0.279:the '+
+  'A4:0.289:sep- G4:0.290 F4:0.220:ul- E4:0.279:chre F4:1.038:cried D4:0.200:un- D4:0.279:to C4:0.269:the C4:0.399:myrrh- '+
+  'D4:0.180 C4:0.399:bear- Bb3:0.200:ing C4:0.329:wo- D4:0.190 D4:0.978:men: C4:0.280:Be- D4:0.220:hold E4:0.240:the '+
+  'F4:0.419:grave E4:0.220:and D4:0.190:un- E4:0.260:der- F4:0.639:stand, F4:0.260:for F4:0.260:the E4:0.290:Sav- F4:0.289 '+
+  'G4:0.559 D4:0.360:iour D4:0.220:is D4:0.300:ris- C4:0.180:en F4:0.170:from G4:0.160 F4:0.299 E4:0.140:the '+
+  'F4:0.140 E4:0.140 D4:0.139 D4:1.237:tomb. D4:0.319:Bless- E4:0.319 D4:0.259:ed C4:0.179:art D4:0.379:thou, '+
+  'E4:0.199:O F4:0.558:Lord: E4:0.419:teach D4:0.209 E4:0.219:me F4:0.259:thy E4:0.209:stat- F4:0.190 E4:0.189 '+
+  'D4:0.190 D4:0.748:utes. r:0.292 D4:0.379:Ver- D4:0.100:y D4:0.339:ear- C4:0.299:ly D4:0.219:in E4:0.309:the '+
+  'F4:0.349:morn- G4:0.349 F4:0.479:ing F4:0.239:did E4:0.259:the F4:0.349:myrrh- G4:0.230 F4:0.399:bear- E4:0.200:ing '+
+  'F4:0.259:wo- E4:0.279:men D4:0.259:run D4:0.279:la- D4:0.339:ment- Eb4:0.349 D4:0.240:ing C#4:0.180:un- Bb3:0.240:to '+
+  'C#4:0.299:thy D4:1.157:tomb, C4:0.379:but C4:0.280:an D4:0.240:an- E4:0.279 F4:0.259 G4:0.260 F4:0.569:gel '+
+  'F4:0.210:came E4:0.090 D4:0.549:t\'ward E4:0.309 F4:0.539:them E4:0.220:say- F4:0.169 E4:0.170 D4:0.120 '+
+  'D4:0.838:ing: D4:0.220:The F4:0.360:time E4:0.270:for D4:0.380:lam- Eb4:0.180:en- D4:0.260:ta- C#4:0.259 Bb3:0.400:tion '+
+  'C#4:0.199:is D4:0.618:passed; G4:0.289:weep E4:0.269 F4:0.578:not; F4:0.339:but G4:0.159:an- A4:0.389:nounce G4:0.199:un- '+
+  'F4:0.269:to E4:0.269 D4:0.339:the E4:0.179:A- E4:0.309:pos- F4:0.269 F4:0.299:tles C4:0.279:the F4:0.359:Res- '+
+  'F4:0.219:ur- E4:0.149:rec- F4:0.150 E4:0.150 D4:0.129 D4:1.187:tion. D4:0.319:Bless- E4:0.319 D4:0.259:ed '+
+  'C4:0.160:art D4:0.439:thou, E4:0.160:O F4:0.519:Lord: E4:0.319:teach D4:0.280 E4:0.239:me F4:0.279:thy E4:0.180:stat- '+
+  'F4:0.189 E4:0.200 D4:0.159 D4:0.978:utes. C4:0.279:The C4:0.279:myrrh- D4:0.379:bear- E4:0.220:ing F4:0.269:wo- '+
+  'G4:0.270 F4:0.539:men F4:0.379:mourned, E4:0.200:as F4:0.369:bear- E4:0.140:ing D4:0.359:spic- E4:0.360 F4:0.180:es '+
+  'F4:0.260:they E4:0.150:drew F4:0.140 G4:0.269 D4:0.280:near D4:0.260:thy E4:0.359:tomb, F4:0.200:O E4:0.120:Sav- '+
+  'F4:0.110 E4:0.110 D4:0.079 D4:1.307:iour. C4:0.280:But C4:0.320:the D4:0.180:an- E4:0.240:gel F4:0.360:spake '+
+  'G4:0.339 F4:0.180:un- E4:0.280:to D4:0.270:them E4:0.269 E4:0.379:say- F4:0.279 F4:0.808:ing: F4:0.299:Why '+
+  'G4:0.239:num- E4:0.279:ber D4:0.279:ye D4:0.259:the D4:0.319:liv- Eb4:0.319 D4:0.279:ing C#4:0.139:a- Bb3:0.299:mong '+
+  'C#4:0.279:the D4:1.127:dead? F4:0.159:In F4:0.319:that D4:0.299:he E4:0.219:is F4:0.578:God, D4:0.279:he E4:0.239:is '+
+  'D4:0.259:ris- C4:0.199:en F4:0.150:from G4:0.149 F4:0.300 E4:0.140:the F4:0.139 E4:0.140 D4:0.140 '+
+  'D4:0.668:grave. D4:0.838:Glo- C4:0.259:ry D4:0.259:to E4:0.299:the F4:0.299:Fa- G4:0.260 F4:0.319:ther E4:0.220:and '+
+  'D4:0.259:to E4:0.260:the F4:0.379:Son F4:0.200:and E4:0.270:to D4:0.319:the E4:0.220:Ho- F4:0.220:ly E4:0.290:Spir- '+
+  'F4:0.199 E4:0.140 D4:0.169 D4:1.018:it. D4:0.320:We D4:0.180:a- E4:0.300:dore C4:0.220:the D4:0.340:Fa- '+
+  'E4:0.299 F4:0.249 G4:0.300 F4:0.360:ther, E4:0.380:as F4:0.170:al- E4:0.170 D4:0.300:so E4:0.260:the '+
+  'F4:0.400:Son, E4:0.439:and D4:0.340:the E4:0.240:Ho- F4:0.220:ly E4:0.219:Spir- F4:0.190 E4:0.189 D4:0.170 '+
+  'D4:0.778:it, F4:0.299:the F4:0.219:Ho- G4:0.239:ly A4:0.359:Trin- G4:0.359 F4:0.139:i- E4:0.119:ty D4:0.299:in '+
+  'E4:0.538:one E4:0.229:es- F4:0.230 F4:0.548:sence; D4:0.419:cry- D4:0.199:ing E4:0.259:with F4:0.239:the E4:0.419:Ser- '+
+  'D4:0.100:a- D4:1.277:phim: D4:0.299:Ho- E4:0.280 F4:0.259 E4:0.349:ly, F4:0.259:Ho- G4:0.260 F4:0.619:ly, '+
+  'F4:0.239:Ho- E4:0.240 D4:0.359:ly C4:0.219:art F4:0.190:thou, G4:0.189 F4:0.379 E4:0.110:O F4:0.100 '+
+  'E4:0.109 D4:0.100 D4:0.968:Lord. D4:0.359:Both E4:0.319:now C4:0.319:and D4:0.260:ev- E4:0.259 F4:0.280:er, '+
+  'F4:0.280:and F4:0.180:un- F4:0.379:to E4:0.230:a- D4:0.229 D4:0.379:ges D4:0.300:of E4:0.210:a- F4:0.209 '+
+  'E4:0.409:ges. D4:0.200:A- D4:1.218:men. C4:0.140:In C4:0.260:that D4:0.320:thou E4:0.280:didst F4:0.300:bear E4:0.260:the '+
+  'F4:0.330:Giv- G4:0.329 F4:0.240:er E4:0.210:of D4:0.340:Life, E4:0.180:O E4:0.309:Vir- F4:0.269 F4:0.878:gin, '+
+  'F4:0.279:thou F4:0.299:didst E4:0.239:re- D4:0.658:deem E4:0.239:Ad- F4:0.159:am E4:0.159:from F4:0.160 E4:0.329 '+
+  'D4:1.097:sin, C4:0.199:and D4:0.279:didst Eb4:0.239:give D4:0.239:to C4:0.598:Eve C4:0.359:joy C4:0.159:in D4:0.359:place '+
+  'Bb3:0.199:of C4:0.399:sad- D4:0.209 D4:0.978:ness; F4:0.239:and F4:0.239:he E4:0.239:who F4:0.359:was G4:0.180:in- '+
+  'A4:0.279:car- G4:0.280 F4:0.339:nate E4:0.200:of F4:0.828:thee, D4:0.359:both D4:0.319:God E4:0.180:and F4:0.559:man, '+
+  'F4:0.299:hath E4:0.160:re- G4:0.319:stored G4:0.280:to D4:0.599:life C4:0.559:those D4:0.200:who E4:0.310:had F4:0.359:fall- '+
+  'F4:0.200:en E4:0.140:there- F4:0.140 E4:0.129 D4:0.130 D4:1.277:from. D4:0.180:Al- D4:0.280:le- D4:0.380:lu- '+
+  'E4:0.299 D4:0.220:i- C4:0.180:a, D4:0.240:Al- E4:0.310:le- F4:0.280:lu- G4:0.419 F4:0.200:i- E4:0.200 '+
+  'F4:0.559:a, F4:0.159:Al- F4:0.299:le- G4:0.379:lu- E4:0.219:i- F4:0.419:a. F4:0.169:Glo- E4:0.130 D4:0.239 '+
+  'E4:0.259:ry F4:0.289:to E4:0.299:thee, D4:0.219:O D4:1.157:God. D4:0.199:Al- D4:0.259:le- D4:0.349:lu- E4:0.349 '+
+  'D4:0.259:i- C4:0.239:a, D4:0.159:Al- E4:0.299:le- F4:0.359:lu- G4:0.369 F4:0.239:i- E4:0.240 F4:0.519:a, '+
+  'F4:0.199:Al- F4:0.299:le- G4:0.379:lu- E4:0.239:i- F4:0.419:a. F4:0.140:Glo- E4:0.179 D4:0.260 E4:0.239:ry '+
+  'F4:0.319:to E4:0.339:thee, D4:0.210:O D4:1.337:God. D4:0.140:Al- D4:0.299:le- D4:0.329:lu- E4:0.330 D4:0.260:i- '+
+  'C4:0.240:a, D4:0.180:Al- E4:0.319:le- F4:0.329:lu- G4:0.350 F4:0.080:i- E4:0.080 F4:0.529:a, F4:0.778:Al- '+
+  'G4:0.320:le- A4:0.359:lu- Bb4:0.360 A4:0.240:i- G4:0.339 F4:0.539:a. F4:0.389:Glo- G4:0.350 F4:0.310:ry '+
+  'E4:0.419:to D4:0.380:thee, E4:0.300:O F4:1.347:God. r:0.214 E4:0.359:O F4:0.299:our G4:0.927:God F4:0.419:and '+
+  'E4:0.339:our D4:0.718:hope, D4:1.137:glo- E4:0.459 D4:0.399:ry C4:0.499:to F4:1.187:thee. F4:0.150 E4:0.149 '+
+  'D4:0.280 E4:0.578 E4:0.140 D4:0.080 C4:0.768 D4:2.565 ';
 const SONGS={
   'song-trisagion':{text:TRISAGION,bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow). Written in F major, starting on A.'},
   'song-trisagion3':{text:[TRISAGION,TRISAGION,TRISAGION].join(' R:2 '),bpm:100,credit:'Melody line of the Antiochian Archdiocese setting 10-B, Byzantine Tone 3 (Michael Hilko, English by Michael G. Farrow), sung three times as in the Liturgy.'},
@@ -3023,6 +3177,8 @@ const SONGS={
   'song-cross':{text:CROSS,bpm:84,credit:'Antiochian Archdiocese 10-D, traditional Russian melody. Melody line in G.'},
   'song-praise':{text:PRAISE,bpm:92,credit:'Sunday communion hymn, Antiochian Archdiocese 22-D (Michael G. Farrow), with one Alleluia. Melody line in F.'},
   'song-blessed':{text:BLESSED,bpm:96,credit:'Antiochian Archdiocese setting #2, sung three times near the end of the Liturgy. Melody line in F.'},
+  'song-evl-ncense':{text:EVLOGITARIA_NCENSE,bpm:60,sung:'ncense',own:'ncense',credit:'Blessed art thou, O Lord, the Byzantine melody, sung by the *Ncense recording itself: their voices are the guide, and every note of Basil Kazan\'s score is timed to where they sing it. The recording is gently retuned onto exact A flat so it matches the notes. It is their recording, so it is not on this website: add your own copy below, once, and it stays on this phone.'},
+  'song-evl-ncense-d':{text:EVLOGITARIA_NCENSE_D,bpm:60,sung:'ncense-d',own:'ncense-d',credit:'Blessed art thou, O Lord, the Byzantine melody, sung by the *Ncense recording itself, six half steps lower (home D) for a lower voice. Every note of Basil Kazan\'s score is timed to where they sing it, and the recording is retuned onto exact D. It is their recording, so it is not on this website: add your own copy of the 6 lower file below, once, and it stays on this phone. Use this rather than the key setting: the key setting is made for one voice, not a whole choir.'},
   'song-evlogitaria-byz':{text:EVLOGITARIA_BYZ,bpm:211,sung:'evlogitariabyz',credit:'Melody line of the Evlogitaria of the Resurrection, "Blessed art thou, O Lord", in the Byzantine melody, Tone 5 (Plagal First Mode), sung at Matins every Sunday in Antiochian parishes over a held drone note: the refrain, five stanzas, the Glory, the Now and ever and the Alleluias, with the wording of the *Ncense recording. Read note by note from Basil Kazan\'s setting (1915 to 2001) for the Antiochian Orthodox Christian Archdiocese of North America. The chant melody is old and free; that setting is theirs, given out for church use. Written in A; this is two steps down, which puts it at E flat 3 to E flat 4 with the home note G3, at the speed of that recording.'},
   'song-evlogitaria':{text:EVLOGITARIA,bpm:140,sung:'evlogitaria',credit:'Melody line of the Evlogitaria of the Resurrection, "Blessed art Thou, O Lord", Kievan chant (Moscow tune), Tone 5, sung at Matins every Sunday: the refrain, five stanzas, the Glory, the Now and ever and the Alleluias. Read note by note from the parish edition of the Diocese of the West, Department of Liturgical Music (2019), with the English text of the Orthodox Church in America. The chant tune is old and free; that typesetting and translation are theirs, given out for church use. Written in F as in the score, which puts it at F3 to C4 where a man sings. Where the score recites several syllables on one note, each syllable gets its own beat here.'},
   'song-ourfather':{text:OURFATHER,bpm:60,sung:'ourfather',credit:'Melody line of "Otche Nash" (Our Father) by Nikolai Kedrov Sr., Paris 1922, the setting most Orthodox choirs sing. Taken note by note from John Kilpatrick\'s free English edition; the words are the usual Orthodox ones, which fit the same notes. The choir sings it in D and so does this, which puts the melody at D3 to D4 where a man sings it (Eli found five steps lower too low). Free and slow, no beat: the lengths are the note values, and it ends with one Amen. The recording is a computer voice on a Mac (TIGER, for personal practice) singing the melody, with the other three voices of the choir under it as a quiet organ. Kedrov\'s music is out of copyright.'}
@@ -3054,10 +3210,14 @@ const isRecLike=src=>src==='rec'||src.startsWith('my-');
 function curShift(){return isRecLike(G.src)?S.recShift:S.shift}
 function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,w:n.w})),dur:raw.dur,
   contour:raw.contour?raw.contour.map(p=>({t:p.t,m:p.m==null?null:p.m+k})):null}}
+$('ownFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];const own=SONGS[G.src]&&SONGS[G.src].own;if(!f||!own)return;
+  const b=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mp4'});try{await BlobDB.put('own:'+own,b)}catch(err){}SUNG[own]=b;G.sungKey=null;
+  Object.keys(localStorage).filter(k=>/^ison-smap-/.test(k)&&k.indexOf(G.src)>=0).forEach(k=>localStorage.removeItem(k));loadSource()});
 function loadSource(){
   G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
   $('transpose').disabled=G.src.startsWith('ex-');$('transpose').value=String(curShift());
   $('songCredit').hidden=!G.src.startsWith('song-');if(SONGS[G.src])$('songCredit').textContent=SONGS[G.src].credit;
+  {const own=SONGS[G.src]&&SONGS[G.src].own;$('ownBox').hidden=!own;if(own)$('ownSt').textContent=SUNG[own]?'Added. It is the voice for this song, here and in Loop a part and Master a song. Choose a file again to replace it.':'Not added yet. Tap Choose File and pick the file Claude sent you (in Files, usually Downloads)'+(own==='ncense-d'?': the one named 6 lower.':': the one named A flat.')}
   if(G.src.startsWith('song-')){const sg0=SONGS[G.src];
     /* a chant that has a sung recording plays it as the guide, but only at the men's octave it was sung in */
     const au=sg0.sung&&S.shift===-12?SUNG[sg0.sung]:null;
@@ -3190,7 +3350,7 @@ const P23={name:'Psalm 23 · Mshiho Natareh l\'Idtokh (Tone 3)',dur:121.77,off:-
 const P23T4={name:'Psalm 23 · Mshiho Natareh l\'Idtokh (Tone 4)',dur:102.17,off:-0.087,notes:[[0.055,0.17,44.92],[0.17,0.299,44.89],[0.299,0.818,50.71],[0.818,1.068,52.84],[1.068,1.302,48.61],[1.302,1.601,47.4],[1.601,2.005,48.72],[2.005,2.24,51.09],[2.24,2.684,50.64],[2.684,2.754,46.69],[2.754,2.983,50.86],[2.983,3.347,53.13],[3.347,3.637,51.03],[3.637,4.031,48.58],[4.031,4.295,47.68],[4.295,4.51,49.01],[4.51,4.989,50.85],[5.592,5.852,48.92],[5.852,6.321,50.59],[6.321,6.984,54.11],[6.984,7.159,55.92],[7.159,7.638,52.95],[7.638,7.822,51.09],[7.822,8.022,48.68],[8.022,8.141,48.23],[8.141,8.486,48.69],[8.995,9.179,43.04],[9.179,9.678,50.82],[9.678,9.888,53.17],[9.888,10.177,48.83],[10.177,10.456,47.81],[10.456,10.795,48.83],[10.795,10.965,48.82],[10.965,11.419,50.89],[11.419,11.609,49.05],[11.609,11.863,50.71],[11.863,12.187,52.73],[12.187,12.422,50.68],[12.422,12.846,48.83],[12.846,13.095,47.64],[13.095,13.355,49.04],[13.355,13.699,50.96],[14.278,14.457,42.5],[14.457,14.841,48.87],[14.841,15.136,50.81],[15.136,15.779,54.12],[15.779,16.044,56.21],[16.044,16.413,52.8],[16.413,16.627,50.87],[16.627,16.897,49.22],[16.897,17.306,48.63],[17.306,17.51,48.53],[17.51,17.765,53.73],[17.765,18.029,53.0],[18.029,18.298,54.25],[18.673,18.817,43.43],[18.817,19.132,50.84],[19.132,19.356,52.67],[19.356,19.58,53.9],[19.58,19.94,56.39],[19.94,20.164,53.55],[20.164,20.454,52.59],[20.454,20.873,50.48],[20.873,21.356,48.8],[21.356,21.756,50.92],[21.756,22.21,48.55],[22.21,22.594,50.89],[23.152,23.262,41.93],[23.262,23.621,49.3],[23.621,24.045,50.75],[24.045,24.714,54.0],[24.714,24.913,56.06],[24.913,25.332,52.69],[25.332,25.751,50.77],[25.751,26.146,48.83],[26.699,26.864,41.63],[26.864,27.378,50.92],[27.378,27.662,52.61],[27.662,27.961,48.84],[27.961,28.201,47.79],[28.201,28.605,48.67],[28.605,28.879,50.69],[28.879,29.478,50.68],[29.478,29.822,52.99],[29.822,30.132,50.55],[30.132,30.546,48.95],[30.546,30.665,46.66],[30.665,30.775,47.12],[30.775,30.96,48.96],[30.96,31.404,51.05],[31.833,31.992,42.65],[31.992,32.192,49.02],[32.192,32.302,48.82],[32.302,32.776,51.03],[32.776,33.479,54.1],[33.479,33.708,56.04],[33.708,34.102,52.56],[34.102,34.462,50.95],[34.462,34.886,48.92],[35.42,35.584,41.97],[35.584,36.078,48.89],[36.078,36.278,53.52],[36.278,36.472,54.01],[36.472,36.881,52.98],[36.881,37.195,50.92],[37.195,37.59,50.57],[37.59,37.789,52.67],[37.789,38.004,50.59],[38.004,38.283,48.7],[38.597,38.747,42.93],[38.747,38.966,49.16],[38.966,39.166,49.03],[39.166,39.351,48.06],[39.351,39.859,45.86],[39.859,40.408,49.07],[40.408,40.618,51.16],[40.618,40.872,47.81],[40.872,41.012,48.78],[41.012,41.231,48.1],[41.231,41.476,45.86],[41.476,41.815,44.09],[42.394,42.523,42.87],[42.523,42.768,49.09],[42.768,43.022,48.2],[43.022,43.212,48.9],[43.212,43.82,50.92],[43.82,44.06,48.95],[44.06,44.309,51.18],[44.309,44.649,53.02],[44.649,44.828,51.15],[44.828,45.342,49.0],[45.342,45.457,43.85],[45.457,45.766,48.59],[45.766,46.185,48.89],[46.185,46.594,49.03],[46.594,46.769,50.82],[46.769,46.998,49.45],[46.998,47.248,47.47],[47.248,47.447,49.08],[47.447,47.931,51.34],[48.445,48.789,48.68],[48.789,49.258,50.96],[49.258,49.892,53.96],[49.892,50.131,56.11],[50.131,50.575,52.7],[50.575,50.919,51.0],[50.919,51.393,48.92],[52.156,52.306,42.51],[52.306,52.795,50.58],[52.795,53.029,52.75],[53.029,53.319,48.71],[53.319,53.578,47.5],[53.578,53.863,48.91],[53.863,54.002,48.91],[54.002,54.456,50.81],[54.456,54.706,48.82],[54.706,54.925,51.31],[54.925,55.115,52.6],[55.115,55.339,52.74],[55.339,55.494,50.56],[55.494,55.788,48.54],[55.788,55.893,51.24],[55.893,56.182,47.71],[56.182,56.397,49.09],[56.397,56.741,51.13],[57.33,57.434,44.21],[57.434,57.744,49.35],[57.744,58.178,51.13],[58.178,58.776,54.25],[58.776,59.041,56.13],[59.041,59.47,53.11],[59.47,59.749,50.69],[59.749,59.874,47.26],[59.874,60.188,48.79],[60.757,60.902,41.86],[60.902,61.356,50.8],[61.356,61.6,52.91],[61.6,61.879,48.73],[61.879,62.129,47.77],[62.129,62.428,49.04],[62.428,62.578,48.87],[62.578,63.246,50.92],[63.246,63.426,50.68],[63.426,63.81,52.63],[63.81,63.98,50.92],[63.98,64.339,48.79],[64.339,64.608,47.61],[64.608,64.813,48.93],[64.813,65.092,50.88],[65.726,65.835,43.45],[65.835,66.105,49.09],[66.105,66.544,51.18],[66.544,67.152,54.07],[67.152,67.312,56.17],[67.312,67.771,53.01],[67.771,68.125,51.12],[68.125,68.654,49.04],[68.654,68.918,53.85],[68.918,69.417,52.77],[69.846,69.976,43.94],[69.976,70.27,50.75],[70.27,70.49,52.62],[70.49,70.679,53.62],[70.679,71.133,56.2],[71.133,71.303,53.57],[71.303,71.552,52.79],[71.552,72.001,51.05],[72.001,72.385,48.9],[72.385,72.755,51.08],[72.755,73.149,48.85],[73.149,73.593,50.97],[74.201,74.491,49.22],[74.491,74.945,50.77],[74.945,75.548,53.94],[75.548,75.798,55.88],[75.798,76.222,52.82],[76.222,76.561,50.93],[76.561,76.99,48.95],[77.559,77.693,43.73],[77.693,78.182,51.07],[78.182,78.447,53.11],[78.447,78.791,49.08],[78.791,79.025,47.92],[79.025,79.265,48.9],[79.265,79.39,49.36],[79.39,79.893,50.86],[79.893,80.073,49.18],[80.073,80.263,50.79],[80.263,80.482,52.94],[80.482,80.632,53.1],[80.632,80.856,51.1],[80.856,81.29,48.8],[81.29,81.49,47.55],[81.49,81.679,48.72],[81.679,82.059,50.91],[82.672,82.932,48.74],[82.932,83.435,51.0],[83.435,83.969,54.14],[83.969,84.244,56.26],[84.244,84.628,52.74],[84.628,84.982,50.75],[84.982,85.336,48.92],[85.935,86.079,41.79],[86.079,86.533,49.09],[86.533,86.907,54.03],[86.907,87.267,52.95],[87.267,87.541,51.01],[87.541,87.905,50.93],[87.905,88.08,52.98],[88.08,88.344,51.05],[88.344,88.559,49.02],[88.559,88.604,48.86],[88.843,89.008,42.1],[89.008,89.317,48.92],[89.317,89.517,49.21],[89.517,89.736,48.3],[89.736,90.15,46.14],[90.15,90.719,49.07],[90.719,90.928,51.08],[90.928,91.158,47.86],[91.158,91.283,48.95],[91.283,91.477,48.06],[91.477,91.692,45.82],[91.692,92.026,43.99],[92.709,92.964,49.36],[92.964,93.158,48.08],[93.158,93.383,49.1],[93.383,93.951,50.88],[93.951,94.171,48.94],[94.171,94.38,50.83],[94.38,94.535,53.0],[94.535,94.61,52.58],[94.61,94.745,52.88],[94.745,94.989,51.06],[94.989,95.358,48.73],[95.358,95.503,43.26],[95.503,95.568,46.65],[95.568,95.792,49.02],[95.792,96.635,48.94],[96.635,96.835,50.55],[96.835,97.0,48.59],[97.0,97.209,47.83],[97.209,97.454,49.41],[97.454,97.873,51.17],[98.386,98.456,46.61],[98.456,98.756,48.92],[98.756,99.259,50.93],[99.259,99.898,53.91],[99.898,100.172,56.15],[100.172,100.636,52.75],[100.636,101.04,50.92],[101.04,101.709,49.01]]};
 /* the Psalm 23 recordings ship with the app (shared with the singer's permission): fetched once, then kept in this browser */
 async function pubAudio(k,file){let b=null;try{b=await BlobDB.get('pub:'+k)}catch(e){}if(b)return b;try{const r=await fetch(file);if(!r.ok)return null;b=await r.blob();if(!b.type)b=new Blob([b],{type:'audio/mpeg'});try{await BlobDB.put('pub:'+k,b)}catch(e){}return b}catch(e){return null}}
-let P23A=null,P23T4A=null;const SUNG={};const privReady=Promise.all([pubAudio('ourfather-d','ourfather-d.m4a').then(b=>{SUNG.ourfather=b||null}),pubAudio('evlogitaria-f','blessed-art-thou-f.m4a').then(b=>{SUNG.evlogitaria=b||null}),pubAudio('evlogitaria-byz-g','blessed-art-thou-byz.m4a').then(b=>{SUNG.evlogitariabyz=b||null}),privAudio('psalm23').then(b=>b||pubAudio('psalm23','psalm23.mp3')).then(b=>{P23A=b||null}),pubAudio('psalm23t4','psalm23-tone4.mp3').then(b=>{P23T4A=b||null})]).catch(()=>{});
+let P23A=null,P23T4A=null;const SUNG={};const privReady=Promise.all([pubAudio('ourfather-d','ourfather-d.m4a').then(b=>{SUNG.ourfather=b||null}),pubAudio('evlogitaria-f','blessed-art-thou-f.m4a').then(b=>{SUNG.evlogitaria=b||null}),pubAudio('evlogitaria-byz-g','blessed-art-thou-byz.m4a').then(b=>{SUNG.evlogitariabyz=b||null}),BlobDB.get('own:ncense').then(b=>{SUNG.ncense=b||null}).catch(()=>{SUNG.ncense=null}),BlobDB.get('own:ncense-d').then(b=>{SUNG['ncense-d']=b||null}).catch(()=>{SUNG['ncense-d']=null}),privAudio('psalm23').then(b=>b||pubAudio('psalm23','psalm23.mp3')).then(b=>{P23A=b||null}),pubAudio('psalm23t4','psalm23-tone4.mp3').then(b=>{P23T4A=b||null})]).catch(()=>{});
 async function refreshMySongs(select){
   const grp=$('mySongs');let list=[];try{list=await MyDB.all()}catch(e){}
   grp.innerHTML='';for(const s of list){const o=document.createElement('option');o.value='my-'+s.id;o.textContent=s.name;grp.appendChild(o)}
@@ -7884,7 +8044,7 @@ function renderPractice(){
   if(mode==='song')renderSongSummary();
   drawHistory();
 }
-const BUILTIN=[['psalm23',P23.name],['psalm23t4',P23T4.name],['song-trisagion','Holy God: the Trisagion (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord'],['song-ourfather','Our Father: the Lord\'s Prayer (Kedrov)'],['song-evlogitaria-byz','Blessed Art Thou, O Lord (Byzantine, Tone 5)'],['song-evlogitaria','Blessed Art Thou, O Lord (Russian, Kievan, Tone 5)']];
+const BUILTIN=[['psalm23',P23.name],['psalm23t4',P23T4.name],['song-trisagion','Holy God: the Trisagion (Tone 3)'],['song-risen','Christ Is Risen (Tone 5)'],['song-meet','It Is Truly Meet'],['song-cross','Before Thy Cross'],['song-praise','Praise the Lord from the Heavens'],['song-blessed','Blessed Be the Name of the Lord'],['song-ourfather','Our Father: the Lord\'s Prayer (Kedrov)'],['song-evlogitaria-byz','Blessed Art Thou, O Lord (Byzantine, Tone 5)'],['song-evl-ncense','Blessed Art Thou, O Lord (Byzantine, *Ncense recording)'],['song-evl-ncense-d','Blessed Art Thou, O Lord (*Ncense recording, 6 lower)'],['song-evlogitaria','Blessed Art Thou, O Lord (Russian, Kievan, Tone 5)']];
 function fillCourseSongs(){refreshMySongsList().then(list=>{const s=$('courseSong');s.innerHTML='';const o0=document.createElement('option');o0.value='';o0.textContent='Choose a song';s.appendChild(o0);
   const g1=document.createElement('optgroup');g1.label=list.length?'My songs (recordings)':'My songs: none saved yet';list.forEach(r=>{const o=document.createElement('option');o.value=r.id;o.textContent=r.name;g1.appendChild(o)});s.appendChild(g1);
   const g2=document.createElement('optgroup');g2.label='Built-in chants';BUILTIN.forEach(([k,n])=>{const o=document.createElement('option');o.value='b:'+k;o.textContent=n;g2.appendChild(o)});s.appendChild(g2)})}
@@ -8836,7 +8996,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=60;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=61;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
