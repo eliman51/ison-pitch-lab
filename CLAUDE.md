@@ -680,6 +680,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the whole way (about two thirds of the file's sound is held steady, against about a third for a solo voice), and a
   choir sits a little off any exact note: measured on held notes, median 10 to 20 cents from the written note (10 cent
   steps), which against the app's steady tone gives a slow waver of about 1 to 3 a second. That is the choir, not the file.
+- To tell the tone from a choir, version 66 added two tone sounds (`earTimbre`): `reed` "Hollow reed" (odd harmonics
+  only, like a clarinet) and `bright` "Bright buzz" (many strong harmonics, like a harmonica). Learn a song has its own
+  Tone sound row (`earSongTimbre`); it is the same one setting (`earSet().timbre`) as Loop a part, Master a song and the
+  Ears only "Sound and voice" list.
 
 ## Every change
 
