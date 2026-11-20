@@ -558,6 +558,30 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the one, are the Antiochian Archdiocese English setting (the app already holds other Antiochian settings), the Greek
   Byzantine "Pater imon" in English, Rimsky-Korsakov's Our Father in English, and the Syriac "Abun d'bashmayo".
 
+## Blessed art Thou, O Lord: the Evlogitaria (20 November 2026)
+
+- What Eli asked for: the whole hymn, done the same way as the Our Father, from real sheet music with the words in it.
+- What it is: the **Evlogitaria of the Resurrection, Kievan chant (Moscow tune), Tone 5**, sung at Matins every Sunday:
+  the refrain "Blessed art Thou, O Lord, teach me Thy statutes" with five stanzas, the Glory, the Now and ever and the
+  Alleluias. 392 notes, 3 minutes 37 at 140 a minute. Written in F in the score; in the app five steps down, so the
+  men's octave sings it **C3 to G3** (his daily ground is G2 to A3). Only five notes are used, C3 to G3, as the chant
+  is a pentachord; the reciting note is F3 and every stanza ends on C3.
+- The score: the parish edition of the Diocese of the West, Department of Liturgical Music (2019), English text of the
+  OCA, `https://stnicholasjuneau.org/wp-content/uploads/2021/01/Evlogetaria-Resurrection_-_K_T5_3-part.pdf`, kept in
+  `notes/blessed-art-thou/` with the transcription (gitignored). The chant tune is old and free; that typesetting and
+  translation are theirs, published for church use, so the app credits them. CPDL stays unreachable (bot check), and
+  antiochian.org needs JavaScript, so their settings could not be read.
+- Reading it was harder than the Kedrov PDF and taught three things worth keeping, all now in `tools/scorepdf.py`'s
+  sibling notes: (1) Finale draws noteheads as **filled paths, not font letters**, so they are found by shape (about
+  7 x 5.6 points; 5.6 high is filled, 5.8 hollow, 9 wide is a whole note) rather than by glyph; (2) the three voices
+  are written as **chords on one staff**, so the melody is the top note of each chord, and a chord where only the lower
+  voices move (its top note sits four or more half steps below both neighbours) is not a melody note; (3) the chant
+  **recites several syllables on one note**, so the words are laid on the notes by a small dynamic program that may
+  put several syllables on one note or skip a note (a held syllable). Each recited syllable gets its own beat in the
+  app, which is how it is sung.
+- Checks: all four refrains came out identical note for note, every one of the 351 syllables got a note, and the 26
+  systems all read without a short line. Master a song makes 47 phrases of it.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).

@@ -28,7 +28,9 @@ GAP = 0.12          # a silence longer than this between notes starts a new phra
 SAY = {'blessid': 'b l eh s ih d', 'belovid': 'b ih l ah v ih d', 'la': 'l aa', 'prefigured': 'p r iy f ih g y er d', 'chrismation': 'k r ih z m ey sh ax n',
        'live': 'l ih v', 'tears': 't ih r z',   # in the psalms these are "I shall live" and "streams of tears"; the dictionary lists the other reading first
        'curdled': 'k er d ax l d', 'wellpleased': 'w eh l p l iy z d', 'freewill': 'f r iy w ih l', 'supplication': 's ah p l ax k ey sh ax n',
-       'theotokos': 'th ey ow t ow k ow s', 'alleluia': 'aa l ey l uw y aa'}
+       'theotokos': 'th ey ow t ow k ow s', 'alleluia': 'aa l ey l uw y aa',
+       'myrrhbearers': 'm er b eh r er z', 'myrrhbearer': 'm er b eh r er', 'didst': 'd ih d s t',   # church words no dictionary has
+       'evlogitaria': 'eh v l ow g iy t aa r iy aa', 'hallowed': 'hh ae l ow d'}
 
 
 # ---------------------------------------------------------------- the notes file

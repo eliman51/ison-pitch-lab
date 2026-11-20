@@ -16,6 +16,7 @@ import argparse, os, re, struct, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 APP = os.path.join(HERE, '..', 'index.html')
 STEP = {'C': 0, 'D': 2, 'E': 4, 'F': 5, 'G': 7, 'A': 9, 'B': 11}
+SAY = {'blessed': 'blessid', 'beloved': 'belovid'}      # the church readings, two syllables, as the singer spells them
 
 
 def typed(song):
@@ -68,7 +69,7 @@ def lyrics(ns):
                 break
             parts.append(ns[k]['w']); j = k
         word = re.sub(r"[^A-Za-z']", '', ''.join(parts))
-        ns[i]['ly'] = word or 'la'
+        ns[i]['ly'] = SAY.get(word.lower(), word) if word else 'la'
         for q in range(i + 1, j + 1):
             ns[q]['ly'] = '+' if ns[q]['w'] else '-'
         i = j + 1
