@@ -612,7 +612,8 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Eli sent the *Ncense recording of the Evlogitaria (3:31, the same as the YouTube video) and asked for a complete
   breakdown, every lyric and note, lined up with the sheet music, with the recording itself as the singer's voice and
   matched to the score's pitch. He expects to sing it six half steps down.
-- It is a released commercial recording, so it is **not in this public repository**. The repo holds only the timings.
+- Version 64: built in (`blessed-ncense-ab.m4a`, `blessed-ncense-d.m4a`, BlobDB keys `ncense-ab`, `ncense-d`) after Eli said he
+  has full permission (20 November 2026). Before that it was kept off the public repository as a released recording. The repo holds only the timings.
   Eli adds his own copy once on the Songs tab (`ownBox`, `ownFile`, BlobDB `own:ncense` and `own:ncense-d`); a SONGS
   entry with `own:` shows the picker. Songs `song-evl-ncense` (A flat, as sung) and `song-evl-ncense-d` (6 lower, D).
   Use the 6 lower entry rather than the key setting: the app's key change (`keyedAudio`) is made for one voice.
