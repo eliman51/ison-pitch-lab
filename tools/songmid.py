@@ -68,7 +68,7 @@ def lyrics(ns):
             if k >= len(ns) or not ns[k]['w']:
                 break
             parts.append(ns[k]['w']); j = k
-        word = re.sub(r"[^A-Za-z']", '', ''.join(parts))
+        word = re.sub(r"[^A-Za-z']", '', ''.join(parts).replace('ē', 'ee'))   # thē: the score's mark for "thee"
         ns[i]['ly'] = SAY.get(word.lower(), word) if word else 'la'
         for q in range(i + 1, j + 1):
             ns[q]['ly'] = '+' if ns[q]['w'] else '-'

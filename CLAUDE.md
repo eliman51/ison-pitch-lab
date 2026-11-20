@@ -582,6 +582,44 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Checks: all four refrains came out identical note for note, every one of the 351 syllables got a note, and the 26
   systems all read without a short line. Master a song makes 47 phrases of it.
 
+## Blessed art Thou, the Byzantine melody (20 November 2026)
+
+- Eli heard the Kievan version and said it was "a lot different" from the one he knew, and sent a YouTube video
+  ("Evlogitaria of the Resurrection", the group *Ncense, 2016, `kwgbkyyp9oo`). It is the **Byzantine melody, Tone 5
+  (Plagal First Mode)**, sung over a held drone (ison) the whole way. Same hymn, different melody. He asked for that
+  melody, said he loves that translation, and wants every sung word in English.
+- Score used: **Basil Kazan**, "Evlogetaria", Antiochian Archdiocese Matins book (Rev 3, 2010),
+  `https://antiochianprodsa.blob.core.windows.net/musiclibrary/matins-kazan-complete-4-resurrectional_evlogetaria.pdf`,
+  kept in `notes/blessed-art-thou-byz/kazan.pdf` (gitignored). Same wording as the video ("The company of the angels was
+  amazed..."). At a steady 211 a minute every section of it starts within about a second of the video, the repeat of
+  the Alleluias included, so the video sings exactly this setting.
+- Reading it (Finale, font Anastasia, size 24 = melody, size 16.8 = the ison notes): filled heads U+02C6 and U+0153,
+  half U+02D9, whole `w`, dot `.`, accidentals `b # n` (they last to the bar line), quarter rest `Œ`, staff lines are
+  the `=` glyph (origin y = bottom line, 3 points a step), bar lines `l`, beams are filled boxes. Lyrics are Times 12;
+  a bold "the" (macron) and a dash above it are the score's mark for "thee". Measures vary in length (chant); each one
+  was checked to be a pickup, a rest or a whole. One line on page 1 is a pasted picture that changes "from hell" to
+  "from Hades" with other notes; the text underneath is what the video sings and is what the app uses ("hell", which
+  is also the English Eli asked for). Reader: session scratchpad only (readkaz.py).
+- An earlier attempt used Chadi Karam's setting (Holy Transfiguration text, "Hades"); it was replaced before release.
+- In the app: `song-evlogitaria-byz` ("Byzantine, Tone 5"), 615 notes with three rests, bpm 211, written G4 home (two
+  steps under the score's A), men's octave E flat 3 to E flat 4, home G3. Kazan's short forms destroy'ng, pow'r,
+  t'ward and the old word spake are in `tools/sing.py`'s SAY.
+- Sung file `blessed-art-thou-byz.m4a` (BlobDB key `evlogitaria-byz-g`): the voice plus a drone from Kazan's small
+  notes (mostly the home note G, the step below F), an octave under with a softer octave above.
+
+## His range, corrected (20 November 2026)
+
+- The guess "about G2 to A3" (from the Psalm 118 sets at home 51) was wrong for these hymns: Eli found the Our Father at
+  A2 to A3 too low and had to raise it five half steps "just to get it to a relatively normal range". So version 60 put
+  the Our Father back in the choir's own D (men's octave **D3 to D4**, file `ourfather-d.m4a`), the Kievan Blessed art
+  Thou in its score's own F (**F3 to C4**, `blessed-art-thou-f.m4a`) and the Byzantine one in G (**E flat 3 to E flat 4**, home G3).
+  Older notes above that give A2 to A3 and C3 to G3 describe version 59. A key he had saved on those two songs is lowered
+  by five once (`ison-key60`), so they sound where he had them. Choose new songs' keys around D3 to D4, not G2 to A3.
+- He also felt the Our Father was very slow. Measured against Archangel Voices' English recording (YouTube
+  `_0ZLVAMbSpE`): "Our Father, who art in heaven" 12 s there, about 15 s in the app; "Give us this day our daily bread"
+  10 s in both. Choir recordings of it run 2:16 to 4:25; the app's 2:31. So the speed is right: it is written Adagio.
+- A new sung file must have a new BlobDB key and file name: `pubAudio` keeps the first copy it fetched forever.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).

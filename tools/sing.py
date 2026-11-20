@@ -29,7 +29,7 @@ SAY = {'blessid': 'b l eh s ih d', 'belovid': 'b ih l ah v ih d', 'la': 'l aa', 
        'live': 'l ih v', 'tears': 't ih r z',   # in the psalms these are "I shall live" and "streams of tears"; the dictionary lists the other reading first
        'curdled': 'k er d ax l d', 'wellpleased': 'w eh l p l iy z d', 'freewill': 'f r iy w ih l', 'supplication': 's ah p l ax k ey sh ax n',
        'theotokos': 'th ey ow t ow k ow s', 'alleluia': 'aa l ey l uw y aa',
-       'myrrhbearers': 'm er b eh r er z', 'myrrhbearer': 'm er b eh r er', 'didst': 'd ih d s t',   # church words no dictionary has
+       'myrrhbearers': 'm er b eh r er z', 'myrrhbearer': 'm er b eh r er', 'myrrhbearing': 'm er b eh r ih ng', 'hadst': 'hh ae d s t', "destroy'ng": 'd ih s t r oy ih ng', "pow'r": 'p aw er', "t'ward": 't ao r d', 'spake': 's p ey k', 'saviour': 's ey v y er', 'lamentation': 'l ae m ah n t ey sh ah n', 'sepulchre': 's eh p ah l k er', 'therefrom': 'dh eh r f r ah m', 'didst': 'd ih d s t',   # church words no dictionary has
        'evlogitaria': 'eh v l ow g iy t aa r iy aa', 'hallowed': 'hh ae l ow d'}
 
 
