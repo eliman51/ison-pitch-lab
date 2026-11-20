@@ -464,6 +464,45 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the current stanza and carry on from the same spot. If a stanza is read again, rebuild notes.json and raise `BB_NOTES_REV`.
 - More books later: the Book drop-down is ready for them, but only Psalm 118 exists.
 
+## Polish the vibrato (19 November 2026)
+
+- What Eli asked for: he has Psalm 23 Tone 3 "pretty much down" except the subtle vibrato spots, and wanted a lesson
+  plan for a song that is nearly finished. A vibrato trainer for one song: find every spot that has vibrato, give him
+  settings (how many times through, how slow to start, slowed-down passes), then let him hit play, set 60 or 90
+  minutes and get well-rounded training by ear until the smallest shifts in the singer's voice are his.
+- It is Ears only **unit 15, "Polish the vibrato"** (everything named `vb...`; the card is `#vbBox`, the settings live
+  in `earSet().vb` the way Loop a part's live in `.lp`). Both built-in recordings are in it: Psalm 23 Tone 3 (43
+  spots) and Tone 4 (40). Progress per spot is `ison-vb` (seconds played, one pass per 25 s), credited from `bgLog`.
+- **Finding the spots** (`tools/vibrato.py`, run with the singer's Python): pitch every 2.5 ms (Praat), a cubic taken
+  out of each note the deep scan found so a slide does not count, then a sine fitted at every rate from 3.2 to 9.8 a
+  second. Kept when the fit explains 55% or more of what is left, is 12 to 95 cents wide and lasts 1.6 swings. The
+  script prints the rows of `VB_DAT` in index.html. Tone 3: median 8 swings a second, 28 cents wide (a quarter of a
+  half step); 26 of the 43 are on his home note and 18 of them are in the full close (D). Tone 4: 7 a second, 29 cents.
+- **One spot's drill**, in this order (each piece can be turned off): his own moment; the same moment slowed to half
+  speed with the pitch kept; a ladder of swings on the tone, from about one a second and a half step wide up to his
+  exact rate and width in 4 steps (soft ticks on each swing while it is slow); the note held straight then let go
+  into the swing; his moment again to sing with; the whole phrase it sits in. Every 8 spots they all come back one
+  after another. A session opens with a warm-up on the home note. "Slower" and "faster" during a session change how
+  many times through each piece (1 to 6); "next" skips to the next spot.
+- **Why it is built that way** (asked for, researched 19 November 2026): teachers build vibrato by holding a straight
+  note and letting the swing in, and by swinging slowly and wide on purpose like a gentle trill, then speeding it up
+  and narrowing it (London Singing Institute, 30daysinger, Cari Cole; flute pulse-counting from The Instrumentalist;
+  NATS Journal of Singing on holding width while the rate changes). Ornate chant has always been taught by slow
+  exegesis, the melody rendered slowly and then at speed. Blocked practice looks better in the session, interleaved
+  holds better the next day, hence the mixed round.
+- **Engine additions** (small and additive, they serve any unit): step kinds `wob` (a tone swinging: `m`, `r` swings a
+  second, `c` cents wide, `sg` seconds held straight first) and `clip` (a span of the recording at a speed, pitch
+  kept), both in `bgTimeline` and `earStepsSec`; event type `wob` in `bgSynth`; source `'VB'` in `bgRecs`. Clips are
+  cut by the existing `wsolaMap`, so slowing keeps his pitch. `VB` is the recording decoded once at 22050 (in his
+  chosen key through `keyedAudio`), and spot times are plain seconds in the mp3.
+- **Checked by measurement only, Claude cannot hear it.** Rendering a spot and measuring the result: the tone lands
+  within 0.03 of a half step of his pitch and within 0.15 swings a second of his rate; the slowed moment keeps his
+  pitch within 0.1 of a half step and halves the swing; his voice is there at the right pitch in every pass. Eli
+  judges the sound.
+- Known gaps, if he asks: the ladder's widths are the app's own choice (a half step at the bottom, his width at the
+  top), not measured from him; sessions longer than about 46 minutes are rendered at 11 kHz by `bgSessionSr`, so his
+  voice is duller in a 60 or 90 minute session; the app does not hear him, so nothing is scored.
+
 ## Every change
 
 1. Edit `index.html` (or the other files).

@@ -453,7 +453,8 @@ html.lk-still:not(.sketch) #amb i{animation-play-state:paused}
 html.sketch .vxwrap{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}
 .lph{margin:14px 0 4px;font-size:1rem}html.earsgraph .earann:empty,html.earsgraph .earmix:empty{min-height:0;margin:0}.earsv{text-align:center;margin:4px 0 6px}.earphr{font-size:1.15rem;font-weight:700;margin:2px 0 6px;min-height:1.4em}.earphr.dim{opacity:.55}.earvsw{justify-content:center;margin:0 0 6px}.eargraph{border:1px solid var(--line,rgba(127,127,127,.35));border-radius:12px;overflow:hidden;margin:0 0 6px}.eargraph canvas{display:block;width:100%}html.sketch .eargraph{border:1.5px solid var(--ink);border-radius:12px 15px 11px 16px/15px 11px 16px 12px}.lpql{display:block;margin:8px 0 2px}.rtb{margin-top:6px}.rttxt{margin:6px 0;padding:8px 10px;border-left:3px solid var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent);border-radius:6px}.mpnotes{font-size:1.05rem;letter-spacing:.02em;margin:2px 0 8px;overflow-wrap:anywhere}
 .lpunit{align-self:center;color:var(--muted);font-size:.92rem}
-.lpsub{margin:2px 0 8px 26px;flex-wrap:wrap;gap:6px;align-items:center}.lpsub>.label{flex-basis:100%;margin:0}#lpBox input[type=number]{width:4.6em;text-align:center}.lpsub.dim{opacity:.45}
+.lpsub{margin:2px 0 8px 26px;flex-wrap:wrap;gap:6px;align-items:center}.lpsub>.label{flex-basis:100%;margin:0}#lpBox input[type=number],#vbBox input[type=number]{width:4.6em;text-align:center}.lpsub.dim{opacity:.45}
+.vblist{display:flex;flex-direction:column;gap:5px;max-height:17em;overflow:auto}.vbrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:.85rem}.vbrow>b{font-weight:600}.vbrow>span{color:var(--muted);flex:1 1 auto}
 .lpplay{padding:6px 12px;font-size:.9rem;white-space:nowrap}.vxopen{display:block;margin:4px 0 10px;white-space:normal;text-align:left}.lpplay.on{background:var(--accent);color:#141414}
 #lpPartPlay{margin:2px 0 10px}
 .lpsteps{display:flex;flex-direction:column;gap:6px;margin-top:4px}
@@ -1247,6 +1248,46 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <label class="check"><input type="checkbox" id="mpDrone"> Ison drone under the melody</label>
           <p class="status" id="mpSum" style="margin:8px 0 0"></p>
         </div>
+      </div>
+      <div id="vbBox" class="earnotes" hidden>
+        <h3>Polish the vibrato</h3>
+        <p class="status" style="margin:0 0 4px">For a song you already have in your ears, where only the smallest moves are left. Every spot in the recording where his voice swings on one held note was measured: how many swings a second, and how wide. Each spot is then drilled on its own, all by ear: his own moment; the same moment slowed down so you can count the swings; a tone that swings for you, starting about one swing a second and a half step wide and climbing to his exact speed and width; the note held straight and then let go into the swing; and his moment again at full speed to sing with. Every few spots they all come back one after another.</p>
+        <div class="grid2">
+          <div class="field"><label class="label" for="vbSong">The song</label><select id="vbSong"><option value="p23">Psalm 23, Mshiho Natareh (Tone 3)</option><option value="p23t4">Psalm 23, Mshiho Natareh (Tone 4)</option></select></div>
+          <div class="field"><label class="label" for="vbOrder">Which spots first</label><select id="vbOrder"><option value="due">The ones you have worked least</option><option value="song">In the order they come in the song</option><option value="hard">The hardest first (quickest and narrowest)</option><option value="rand">Shuffled</option></select></div>
+        </div>
+        <div class="field"><span class="label">Which parts of the song</span><div class="chips earchips" id="vbParts"></div><p class="status" id="vbPartsTxt" style="margin:0"></p></div>
+        <div class="field"><span class="label">What each spot gets, in this order</span>
+          <label class="check"><input type="checkbox" id="vbHear"> His own moment, to listen to</label>
+          <label class="check"><input type="checkbox" id="vbSlowOn"> The same moment slowed down, his pitch kept</label>
+          <div class="row lpsub" id="vbSlowRow"><span class="label">Slowed to</span><select id="vbSlow"><option value="half">Half speed</option><option value="both">Half, then three quarters</option><option value="three">Three quarters</option></select></div>
+          <label class="check"><input type="checkbox" id="vbPulse"> A tone swinging, from slow and wide up to his</label>
+          <div class="row lpsub" id="vbPulseRow"><span class="label">Starting at</span><select id="vbFrom"><option value="1">one swing a second</option><option value="1.5">one and a half a second</option><option value="2">two a second</option><option value="3">three a second</option></select><span class="label">Steps up to his speed</span><button id="vbRgDn" aria-label="Fewer steps">&minus;</button><input type="number" id="vbRungs" inputmode="numeric" min="2" max="6" aria-label="How many steps up to his speed"><button id="vbRgUp" aria-label="More steps">+</button></div>
+          <label class="check"><input type="checkbox" id="vbTicks"> A soft tick on each swing while it is still slow</label>
+          <label class="check"><input type="checkbox" id="vbRelease"> Hold it straight, then let the swing in</label>
+          <label class="check"><input type="checkbox" id="vbAlone"> One on your own first, then his to check</label>
+          <label class="check"><input type="checkbox" id="vbSing"> His moment again, to sing with</label>
+          <label class="check"><input type="checkbox" id="vbPhrase"> The whole phrase it sits in, at the end</label>
+          <label class="check"><input type="checkbox" id="vbMix"> Every few spots, all of them one after another</label>
+        </div>
+        <div class="grid2">
+          <div class="field"><span class="label">Times through each piece</span><div class="row voicerow"><button id="vbRpDn" aria-label="Fewer">&minus;</button><input type="number" id="vbReps" inputmode="numeric" min="1" max="6" aria-label="Times through each piece"><button id="vbRpUp" aria-label="More">+</button></div></div>
+          <div class="field"><label class="label" for="vbKey">Key</label><select id="vbKey"></select></div>
+          <div class="field"><span class="label">Tone volume</span><div class="row voicerow"><button id="vbToDn" aria-label="Quieter">&minus;</button><input type="number" id="vbTone" inputmode="numeric" min="0" max="10" aria-label="Tone volume, 0 to 10"><button id="vbToUp" aria-label="Louder">+</button></div></div>
+          <div class="field"><span class="label">His voice volume</span><div class="row voicerow"><button id="vbVoDn" aria-label="Quieter">&minus;</button><input type="number" id="vbVoice" inputmode="numeric" min="0" max="10" aria-label="His voice volume, 0 to 10"><button id="vbVoUp" aria-label="Louder">+</button></div></div>
+        </div>
+        <p class="status" id="vbSum" style="margin:0"></p>
+        <details class="opts"><summary>Every spot, and what was measured</summary>
+          <p class="status" style="margin:0 0 6px">In song order. "8 a second, 28 cents" means his voice swings eight times a second, about a quarter of a half step wide. Tap one to hear it: his moment, the same moment at half speed, a tone swinging his way, then his moment again.</p>
+          <div id="vbList" class="vblist"></div>
+        </details>
+        <details class="opts"><summary>How this was worked out</summary><ul class="hlib">
+          <li><b>Finding the spots.</b> Pitch was measured every 2.5 thousandths of a second through the whole recording. In every note he holds for a third of a second or more, a slide was taken out first, then a smooth swing was fitted. A spot is kept when the swing explains more than half of what is left, is at least 12 cents wide and lasts more than one and a half swings. Tone 3 has 43 spots, Tone 4 has 40.</li>
+          <li><b>What they are like.</b> In Tone 3 the middle spot swings about 8 times a second and is about 28 cents wide, a quarter of a half step. That is why they are hard to copy: quick and small. Most sit on his home note, and the full close holds the most of them.</li>
+          <li><b>Why the drill runs this way.</b> Teachers build vibrato by holding a straight note and letting the swing in, and by swinging slowly and wide on purpose, like a gentle trill, then speeding it up and narrowing it. So the ladder starts slow and about a half step wide and ends at his exact speed and width. Hearing the model and then the model slowed down is how ornate chant has always been taught. Coming back to the spots mixed together feels worse in the moment and holds better the next day.</li>
+          <li><b>Slowing his voice.</b> The slowed moments are stretched in time with his pitch left where it is, so a swing of eight a second becomes four a second on the same note.</li>
+          <li><b>What the app cannot do.</b> It does not hear you. It gives you the exact sound to copy and the room to copy it; your ears do the judging. Sessions longer than about three quarters of an hour are prepared at a lower sound quality so they fit in the phone.</li>
+        </ul></details>
       </div>
       <details class="opts"><summary>Sound and voice</summary>
         <div class="grid2">
@@ -4945,8 +4986,9 @@ const EAR_UNITS=[
  {id:11,name:'Song scale',goal:0,desc:'The scale pulled from the song, on its own: his ison, each of his notes over it, step by step up and down, his in-between notes, the skips and formulas of the song, patterns, and finding any note by name. Small lessons, in order or one at a time.'},
  {id:12,name:'Byzantine scales',goal:0,desc:'The Byzantine scale and its family, in depth: its two halves and the wide step, chant tuning against the ison, its cadences, real chant melodies, and its cousins Hijaz and the soft chromatic. Small lessons, in order or one at a time.'},
  {id:13,name:'Loop a part',goal:0,desc:'Your own practice loop: pick a song and a part, set one speed, and it plays the part over and over with the tone under the singer\'s voice. Every few runs it mixes in the scale of the part or steps you pick, then back to the part. Change speed, volumes and the tone sound during the session.'},
- {id:14,name:'Practice a melody',goal:0,desc:'The melodies of the song, found from the recording (phrases that sing the same tune share a letter), each as a clean, piano-like version on the singer\'s own notes with his rhythm. Pick one, or go through them all, at your speed, with the singer or without.'}];
-const EAR_ORDER=[10,13,14,6,5,11,0,1,2,3,7,8,9,4,12],EAR_GROUP={10:'Every day',13:'The song',0:'Voice basics',12:'Chant scales'};
+ {id:14,name:'Practice a melody',goal:0,desc:'The melodies of the song, found from the recording (phrases that sing the same tune share a letter), each as a clean, piano-like version on the singer\'s own notes with his rhythm. Pick one, or go through them all, at your speed, with the singer or without.'},
+ {id:15,name:'Polish the vibrato',goal:0,desc:'For a song you already know: every spot in the recording where his voice swings on one held note, measured and drilled one at a time. His own moment, the same moment slowed down, a tone that swings from one a second up to his exact speed and width, straight and then let go, then his moment to sing with.'}];
+const EAR_ORDER=[10,13,14,15,6,5,11,0,1,2,3,7,8,9,4,12],EAR_GROUP={10:'Every day',13:'The song',0:'Voice basics',12:'Chant scales'};
 const EAR_DEF={engV:2,ann:true,pace:'gentle',unit:10,min:20,timbre:'warm',vol:0.8,cues:'words',names:true,ticks:true,engine:'bg',model:'singer',dailyRest:true,dailySong:'master',dailyMix:0};
 function earSet(){const st=store.get('ison-ears-set',{});if(st.engV!==2){st.engine='bg';st.engV=2;store.set('ison-ears-set',st)}return Object.assign({},EAR_DEF,st)}
 function earSave(o){store.set('ison-ears-set',Object.assign(earSet(),o))}
@@ -4988,7 +5030,7 @@ function hold(m,lv,o){o=o||{};const P=earPace(),L0=(o.listen||3)*P.l,W=(o.with||
   out.push({k:'gap',d:1.2});return out}
 const say=t=>({k:'say',text:t});
 /* ---- the units ---- */
-function earDrills(u,lv){if(u===13)return lpDrills(EARS.goal||1200);if(u===14)return mpDrills(EARS.goal||1200);if(u===5)return earSongFit(lv,EARS.goal||1200);if(u===6)return smPlanDrills();if(u===11||u===12)return lesDrills(u);const inRf=r=>{const R0=earRange();return S.home+r>=R0.lo&&S.home+r<=R0.hi};
+function earDrills(u,lv){if(u===15)return vbDrills(EARS.goal||1200);if(u===13)return lpDrills(EARS.goal||1200);if(u===14)return mpDrills(EARS.goal||1200);if(u===5)return earSongFit(lv,EARS.goal||1200);if(u===6)return smPlanDrills();if(u===11||u===12)return lesDrills(u);const inRf=r=>{const R0=earRange();return S.home+r>=R0.lo&&S.home+r<=R0.hi};
   if(u===7)return earVoiceify(leapDrills(lv,S.home,inRf));if(u===8)return earVoiceify(patternDrills(lv,S.home,inRf));if(u===9)return earVoiceify(tuningDrills(lv,S.home));if(u===10){if(DAILY.plan&&DAILY.fresh){DAILY.fresh=false;return DAILY.plan}return DAILY.plan?dailyRebuild():dailyPlan(EARS.goal||1200)}const H=S.home,R=earRange(),D=[],add=(name,intro,steps,x)=>D.push(Object.assign({name,intro,steps},x||{}));
   const inR=r=>H+r>=R.lo&&H+r<=R.hi;
   if(u===0){
@@ -5172,7 +5214,7 @@ function earSongApplyPitch(){const ex=earSet().songPitch==='exact';ES.core.conca
 function earSongPieces(){const c=ES.core,out=[];let cur=[];c.forEach((n,i)=>{cur.push(n);const nx=c[i+1],gap=nx?nx.t0-n.t1:1,long=n.t1-n.t0>0.9;
   if(!nx||(cur.length>=3&&(gap>0.15||long))||cur.length>=4){out.push(cur);cur=[]}});if(out.length>1&&out[out.length-1].length<2){const l=out.pop();out[out.length-1]=out[out.length-1].concat(l)}return out}
 /* fit the ladder into the session: the recording step and the whole part always stay; the earlier rungs shrink */
-function earStepsSec(st){return st.reduce((a,x)=>a+(x.k==='play'?seqDur(x.seq):x.k==='quiet'||x.k==='gap'?x.d:x.k==='rec'?x.d+0.3:x.k==='glide'||x.k==='dual'?x.d:x.k==='mix'?(x.b-x.a)/x.rate+0.2:x.k==='cue'?(x.vo?1.3:x.ph==='L'?2.2:0.9):x.k==='say'?(x.ann?2.6:1):0),0)}
+function earStepsSec(st){return st.reduce((a,x)=>a+(x.k==='wob'?x.d:x.k==='clip'?(x.b-x.a)/(x.sp||1)+0.06:x.k==='play'?seqDur(x.seq):x.k==='quiet'||x.k==='gap'?x.d:x.k==='rec'?x.d+0.3:x.k==='glide'||x.k==='dual'?x.d:x.k==='mix'?(x.b-x.a)/x.rate+0.2:x.k==='cue'?(x.vo?1.3:x.ph==='L'?2.2:0.9):x.k==='say'?(x.ann?2.6:1):0),0)}
 /* ---- Learn a song, version 3: the original ladder, with the singer quietly underneath ----
    The steps are the ones that worked: each note held on its own, then every move between two notes, then
    pieces of three or four notes, pieces joined, the whole part slowly, and last the real recording.
@@ -7174,6 +7216,167 @@ function bgSwapCheck(){const P=BG.pending;if(!P||!earAudio)return;if(bgPos()>=P.
    voice for the cues) is built on the phone before it starts, as one sound file, and played as one track.
    It keeps going in other tabs and apps and with the screen locked, and the lock-screen / headphone controls
    pause, skip and repeat. */
+/* ===== Polish the vibrato: the singer's own shimmer, spot by spot =====
+   For a song he already knows except the smallest moves. Every spot in the recording where the voice swings on one
+   held note was measured: the deep scan (tools/scan.py) gives every note, then a smooth swing was fitted to the
+   pitch inside each note longer than a third of a second (pitch every 2.5 ms, a cubic taken out first so a slide
+   does not count as a swing). A spot is kept when the swing explains more than half of what is left, is at least
+   12 cents wide and lasts more than one and a half swings. Tone 3: 43 spots, 8 a second and 28 cents wide in the
+   middle of the range. Tone 4: 40 spots, 7 a second and 29 cents.
+   Each spot is drilled the way singing teachers build vibrato: hear the model, hear it slowed down (the old way of
+   teaching ornate chant: slowly, then at speed), swing with a tone that starts about one swing a second and a half
+   step wide and climbs to his exact rate while narrowing to his exact width, hold the note straight and let the
+   swing in, then sing with him at full speed. Every few spots they come back mixed together, which is worse in the
+   moment and better the next day.
+   Each row: shape, phrase (1 to 26), cell, step from home, his pitch (MIDI), note start, note end, clip start,
+   clip end, phrase start, phrase end, swings a second, width in cents, the word. Times are seconds in the file. */
+const VB_DAT={
+ p23:{name:'Psalm 23, Mshiho Natareh (Tone 3)',id:'b:psalm23',home:55.82,blob:()=>P23A,spots:[
+  ['A',1,4,0,55.75,4.95,5.36,4.97,5.34,3.12,8.86,9.2,35,'my'],['A',3,3,0,55.60,14.52,15.06,14.54,15.13,13.36,18.72,9.7,16,'me'],['A',3,7,0,56.07,16.46,17.07,16.48,17.29,13.36,18.72,5.0,25,'green'],
+  ['C',5,4,0,55.96,24.29,24.84,24.29,25.06,22.67,28.12,8.7,28,'waters'],['C',5,9,0,55.78,27.58,28.12,27.47,28.10,22.67,28.12,9.1,14,'soul'],['D',6,3,0,55.83,29.16,29.64,29.18,29.62,28.12,33.09,6.5,51,'me'],
+  ['D',6,4,1,56.41,29.90,30.29,29.66,30.51,28.12,33.09,6.9,25,'in'],['D',6,5,-1,54.02,30.59,31.23,30.31,31.37,28.12,33.09,3.2,94,'the'],['H',8,1,-1,53.80,37.12,37.62,37.14,37.84,37.12,41.74,7.6,50,'Though'],
+  ['H',8,4,-2,51.89,38.61,39.15,38.58,39.37,37.12,41.74,4.4,47,'through'],['I',9,2,1,56.72,42.75,43.21,42.77,43.43,41.74,46.16,6.2,79,'the'],['D',10,2,0,55.68,46.39,46.80,46.41,46.90,46.16,50.32,8.7,19,'will'],
+  ['D',10,3,1,57.02,46.92,47.36,46.82,47.58,46.16,50.32,8.2,21,'fear'],['D',10,6,0,55.50,48.90,49.42,48.92,49.64,46.16,50.32,6.7,28,'evil'],['D',10,6,0,55.80,49.90,50.32,49.60,50.54,46.16,50.32,8.1,27,'evil'],
+  ['F',11,1,-2,51.77,50.89,51.37,50.59,51.35,50.89,53.36,7.8,27,'For'],['G',12,3,1,56.94,55.14,55.50,54.84,55.48,53.36,58.12,8.3,92,'and'],['G',12,4,0,55.66,55.50,56.01,55.52,55.99,53.36,58.12,5.2,60,'staff'],
+  ['G',12,5,1,56.66,56.01,56.55,56.03,56.54,53.36,58.12,9.3,37,'they'],['G',12,6,2,58.82,56.56,56.96,56.57,57.12,53.36,58.12,8.4,23,'comfort'],['G',12,8,0,55.86,57.68,58.12,57.70,58.10,53.36,58.12,7.9,21,'me'],
+  ['D',13,1,0,55.86,58.12,58.58,58.14,58.56,58.12,62.21,6.4,31,'O'],['D',13,2,1,56.89,58.58,59.02,58.60,59.24,58.12,62.21,9.1,15,'Lord'],['D',13,5,0,55.84,60.61,61.22,60.63,61.44,58.12,62.21,7.8,29,'me'],
+  ['A',14,7,0,55.86,65.97,66.49,65.98,66.71,62.74,68.19,8.2,26,'a'],['B',15,3,-1,54.01,69.93,70.32,69.63,70.39,68.50,72.02,5.4,37,'before'],['A',16,8,0,56.32,76.56,77.08,76.26,77.13,72.48,77.75,7.4,62,'enemies'],
+  ['A',16,9,-1,53.87,77.15,77.61,77.17,77.83,72.48,77.75,8.3,23,'enemies'],['C',18,1,0,55.56,81.80,82.23,81.79,82.21,81.80,86.84,6.4,20,'and'],['C',18,4,0,55.64,83.22,83.73,83.24,83.95,81.80,86.84,7.4,25,'with'],
+  ['C',18,8,0,55.81,86.02,86.75,85.72,86.82,81.80,86.84,4.1,22,'oil'],['D',19,1,0,55.78,86.84,87.30,86.86,87.28,86.84,91.80,6.7,18,'And'],['D',19,2,0,55.78,87.30,87.70,87.32,87.78,86.84,91.80,8.9,15,'my'],
+  ['D',19,7,0,55.63,90.35,90.92,90.37,91.14,86.84,91.80,7.7,32,'overflow'],['D',19,7,0,55.83,91.36,91.80,91.06,92.02,86.84,91.80,7.5,25,'overflow'],['E',20,2,-1,53.68,92.85,93.36,92.79,93.34,92.33,95.90,8.5,53,'Prefigured'],
+  ['H',21,1,-1,53.89,95.95,96.42,95.92,96.40,95.95,99.97,5.7,43,'chrismation'],['H',21,7,-4,48.66,99.52,99.97,99.54,100.19,95.95,99.97,7.7,35,'liturgy'],['D',23,1,0,55.70,105.13,105.65,105.00,105.63,105.13,109.18,7.3,38,'shall'],
+  ['D',23,3,-1,53.94,106.69,107.36,106.51,107.34,105.13,109.18,6.0,47,'follow'],['D',23,5,0,55.75,107.79,108.23,107.81,108.45,105.13,109.18,9.7,22,'all'],['D',23,5,0,55.92,108.72,109.18,108.42,109.40,105.13,109.18,8.9,21,'all'],
+  ['G',25,4,0,55.64,114.30,114.82,114.32,114.80,112.18,116.99,9.1,31,'dwell']]},
+ p23t4:{name:'Psalm 23, Mshiho Natareh (Tone 4)',id:'b:psalm23t4',home:48.88,blob:()=>P23T4A,spots:[
+  ['A',1,1,1,50.71,0.28,0.84,0.02,1.06,0.28,5.00,6.1,13,'The'],['A',1,2,0,48.73,1.57,2.02,1.27,2.00,0.28,5.00,7.6,68,'Lord'],['A',1,8,0,48.85,4.04,4.52,4.01,4.74,0.28,5.00,7.5,82,'shepherd'],
+  ['K',2,1,0,48.92,5.46,5.87,5.16,5.85,5.46,8.50,7.0,44,'shall'],['K',2,2,1,50.60,5.87,6.31,5.89,6.31,5.46,8.50,8.1,17,'not'],['A',3,1,1,50.83,9.16,9.70,8.86,9.87,9.01,13.71,8.3,16,'He'],
+  ['A',3,2,0,48.83,9.89,10.68,9.90,10.79,9.01,13.71,5.0,91,'lets'],['K',4,3,3,54.12,15.15,15.80,15.07,16.01,14.29,17.38,3.2,15,'me'],['K',4,4,2,52.81,16.03,16.44,16.05,16.66,14.29,17.38,8.6,63,'beside'],
+  ['A',7,1,1,50.90,26.71,27.40,26.41,27.62,26.71,31.41,5.1,40,'All'],['K',8,3,3,54.10,32.78,33.50,32.80,33.70,31.85,34.90,4.0,21,'the'],['K',8,4,2,52.56,33.72,34.12,33.74,34.34,31.85,34.90,8.2,70,'valley'],
+  ['V',9,1,0,48.87,35.56,36.10,35.26,36.32,35.38,39.33,8.8,26,'of'],['V',9,2,2,52.99,36.49,36.90,36.51,37.12,35.38,39.33,8.2,85,'the'],['W',10,2,-1,45.87,39.41,39.86,39.43,39.86,39.33,41.82,6.9,53,'will'],
+  ['W',10,3,0,49.06,39.88,40.43,39.88,40.62,39.33,41.82,9.2,21,'fear'],['W',10,4,0,48.26,40.64,41.24,40.66,41.22,39.33,41.82,4.4,71,'no'],['X',11,2,0,48.31,42.83,43.24,42.85,43.22,42.41,44.45,8.6,44,'You'],
+  ['Y',12,2,0,49.07,44.85,45.26,44.84,45.29,44.45,47.94,7.4,42,'rod'],['Y',12,8,1,51.34,47.44,47.94,47.44,48.16,44.45,47.94,4.9,22,'me'],['K',13,3,3,53.96,49.27,49.91,49.21,50.13,48.36,51.41,3.2,58,'protect'],
+  ['K',13,4,2,52.71,50.15,50.60,50.14,50.82,48.36,51.41,7.8,23,'protect'],['A',14,8,0,48.87,55.97,56.41,55.99,56.39,52.17,56.75,6.3,37,'holy'],['K',15,3,3,54.24,58.19,58.80,58.21,59.02,57.34,60.20,4.0,25,'before'],
+  ['A',16,4,1,50.95,62.93,63.45,62.95,63.43,60.73,65.10,7.2,35,'presence'],['K',17,4,2,53.02,67.35,67.79,67.37,68.01,65.68,68.69,6.1,65,'anoint'],['S',18,2,2,52.78,68.93,69.45,68.95,69.67,68.69,72.86,5.2,23,'my'],
+  ['S',18,5,4,56.16,70.69,71.11,70.71,71.09,68.69,72.86,8.4,78,'Your'],['S',18,8,0,48.90,71.96,72.41,71.98,72.63,68.69,72.86,5.9,24,'oil'],['J',19,4,1,50.76,74.50,74.96,74.41,75.06,72.86,77.00,5.3,28,'shall'],
+  ['V',22,1,3,53.95,86.53,86.93,86.23,86.91,85.95,88.62,8.1,18,'Surely'],['W',23,4,0,49.06,90.15,90.72,90.17,90.89,88.86,92.70,6.5,25,'follow'],['W',23,5,0,48.24,90.91,91.48,90.93,91.46,88.86,92.70,4.8,90,'follow'],
+  ['X',24,3,1,50.86,93.48,93.95,93.50,93.93,92.70,94.76,7.5,44,'of'],['Y',25,1,0,48.73,94.97,95.35,94.78,95.33,94.76,97.87,7.6,24,'And'],['Y',25,4,0,48.87,95.93,96.36,95.95,96.34,94.76,97.87,8.1,26,'dwell'],
+  ['Y',25,8,1,51.18,97.47,97.87,97.44,98.09,94.76,97.87,6.8,23,'home'],['K',26,2,1,50.93,98.77,99.27,98.77,99.25,98.34,101.72,5.7,22,'bridal'],['K',26,3,3,53.91,99.27,99.92,99.29,100.14,98.34,101.72,4.8,25,'bridal'],
+  ['K',26,4,2,52.75,100.19,100.66,100.13,100.88,98.34,101.72,6.9,31,'chamber']]}};
+const VB_DEF={song:'p23',order:'due',parts:null,reps:2,from:1,rungs:4,slow:'half',hear:true,slowOn:true,pulse:true,ticks:true,release:true,sing:true,phrase:true,alone:false,mix:true,every:8,key:0,tone:7,voice:10};
+const VB_KEYS=[0,-1,-2,-3,-4,-5,-7,-12];
+function vbSet(){return Object.assign({},VB_DEF,earSet().vb||{})}
+function vbSave(o){earSave({vb:Object.assign(vbSet(),o)})}
+function vbDat(){return VB_DAT[vbSet().song]||VB_DAT.p23}
+function vbHome(){return vbDat().home+(+vbSet().key||0)}
+const vbRateTxt=r=>String(+(Math.round(r*10)/10))+' a second';
+function vbAll(){const S=vbSet();return vbDat().spots.map((r,i)=>({i,sh:r[0],ph:r[1],ce:r[2],st:r[3],m:r[4],a:r[5],b:r[6],c0:r[7],c1:r[8],p0:r[9],p1:r[10],rate:r[11],w:r[12],word:r[13],key:S.song+'|'+r[1]+'|'+r[2]+'|'+r[5].toFixed(2)}))}
+function vbShapes(){const o=[];vbDat().spots.forEach(r=>{if(!o.includes(r[0]))o.push(r[0])});return o}
+function vbPartsOn(){const S=vbSet(),all=vbShapes(),p=S.parts&&S.parts[S.song];return p&&p.length?p.filter(x=>all.includes(x)):all}
+function vbPartsSet(arr){const S=vbSet(),p=Object.assign({},S.parts||{});p[S.song]=arr.length?arr:vbShapes();vbSave({parts:p})}
+function vbProg(){return store.get('ison-vb',{})}
+/* a spot counts as one pass for every 25 seconds of it that actually played */
+function vbSeen(k,sec){if(!k||!(sec>0))return;const p=vbProg(),e=p[k]||{s:0,n:0};e.s=Math.round(((e.s||0)+sec)*10)/10;e.n=Math.floor(e.s/25);e.t=Date.now();p[k]=e;store.set('ison-vb',p)}
+function vbName(s){return (LN_SH[s.sh]||s.sh)+', "'+s.word+'"'+(s.ph>13?' (second time round)':'')}
+function vbPicked(){const S=vbSet(),keep=vbPartsOn(),P=vbProg(),a=vbAll().filter(s=>keep.includes(s.sh));
+  if(S.order==='song')return a;
+  if(S.order==='hard')return a.slice().sort((x,y)=>y.rate/Math.max(12,y.w)-x.rate/Math.max(12,x.w));
+  if(S.order==='rand')return shuffle(a.slice());
+  return a.slice().sort((x,y)=>{const px=P[x.key]||{},py=P[y.key]||{};return (px.n||0)-(py.n||0)||(px.t||0)-(py.t||0)||x.a-y.a})}
+/* one spot's drill: his moment, his moment slowed, the ladder of swings, straight then let it in, his moment to sing with, the phrase around it */
+function vbClip(S,ph,a,b,spd,m){return{k:'clip',ph,a,b,sp:spd||1,g:(+S.voice||0)/10,m:m==null?null:m}}
+function vbWob(m,rate,w,d,sg,tick){return{k:'wob',ph:'W',m,r:rate,c:w,d,sg:sg||0,tick:!!tick}}
+const vbTickCue=()=>({k:'quiet',ph:'W',d:0.5,beat:0.6});
+function vbRungs(S,s){const n=Math.max(2,Math.min(6,Math.round(+S.rungs||4))),r0=Math.min(Math.max(0.6,+S.from||1),s.rate*0.85),w0=Math.max(s.w,90),out=[];
+  for(let j=0;j<n;j++){const f=n<2?1:j/(n-1);out.push({r:Math.round(r0*Math.pow(s.rate/r0,f)*10)/10,w:Math.round(w0*Math.pow(s.w/w0,f))})}return out}
+function vbDrill(s){const S=vbSet(),R=Math.max(1,Math.min(6,Math.round(+S.reps||2))),m=s.m+(+S.key||0),st=[];
+  if(S.hear){st.push({k:'cue',ph:'L',noAnn:true},vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.5});
+    for(let j=1;j<Math.min(2,R);j++)st.push(vbTickCue(),vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.5})}
+  if(S.slowOn){const sp=S.slow==='three'?[0.75]:S.slow==='both'?[0.5,0.75]:[0.5];
+    sp.forEach((x,j)=>{st.push(j?vbTickCue():{k:'cue',ph:'L',noAnn:true},vbClip(S,'L',s.c0,s.c1,x,m),{k:'gap',d:0.5})})}
+  if(S.pulse)vbRungs(S,s).forEach((g,gi)=>{const d=Math.max(2.2,Math.min(5,4.5/g.r));
+    for(let j=0;j<R;j++)st.push(gi||j?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbWob(m,g.r,g.w,d,0,!!S.ticks&&g.r<=3.2),{k:'gap',d:0.7})});
+  if(S.release)for(let j=0;j<Math.min(2,R);j++)st.push(j?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbWob(m,s.rate,s.w,4.4,1.8,false),{k:'gap',d:0.8});
+  if(S.alone)st.push({k:'cue',ph:'A'},{k:'quiet',ph:'A',d:Math.max(2.4,s.b-s.a+1.4)},{k:'cue',ph:'C'},vbClip(S,'C',s.c0,s.c1,1,m),{k:'gap',d:0.5});
+  if(S.sing)for(let j=0;j<R;j++)st.push(j?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbClip(S,'W',s.c0,s.c1,1,m),{k:'gap',d:0.6});
+  if(S.phrase)st.push({k:'cue',ph:'W',noAnn:true},vbClip(S,'W',s.p0,s.p1,1,null),{k:'gap',d:1});
+  if(!st.length)st.push({k:'cue',ph:'L',noAnn:true},vbClip(S,'L',s.c0,s.c1,1,m),{k:'gap',d:0.6});
+  return{name:vbName(s)+' · '+vbRateTxt(s.rate)+', '+s.w+' cents',intro:'',vo:[],steps:st,u:15,vb:s.key}}
+function vbMix(list){const S=vbSet(),k=+S.key||0,st=[];
+  list.forEach((s,i)=>{st.push(i?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbClip(S,'W',s.c0,s.c1,1,s.m+k),{k:'gap',d:0.3},vbWob(s.m+k,s.rate,s.w,2.4,0,false),{k:'gap',d:0.8})});
+  return{name:'All of them again, one after another',intro:'',vo:[],steps:st,u:15,vb:null}}
+function vbWarm(){const S=vbSet(),m=vbHome(),st=[];
+  for(let j=0;j<3;j++)st.push(j?vbTickCue():{k:'cue',ph:'W',noAnn:true},vbWob(m,5.5,45,5.6,2.4,false),{k:'gap',d:0.9});
+  return{name:'Warm up on your home note: straight, then let the swing in',intro:'',vo:[],steps:st,u:15,vb:null}}
+function vbDrills(goal){const S=vbSet(),sp=vbPicked();if(!sp.length)return[];
+  const out=[],lim=(goal||EARS.goal||1200)*1.2+90;let tot=0;const add=d=>{out.push(d);tot+=earStepsSec(d.steps)+2};
+  add(vbWarm());const ev=Math.max(3,Math.min(20,Math.round(+S.every||8)));let i=0,bag=[];
+  while(tot<lim&&out.length<300){const s=sp[i%sp.length];i++;add(vbDrill(s));bag.push(s);
+    if(S.mix&&bag.length>=ev){add(vbMix(bag));bag=[]}}
+  if(S.mix&&bag.length>=3)add(vbMix(bag));
+  return out}
+/* the recording this unit cuts its moments out of: decoded once, in the key he picked (times stay the same) */
+const VB={hq:null,hqT0:0,sth:{},seg:null,segT0:0,st:{},sig:''};
+async function vbLoad(prog){const S=vbSet(),D=vbDat(),k=+S.key||0,sig=S.song+'|'+k;if(VB.sig===sig&&VB.hq)return true;
+  try{await privReady}catch(e){}
+  let blob=D.blob();if(!blob)throw new Error('the recording is not on this phone yet');
+  if(k)blob=await keyedAudio(D.id,blob,k,prog);
+  if(prog)prog('Loading the recording...');
+  const x=await decodeAt(blob,PB_SR);VB.hq=normPk(x.slice());VB.seg=VB.hq;VB.hqT0=0;VB.segT0=0;VB.sth={};VB.st={};VB.sig=sig;return true}
+const VBP={on:false,btn:null,lab:'',url:null};
+function vbPvStop(){if(VBP.btn){VBP.btn.textContent=VBP.lab||'Hear it';VBP.btn.classList.remove('on')}
+  if(VBP.on&&earAudio&&!EARS.run){try{earAudio.pause()}catch(e){}}VBP.on=false;VBP.btn=null}
+/* one spot to listen to: his moment, the same moment at half speed, a tone swinging his way, his moment again.
+   It also returns where each piece sits in the sound file, which is how the swings are checked by measurement. */
+async function vbHearBlob(s){await vbLoad();const S=vbSet(),T=earTimbre(),vS={},ev=[],at={};let t=0.12;
+  const clip=(a,b,spd,nm)=>{const d=(b-a)/spd,key='VB|'+a.toFixed(2)+'-'+b.toFixed(2)+'@'+spd;vS[key]={src:'VB',map:[[0,a],[d,b]]};
+    ev.push({type:'recx',t,key,from:0,d,g:Math.max(0.1,(+S.voice||10)/10)});at[nm]=[t,t+d];t+=d+0.35};
+  clip(s.c0,s.c1,1,'his');clip(s.c0,s.c1,0.5,'slow');
+  ev.push({type:'wob',f:m2f(s.m+(+S.key||0)),r:s.rate,c:s.w,sg:0,t,d:2.6,h:T.h,lp:T.lp});at.tone=[t,t+2.6];t+=2.9;
+  clip(s.c0,s.c1,1,'again');
+  BG.recSr=BG.recSr||{};const recs=await bgRecs({vSpecs:vS});
+  const blob=await bgSynth({ev,dur:t+0.4,sr:PB_SR,voSr:VO_SR,vol:Math.max(0.15,(+S.tone||7)/10),vo:{},recs,recSr:BG.recSr||{}},()=>{});
+  return{blob,at,sr:PB_SR}}
+async function vbHear(s,btn){if(EARS.run)return;if(VBP.on&&VBP.btn===btn){vbPvStop();return}vbPvStop();try{pvStop()}catch(e){}earUnlock();
+  VBP.on=true;VBP.btn=btn;VBP.lab=btn.textContent;btn.textContent='...';btn.classList.add('on');
+  try{const{blob}=await vbHearBlob(s);
+    if(!VBP.on||VBP.btn!==btn)return;
+    if(VBP.url)URL.revokeObjectURL(VBP.url);VBP.url=URL.createObjectURL(blob);
+    btn.textContent='Stop';const a=earAudio;a.loop=false;a.onended=()=>vbPvStop();a.src=VBP.url;const p=a.play();if(p&&p.catch)p.catch(()=>vbPvStop())}
+  catch(e){vbPvStop();const el=$('vbSum');if(el)el.textContent='That spot could not be played: '+((e&&e.message)||e)}}
+function renderVib(){const box=$('vbBox');if(!box)return;const s=earSet();box.hidden=s.unit!==15;if(box.hidden){vbPvStop();return}
+  const S=vbSet(),D=vbDat();
+  $('vbSong').value=S.song;$('vbOrder').value=S.order;$('vbSlow').value=S.slow;$('vbFrom').value=String(S.from);
+  [['vbHear','hear'],['vbSlowOn','slowOn'],['vbPulse','pulse'],['vbTicks','ticks'],['vbRelease','release'],['vbSing','sing'],['vbPhrase','phrase'],['vbAlone','alone'],['vbMix','mix']].forEach(([id,k])=>{const el=$(id);if(el)el.checked=!!S[k]});
+  ['vbReps|reps','vbRungs|rungs','vbTone|tone','vbVoice|voice'].forEach(x=>{const[id,k]=x.split('|');lpSetV(id,S[k])});
+  const ky=$('vbKey');if(ky){if(!ky.children.length)VB_KEYS.forEach(k=>{const o=document.createElement('option');o.value=String(k);o.textContent=keyWords(k);ky.appendChild(o)});ky.value=String(+S.key||0)}
+  $('vbSlowRow').classList.toggle('dim',!S.slowOn);$('vbPulseRow').classList.toggle('dim',!S.pulse);
+  const pc=$('vbParts'),shapes=vbShapes(),on=vbPartsOn();
+  if(pc.dataset.song!==S.song){pc.dataset.song=S.song;pc.innerHTML='';
+    const mk=(lab,val)=>{const b=document.createElement('button');b.textContent=lab;b.dataset.v=val;
+      b.onclick=()=>{if(val==='*')vbPartsSet(vbShapes());else{const cur=vbPartsOn().slice(),i=cur.indexOf(val);
+        if(i>=0){if(cur.length>1)cur.splice(i,1)}else cur.push(val);vbPartsSet(cur)}renderVib()};pc.appendChild(b)};
+    mk('All','*');shapes.forEach(sh=>mk(LN_SH[sh]||sh,sh))}
+  Array.from(pc.children).forEach(b=>{const v=b.dataset.v;b.setAttribute('aria-pressed',String(v==='*'?on.length===shapes.length:on.includes(v)))});
+  const cnt={};vbAll().forEach(x=>{cnt[x.sh]=(cnt[x.sh]||0)+1});
+  $('vbPartsTxt').textContent=shapes.map(sh=>(LN_SH[sh]||sh)+' '+cnt[sh]).join(', ')+'. The parts are the melody shapes found in the recording; the full close holds the most.';
+  const P=vbProg(),picked=vbPicked(),done=picked.filter(x=>((P[x.key]||{}).n||0)>0).length,one=picked.length?earStepsSec(vbDrill(picked[0]).steps)+2:0;
+  $('vbSum').textContent=picked.length?picked.length+' of '+D.spots.length+' spots picked, '+done+' of them worked before. About '+Math.round(one)+' seconds each, so '+s.min+' minutes covers about '+Math.max(1,Math.round(s.min*60/Math.max(12,one)))+' of them.':'No spots picked: tap at least one part of the song.';
+  const L=$('vbList');if(L&&!VBP.on){L.innerHTML='';
+    vbAll().forEach(sp=>{const row=document.createElement('div');row.className='vbrow';
+      const b=document.createElement('b');b.textContent=vbName(sp);
+      const sx=document.createElement('span');const n=((P[sp.key]||{}).n||0);
+      sx.textContent=vbRateTxt(sp.rate)+', '+sp.w+' cents · '+fmtT(sp.a)+(n?' · done '+n+'×':'');
+      const btn=document.createElement('button');btn.className='lpplay';btn.textContent='Hear it';btn.onclick=()=>vbHear(sp,btn);
+      row.appendChild(b);row.appendChild(sx);row.appendChild(btn);L.appendChild(row)})}}
+function vbInit(){const sel=(id,key,num)=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[key]:num?(+el.value||0):el.value});if(key==='song'||key==='key')VB.sig='';renderVib()}};
+  sel('vbSong','song');sel('vbOrder','order');sel('vbSlow','slow');sel('vbFrom','from',true);sel('vbKey','key',true);
+  [['vbHear','hear'],['vbSlowOn','slowOn'],['vbPulse','pulse'],['vbTicks','ticks'],['vbRelease','release'],['vbSing','sing'],['vbPhrase','phrase'],['vbAlone','alone'],['vbMix','mix']].forEach(([id,k])=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[k]:el.checked});renderVib()}});
+  const num=(id,k,lo,hi)=>{const el=$(id);if(el)el.onchange=()=>{vbSave({[k]:Math.max(lo,Math.min(hi,Math.round(+el.value)||lo))});renderVib()}};
+  num('vbReps','reps',1,6);num('vbRungs','rungs',2,6);num('vbTone','tone',0,10);num('vbVoice','voice',0,10);
+  const step=(id,k,d,lo,hi)=>{const el=$(id);if(el)el.onclick=()=>{vbSave({[k]:Math.max(lo,Math.min(hi,(+vbSet()[k]||0)+d))});renderVib()}};
+  step('vbRpDn','reps',-1,1,6);step('vbRpUp','reps',1,1,6);step('vbRgDn','rungs',-1,2,6);step('vbRgUp','rungs',1,2,6);
+  step('vbToDn','tone',-1,0,10);step('vbToUp','tone',1,0,10);step('vbVoDn','voice',-1,0,10);step('vbVoUp','voice',1,0,10);
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')window.__vb={set:vbSet,save:vbSave,all:vbAll,picked:vbPicked,drill:vbDrill,drills:vbDrills,load:vbLoad,prog:vbProg,hear:vbHearBlob,steps:earStepsSec,home:vbHome}}
 const VO_SR=11025,BG={url:null,marks:[],starts:[],logPos:0,raf:null,u:0,goal:0,dur:0,worker:null,prep:false,lastSave:0};
 let VO=null;
 async function voLoad(){if(VO)return VO;const data=JSON.parse($('voData').textContent),OC=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new OC(1,VO_SR,VO_SR),out={};
@@ -7197,10 +7400,10 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const smap=[],s=earSet(),ev=[],ma
   const note=(m,d,swell)=>{ev.push({type:'note',f:m2f(m),t,d:d*0.96,swell:!!swell,h:T.h,lp:T.lp});marks.push({t,note:m});t+=d};
   const vSpecs={};let dvg=0,VS=SM,dsrc='SM';
   let dr=earDrills(u,lv),di=0;
-  if(opt.start==null){if(u===5||u===6||u===10||u===13||u===14){if(s.cues!=='none')vo(u===5?['songpart','lvl'+lv]:u===6?['sm_intro']:u===13?[]:u===14?['mp_intro']:['daily','herehome']);marks.push({t,ph:'L',note:null,di:-1});note(earHome(),2.2)}
+  if(opt.start==null){if(u===5||u===6||u===10||u===13||u===14||u===15){if(s.cues!=='none')vo(u===5?['songpart','lvl'+lv]:u===6?['sm_intro']:u===13||u===15?[]:u===14?['mp_intro']:['daily','herehome']);marks.push({t,ph:'L',note:null,di:-1});note(earHome(),2.2)}
     else{if(s.cues!=='none')vo(u===11||u===12?['earsonly','u_'+u,'herehome']:['earsonly','u_'+u,'lvl'+lv,'herehome']);marks.push({t,ph:'L',note:null,di:-1});note(earHome(),2.2)}marks.push({t,note:null});t+=0.6}
   else{di=opt.start%dr.length;opt.prev.slice(0,opt.start).forEach(d=>{all.push(d);starts.push(-1)})}
-  while(t<goal){if(di>=dr.length){if(u===10||u===13||u===14||(u===6&&goal-t<120))break;dr=earDrills(u,lv);di=0;if(!dr.length)break;if(s.cues!=='none')vo(['round'])}
+  while(t<goal){if(di>=dr.length){if(u===10||u===13||u===14||u===15||(u===6&&goal-t<120))break;dr=earDrills(u,lv);di=0;if(!dr.length)break;if(s.cues!=='none')vo(['round'])}
     const d=dr[di++],idx=all.length;all.push(d);starts.push(t);marks.push({t,ph:'',note:null,di:idx,ann:''});lastAnn='';
     dsrc=d.vsrc||(u===5?'ES':u===6?'SM':null);dvg=dsrc&&!d.noVoice?songVoiceGain():0;VS=dsrc==='ES'?ES:SM;
     if(s.cues!=='none'){let k=d.vo?d.vo.slice():voKeys(d.name);if(d.pre)k=d.pre.concat(k);if(/^Today/.test(d.name))k=['todays',...earFocus(earState()).map(voNote)];
@@ -7221,13 +7424,19 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const smap=[],s=earSet(),ev=[],ma
           else if(toneOn)note(n.m,n.d,st.swell);else{marks.push({t,note:n.m});t+=n.d}}else{flush();marks.push({t,note:null});t+=n.d}if(contig)smap.push([tb,t,n.src[0],n.src[1]])});flush();
         if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t:t0p,d:t-t0p,h:T.h,lp:T.lp,g:0.2});
         if(vA.length>1){const key=dsrc+'|'+vA.map(x=>x[0].toFixed(2)+'>'+x[1].toFixed(3)).join(',');vSpecs[key]={src:dsrc,map:vA};ev.push({type:'recx',t:t0p,key,from:0,d:t-t0p,g:gv})}marks.push({t,note:null})}
+      else if(st.k==='wob'){marks.push({t,ph:st.ph,note:st.m});ev.push({type:'wob',f:m2f(st.m),r:st.r,c:st.c,sg:st.sg||0,t,d:st.d*0.98,h:T.h,lp:T.lp});
+        if(s.ticks&&st.tick&&st.r>0.2)for(let x=0;x<st.d-0.05;x+=1/st.r)ev.push({type:'tick',t:t+x,lvl:x<0.01?1.1:0.6});
+        t+=st.d;marks.push({t,note:null})}
+      else if(st.k==='clip'){const d=(st.b-st.a)/(st.sp||1),key='VB|'+st.a.toFixed(2)+'-'+st.b.toFixed(2)+'@'+(st.sp||1);
+        marks.push({t,ph:st.ph,note:st.m==null?null:st.m});vSpecs[key]={src:'VB',map:[[0,st.a],[d,st.b]]};
+        ev.push({type:'recx',t,key,from:0,d,g:st.g==null?1:st.g});t+=d+0.06;marks.push({t,note:null})}
       else if(st.k==='glide'){marks.push({t,ph:st.ph,note:st.m1});ev.push({type:'glide',f0:m2f(st.m0),f1:m2f(st.m1),t,d:st.d*0.98,h:T.h,lp:T.lp});t+=st.d;marks.push({t,note:null})}
       else if(st.k==='dual'){marks.push({t,ph:st.ph,note:st.m});ev.push({type:'note',f:m2f(st.m),t,d:st.d*0.96,h:T.h,lp:T.lp,g:0.7},{type:'note',f:m2f(st.m)*Math.pow(2,st.c/1200),t,d:st.d*0.96,h:T.h,lp:T.lp,g:0.7});t+=st.d;marks.push({t,note:null})}
       else if(st.k==='quiet'){marks.push({t,ph:st.ph,note:null});if(st.drone!=null)ev.push({type:'note',f:m2f(st.drone),t,d:st.d,h:T.h,lp:T.lp,g:0.2});if(s.ticks&&st.beat)for(let x=0;x<st.d-0.01;x+=st.beat)ev.push({type:'tick',t:t+x,lvl:x===0?1.2:0.8});t+=st.d}
       else if(st.k==='gap')t+=st.d})}
   marks.push({t,ph:'',note:null,di:-2});t+=0.4;if(s.cues!=='none')vo(['complete']);
   return{smap,ev,marks,starts,drills:all,dur:t+0.6,rec:u===5?(ES.hq||ES.seg):null,recRate:u===5&&ES.hq?PB_SR:VO_SR,vSpecs}}
-async function bgRecs(tl){const keys=Object.keys(tl.vSpecs||{});if(!keys.length)return null;const by={};keys.forEach(k=>{const v=tl.vSpecs[k];(by[v.src]=by[v.src]||{})[k]=v.map});const out={};BG.recSr={};for(const sname of Object.keys(by)){Object.assign(out,await earSongVoices(by[sname],sname==='ES'?ES:SM,BG.recSr))}return out}
+async function bgRecs(tl){const keys=Object.keys(tl.vSpecs||{});if(!keys.length)return null;const by={};keys.forEach(k=>{const v=tl.vSpecs[k];(by[v.src]=by[v.src]||{})[k]=v.map});const out={};BG.recSr={};for(const sname of Object.keys(by)){Object.assign(out,await earSongVoices(by[sname],sname==='ES'?ES:sname==='VB'?VB:SM,BG.recSr))}return out}
 /* synthesis and MP3 encoding; runs in a background worker when possible (also works on the page) */
 async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,out=[],ev=D.ev.slice().sort((a,b)=>a.t-b.t),vo=D.vo,G=0.62*D.vol,TW=2*Math.PI;
   const hd=new DataView(new ArrayBuffer(44)),w=(o,x)=>{for(let i=0;i<x.length;i++)hd.setUint8(o+i,x.charCodeAt(i))};
@@ -7241,6 +7450,10 @@ async function bgSynth(D,progress){const sr=D.sr,N=Math.ceil(D.dur*sr),B=sr*4,ou
       else if(e.type==='recx'){const c=D.recs&&D.recs[e.key];if(!c)continue;const csr=(D.recSr&&D.recSr[e.key])||sr,kk=csr/sr,st=Math.round(e.t*sr),f0=Math.round(e.from*csr),lim=Math.round(e.d*sr),fd=Math.round(0.03*sr),g=0.9*e.g,r=(e.r||1)*kk;for(let i=s0;i<b0+n;i++){const j=i-st;if(j>=lim)break;if(j<0)continue;let v;if(r===1){const q=f0+j;if(q>=c.length)break;v=c[q]}else{const q=f0+j*r,qi=Math.floor(q),fr=q-qi;if(qi+1>=c.length)break;v=c[qi]*(1-fr)+c[qi+1]*fr}buf[i-b0]+=v*g*Math.min(1,j/fd,(lim-j)/fd)}}
       else if(e.type==='glide'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g);if(e.ph==null){e.ph=0;e.li=st}
         for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr,rem=e.d-tt,f=e.f0*Math.pow(e.f1/e.f0,Math.min(1,tt/e.d));e.ph+=TW*f/sr;const env=Math.min(1,tt/0.05,rem/0.1);let v=0;for(let k=0;k<K;k++){const fk=f*(k+1);if(fk<e.lp&&fk<sr/2-300)v+=e.h[k]/sum*Math.sin(e.ph*(k+1))}buf[i-b0]+=g*env*v}e.li=en}
+      else if(e.type==='wob'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g),sg=e.sg||0;if(e.ph==null){e.ph=0;e.li=st}
+        for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr,rem=e.d-tt,gr=sg?Math.min(1,Math.max(0,(tt-sg)/0.4)):1,f=e.f*Math.pow(2,gr*(e.c/2400)*Math.sin(TW*e.r*Math.max(0,tt-sg)));
+          e.ph+=TW*f/sr;const env=Math.min(1,tt/0.05,rem/0.1);let v=0;
+          for(let k=0;k<K;k++){const fk=f*(k+1);if(fk<e.lp&&fk<sr/2-300)v+=e.h[k]/sum*Math.sin(e.ph*(k+1))}buf[i-b0]+=g*env*v}e.li=en}
       else if(e.type==='line'){const st=Math.round(e.t*sr),en=Math.min(Math.round((e.t+e.d)*sr),b0+n),sum=e.h.reduce((x,y)=>x+y,0),K=e.h.length,g=G*(e.g==null?1:e.g),att=e.att||0.06,rel=0.09,gl=0.035,P=e.p;if(e.ph==null){e.ph=0;e.li=st;e.ni=0}
         for(let i=Math.max(s0,e.li);i<en;i++){const tt=(i-st)/sr;while(e.ni<P.length-1&&tt+gl/2>=P[e.ni+1][0])e.ni++;const cur=P[e.ni];let f=cur[1];
           if(e.ni>0){const k=(tt-(cur[0]-gl/2))/gl;if(k<1){const pf=P[e.ni-1][1],q=Math.max(0,k),sm=q*q*(3-2*q);f=pf*Math.pow(cur[1]/pf,sm)}}
@@ -7266,7 +7479,8 @@ function bgRender(D,progress){return new Promise((res,rej)=>{let w=null;
 async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.st='idle';pvUI()}}catch(e){}const s=earSet();if(!resumeAt)BG.total=0;earUnlock();BG.prep=true;BG.pending=null;BG.replan=false;EARS.bg=true;EARS.run=true;EARS.paused=false;EARS.u=s.unit;EARS.lv=earLevel(s.unit);EARS.home=null;EARS.goal=s.min*60;EARS.el=resumeAt||0;EARS.ph='';EARS.note=null;
   renderEars();$('earPrep').hidden=false;$('earPrepTxt').textContent='Preparing your '+s.min+'-minute session...';$('earPrepBar').style.width='2%';setTimeout(()=>$('earsPanel').scrollIntoView({behavior:'smooth',block:'start'}),50);
   try{await voLoad();if(EARS.u===5){if(!(await earSongLoad(s.song||'')))throw new Error('choose a song first');$('earPrepTxt').textContent='Preparing the song...';await earSongAudio();EARS.lv=earSongLevel();EARS.home=ES.tonic;if(!resumeAt)ES.sessFrom=esPosGet()}
-    LES_PLAN=null;if(EARS.u!==5&&EARS.u!==6&&EARS.u!==13&&EARS.u!==14){EARS.home=S.home;if(s.model!=='tone'||EARS.u===10||EARS.u===11){$('earPrepTxt').textContent='Loading the song map...';try{await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})}catch(e){}}
+    LES_PLAN=null;if(EARS.u===15){$('earPrepTxt').textContent='Loading the recording...';await vbLoad(t=>{$('earPrepTxt').textContent=t});EARS.lv=1;EARS.home=vbHome()}
+    if(EARS.u!==5&&EARS.u!==6&&EARS.u!==13&&EARS.u!==14&&EARS.u!==15){EARS.home=S.home;if(s.model!=='tone'||EARS.u===10||EARS.u===11){$('earPrepTxt').textContent='Loading the song map...';try{await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})}catch(e){}}
       if(EARS.u===11){if(!SM.ok)throw new Error('the song could not be measured');EARS.home=smIsonM()}
       if(EARS.u===10){DAILY.plan=null;SM.sess=null;SM.lastIds=[];SM.plan=null;dailyPlan(Math.max(300,EARS.goal-(resumeAt||0)));$('earPrepTxt').textContent='Lining up the singer with the tones...'}}
     if(EARS.u===6){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();SM.plan=smPlan(Math.max(60,EARS.goal-(resumeAt||0)-25));SM.sess={done:new Set(),ids:[]};SM.lastIds=[];$('earPrepTxt').textContent='Lining up the singer with the tones...'}
@@ -7286,7 +7500,7 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
 function bgPos(){return earAudio?earAudio.currentTime||0:0}
 function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if(EARS.u===5){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});if(di>=0)esPosSave(EARS.drills[di])}if(pos>BG.logPos+0.5){const a=BG.logPos,b=pos;BG.total=(BG.total||0)+b-a;
   /* time goes to the unit each drill belongs to (a daily session spreads over several units) */
-  const spans={},S0=BG.starts,D=EARS.drills;let cov=0;for(let i=0;i<S0.length;i++){const s=S0[i];if(s<0)continue;let e=BG.dur;for(let j=i+1;j<S0.length;j++)if(S0[j]>=0){e=S0[j];break}const x0=Math.max(a,s),x1=Math.min(b,e);if(x1>x0){const u=D[i]&&D[i].u!=null?D[i].u:BG.u;spans[u]=(spans[u]||0)+(x1-x0);cov+=x1-x0;if(D[i]&&D[i].les)lesAdd(D[i].lesU,D[i].les,x1-x0)}}
+  const spans={},S0=BG.starts,D=EARS.drills;let cov=0;for(let i=0;i<S0.length;i++){const s=S0[i];if(s<0)continue;let e=BG.dur;for(let j=i+1;j<S0.length;j++)if(S0[j]>=0){e=S0[j];break}const x0=Math.max(a,s),x1=Math.min(b,e);if(x1>x0){const u=D[i]&&D[i].u!=null?D[i].u:BG.u;spans[u]=(spans[u]||0)+(x1-x0);cov+=x1-x0;if(D[i]&&D[i].les)lesAdd(D[i].lesU,D[i].les,x1-x0);if(D[i]&&D[i].vb)vbSeen(D[i].vb,x1-x0)}}
   if(b-a-cov>0.01)spans[BG.u]=(spans[BG.u]||0)+(b-a-cov);
   if(spans[5]&&ES.id){const st=earState(),k=earSongKey();st.chunkMin=st.chunkMin||{};st.chunkMin[k]=(st.chunkMin[k]||0)+spans[5]/60;store.set('ison-ears',st)}
   let ru=null;Object.keys(spans).forEach(u=>{const r=addPractice('ears',+u,spans[u]);if(r)ru=r});BG.logPos=pos;if(ru)setTimeout(()=>fiveStar('Rank '+ru),200)}}
@@ -7377,10 +7591,14 @@ function earUI(clockOnly){const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%
   {const nn=EARS.note!=null?nameOf(EARS.note):'',ne=$('earNote');if(nn&&ne.textContent!==nn){const prev=ne.dataset.last||'';ne.textContent=nn;ne.dataset.last=nn;if(prev&&prev!==nn&&uiMotion()){ne.classList.remove('swap');void ne.offsetWidth;ne.classList.add('swap')}}else if(!nn)ne.style.opacity='.35';if(nn)ne.style.opacity='1'}$('epPhase').textContent=ph;$('epPhase').style.color=EARS.paused?'#777':(PH_COL[EARS.ph]||'#777');$('epDrill').textContent=dr?dr.name:'';
   {const pb=$('earPause'),want=EARS.paused?'play':'pause';if(pb.dataset.st!==want){pb.dataset.st=want;pb.innerHTML=want==='play'?'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4.5l13 7.5-13 7.5z" fill="currentColor"/></svg><span>Resume</span>':'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="6.5" y="5" width="3.5" height="14" rx="1" fill="currentColor"/><rect x="14" y="5" width="3.5" height="14" rx="1" fill="currentColor"/></svg><span>Pause</span>';pb.setAttribute('aria-label',want==='play'?'Resume':'Pause')}}$('earAnn').textContent=EARS.ann||'';$('earMix').textContent=EARS.bg&&EARS.u===5?EARS.mix||'':'';$('earAnnLive').checked=!!earSet().ann;$('earVoiceLive').hidden=!(EARS.bg&&EARS.u>=5);$('smShakyLive').hidden=!(EARS.bg&&EARS.u===6);if(document.activeElement!==$('earVoiceN2'))$('earVoiceN2').value=String(songVoiceLvl());$('earPaceNow').textContent='Pace: '+earPace().n;$('lpLive').hidden=!(EARS.bg&&(EARS.u===13||EARS.u===14));if(EARS.u===13||EARS.u===14)lpLiveShow();
   ['L','W','A','C'].forEach(k=>{const e=$('earDot'+k);if(e)e.classList.toggle('on',EARS.ph===k&&!EARS.paused)})}
-function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;if(earSet().unit===10)return P.n+': how long each note plays, how long you hold alone, and how slowly the song starts. After each session, "That session felt" nudges this for next time.';if(earSet().unit===6){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';return P.n+': new material at '+pc(sp[0])+' of the singer\'s speed, first reviews at '+pc(sp[Math.min(1,sp.length-1)])+', then real speed once a piece is settled. Pace also sets how long each held note and each "on your own" lasts. Nothing ever goes faster than the singer.'}if(earSet().unit===5){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';
+function earPaceDesc(k){const P=EAR_PACE[k]||EAR_PACE.gentle;if((EARS.run?EARS.u:earSet().unit)===15)return 'Slower stays longer on each spot, faster moves on sooner: now '+Math.max(1,Math.min(6,Math.round(+vbSet().reps||2)))+' times through each piece. The swings themselves always keep the singer\'s own speed. Next skips to the next spot.';if(earSet().unit===10)return P.n+': how long each note plays, how long you hold alone, and how slowly the song starts. After each session, "That session felt" nudges this for next time.';if(earSet().unit===6){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';return P.n+': new material at '+pc(sp[0])+' of the singer\'s speed, first reviews at '+pc(sp[Math.min(1,sp.length-1)])+', then real speed once a piece is settled. Pace also sets how long each held note and each "on your own" lasts. Nothing ever goes faster than the singer.'}if(earSet().unit===5){const sp=SONG_SPEED[k]||SONG_SPEED.gentle,pc=x=>Math.round(x*100)+'%';
     return P.n+': pieces at '+pc(sp[0])+' of the singer\'s speed'+(k==='hard'||k==='extra'?', each followed by a pass at real speed':'')+'; the whole part works up through '+sp.map(pc).join(', ')+(k==='hard'||k==='extra'?', plus the whole part from memory when "Singing on your own" is set to Everywhere':'')+'. Each level adds 5%. Nothing ever goes faster than the singer.'}return P.n+': a single note plays '+Math.round(3*P.l)+' seconds to listen, then '+Math.round(3*P.w)+' seconds to hum with it'+(P.reps>1?', twice':'')+', and a held note gets '+Math.round(8*P.hw)+' seconds with the tone. Patterns run '+(P.tempo>1?Math.round((P.tempo-1)*100)+'% slower':P.tempo<1?Math.round((1-P.tempo)*100)+'% faster':'at normal speed')+'.'}
-function earToneVol(){const s=earSet(),u=EARS.run?EARS.u:s.unit;return u===13?lpSet().tone/10:u===14?mpSet().tone/10:(s.vol||0.8)}
-function earPaceShift(d){if([13,14].includes(EARS.run?EARS.u:earSet().unit)){lpSpeedStep(d*5);return}const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){if(EARS.run)earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
+function earToneVol(){const s=earSet(),u=EARS.run?EARS.u:s.unit;return u===13?lpSet().tone/10:u===14?mpSet().tone/10:u===15?Math.max(0.05,vbSet().tone/10):(s.vol||0.8)}
+function earPaceShift(d){const uP=EARS.run?EARS.u:earSet().unit;
+  if(uP===15){const was=Math.max(1,Math.min(6,Math.round(+vbSet().reps||2))),v=Math.max(1,Math.min(6,was-d));
+    if(v===was){if(EARS.run)earSay(d<0?'Already six times through each piece.':'Already one time through each piece.',()=>{});return}
+    vbSave({reps:v});if(EARS.run&&EARS.bg){bgReplanFromNext(v+' times through each piece');earUI();return}renderEars();return}
+  if([13,14].includes(uP)){lpSpeedStep(d*5);return}const i=EAR_PACES.indexOf(earSet().pace||'gentle'),j=Math.max(0,Math.min(EAR_PACES.length-1,i+d));if(j===i){if(EARS.run)earSay(d<0?'Already the slowest pace.':'Already the fastest pace.',()=>{});return}
   earSave({pace:EAR_PACES[j]});if(EARS.run&&EARS.bg){bgReplanFromNext('Pace '+EAR_PACE[EAR_PACES[j]].n);earUI();return}
   if(EARS.run){EARS.drills=EARS.drills.slice(0,EARS.di+1).concat(earDrills(EARS.u,EARS.lv).slice(EARS.di+1))}earUI();renderEars()}
 function renderEars(){const s=earSet(),box=$('earUnits');document.documentElement.classList.toggle('earsrun',!!EARS.run);$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
@@ -7388,7 +7606,7 @@ function renderEars(){const s=earSet(),box=$('earUnits');document.documentElemen
   box.innerHTML='';EAR_ORDER.forEach(i=>{const U=EAR_UNITS[i];if(EAR_GROUP[i]){const g=document.createElement('div');g.className='eargrp';g.textContent=EAR_GROUP[i];box.appendChild(g)}const b=document.createElement('button');b.className='earunit'+(s.unit===i?' sel':'')+(i===10?' daily':'');b.dataset.u=i;b.setAttribute('aria-pressed',String(s.unit===i));
     const h=document.createElement('b');h.textContent=(i<4?'Unit '+i+' · ':'')+U.name;const p=document.createElement('span');p.textContent=U.desc;
     const m=earMin(i),bar=document.createElement('i');const lv=i===5?(ES.id?earSongLevel():1):i===6||i===10?0:earLevel(i);const t=document.createElement('small');
-    t.textContent=U.goal?fmtHM(m)+' of '+fmtHM(U.goal)+' · level '+lv+' of 3'+(m>=U.goal?' · goal met':''):i===6?fmtHM(m)+' practiced'+(SM.ok?' · '+smStats().phL+' of '+smStats().ph+' phrases solid':''):i===10?(()=>{const y=yearPhase();return'Phase '+y.ph+' of 4, '+y.name+' · practiced '+daysPracticed7()+' of the last 7 days'})():i===13||i===14?fmtHM(m)+' practiced':i===11||i===12?fmtHM(m)+' practiced'+(i===12||SM.ok?' · '+lesDone(i)+' of '+lesList(i).length+' lessons met':''):fmtHM(m)+' practiced · level '+lv;
+    t.textContent=U.goal?fmtHM(m)+' of '+fmtHM(U.goal)+' · level '+lv+' of 3'+(m>=U.goal?' · goal met':''):i===6?fmtHM(m)+' practiced'+(SM.ok?' · '+smStats().phL+' of '+smStats().ph+' phrases solid':''):i===10?(()=>{const y=yearPhase();return'Phase '+y.ph+' of 4, '+y.name+' · practiced '+daysPracticed7()+' of the last 7 days'})():i===13||i===14?fmtHM(m)+' practiced':i===15?(()=>{const P=vbProg(),w=vbAll().filter(x=>((P[x.key]||{}).n||0)>0).length;return fmtHM(m)+' practiced'+(w?' \u00B7 '+w+' of '+vbDat().spots.length+' spots worked':'')})():i===11||i===12?fmtHM(m)+' practiced'+(i===12||SM.ok?' · '+lesDone(i)+' of '+lesList(i).length+' lessons met':''):fmtHM(m)+' practiced · level '+lv;
     bar.style.width=U.goal?Math.min(100,m/U.goal*100)+'%':'0';const tr=document.createElement('span');tr.className='eartr';tr.appendChild(bar);
     b.append(h,p,tr,t);b.onclick=()=>{earSave({unit:i});renderEars()};box.appendChild(b)});
   /* note explorer options */
@@ -7401,16 +7619,16 @@ function renderEars(){const s=earSet(),box=$('earUnits');document.documentElemen
    [...pc.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===(s.pace||'gentle'))));$('earPaceTxt').textContent=earPaceDesc(s.pace||'gentle')}
   const mc=$('earMins');if(!mc.children.length)[10,20,30,45,60,90].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{earSave({min:m});renderEars()};mc.appendChild(b)});
   [...mc.children].forEach(b=>b.setAttribute('aria-pressed',String(+b.dataset.m===s.min)));
-  $('earTimbre').value=s.timbre;$('earEngine').value=s.engine||'bg';$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earAnnSet').checked=!!s.ann;renderEarSong();renderMaster();renderLoop();renderMelody();$('earTicks').checked=!!s.ticks;
+  $('earTimbre').value=s.timbre;$('earEngine').value=s.engine||'bg';$('earVol').value=String(s.vol);$('earCues').value=s.cues;$('earNames').checked=!!s.names;$('earAnnSet').checked=!!s.ann;renderEarSong();renderMaster();renderLoop();renderMelody();renderVib();$('earTicks').checked=!!s.ticks;
   const U=EAR_UNITS[s.unit];$('earStart').textContent='Start '+s.min+' minutes · '+U.name;$('earHeroTxt').textContent=s.unit===10?(SM.ok?'Today: '+dailySummary(s.min*60):'Preparing the song map...'):U.name+': '+U.desc;
-  renderKeyRows();renderLes();const tot=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14].reduce((a,i)=>a+earMin(i),0);$('earTotal').textContent=tot?'Ears-only practice so far: '+fmtHM(tot)+'.':''}
+  renderKeyRows();renderLes();const tot=[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15].reduce((a,i)=>a+earMin(i),0);$('earTotal').textContent=tot?'Ears-only practice so far: '+fmtHM(tot)+'.':''}
 function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo,hi].forEach(sel=>{const o=document.createElement('option');o.value=m;o.textContent=nameOf(m);sel.appendChild(o)})}
   lo.onchange=()=>{earSave({lo:+lo.value});renderEars()};hi.onchange=()=>{earSave({hi:+hi.value});renderEars()};
   $('earClear').onclick=()=>{earSave({focus:[]});renderEars()};
   $('earTimbre').onchange=()=>earSave({timbre:$('earTimbre').value});$('earEngine').onchange=()=>earSave({engine:$('earEngine').value});$('earVol').oninput=()=>earSave({vol:+$('earVol').value});$('earCues').onchange=()=>earSave({cues:$('earCues').value});
   $('earNames').onchange=()=>earSave({names:$('earNames').checked});$('earTicks').onchange=()=>earSave({ticks:$('earTicks').checked});
   $('earTest').onclick=()=>{earUnlock();setTimeout(()=>earPlayEvents([{type:'note',m:S.home,t:0,d:2}],2,null,()=>earSay('That was your home note, '+spokenName(S.home)+'.',()=>{})),150)};
-  $('earStart').onclick=earStart;smInit();lpInit();mpInit();vxInit();earViewInit();dailyInit();keyInit();lesInit();
+  $('earStart').onclick=earStart;smInit();lpInit();mpInit();vbInit();vxInit();earViewInit();dailyInit();keyInit();lesInit();
   $('earAnnSet').onchange=()=>earSave({ann:$('earAnnSet').checked});
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
   $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});earSongPlanTxt();if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
@@ -8481,7 +8699,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=54;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=55;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
