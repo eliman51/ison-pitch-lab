@@ -924,6 +924,10 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
 <div class="tour" id="tour" hidden><div class="tourhole" id="tourHole"></div>
   <div class="tourcard" id="tourCard" role="dialog" aria-live="polite" aria-labelledby="tourT"><small id="tourStep"></small><h3 id="tourT"></h3><p id="tourB"></p>
     <div class="row"><button id="tourSkip">Skip</button><span style="flex:1"></span><button id="tourBack">Back</button><button class="primary" id="tourNext">Next</button></div></div></div>
+<div class="sheetwrap" id="ownSheet" hidden><div class="sheet" role="dialog" aria-labelledby="ownT"><div class="sheetseal">♪</div><h2 id="ownT">Add the recording</h2>
+  <p id="ownP"></p>
+  <input class="file" type="file" id="ownFile2" accept=".mp3,.m4a,.wav,.aac,audio/mpeg,audio/mp3,audio/mp4,audio/x-m4a,audio/wav,audio/x-wav,audio/aac">
+  <p class="status" id="ownSt2"></p><button id="ownClose">Not now (the tone only)</button></div></div>
 <div class="sheetwrap" id="welcome" hidden><div class="sheet" role="dialog" aria-labelledby="wT"><div class="sheetseal">♪</div><h2 id="wT">Welcome</h2><p id="wP"></p>
   <button class="primary big" id="wTour">Show me around (1 minute)</button><button class="big" id="wPlace">Take the placement test (10 minutes)</button><button class="big" id="wView" hidden>See my last placement</button><button id="wClose">Maybe later</button></div></div>
 <div class="sheetwrap" id="vxSheet" hidden><div class="sheet vxsheet" role="dialog" aria-labelledby="vxT">
@@ -3244,7 +3248,7 @@ function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,
   contour:raw.contour?raw.contour.map(p=>({t:p.t,m:p.m==null?null:p.m+k})):null}}
 $('ownFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];const own=SONGS[G.src]&&SONGS[G.src].own;if(!f||!own)return;
   const b=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mp4'});try{await BlobDB.put('own:'+own,b)}catch(err){}SUNG[own]=b;G.sungKey=null;
-  Object.keys(localStorage).filter(k=>/^ison-smap-/.test(k)&&k.indexOf(G.src)>=0).forEach(k=>localStorage.removeItem(k));loadSource()});
+  Object.keys(localStorage).filter(k=>/^ison-smap-/.test(k)&&k.indexOf(G.src)>=0).forEach(k=>localStorage.removeItem(k));SM.id=null;loadSource()});
 function loadSource(){
   G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
   $('transpose').disabled=G.src.startsWith('ex-');$('transpose').value=String(curShift());
@@ -5997,7 +6001,7 @@ function keyRec(rec,k){if(!k||!rec)return rec;const sh=v=>v==null?null:v+k;
   return Object.assign({},rec,{notes:(rec.notes||[]).map(n=>Object.assign({},n,{m:n.m+k})),contour:rec.contour?rec.contour.map(p=>Array.isArray(p)?[p[0],sh(p[1])]:Object.assign({},p,{m:sh(p.m)})):rec.contour,keyShift:k})}
 function keyMap(map,k){if(!k)return map;return Object.assign({},map,{tonicR:map.tonicR!=null?map.tonicR+k:map.tonicR,
   phr:map.phr.map(p=>Object.assign({},p,{core:p.core.map(n=>Object.assign({},n,{m:n.m+k,mX:n.mX+k})),fine:(p.fine||[]).map(f=>Object.assign({},f,{mX:f.mX+k}))}))})}
-async function songRecFor(id){await privReady;id=String(id);if(id.startsWith('my-')){try{return await MyDB.get(+id.slice(3))}catch(e){return null}}if(id.startsWith('b:'))return builtinRec(id);try{return await MyDB.get(+id)}catch(e){return null}}
+async function songRecFor(id){await privReady;id=String(id);if(ownNeeded(id))ownAsk(id);if(id.startsWith('my-')){try{return await MyDB.get(+id.slice(3))}catch(e){return null}}if(id.startsWith('b:'))return builtinRec(id);try{return await MyDB.get(+id)}catch(e){return null}}
 /* the natural voice shift (TD-PSOLA) */
 function psTrack(x,sr){
   /* pitch every 5 ms (YIN), on a copy reduced to about 11 kHz for speed */
@@ -6828,7 +6832,19 @@ function smLoadMap(map){SM.dx=null;SM.off=map.off;SM.phr=map.phr.map((p,i)=>({i,
   const best={};W.forEach(x=>{if(!best[x.p]||x.sc>best[x.p].sc)best[x.p]=x});SM.phr.forEach(p=>p.diff=best[p.i]?best[p.i].sc:0);
   SM.hs=Object.values(best).filter(x=>x.sc>=3.2).sort((a,b)=>b.sc-a.sc).slice(0,Math.max(3,Math.ceil(SM.phr.length*0.35))).sort((a,b)=>a.p-b.p||a.j-b.j).map((x,i)=>Object.assign(x,{i,name:'Hard spot in phrase '+(x.p+1)}));
   SM.ok=true}
-async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';
+/* a song whose recording is kept only on this phone (SONGS[..].own): when it is missing, ask for it where he is */
+function ownNeeded(id){const k=String(id||'').replace(/^b:/,''),sg=SONGS[k];return sg&&sg.own&&!SUNG[sg.own]?sg.own:null}
+const OWN_ASKED={};
+function ownAsk(id){const k=String(id).replace(/^b:/,''),sg=SONGS[k];if(!sg||!sg.own||OWN_ASKED[k])return;OWN_ASKED[k]=1;
+  const which=sg.own==='ncense-d'?'"Blessed art Thou - Ncense (6 lower, D)"':sg.own==='ncense'?'"Blessed art Thou - Ncense (retuned to A flat)"':'the recording Claude sent you';
+  $('ownP').textContent='This song uses the real recording as the singer\'s voice, and it is not on the website, so this phone needs its own copy, once. Tap Choose File, then Browse, and pick the file named '+which+' (in Files, usually in Downloads; if it is still in the Claude app, open it there, tap Share, then Save to Files first).';
+  $('ownSt2').textContent='';$('ownSheet').dataset.k=k;$('ownSheet').hidden=false}
+$('ownClose').addEventListener('click',()=>{$('ownSheet').hidden=true});
+$('ownFile2').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0],k=$('ownSheet').dataset.k,sg=SONGS[k];if(!f||!sg)return;
+  $('ownSt2').textContent='Saving it on this phone...';const b=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mp4'});try{await BlobDB.put('own:'+sg.own,b)}catch(err){}
+  SUNG[sg.own]=b;SM.id=null;G.sungKey=null;try{Object.keys(localStorage).filter(q=>/^ison-smap-/.test(q)&&q.indexOf(k)>=0).forEach(q=>localStorage.removeItem(q))}catch(err){}
+  $('ownSt2').textContent='Added. The choir is now the voice for this song.';setTimeout(()=>{$('ownSheet').hidden=true;try{renderEars()}catch(err){}try{if(G.src===k)loadSource()}catch(err){}},900)});
+async function smEnsure(id,prog){await privReady;const rid=id||'b:psalm23';if(ownNeeded(rid))ownAsk(rid);
   let rec=null;if(String(rid).startsWith('my-')){try{rec=await MyDB.get(+String(rid).slice(3))}catch(e){}}else rec=builtinRec(rid);if(!rec)return false;
   const kk=songKey(rid);if(SM.id===rid&&SM.key===kk&&SM.ok&&(!!SM.x===!!rec.audio))return true;
   const an=analyzeSong4Course(rec);if(!an||!an.phrases.length)return false;SM.id=rid;SM.key=kk;SM.name=rec.name||'';SM.dur=rec.dur;SM.st={};SM.x=null;SM.seg=null;SM.segT0=0;SM.plan=null;SM.ok=false;
@@ -9028,7 +9044,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=62;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=63;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

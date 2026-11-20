@@ -616,6 +616,9 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   Eli adds his own copy once on the Songs tab (`ownBox`, `ownFile`, BlobDB `own:ncense` and `own:ncense-d`); a SONGS
   entry with `own:` shows the picker. Songs `song-evl-ncense` (A flat, as sung) and `song-evl-ncense-d` (6 lower, D).
   Use the 6 lower entry rather than the key setting: the app's key change (`keyedAudio`) is made for one voice.
+  Version 63: Eli heard only the tone in Loop a part because the file had never been added (the picker was only on the
+  Songs tab). Now any screen that opens such a song without its file (`smEnsure`, `songRecFor`) pops up `ownSheet` with
+  the file picker and the exact file name; tested in the browser with the real file, then reloaded: Loop a part finds it.
 - Work folder `~/ison-singer/ncense` (outside the repo): `drone.json` (the ison every 20 ms), `align.py` (MMS forced
   alignment of every word of Kazan's text, syllables split by letters), `align2.py` (notes inside each syllable by a
   dynamic programme on the melody's harmonic salience with the drone's steady partials taken out, the score's rhythm as a
