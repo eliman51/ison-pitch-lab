@@ -631,6 +631,25 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   Rubber Band `-p -6` (88% within a quarter step of D). The files sent to Eli: `~/ison-singer/ncense/Blessed art Thou -
   Ncense (retuned to A flat).m4a` and `(6 lower, D).m4a`.
 
+## Our Father: our church choir as the voice (20 November 2026)
+
+- Eli has full permission for this recording (chant recorded in his own church), so it is in the repo:
+  `ourfather-choir.m4a` (as sung, retuned to exact E flat) and `ourfather-choir-d.m4a` (one half step lower, D). Songs
+  `song-of-choir` and `song-of-choir-d`. He plans to stop using the computer voice for the Our Father.
+- It is Kedrov's four-part setting in E flat: chroma DTW of all four parts synthesized against the recording picks +1 from
+  the score's D by a wide margin (cost 0.145 against 0.22 for the next key). Choir about 40 cents flat at the start,
+  rising to pitch by the end; each melody note within about 10 cents of that curve.
+- Timing (`~/ison-singer/ourfather-rec/align.py`, `align2.py`): a time map from the harmony (chroma DTW), the MMS word
+  aligner and faster-whisper word times; each syllable is placed where two of the three agree (the map is blind inside a
+  long held chord at the start, MMS loses its place after "against us", whisper words are matched by spelling and time);
+  the rest are spread by the score's beats. Notes inside a syllable share it by beats. Breaths at punctuation as rests.
+- Key advice given: men sing the tune an octave under the sopranos, so the as-sung E flat is already E flat 3 to E flat 4
+  for him; the D copy is his D3 to D4. Eli had guessed eight half steps down; that would put the sopranos at G3 to G4 and
+  the basses in a rumble, so it was not made. Offer it if he asks after listening.
+- Checked: the app's own key change (PSOLA, `psolaShift`, 22 kHz) run on the *Ncense choir six down gave 71% of notes in
+  tune against Rubber Band's 88%, and broke the drone up (its pitch wandering about 5 half steps instead of staying
+  steady). So for choir recordings make lowered copies with Rubber Band on the Mac; do not rely on the key setting.
+
 ## His range, corrected (20 November 2026)
 
 - The guess "about G2 to A3" (from the Psalm 118 sets at home 51) was wrong for these hymns: Eli found the Our Father at
