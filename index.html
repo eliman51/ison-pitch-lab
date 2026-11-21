@@ -1070,9 +1070,16 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
 <div class="sheetwrap earsheet" id="earSheet" hidden><div class="sheet" role="dialog" aria-labelledby="earShT">
   <div class="sheethead"><h2 id="earShT">Edit this session</h2><button id="earShDone" class="primary">Done</button></div>
   <div class="sheetbody">
+    <div class="field" style="margin:0"><label class="label" for="earPreset">Saved setups</label>
+      <select id="earPreset"><option value="">Not using one</option></select>
+      <div class="row" style="gap:8px;margin-top:6px"><input type="text" id="earPresetName" placeholder="Name this setup" autocomplete="off"><button id="earPresetSave">Save</button><button id="earPresetDel" class="ghost">Delete</button></div>
+      <p class="status" id="earPresetSt" style="margin:4px 0 0">A setup remembers everything on this screen: the lesson, the song and part, the length, the difficulty and every setting. Save the two or three ways you like to work and pick one in a tap.</p></div>
     <h3>The session</h3>
         <div class="field" style="margin:0"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
         <div class="field" style="margin:10px 0 0"><span class="label">Difficulty (pace)</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt" style="font-size:.85rem"></span></div>
+        <div class="field"><label class="label" for="earLoop">When the lesson reaches the end</label><select id="earLoop"><option value="again">Go round again until the time is up</option><option value="stop">Stop there, even if there is time left</option></select></div>
+        <div class="row" style="gap:8px"><button id="earRestart" class="ghost">Start this lesson from the beginning</button></div>
+        <p class="status" id="earRestartSt" style="margin:0"></p>
       <details class="opts"><summary>All the lessons, with how far you are</summary>
       <div id="earUnits" class="earunits"></div></details>
       <div id="earDailyBox" class="earnotes" hidden>
@@ -7883,7 +7890,7 @@ function bgTimeline(u,lv,goal,opt){opt=opt||{};const smap=[],s=earSet(),ev=[],ma
   if(opt.start==null){if(u===5||u===6||u===10||u===13||u===14||u===15){if(s.cues!=='none')vo(u===5?['songpart','lvl'+lv]:u===6?['sm_intro']:u===13||u===15?[]:u===14?['mp_intro']:['daily','herehome']);marks.push({t,ph:'L',note:null,di:-1});note(earHome(),2.2)}
     else{if(s.cues!=='none')vo(u===11||u===12?['earsonly','u_'+u,'herehome']:['earsonly','u_'+u,'lvl'+lv,'herehome']);marks.push({t,ph:'L',note:null,di:-1});note(earHome(),2.2)}marks.push({t,note:null});t+=0.6}
   else{di=opt.start%dr.length;opt.prev.slice(0,opt.start).forEach(d=>{all.push(d);starts.push(-1)})}
-  while(t<goal){if(di>=dr.length){if(u===10||u===13||u===14||u===15||(u===6&&goal-t<120))break;dr=earDrills(u,lv);di=0;if(!dr.length)break;if(s.cues!=='none')vo(['round'])}
+  while(t<goal){if(di>=dr.length){if(u===10||u===13||u===14||u===15||(u===6&&goal-t<120)||(u===5&&earSet().songLoop==='stop'))break;dr=earDrills(u,lv);di=0;if(!dr.length)break;if(s.cues!=='none')vo(['round'])}
     const d=dr[di++],idx=all.length;all.push(d);starts.push(t);marks.push({t,ph:'',note:null,di:idx,ann:''});lastAnn='';
     dsrc=d.vsrc||(u===5?'ES':u===6?'SM':null);dvg=dsrc&&!d.noVoice?songVoiceGain():0;VS=dsrc==='ES'?ES:SM;
     if(s.cues!=='none'){let k=d.vo?d.vo.slice():voKeys(d.name);if(d.pre)k=d.pre.concat(k);if(/^Today/.test(d.name))k=['todays',...earFocus(earState()).map(voNote)];
@@ -8094,6 +8101,22 @@ function earUnitSelUI(){const sel=$('earUnitSel');if(!sel)return;const s=earSet(
   EAR_ORDER.forEach(i=>{const U=EAR_UNITS[i];if(EAR_GROUP[i]){grp=document.createElement('optgroup');grp.label=EAR_GROUP[i];sel.appendChild(grp)}
     const o=document.createElement('option');o.value=String(i);o.textContent=(i<4?'Unit '+i+': ':'')+U.name;(grp||sel).appendChild(o)});
   sel.value=String(s.unit)}
+/* saved setups: a whole Ears-only screen (lesson, song, part, length, difficulty and every setting) under a name */
+function earPresets(){const a=store.get('ison-ear-presets',[]);return Array.isArray(a)?a:[]}
+function earPresetUI(){const sel=$('earPreset');if(!sel)return;const P=earPresets(),cur=earSet().presetName||'';
+  sel.innerHTML='<option value="">Not using one</option>'+P.map(x=>'<option value="'+x.n.replace(/"/g,'&quot;')+'">'+x.n+'</option>').join('');
+  sel.value=P.some(x=>x.n===cur)?cur:''}
+function earPresetSave(){const nm=($('earPresetName').value||'').trim();const st=$('earPresetSt');
+  if(!nm){st.textContent='Give the setup a name first.';$('earPresetName').focus();return}
+  const s=Object.assign({},earSet());delete s.presetName;const P=earPresets().filter(x=>x.n!==nm);P.push({n:nm,s});
+  store.set('ison-ear-presets',P.slice(-20));earSave({presetName:nm});$('earPresetName').value='';earPresetUI();
+  st.textContent='Saved as "'+nm+'". Pick it here any time to bring everything back.'}
+function earPresetLoad(nm){const p=earPresets().find(x=>x.n===nm);const st=$('earPresetSt');
+  if(!p){earSave({presetName:''});st.textContent='';return}
+  const keep=Object.assign({},p.s);keep.presetName=nm;store.set('ison-ears-set',keep);
+  st.textContent='Using "'+nm+'".';ES.id=null;SM.id=null;renderEars()}
+function earPresetDel(){const nm=$('earPreset').value,st=$('earPresetSt');if(!nm){st.textContent='Pick a setup to delete first.';return}
+  store.set('ison-ear-presets',earPresets().filter(x=>x.n!==nm));earSave({presetName:''});earPresetUI();st.textContent='Deleted "'+nm+'".'}
 function earSumUI(){const el=$('earSumTxt');if(!el)return;const s=earSet();
   const bits=[(s.min||20)+' minutes',(EAR_PACE[s.pace||'gentle']||{n:'Gentle'}).n];
   const pick={5:'earSong',6:'smSongSel',15:'vbSong'}[s.unit],sl=pick&&$(pick);
@@ -8102,7 +8125,8 @@ function earSumUI(){const el=$('earSumTxt');if(!el)return;const s=earSet();
   el.textContent=bits.join(' · ')}
 function earSheetOpen(on){const w=$('earSheet');if(!w)return;w.hidden=!on;if(on)w.querySelector('.sheetbody').scrollTop=0}
 function renderEars(){const s=earSet(),box=$('earUnits');document.documentElement.classList.toggle('earsrun',!!EARS.run);$('earSetup').hidden=EARS.run;$('earRun').hidden=!EARS.run;
-  earUnitSelUI();earSumUI();
+  earUnitSelUI();earSumUI();earPresetUI();$('earLoop').value=s.songLoop==='stop'?'stop':'again';
+  {const pos=s.unit===5?esPosGet():null;$('earRestart').hidden=!pos;$('earRestartSt').textContent=pos?'This lesson is longer than one session, so it carries on from "'+pos.lk+'".':''}
   if(EARS.run){earUI();return}
   box.innerHTML='';EAR_ORDER.forEach(i=>{const U=EAR_UNITS[i];if(EAR_GROUP[i]){const g=document.createElement('div');g.className='eargrp';g.textContent=EAR_GROUP[i];box.appendChild(g)}const b=document.createElement('button');b.className='earunit'+(s.unit===i?' sel':'')+(i===10?' daily':'');b.dataset.u=i;b.setAttribute('aria-pressed',String(s.unit===i));
     const h=document.createElement('b');h.textContent=(i<4?'Unit '+i+' · ':'')+U.name;const p=document.createElement('span');p.textContent=U.desc;
@@ -8134,6 +8158,11 @@ function earInit(){const lo=$('earLo'),hi=$('earHi');for(let m=36;m<=79;m++){[lo
   $('earAnnLive').onchange=()=>{const on=$('earAnnLive').checked;earSave({ann:on});if(EARS.run&&EARS.bg)bgReplanFromNext(on?'Note names on':'Note names off')};
   $('earSongPitch').onchange=()=>{earSave({songPitch:$('earSongPitch').value});earSongApplyPitch();renderEarSong();if(EARS.run&&EARS.bg)bgReplanFromNext('Tone pitch changed')};$('earSongTurns').onchange=()=>{earSave({songTurns:$('earSongTurns').checked});earSongPlanTxt();if(EARS.run&&EARS.bg)bgReplanFromNext($('earSongTurns').checked?'Turns on':'Turns off')};
   $('earSongTimbre').onchange=()=>{earSave({timbre:$('earSongTimbre').value});$('earTimbre').value=$('earSongTimbre').value;if(EARS.run&&EARS.bg)bgReplanFromNext('Tone sound changed')};
+  $('earPreset').onchange=()=>earPresetLoad($('earPreset').value);
+  $('earPresetSave').onclick=earPresetSave;$('earPresetDel').onclick=earPresetDel;
+  $('earPresetName').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();earPresetSave()}};
+  $('earLoop').onchange=()=>{earSave({songLoop:$('earLoop').value});if(EARS.run&&EARS.bg)bgReplanFromNext('End of lesson changed')};
+  $('earRestart').onclick=()=>{const st=earState();if(st.songPos){delete st.songPos[earSongKey()];store.set('ison-ears',st)}earSongPlanTxt();renderEars();$('earRestartSt').textContent='It will start at the beginning next time.'};
   $('earUnitSel').onchange=()=>{earSave({unit:+$('earUnitSel').value});renderEars()};
   $('earSum').onclick=()=>earSheetOpen(true);$('earShDone').onclick=()=>earSheetOpen(false);
   $('earSheet').onclick=e=>{if(e.target===$('earSheet'))earSheetOpen(false)};
@@ -9207,7 +9236,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=69;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=70;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
