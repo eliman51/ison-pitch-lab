@@ -793,9 +793,32 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   already fall there (4 of 25 did). A choir staggers its breathing, so the sound never stops for long and the gaps
   alone leave stretches no one person could sing: wherever a breath would have to last more than 7.5 seconds, one
   more is added at the best full stop, colon, semicolon or comma in that stretch (16 of them).
-- Result, version 74: 41 breaths, 25 of them the singers' own at their own length (0.45 to 0.86 s), longest run of
-  singing 7.4 s, median 4.8 s, song 3 minutes 38. File `blessed-art-thou-byz-breath2.m4a`, BlobDB key
-  `evlogitaria-byz-br2` (`pubAudio` keeps the first copy of a name forever, so a changed file needs a new one).
+- Version 74 added the breath time on top of the notes and came out 16 s longer than the recording. Eli heard it at
+  once ("the length needs to be the same as the one I sent you"). He was right, and the audit said why: the alignment
+  the app's timing came from stretches each note over the breath that follows it, so **the time a breath takes is
+  already inside the note before it**. Version 76 carves each breath out of that note (at most 60% of it, never
+  below 0.14 s, borrowing from up to three notes back), so the song stays its own 3 minutes 16.
+- Confidence, measured and worth repeating before trusting this method again: the detection was run at twelve
+  settings (four thresholds, three smoothings) and the gap count swings from 21 to 59; only 8 of 36 gaps appear at
+  every setting, 21 at three quarters, and a gap's length moves by about 0.13 s between settings. Looking for the
+  hiss of an inhalation inside each gap found one in only 2 of 36, so that test says nothing either way in a choir
+  recording. What does hold up: 23 of 28 gaps land exactly where a word begins, against 51% of notes by chance.
+- Two things were tried and failed, so do not repeat them. (1) Stripping the drone's frequencies out of the audio and
+  re-running the word aligner on it: the letter score fell from 0.17 to 0.04, because taking those bins out damages
+  the voice too. (2) `tools/retime.py`, a Viterbi that places all 615 notes freely along the measured pitch line:
+  the written note was actually sounding in only 42 to 48% of the notes it placed, against 57% for the timing we
+  already had, so the pitch tracker is not good enough on a choir to re-time from scratch.
+- Giving every note the length the singers give it (their note times tile the song, total slack 0.91 s) does line the
+  song up beautifully on paper: every note starts within 22 ms on average of theirs and the song comes to 200.25 s
+  against their 200.1 s. Eli rejected it by ear on 21 November 2026: it "goes slow in some parts and extremely quick
+  through certain words in a way that seems very unnatural" from a computer voice. `tools/breaths.py`
+  `RECORDING_TIMING` is the switch, left off.
+- Result, version 76: 41 breaths, 25 of them the singers' own at their own length (0.22 to 0.53 s), 16 added, longest
+  run of singing 7.1 s, median 4.7 s, song 3 minutes 16, the same length as before the breaths. File
+  `blessed-art-thou-byz-breath4.m4a`, BlobDB key `evlogitaria-byz-br4` (`pubAudio` keeps the first copy of a name
+  forever, so a changed file needs a new one). A speech recognizer heard 63% of the words against 70% on the
+  version with longer added breaths; Eli has not reported mush, so it is likely the recognizer's segmenting, but
+  it is the thing to watch if he says words run together.
 - A gotcha worth remembering: the rests in `align2.json` have `t0` present but null, so `n.get('t0',1e9)` returns
   None, not the default, and a naive "first note at or after this time" search stopped at the first rest and mapped
   every later pause to the same note.
