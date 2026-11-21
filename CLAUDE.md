@@ -704,3 +704,6 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Measured on the Byzantine Blessed art Thou (`clone/out/`): voice likeness 0.89 (computer singer 0.68; the singer's
   own other recording 0.94), 95% of notes within a quarter step (computer singer 98%), 69% of words heard back by a
   speech recognizer (computer singer 82%). The new voice is closer to him and a little less clear in the words.
+- Version 67: at Eli's word it is in the app as an extra song beside the old one, `song-evl-byz-nv` "Blessed Art Thou,
+  O Lord (Byzantine, new voice)", same notes as `song-evlogitaria-byz`, file `blessed-art-thou-byz-newvoice.m4a`
+  (BlobDB key `evlogitaria-byz-nv`, `SUNG.evlbyznv`).
