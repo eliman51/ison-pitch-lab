@@ -707,3 +707,53 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Version 67: at Eli's word it is in the app as an extra song beside the old one, `song-evl-byz-nv` "Blessed Art Thou,
   O Lord (Byzantine, new voice)", same notes as `song-evlogitaria-byz`, file `blessed-art-thou-byz-newvoice.m4a`
   (BlobDB key `evlogitaria-byz-nv`, `SUNG.evlbyznv`).
+
+## Breathing room in a sung song (21 November 2026)
+
+- Eli could find nowhere to breathe in the Byzantine Blessed art Thou: he runs out halfway through a line. Measured,
+  he was right and it is the file's fault. The computer singer never breathes, so `song-evlogitaria-byz` has 3 rests
+  of 0.28 s in 3 minutes 17, and one run of 73 seconds with no gap at all. The *Ncense singers pause about 49 times,
+  every 2 to 11 seconds, at punctuation (measured by MMS word alignment of Kazan's text against their recording; the
+  letter scores are low because of the drone, but every pause lands on a punctuation mark, so the places are right).
+- The cure, and the rule for any future sung file: write the breaths into the melody. A breath at every full stop,
+  colon, semicolon and question mark, and at a comma when more than three seconds have passed without one. On this
+  hymn that is 50 breaths, the longest run 9 seconds, median 3.6, and the breath points land within a second or two
+  of the real singers'. The song goes from 3:17 to 3:42.
+- In the app: `song-evl-byz-br` "Blessed Art Thou, O Lord (Byzantine, new voice, room to breathe)", melody
+  `EVLOGITARIA_BYZ_BR` (the same notes with `r:` rests inserted), file `blessed-art-thou-byz-breath.m4a`
+  (BlobDB `evlogitaria-byz-br`, `SUNG.evlbyzbr`), sung by `hisvoice.py`. Measured: 93% of notes within a quarter step,
+  71% of words heard back (the version without breaths: 95% and 69%).
+
+## Ears only rebuilt as one screen (21 November 2026)
+
+- Eli's complaint: the page is one huge scroll, the session length and difficulty sit at the top while a lesson's own
+  settings are far below, so changing two things means scrolling past twenty cards he never touches. What he asked for:
+  pick the lesson from a drop-down, edit everything about that session in one menu, press go.
+- Now: the Ears only screen is the lesson drop-down (`earUnitSel`), a one-line summary (`earSum`, which is the button
+  that opens the editor) and Start. Everything else lives in a sheet, `#earSheet` (`earSheetOpen`): saved setups, the
+  session length and difficulty, the lesson's own card, Sound and voice, and the help. The lesson cards with the
+  progress bars are still there, folded away under "All the lessons, with how far you are".
+- **Saved setups** (`ison-ear-presets`, `earPresetSave`/`earPresetLoad`/`earPresetDel`, up to 20): a whole screen under
+  a name, so the two or three ways he likes to work are one tap apart. The name in use is `presetName` in the settings.
+- Learn a song's card is now four sections: the song and part, What to practice, How much repetition, Sound.
+
+## Learn a song, what a session is made of (21 November 2026)
+
+- `SG_STAGES` names the eleven stages of the lesson (notes, long, moves, pieces, joins, mix, think, whole, memory,
+  real, rec). Every drill carries its stage (`d.st`), `earSet().songStages` says which are on, and `esStageOn` is the
+  gate. Whatever is left is repeated for the whole session, so an hour of nothing but the moves is a valid lesson.
+  If everything is off, the whole part alone is given back, never an empty lesson.
+- Also added, all in the Learn a song card: **Order** (`songOrder`: build up, the whole part first, a fresh mix every
+  round), **How big a piece** (`songPiece`, which drives `earSongPieces`), **Speed** (`songSpeed`, a fixed speed
+  instead of the pace's ladder), **Ison drone under everything** (`songDrone`, on the note the part rests on longest or
+  an octave below; `lwac` and `hold` now take `o.drone`), **Keep the tone under the recording** (`songToneRec`, default
+  on: the `rec` steps carry the notes as `seq` and `bgTimeline` lays a quiet tone line under the singer, one line per
+  breath, gain 0.5), **When the lesson reaches the end** (`songLoop`: go round again, or stop), and a button to start a
+  long lesson over (clears `songPos`).
+- **Singing on your own now defaults to "never"** for Learn a song, as it already does for Master a song: Eli heard no
+  difference between With me and Alone and would rather have the repetition. When it is off, the Alone and Check lights
+  are taken off the running screen instead of sitting there looking like buttons.
+- Checked by measurement in the browser (`window.isonDbg` now also holds `bgTimeline`, `esStageOn`, `SG_STAGES`):
+  with only the moves ticked the lesson is the moves alone and runs with no errors; the tone under the recording is
+  6 tone lines under the 3 sing-along passes with the setting on and 0 with it off; "stop at the end" gives a 921
+  second session where "go round again" fills the full 1800. Eli judges the sound.
