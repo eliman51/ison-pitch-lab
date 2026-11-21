@@ -822,3 +822,9 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - A gotcha worth remembering: the rests in `align2.json` have `t0` present but null, so `n.get('t0',1e9)` returns
   None, not the default, and a naive "first note at or after this time" search stopped at the first rest and mapped
   every later pause to the same note.
+- Version 77: the new-voice Byzantine hymn without the breaths (`song-evl-byz-nv`, `blessed-art-thou-byz-newvoice.m4a`)
+  is gone, at Eli's word: "I only want one of these that have the new voice." The one that stayed is
+  `song-evl-byz-br`, now called simply "Blessed Art Thou, O Lord (Byzantine, new voice)". A one-time move
+  (`ison-byznv`) points anything saved on the dropped song, including its key and its octave, at the one that stayed.
+  Still in the list, and his to prune when he gets to them: the computer-voice Byzantine (`song-evlogitaria-byz`),
+  the two *Ncense recordings and the Kievan setting.
