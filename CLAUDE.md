@@ -778,3 +778,24 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   a melody and Polish the vibrato, which do not use it (they have their own repeats and speeds): `earPaceField` is
   hidden for units 13, 14 and 15 and the pace is left out of the one-line summary there.
 
+## The breaths measured from the recording (21 November 2026)
+
+- Eli's verdict on the punctuation breaths: the places and lengths were off, and he asked for the real thing, found
+  in the *Ncense recording itself, with the choir separated from the drone and every pause timed. He also asked for
+  no more new variations of the song: the existing `song-evl-byz-br` is modified in place.
+- `tools/pauses.py` (run with the singer's Python) does the finding. The melody moves and the ison stands still, so
+  it takes the drone's own harmonics out of the spectrum first (the drone was measured to 20 ms when the recording
+  was first taken apart, `~/ison-singer/ncense/drone.json`), then scores a harmonic stack at every pitch from 150 to
+  700 Hz every 5.8 ms and calls a frame empty when what is left falls under a fifth of the usual level. 38 gaps of
+  0.12 s or more; merged, 28 real pauses.
+- `tools/breaths.py` puts them into the melody. The app's melody and the aligned recording are the same 618 tokens
+  note for note (checked), so each pause maps to an exact note; it is snapped to the start of a word when it does not
+  already fall there (4 of 25 did). A choir staggers its breathing, so the sound never stops for long and the gaps
+  alone leave stretches no one person could sing: wherever a breath would have to last more than 7.5 seconds, one
+  more is added at the best full stop, colon, semicolon or comma in that stretch (16 of them).
+- Result, version 74: 41 breaths, 25 of them the singers' own at their own length (0.45 to 0.86 s), longest run of
+  singing 7.4 s, median 4.8 s, song 3 minutes 38. File `blessed-art-thou-byz-breath2.m4a`, BlobDB key
+  `evlogitaria-byz-br2` (`pubAudio` keeps the first copy of a name forever, so a changed file needs a new one).
+- A gotcha worth remembering: the rests in `align2.json` have `t0` present but null, so `n.get('t0',1e9)` returns
+  None, not the default, and a naive "first note at or after this time" search stopped at the first rest and mapped
+  every later pause to the same note.
