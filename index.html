@@ -3355,8 +3355,14 @@ function shifted(raw,k){return{notes:raw.notes.map(n=>({t0:n.t0,t1:n.t1,m:n.m+k,
 $('ownFile').addEventListener('change',async e=>{const f=e.target.files&&e.target.files[0];const own=SONGS[G.src]&&SONGS[G.src].own;if(!f||!own)return;
   const b=new Blob([await f.arrayBuffer()],{type:f.type||'audio/mp4'});try{await BlobDB.put('own:'+own,b)}catch(err){}SUNG[own]=b;G.sungKey=null;
   Object.keys(localStorage).filter(k=>/^ison-smap-/.test(k)&&k.indexOf(G.src)>=0).forEach(k=>localStorage.removeItem(k));SM.id=null;loadSource()});
+/* Transpose is remembered per song: set a song an octave down and it stays there, and another song keeps its own
+   (Eli, 21 November 2026). A song with none yet takes whatever was last used, so nothing changes until he sets one.
+   Recordings keep the one shared setting (S.recShift), since they are one-offs. */
+function songShift(id){const m=store.get('ison-songshift',{})||{};const v=m[String(id)];return v==null?null:Math.max(-24,Math.min(12,Math.round(+v)||0))}
+function songShiftSet(id,k){const m=store.get('ison-songshift',{})||{};m[String(id)]=Math.max(-24,Math.min(12,Math.round(+k)||0));store.set('ison-songshift',m)}
 function loadSource(){
-  G.src=$('guideSrc').value;$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
+  G.src=$('guideSrc').value;
+  if(!isRecLike(G.src)&&!G.src.startsWith('ex-')){const sh=songShift(G.src);if(sh!=null&&sh!==S.shift){S.shift=sh;save()}}$('typedBox').hidden=G.src!=='typed';$('recBox').hidden=G.src!=='rec';$('myRow').hidden=!G.src.startsWith('my-');
   $('transpose').disabled=G.src.startsWith('ex-');$('transpose').value=String(curShift());
   $('songCredit').hidden=!G.src.startsWith('song-');if(SONGS[G.src])$('songCredit').textContent=SONGS[G.src].credit;
   {const own=SONGS[G.src]&&SONGS[G.src].own;$('ownBox').hidden=!own;if(own)$('ownSt').textContent=SUNG[own]?'Added. It is the voice for this song, here and in Loop a part and Master a song. Choose a file again to replace it.':'Not added yet. Tap Choose File and pick the file Claude sent you (in Files, usually Downloads)'+(own==='ncense-d'?': the one named 6 lower.':': the one named A flat.')}
@@ -3685,7 +3691,7 @@ function seekTo(t){if(G.lesson||!G.ready)return;if(G.playing)stopSing(true);
 (function(){const t=$('transpose');for(let k=12;k>=-24;k--){const o=document.createElement('option');o.value=k;
   o.textContent=k===0?'As written':k===-12?'One octave lower (men)':k===-24?'Two octaves lower':(k>0?'Up ':'Down ')+Math.abs(k)+(Math.abs(k)===1?' half step':' half steps');t.appendChild(o)}
   t.value=String(S.shift)})();
-$('transpose').onchange=()=>{const k=+$('transpose').value;if(isRecLike(G.src))S.recShift=k;else S.shift=k;save();
+$('transpose').onchange=()=>{const k=+$('transpose').value;if(isRecLike(G.src))S.recShift=k;else{S.shift=k;if(!G.src.startsWith('ex-'))songShiftSet(G.src,k)}save();
   if(G.playing)return;if(G.src==='rec'&&G.recPts)segmentRec();else if(G.src.startsWith('my-')&&G.recRaw)setGuide(shifted(G.recRaw,k),G.useAudio,k);else loadSource();
   if(isRecLike(G.src)&&k!==0&&G.useAudio)$('singStatus').textContent+=' The recording still plays in its own key, so turn its sound off and use guide tones to hear your key.'};
 $('toneVol').value=S.vol;$('volTxt').textContent=Math.round(S.vol*100)+'%';
@@ -9236,7 +9242,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=71;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=72;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

@@ -757,3 +757,17 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   with only the moves ticked the lesson is the moves alone and runs with no errors; the tone under the recording is
   6 tone lines under the 3 sing-along passes with the setting on and 0 with it off; "stop at the end" gives a 921
   second session where "go round again" fills the full 1800. Eli judges the sound.
+
+## What is remembered (21 November 2026)
+
+- Eli asked that nothing reset: settings stay as he set them when the app is closed and reopened and when he switches
+  song, and the key or octave stays with the song it belongs to. Checked in the browser, and nearly all of it was
+  already true: every Ears-only setting lives in `ison-ears-set` and survives a reload and a song change (tested with
+  45 minutes, Extra hard, two stages, a fixed speed, drone on and the rest); the part (From and To) is per song in
+  `ison-ears` `songs`; the **key** ("Change the key") is per song in `ison-songkey` and holds through switching back
+  and forth; saved setups are `ison-ear-presets`.
+- The one gap was the Songs tab's **Transpose**, which was one global number for every song. Version 72 keeps it per
+  song in `ison-songshift` (`songShift`, `songShiftSet`): `loadSource` loads that song's own transpose and the
+  drop-down saves it. A song with none yet takes whatever was last used, so nothing moved for existing songs.
+  Recordings keep the shared `S.recShift`; the exercises (`ex-`) are not transposed. Because the sung voice only plays
+  at the men's octave (`S.shift===-12`), each song now keeps the octave its recording was made in.
