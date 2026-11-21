@@ -691,3 +691,16 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 2. `python3 tools/check.py` must say OK. Raise `APP_VER` in index.html and `CACHE` in sw.js by one (the version shows on the Chant tab, with a "Get the newest version" button, because phones kept showing old copies).
 3. Commit with a plain message and push to `main`. Tell Eli what changed and what to try.
 4. Only if Eli wants the artifact copy current: `python3 tools/artifact.py` and publish it.
+
+## The Psalm 23 singer's voice on other songs (20 November 2026)
+
+- On this Mac only, never in this repository: `~/ison-singer/clone` holds SoulX-Singer (`sx` venv), Applio with an RVC
+  model trained 300 epochs on the Psalm 23 recordings (`Applio/logs/psalm23singer`), and an 8.9 s voice sample
+  (`voice/prompt.wav`, Tone 3 at 41.55 to 50.4 s). Eli has permission for the recordings; publishing a copy of the
+  singer's voice singing other texts is a separate question to put to him before anything goes in the app.
+- `~/ison-singer/clone/sx/bin/python ~/ison-singer/clone/hisvoice.py "<song> sung.wav" "<out name>"` re-voices a
+  `tools/sing.py` result: SoulX (cfg 5, 48 steps, 25 s pieces cut at quiet spots) then the RVC model (index 0.6,
+  protect 0.33). Eli chose this chain by ear ("test 4"). About 2.5 minutes of work a minute of song.
+- Measured on the Byzantine Blessed art Thou (`clone/out/`): voice likeness 0.89 (computer singer 0.68; the singer's
+  own other recording 0.94), 95% of notes within a quarter step (computer singer 98%), 69% of words heard back by a
+  speech recognizer (computer singer 82%). The new voice is closer to him and a little less clear in the words.
