@@ -275,6 +275,7 @@ details.habit summary::-webkit-details-marker{display:none}
 .earflow span{background:rgba(0,0,0,.22);border:1px solid var(--line);border-radius:10px;padding:8px 10px;font-size:.8rem;color:var(--muted)}
 .earflow b{display:block;font-size:.95rem;font-weight:600}
 .earunits{display:flex;flex-direction:column;gap:8px}
+#keySheet{z-index:70}
 .earsheet .sheet{max-width:560px;max-height:88vh;padding:0;gap:0}
 .earsheet .sheethead{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:14px 16px 10px;border-bottom:1px solid var(--gridC);position:sticky;top:0;z-index:2;background:var(--surface)}
 .earsheet .sheetbody{overflow:auto;-webkit-overflow-scrolling:touch;padding:12px 16px 20px;display:flex;flex-direction:column;gap:12px}
@@ -1076,7 +1077,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <p class="status" id="earPresetSt" style="margin:4px 0 0">A setup remembers everything on this screen: the lesson, the song and part, the length, the difficulty and every setting. Save the two or three ways you like to work and pick one in a tap.</p></div>
     <h3>The session</h3>
         <div class="field" style="margin:0"><span class="label">Session length</span><div class="chips" id="earMins"></div></div>
-        <div class="field" style="margin:10px 0 0"><span class="label">Difficulty (pace)</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt" style="font-size:.85rem"></span></div>
+        <div class="field" id="earPaceField" style="margin:10px 0 0"><span class="label">Difficulty (pace)</span><div class="chips" id="earPaceChips"></div><span class="status" id="earPaceTxt" style="font-size:.85rem"></span></div>
         <div class="field"><label class="label" for="earLoop">When the lesson reaches the end</label><select id="earLoop"><option value="again">Go round again until the time is up</option><option value="stop">Stop there, even if there is time left</option></select></div>
         <div class="row" style="gap:8px"><button id="earRestart" class="ghost">Start this lesson from the beginning</button></div>
         <p class="status" id="earRestartSt" style="margin:0"></p>
@@ -8124,7 +8125,8 @@ function earPresetLoad(nm){const p=earPresets().find(x=>x.n===nm);const st=$('ea
 function earPresetDel(){const nm=$('earPreset').value,st=$('earPresetSt');if(!nm){st.textContent='Pick a setup to delete first.';return}
   store.set('ison-ear-presets',earPresets().filter(x=>x.n!==nm));earSave({presetName:''});earPresetUI();st.textContent='Deleted "'+nm+'".'}
 function earSumUI(){const el=$('earSumTxt');if(!el)return;const s=earSet();
-  const bits=[(s.min||20)+' minutes',(EAR_PACE[s.pace||'gentle']||{n:'Gentle'}).n];
+  const bits=[(s.min||20)+' minutes'];
+  if(![13,14,15].includes(s.unit))bits.push((EAR_PACE[s.pace||'gentle']||{n:'Gentle'}).n);
   const pick={5:'earSong',6:'smSongSel',15:'vbSong'}[s.unit],sl=pick&&$(pick);
   if(sl&&sl.selectedOptions&&sl.selectedOptions[0])bits.push(sl.selectedOptions[0].textContent.slice(0,34));
   if(s.unit===5){const n=SG_STAGES.filter(([id])=>esStageOn(id)).length;if(n<SG_STAGES.length)bits.push(n+' of '+SG_STAGES.length+' parts')}
@@ -8146,6 +8148,9 @@ function renderEars(){const s=earSet(),box=$('earUnits');document.documentElemen
       b.onclick=()=>{let f=(earSet().focus||[]).slice();if(f.includes(m))f=f.filter(x=>x!==m);else{f.push(m);if(f.length>4)f.shift()}earSave({focus:f});renderEars()};nc.appendChild(b)}
     $('earFocusTxt').textContent=foc.length?'Your picks: '+foc.map(nameOf).join(', ')+'. Tap again to remove, or clear them to go back to automatic.':'Automatic: '+auto.map(nameOf).join(', ')+' today. After each session of 8 minutes or more it moves on to the next notes, until you have covered every note from '+nameOf(R.lo)+' to '+nameOf(R.hi)+'. Or tap up to 4 notes to choose your own.';
     $('earClear').hidden=!foc.length;$('earLo').value=String(R.lo);$('earHi').value=String(R.hi)}
+  /* Loop a part, Practice a melody and Polish the vibrato have their own repeats and speeds: the difficulty
+     setting does nothing there, so it is taken off the screen instead of sitting there doing nothing. */
+  {const usesPace=![13,14,15].includes(s.unit);$('earPaceField').hidden=!usesPace}
   {const pc=$('earPaceChips');if(!pc.children.length)EAR_PACES.forEach(k=>{const b=document.createElement('button');b.textContent=EAR_PACE[k].n;b.dataset.k=k;b.onclick=()=>{earSave({pace:k});renderEars()};pc.appendChild(b)});
    [...pc.children].forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.k===(s.pace||'gentle'))));$('earPaceTxt').textContent=earPaceDesc(s.pace||'gentle')}
   const mc=$('earMins');if(!mc.children.length)[10,20,30,45,60,90].forEach(m=>{const b=document.createElement('button');b.textContent=m+' min';b.dataset.m=m;b.onclick=()=>{earSave({min:m});renderEars()};mc.appendChild(b)});
@@ -9242,7 +9247,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=72;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=73;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

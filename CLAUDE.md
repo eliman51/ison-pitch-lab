@@ -771,3 +771,10 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   drop-down saves it. A song with none yet takes whatever was last used, so nothing moved for existing songs.
   Recordings keep the shared `S.recShift`; the exercises (`ex-`) are not transposed. Because the sung voice only plays
   at the men's octave (`S.shift===-12`), each song now keeps the octave its recording was made in.
+
+- Version 73, two faults in the new screen that Eli hit at once: the "Change the key" sheet opened *behind* the Edit
+  sheet (both were `.sheetwrap` at z-index 55 and the Edit sheet comes later in the page), so in Loop a part the key
+  could not be changed at all; `#keySheet` is now z-index 70. And the Difficulty row showed for Loop a part, Practice
+  a melody and Polish the vibrato, which do not use it (they have their own repeats and speeds): `earPaceField` is
+  hidden for units 13, 14 and 15 and the pace is left out of the one-line summary there.
+
