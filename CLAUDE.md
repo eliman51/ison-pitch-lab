@@ -847,3 +847,38 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
 - Keep the install: it is the right tool for a different job, cleaning room noise out of a recording Eli makes
   himself in the shop, or out of a church recording, where the unwanted sound is not a voice. Do not reach for it
   to separate singers.
+
+## Psalm 118 on the Psalm 91 singer's Tone 7 (22 November 2026)
+
+- What Eli asked for: dissect the built-in Psalm 91/121 recording (Tone 7, the one with the hallelujah he loves), find
+  every rule of where the hallelujahs fall and how the lines drop, and set Psalm 118 stanza 1 on it in the singer's voice,
+  two ways: exactly his structure, and twice as much reading before each hallelujah. A test; nothing is in the app.
+- `tools/scan.py p91.mp3 words_sung.txt scan --spoken "tone seven"` (work folder `~/ison-singer/p91/`): 1,135 notes, home
+  E flat 3 (51.04). Steps used, in half steps above home: -1.8, 0, 2.06, 3.1, 3.4 to 3.6 (passing), 5.15.
+- **Where the refrains fall.** One line of words is one half-verse. A refrain comes after every TWO lines whatever the
+  sentence is doing (19 times; 3 lines 4 times), so it usually lands mid-verse. The psalm opens with three single lines,
+  each with its own refrain, the second being the cantor's call Barekhmor (home, 2, 3 falling to 2).
+- **The lines.** Line A, the first after a refrain: 2, 2 (later in the psalm a flick to the top, 5), 3, 2, then reads on
+  home, and drops on its last four syllables: a held 2 (0.72 s), 3 lifting to 5, 3 falling to 2, a long home note that
+  sinks to -1.8 at the very end. Line B, any later line: home, 2, 3 falling to 2, reads on home. Reading syllables 0.37 s
+  (middle half 0.32 to 0.41); a scoop up from -1.8 on about one in five. He hardly breathes between lines (median 0.04 s).
+- **The line before every Hallelujah** ends with one long figure on its last syllable, 16 times almost note for note:
+  home 0.76, 2 0.28, 3 0.27, 5 0.51, 3.4 0.20, 2 0.26, 3 0.37, 2 0.65 (3.4 s). Every other line ends plainly or with the drop.
+- **Three hallelujahs.** (1) All through Psalm 91, 17 times: hal scoops to home, le 2 to 3, lu leaps to 5 and falls to 3.6,
+  jah holds 5 for a second then 3.3, 2, 3, settling on 2; 4 of the 17 add a quick flick back to 5 in the last turn.
+  (2) Only in the Psalm 121 part, 6 times, sung straight on with no breath: 2, 3, then 2 to home, then 2, home, -1.8,
+  falling below home. (3) Twice near the end, a doubled slow Hallelujah Hallelujah (about 8.5 s) that climbs to 5 twice.
+  Eli said to ignore the end, so the settings use form 1 only.
+- **`tools/t7set.py <stanza> <out.mid> [--double]`** writes it (the words come from the notebook, never this repo). Given
+  his own Psalm 91 words in his own grouping, its rules put the main note of a syllable on his note 84% of the time and
+  the long figure on the right syllable 16 times in 18; the misses are places where he himself varies. `--double` keeps
+  his pairs and takes out every other refrain, so the groups are A B A B (the line that led into the dropped refrain
+  ends plainly). The Barekhmor word needed a `SAY` entry in `tools/sing.py`.
+- Sung (TIGER, then `hisvoice.py`): stanza 1 as he sings it 2:01, twice the reading 1:35, files in `~/ison-singer/p91/out/`.
+  92% and 94% of notes within a quarter step; the computer singer gets 94% and 90% of the words across, the trained voice
+  83% and 76%. That loss is in hisvoice's first stage (SoulX): RVC's protect (0.33 or 0.5) and index rate (0.6 or 0.4)
+  made no real difference (75, 76, 72%). Likeness of the trained voice on this material is 0.948, as close as the Psalm
+  23 singer's own other recording (0.943). The Psalm 91 singer himself measures 0.838 against the Psalm 23 singer, so
+  he is probably a different man; the voice used is the Psalm 23 singer's.
+- `hisvoice.py` now keeps its first stage as `<name> soulx.wav` and takes `--protect`, `--index` and `--rvc-only`, so
+  the second stage can be retried in half a minute.
