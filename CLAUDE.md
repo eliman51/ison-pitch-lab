@@ -828,3 +828,22 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   (`ison-byznv`) points anything saved on the dropped song, including its key and its octave, at the one that stayed.
   Still in the list, and his to prune when he gets to them: the computer-voice Byzantine (`song-evlogitaria-byz`),
   the two *Ncense recordings and the Kievan setting.
+
+## Inworld Voice Isolator, tried 22 November 2026
+
+- Eli found it and asked whether running it locally would help with recordings that have several voices. It is
+  installed on this Mac at `~/ison-singer/isolate` (its own venv, outside the repo): `pip install
+  inworld-voice-isolation`, `voice-isolate-doctor --full` to fetch the weights (about 490 MB from Hugging Face),
+  then `voice-isolate in.wav out.wav --device mps`. Code and weights are Apache 2.0, no non-commercial or religious
+  clause. It runs on the Mac's Metal backend and took 2 min 14 for the 3.5 minute *Ncense recording, writing the
+  voice and, beside it, `*_background.wav` with what it removed.
+- **It does not help with the choir.** Measured on the *Ncense recording: the ison drone is still there (10.3% of
+  the sound before, 8.0% after, so about a fifth of it went), and the MMS word aligner did worse on the isolated
+  voice than on the original (mean letter score 0.166 down to 0.109, letters under 0.3 up from 79% to 85%). Gap
+  detection on it finds 61 gaps instead of 36 and a higher share hold up across settings, but their lengths wobble
+  twice as much (0.27 s against 0.13 s), so it is not a better basis for breath finding. The README is honest about
+  why: it is a denoiser, "not a speaker selector", and says nothing about singing or choirs. Both the melody and the
+  ison are human voices, so it keeps both.
+- Keep the install: it is the right tool for a different job, cleaning room noise out of a recording Eli makes
+  himself in the shop, or out of a church recording, where the unwanted sound is not a voice. Do not reach for it
+  to separate singers.
