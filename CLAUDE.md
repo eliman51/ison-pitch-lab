@@ -965,3 +965,47 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   the chord plan and its score, `onset.py` the vowel starts, `gen_data.py` the entry itself, `verify.py` and `pt.py`
   the measurements); they are written for Psalm 23 and need editing for another song. Psalm 23 Tone 4 has a scan and 26 phrases already (`~/ison-singer/p23t4/scan/`).
 
+
+## Sing it without the tone (24 November 2026)
+
+- What Eli asked for: about 40 hours into Psalm 23 Tone 3 he sings it well with the tone but loses it the moment
+  nothing is playing. A lesson for exactly that stage, researched, and with every part of the lesson a control he
+  can change himself ("everything you are hard coding as the lesson, make that a way for me to edit it"), so he does
+  not have to come back for each tweak.
+- It is Ears only **unit 16, "Sing it without the tone"** (everything named `nt...`; card `#ntBox`; settings in
+  `earSet().nt`, defaults `NT_DEF`). Any song with a song map (`SM`), its own part (From, To), the app's key row (`nt`).
+- **The lesson is a list of passes he edits** (`ntRows`, kept in `nt.ladder`; `NT_LADDERS` are only ready-made starting
+  plans: Fade the tone away, Test yourself first, Trade lines with the tone, Hear it inside first, Landing notes, Only
+  the ison under you, Performance). A pass = one time through a piece with: a name, tone volume 0 to 10, singer
+  volume 0 to 10, which notes they play (`NT_SHAPES`, `ntMask`: every note, first note, first line, first or last note
+  of every line, odd or even lines, long notes only, all but the long notes), the word said before it (`NT_CUES`),
+  times, its own speed, and four ticks (starting note first, check note after, ison under it, a tick on each note).
+  Passes can be switched off, moved, copied, removed and added. Tone 0 and singer 0 is singing alone.
+- Around the passes: how the part is cut (`ntChunks`: one piece at a time, growing from the start, growing from the
+  end, the whole part; phrases in a piece; move on by fewer to overlap; order; times through the list), the whole
+  part alone at the start (cold) and after the pieces, what checks it, the starting note and check note (which note,
+  how long, how loud, silence after), the help getting softer each round (`fadeT`, `fadeV`, `fadeFloor`; Listen and
+  Check passes keep their volume), room after singing alone, pause between passes, what counts as a long note, and
+  whether words are spoken. "Carry on next session" keeps the piece reached (`ison-nt-pos`, saved from `bgLog`).
+- A change made during a session (the "Change this lesson" button on the running screen opens the Edit sheet) takes
+  effect at the next pass (`ntChanged` then `bgReplanFromNext`). Slower and Faster change the speed by 5%.
+- **Engine additions** (additive, any unit may use them): a `play` step takes `tg` (tone volume 0 to 1, 0 = no tone),
+  `vg` (singer gain, overrides the song-voice setting), `tk` (a tick at each note start) and `droneD` (drone length
+  when one pass is split into several play steps). `ntPlay` splits a pass into play steps wherever the help turns on
+  or off, so the singer can be cut note by note too.
+- **The research behind it** (24 November 2026): the guidance hypothesis (help that is always there during practice
+  gives the best practice and the worst result without it; fading the help and giving the answer afterwards hold up
+  better; Salmoni, Schmidt and Walter 1984, Winstein 1994, reviewed by Sigrist 2013, with some sound-feedback studies
+  disagreeing); the testing effect (recall beats repetition; only lightly tested on music so far); Mauch, Frieler and
+  Dixon 2014 on unaccompanied singers (steps are kept, the starting pitch slowly drifts), hence the check note;
+  Chaffin on performance cues (landmarks to restart from), hence shuffled pieces and growing from the end. No study
+  gives the right numbers for a song like this; the defaults are a reasoned start and Eli tunes them.
+- Hours, as told to Eli (my estimate, no study gives one): from where he is, roughly 15 to 30 hours of mostly
+  tone-free practice to sing it start to finish from memory in tune; the finest vibrato is general voice skill and
+  takes months to a year. He had earlier asked for singing on your own to be off by default in Learn a song and
+  Master a song; that stays as it is, this lesson is where the tone-free work lives.
+- **Checked by measurement only.** In the browser: the session builds and plays, a live change is taken up, and a
+  rendered session measured pass by pass: tone at 5 with the singer at 8 about -16 dB together, the softer tone pass
+  -22 dB, the alone pass silent apart from its starting and check notes, the singer alone at 8 about -20 dB (so the
+  defaults were raised: singer 10 in Listen and Check passes). The app does not hear him in this lesson.
+- Not built: hearing one pass on its own before a session (a preview button), and spoken phrase numbers.
