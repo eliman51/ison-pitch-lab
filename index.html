@@ -1378,6 +1378,18 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <p class="status" id="ntStatus" style="margin:4px 0"></p>
         <div class="grid2"><div class="field"><label class="label" for="ntFrom">From</label><select id="ntFrom"></select></div><div class="field"><label class="label" for="ntTo">To</label><select id="ntTo"></select></div></div>
         <p class="status" id="ntSum" style="margin:4px 0"></p>
+        <div class="field" id="ntTimeBox"><span class="label">Your hours on this song, in this lesson</span>
+          <b id="ntTime" style="display:block"></b>
+          <div style="height:10px;border-radius:6px;background:rgba(128,128,128,.3);overflow:hidden;margin:4px 0"><i id="ntTimeBar" style="display:block;height:100%;width:0;background:var(--good)"></i></div>
+          <p class="status" id="ntTimeTxt" style="margin:0"></p>
+          <details class="opts"><summary>Goal, and fixing the count</summary>
+            <div class="grid2">
+              <div class="field"><span class="label">Goal for this song (hours)</span><div class="row voicerow"><button data-nt-step="goalH,-5">&minus;</button><input type="number" id="ntGoalH" inputmode="numeric" min="1" max="500"><button data-nt-step="goalH,5">+</button></div></div>
+              <div class="field"><label class="label" for="ntTimeFix">Hours so far (type a number to correct it)</label><input type="number" id="ntTimeFix" inputmode="decimal" min="0" max="2000" step="0.1"></div>
+            </div>
+            <p class="status" style="margin:0">Only time the session is really playing counts. Pauses do not. Each song keeps its own count, on this phone.</p>
+          </details>
+        </div>
         <details class="opts" open><summary>The passes each piece gets</summary>
           <p class="status" style="margin:0 0 6px">A piece of the song goes through these passes from top to bottom. Each pass is one time through the piece with its own help. Change any of them, switch one off, move it, or add your own.</p>
           <div class="field"><label class="label" for="ntLad">Start from a ready-made plan (this replaces the passes below)</label><select id="ntLad"></select><span class="status" id="ntLadTxt"></span></div>
@@ -8061,10 +8073,10 @@ const NT_LADDERS={
     ntR('On your own','A',0,0,'all',{start:true,after:true,reps:3}),ntR('Check: the singer','C',0,10)]}};
 const NT_DEF={song:null,rng:{},lad:'fade',ladder:null,build:'each',order:'song',chunk:1,step:1,speed:100,laps:1,
   cold:true,coldN:1,fin:true,finN:1,finEvery:1,check:'singer',checkVoice:10,checkTone:5,wDrone:false,wTicks:false,
-  start:'first',after:'home',startLen:2,startTone:6,startGap:0.4,fadeT:1,fadeV:0,fadeFloor:0,room:10,gap:1.2,longAt:0.6,say:true,resume:true};
+  start:'first',after:'home',startLen:2,startTone:6,startGap:0.4,fadeT:1,fadeV:0,fadeFloor:0,room:10,gap:1.2,longAt:0.6,say:true,resume:true,goalH:30};
 const NT_NUM=[['ntChunk','chunk',1,30],['ntStep','step',1,30],['ntSpeed','speed',30,200],['ntLaps','laps',1,10],['ntColdN','coldN',1,10],['ntFinN','finN',1,10],['ntFinEvery','finEvery',1,10],
   ['ntCheckVoice','checkVoice',0,10],['ntCheckTone','checkTone',0,10],['ntStartLen','startLen',0.5,8],['ntStartTone','startTone',1,10],['ntStartGap','startGap',0,10],['ntFadeT','fadeT',0,10],['ntFadeV','fadeV',0,10],
-  ['ntFadeFloor','fadeFloor',0,10],['ntRoom','room',0,200],['ntGap','gap',0,20],['ntLongAt','longAt',0.2,5]];
+  ['ntFadeFloor','fadeFloor',0,10],['ntRoom','room',0,200],['ntGap','gap',0,20],['ntLongAt','longAt',0.2,5],['ntGoalH','goalH',1,500]];
 const NT_SEL=[['ntBuild','build'],['ntOrder','order'],['ntCheck','check'],['ntStart','start'],['ntAfter','after']];
 const NT_CHK=[['ntResume','resume'],['ntCold','cold'],['ntFin','fin'],['ntWDrone','wDrone'],['ntWTicks','wTicks'],['ntSay','say']];
 function ntSet(){const v=Object.assign({},NT_DEF,earSet().nt||{});v.rng=v.rng||{};return v}
@@ -8075,6 +8087,18 @@ function ntRange(){const n=SM.phr.length,r=ntSet().rng[SM.id]||{},a=r.from!=null
 function ntRows(){const S=ntSet(),L=Array.isArray(S.ladder)&&S.ladder.length?S.ladder:(NT_LADDERS[S.lad]||NT_LADDERS.fade).rows;return L.map(r=>ntR(r.n,r.cue,r.tone,r.voice,r.shape,r))}
 function ntClamp(k,v){const d=NT_NUM.find(x=>x[1]===k);v=+String(v).replace(',','.');if(!isFinite(v))v=NT_DEF[k];return Math.round(Math.max(d[2],Math.min(d[3],v))*100)/100}
 const NTS={p:null};
+/* hours per song in this lesson: {songId:{s:seconds,d:{'2026-11-24':seconds},n:sessions,t:last time}} in ison-nt-time */
+const ntDay=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+function ntTimeAll(){return store.get('ison-nt-time',{})||{}}
+function ntTimeOf(id){const e=ntTimeAll()[id]||{};return{s:+e.s||0,d:e.d||{},n:+e.n||0,t:e.t||0}}
+function ntTimeAdd(id,sec,newSess){if(!id||!(sec>0||newSess))return;const o=ntTimeAll(),e=ntTimeOf(id),k=ntDay();e.s=Math.round((e.s+Math.max(0,sec))*10)/10;e.d[k]=Math.round(((+e.d[k]||0)+Math.max(0,sec))*10)/10;if(newSess)e.n++;e.t=Date.now();
+  const ks=Object.keys(e.d).sort();ks.slice(0,Math.max(0,ks.length-400)).forEach(x=>delete e.d[x]);o[id]=e;store.set('ison-nt-time',o)}
+function ntTimeUI(){if(!$('ntTime')||!SM.ok)return;const e=ntTimeOf(SM.id),G=Math.max(1,+ntSet().goalH||30),h=e.s/3600,hm=x=>{const m=Math.round(x/60);return Math.floor(m/60)+' h '+String(m%60).padStart(2,'0')+' min'};
+  $('ntTime').textContent=hm(e.s)+' of '+G+' hours';$('ntTimeBar').style.width=Math.min(100,100*h/G).toFixed(1)+'%';
+  const now=new Date();let wk=0,days=0;for(let i=0;i<7;i++){const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i),k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'),v=+e.d[k]||0;wk+=v;if(v>60)days++}
+  const left=Math.max(0,G-h),rate=wk/3600,td=+e.d[ntDay()]||0;
+  $('ntTimeTxt').textContent=(e.s<1?'Nothing yet. The count starts with your first session.':'Today '+hm(td)+'. The last 7 days '+hm(wk)+' over '+days+(days===1?' day':' days')+', in '+e.n+(e.n===1?' session':' sessions')+' so far.'+(left<=0?' Goal reached.':rate>0.05?' At this week\'s pace the goal is about '+Math.max(1,Math.ceil(left/rate))+(Math.ceil(left/rate)===1?' week':' weeks')+' away.':' '+(Math.round(left*10)/10)+' hours to go.'));
+  const fx=$('ntTimeFix');if(fx&&document.activeElement!==fx)fx.value=String(Math.round(h*10)/10)}
 function ntPosKey(S,A,B){return SM.id+'|'+A+'-'+B+'|'+S.build+'|'+S.chunk+'|'+S.step+'|'+S.order}
 function ntPosOn(S){return!!S.resume&&S.build==='each'&&S.order!=='rand'}
 function ntPosGet(){if(!SM.ok)return 0;const S=ntSet(),[A,B]=ntRange();return ntPosOn(S)?(+(store.get('ison-nt-pos',{})||{})[ntPosKey(S,A,B)]||0):0}
@@ -8158,7 +8182,7 @@ async function renderNt(){const box=$('ntBox');if(!box)return;const s=earSet(),o
   const list=await earSongList(),sel=$('ntSong');smOpts(sel,list.map(x=>[x.id,x.name+(x.audio?' · with recording':'')]));const want0=ntSongId(),want=list.some(x=>x.id===want0)?want0:'b:psalm23';sel.value=want;
   if(!(SM.ok&&SM.id===want))$('ntStatus').textContent='Preparing the song map...';
   const ok=await smEnsure(want,t=>{$('ntStatus').textContent=t});if(earSet().unit!==16)return;if(!ok){$('ntStatus').textContent='This song could not be opened.';return}
-  $('ntStatus').textContent=SM.pb?'':'This song has no recording here, so the singer passes are silent: use the tone to check instead.';
+  ntTimeUI();$('ntStatus').textContent=SM.pb?'':'This song has no recording here, so the singer passes are silent: use the tone to check instead.';
   const[a,b]=ntRange(),labs=SM.phr.map(p=>[p.i,'Phrase '+(p.i+1)+' · '+fmtT(p.t0)]);smOpts($('ntFrom'),labs,a);smOpts($('ntTo'),labs,b);
   const rows=ntRows().filter(r=>r.on!==false),ch=ntChunks(S,a,b),r0=ntSec(ntRound(S,a,b,rows,0)),r1=ntSec(ntRound(S,a,b,rows,1)),alone=rows.filter(r=>(+r.tone||0)<=0&&(+r.voice||0)<=0&&r.cue!=='T').length,mm=x=>x<90?Math.round(x)+' seconds':(Math.round(x/6)/10)+' minutes';
   $('ntPieces').textContent=ch.length+(ch.length===1?' piece: ':' pieces: ')+ch.slice(0,6).map(c=>c[0]===c[1]?String(c[0]+1):(c[0]+1)+' to '+(c[1]+1)).join(', ')+(ch.length>6?', and so on':'')+'.';
@@ -8179,7 +8203,8 @@ function ntInit(){if(!$('ntBox'))return;
   $('ntAdd').onclick=()=>{const rows=ntRows();rows.push(ntR('With the tone','W',5,0));ntRowsSave(rows,'Pass added')};
   $('ntAddAlone').onclick=()=>{const rows=ntRows();rows.push(ntR('On your own','A',0,0,'all',{start:true,after:true}));ntRowsSave(rows,'Pass added')};
   $('ntAgain').onclick=()=>{const o=store.get('ison-nt-pos',{})||{};if(SM.ok){const S=ntSet(),[A,B]=ntRange();delete o[ntPosKey(S,A,B)];store.set('ison-nt-pos',o)}NTS.p=null;renderNt()};
-  $('ntReset').onclick=()=>{const S=ntSet();earSave({nt:{song:S.song,rng:S.rng}});ntChanged('Lesson put back')};
+  $('ntTimeFix').onchange=()=>{if(!SM.ok)return;const v=Math.max(0,Math.min(2000,+String($('ntTimeFix').value).replace(',','.')||0)),o=ntTimeAll(),e=ntTimeOf(SM.id);e.s=Math.round(v*3600);o[SM.id]=e;store.set('ison-nt-time',o);ntTimeUI()};
+  $('ntReset').onclick=()=>{const S=ntSet();earSave({nt:{song:S.song,rng:S.rng,goalH:S.goalH}});ntChanged('Lesson put back')};
   if($('ntLive'))$('ntLive').onclick=()=>earSheetOpen(true);
   if(location.hostname==='localhost'||location.hostname==='127.0.0.1')window.__nt={set:ntSet,save:ntSave,rows:ntRows,drills:ntDrills,round:ntRound,chunks:ntChunks,mask:ntMask,seq:ntSeq,range:ntRange,sec:ntSec,steps:earStepsSec}}
 const VO_SR=11025,BG={url:null,marks:[],starts:[],logPos:0,raf:null,u:0,goal:0,dur:0,worker:null,prep:false,lastSave:0};
@@ -8295,7 +8320,7 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
     if(EARS.u===6){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(s.smSong||'b:psalm23',t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();SM.plan=smPlan(Math.max(60,EARS.goal-(resumeAt||0)-25));SM.sess={done:new Set(),ids:[]};SM.lastIds=[];$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     if(EARS.u===14){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(mpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');if(!mpList().length)throw new Error('this song has no melodies found yet');await mpVoice(t=>{$('earPrepTxt').textContent=t});EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     if(EARS.u===13){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(lpSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');await lpVoice(t=>{$('earPrepTxt').textContent=t});EARS.lv=1;EARS.home=smIsonM();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
-    if(EARS.u===16){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(ntSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();NTS.p=null;NTS.p=ntPosGet();$('earPrepTxt').textContent='Lining up the singer with the tones...'}
+    if(EARS.u===16){$('earPrepTxt').textContent='Preparing the song map...';if(!(await smEnsure(ntSongId(),t=>{$('earPrepTxt').textContent=t})))throw new Error('choose a song first');EARS.lv=1;EARS.home=smIsonM();NTS.p=null;NTS.p=ntPosGet();if(!resumeAt)NTS.counted=false;$('earPrepTxt').textContent='Lining up the singer with the tones...'}
     if(EARS.u!==13&&EARS.u!==14&&SM.ok)await smVoiceFor('off');
     const tl=bgTimeline(EARS.u,EARS.lv,Math.max(60,EARS.goal-(resumeAt||0)));EARS.drills=tl.drills;BG.smap=tl.smap||[];BG.smi=0;BG.marks=tl.marks;BG.starts=tl.starts;BG.dur=tl.dur;BG.u=EARS.u;BG.offset=resumeAt||0;
     const voUsed={};tl.ev.forEach(e=>{if(e.type==='vo'&&VO[e.k])voUsed[e.k]=VO[e.k]});
@@ -8308,7 +8333,7 @@ async function bgStart(resumeAt){try{if(PV.st!=='idle'){clearInterval(PV.iv);PV.
     bgLoop()}
   catch(e){BG.prep=false;$('earPrep').hidden=true;EARS.run=false;EARS.bg=false;if(EARS.u>=5){$('earsMsg').textContent='Could not prepare the song lesson ('+(e&&e.message||e)+').'}else{$('earsMsg').textContent='Could not prepare the session on this device ('+(e&&e.message||e)+'). Switching to step-by-step mode.';earSave({engine:'media'})}renderEars()}}
 function bgPos(){return earAudio?earAudio.currentTime||0:0}
-function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if(EARS.u===16){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});const d=di>=0&&EARS.drills[di];if(d&&d.ci!=null)ntPosSave(d.ci)}if(EARS.u===5){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});if(di>=0)esPosSave(EARS.drills[di])}if(pos>BG.logPos+0.5){const a=BG.logPos,b=pos;BG.total=(BG.total||0)+b-a;
+function bgLog(){if(!EARS.bg||!earAudio)return;smTrackPos();const pos=bgPos();if(EARS.u===16){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});const d=di>=0&&EARS.drills[di];if(d&&d.ci!=null)ntPosSave(d.ci)}if(EARS.u===5){let di=-1;BG.starts.forEach((x,i)=>{if(x>=0&&x<=pos)di=i});if(di>=0)esPosSave(EARS.drills[di])}if(pos>BG.logPos+0.5){const a=BG.logPos,b=pos;BG.total=(BG.total||0)+b-a;if(EARS.u===16&&SM.ok){ntTimeAdd(SM.id,b-a,!NTS.counted);NTS.counted=true}
   /* time goes to the unit each drill belongs to (a daily session spreads over several units) */
   const spans={},S0=BG.starts,D=EARS.drills;let cov=0;for(let i=0;i<S0.length;i++){const s=S0[i];if(s<0)continue;let e=BG.dur;for(let j=i+1;j<S0.length;j++)if(S0[j]>=0){e=S0[j];break}const x0=Math.max(a,s),x1=Math.min(b,e);if(x1>x0){const u=D[i]&&D[i].u!=null?D[i].u:BG.u;spans[u]=(spans[u]||0)+(x1-x0);cov+=x1-x0;if(D[i]&&D[i].les)lesAdd(D[i].lesU,D[i].les,x1-x0);if(D[i]&&D[i].vb)vbSeen(D[i].vb,x1-x0)}}
   if(b-a-cov>0.01)spans[BG.u]=(spans[BG.u]||0)+(b-a-cov);
@@ -9560,7 +9585,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=79;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=80;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

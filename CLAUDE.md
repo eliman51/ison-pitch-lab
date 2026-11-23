@@ -1009,3 +1009,7 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   -22 dB, the alone pass silent apart from its starting and check notes, the singer alone at 8 about -20 dB (so the
   defaults were raised: singer 10 in Listen and Check passes). The app does not hear him in this lesson.
 - Not built: hearing one pass on its own before a session (a preview button), and spoken phrase numbers.
+- Hours per song (version 80, Eli's request): this lesson counts its own playing time for each song (`ison-nt-time`:
+  seconds, per day, sessions; `ntTimeAdd` from `bgLog`, pauses not counted) and shows it on the card against a goal
+  (`nt.goalH`, default 30 hours, his own target: double the estimate because he is a new singer), with today, the
+  last 7 days and weeks to go at this pace. He can type a corrected figure. Other lessons still count per lesson only.
