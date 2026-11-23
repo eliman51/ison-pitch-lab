@@ -1013,3 +1013,20 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   seconds, per day, sessions; `ntTimeAdd` from `bgLog`, pauses not counted) and shows it on the card against a goal
   (`nt.goalH`, default 30 hours, his own target: double the estimate because he is a new singer), with today, the
   last 7 days and weeks to go at this pace. He can type a corrected figure. Other lessons still count per lesson only.
+- **He pops in and out** (version 81). Eli tried version 79 in the shop and it did not work by ear: it did not say
+  what was coming, and the cold run was a long silence with no word of what it was. What he asked for instead, and
+  what the lesson now starts as: he sings the whole part while the singer and the tone join him for the first moment,
+  drop out, pop back in for a moment now and then, and join again at the end, so he can tell he is on the right note
+  and at the right pace. It is pass shape `pop` (`ntPops` makes the windows, `ntCut` cuts notes at their edges) with
+  its own section "Popping in and out": percent of the piece (default 20, not counting start and end), seconds each
+  time (1.5), spread evenly or at random, new moments every time or the same, seconds with him at the start (1.5)
+  and at the end (1.5), and percent less each round. His plan: lower the numbers over the weeks. Plan `pop` is the
+  default (whole part as one piece, no cold run, no whole-part finale); a plan may carry settings (`set`). A one-time
+  move (`nt.v` 2) put anyone who had opened the lesson onto it.
+- Spoken parts: the first pass of each piece is announced with clips the app already had ("the whole part", or
+  "phrase" and its number up to 30; `ntVo`, setting `sayPiece`), and passes can say "Sing with the singer", "Singer
+  only" or "Tone only" (`NT_CUE_VO`). No new clips were recorded; phrases past 30 get the word without a number.
+  Rule for this lesson and any other Ears only work: he cannot look, so nothing may start without saying what it is,
+  and no long silence without a word before it.
+- Measured (8 phrases of Psalm 23, 40 s, 20%, 1 s, even): sound in exactly the planned windows, 1.5 s at each end and
+  eight 1 s windows 3.2 s apart.

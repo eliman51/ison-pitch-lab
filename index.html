@@ -1396,6 +1396,19 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
           <div id="ntRows"></div>
           <div class="row" style="gap:8px;flex-wrap:wrap"><button id="ntAdd">+ Add a pass</button><button id="ntAddAlone">+ Add an "on your own" pass</button></div>
         </details>
+        <details class="opts" open><summary>Popping in and out</summary>
+          <p class="status" style="margin:0 0 6px">For any pass set to "Popping in and out". You sing the whole piece. The singer and the tone are with you at the start, drop out, come back for a moment now and then, and are with you again at the end. Their volumes are set in the pass itself. Lower the numbers as you get surer.</p>
+          <div class="grid2">
+            <div class="field"><span class="label">How much of the piece they sing with you (percent)</span><div class="row voicerow"><button data-nt-step="popPct,-5">&minus;</button><input type="number" id="ntPopPct" inputmode="numeric" min="0" max="100"><button data-nt-step="popPct,5">+</button></div><span class="status">Not counting the start and the end. 0 means only the start and the end.</span></div>
+            <div class="field"><span class="label">Each time they come in, for (seconds)</span><div class="row voicerow"><button data-nt-step="popLen,-0.25">&minus;</button><input type="number" id="ntPopLen" inputmode="decimal" min="0.2" max="30" step="0.25"><button data-nt-step="popLen,0.25">+</button></div></div>
+            <div class="field"><label class="label" for="ntPopMode">Where they come in</label><select id="ntPopMode"><option value="even">Spread evenly</option><option value="rand">At random moments</option></select></div>
+            <div class="field"><label class="label" for="ntPopNew">Each time through</label><select id="ntPopNew"><option value="each">New moments every time (random only)</option><option value="same">The same moments every time</option></select></div>
+            <div class="field"><span class="label">With you at the start for (seconds)</span><div class="row voicerow"><button data-nt-step="popStart,-0.5">&minus;</button><input type="number" id="ntPopStart" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popStart,0.5">+</button></div></div>
+            <div class="field"><span class="label">With you at the end for (seconds)</span><div class="row voicerow"><button data-nt-step="popEnd,-0.5">&minus;</button><input type="number" id="ntPopEnd" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popEnd,0.5">+</button></div></div>
+            <div class="field"><span class="label">Each round, this many percent less</span><div class="row voicerow"><button data-nt-step="popFade,-1">&minus;</button><input type="number" id="ntPopFade" inputmode="numeric" min="0" max="50"><button data-nt-step="popFade,1">+</button></div><span class="status">0 keeps it the same all session.</span></div>
+          </div>
+          <p class="status" id="ntPopTxt" style="margin:0"></p>
+        </details>
         <details class="opts"><summary>How the part is cut into pieces</summary>
           <div class="grid2">
             <div class="field"><label class="label" for="ntBuild">How it moves through the part</label><select id="ntBuild"><option value="each">One piece at a time</option><option value="fwd">Growing from the start (1, then 1 and 2, then 1 to 3)</option><option value="back">Growing from the end (the last, then the last two)</option><option value="whole">The whole part as one piece</option></select></div>
@@ -1442,6 +1455,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <div class="field"><span class="label">Pause between passes (seconds)</span><div class="row voicerow"><button data-nt-step="gap,-0.2">&minus;</button><input type="number" id="ntGap" inputmode="decimal" min="0" max="20" step="0.1"><button data-nt-step="gap,0.2">+</button></div></div>
             <div class="field"><span class="label">A "long note" is at least (seconds)</span><div class="row voicerow"><button data-nt-step="longAt,-0.1">&minus;</button><input type="number" id="ntLongAt" inputmode="decimal" min="0.2" max="5" step="0.1"><button data-nt-step="longAt,0.1">+</button></div><span class="status">Used by passes where the tone plays the long notes only.</span></div>
           </div>
+          <label class="check"><input type="checkbox" id="ntSayPiece"> Say which part is coming ("phrase 3", "the whole part")</label>
           <label class="check"><input type="checkbox" id="ntSay"> Say the word for each pass ("on your own", "check"). Off: no talking between passes</label>
         </details>
         <button id="ntReset" class="ghost">Put this whole lesson back to how it came</button>
@@ -8051,12 +8065,15 @@ function vbInit(){const sel=(id,key,num)=>{const el=$(id);if(el)el.onchange=()=>
    and reorders; a piece of the song (ntChunks) goes through the list top to bottom, round after round. A pass is
    one time through the piece with a tone volume, a singer volume, which notes they play (ntMask), and whether a
    starting note comes before and a check note after. NT_LADDERS are only ready-made starting points. */
-const NT_CUES=[['A','On your own'],['W','With me'],['L','Listen'],['C','Check'],['T','Think it (no singing)'],['','No word']];
+const NT_CUES=[['A','On your own'],['W','With me'],['S','Sing with the singer'],['L','Listen'],['C','Check'],['O','Singer only'],['N','Tone only'],['T','Think it (no singing)'],['','No word']];
+const NT_CUE_VO={S:['W','withsinger'],O:['C','singeronly'],N:['W','toneonly']};
 const NT_SHAPES=[['all','Every note'],['first','The first note only'],['line1','The first line only'],['starts','The first note of every line'],['ends','The last note of every line'],
-  ['odd','Lines 1, 3, 5 (you carry 2, 4, 6)'],['even','Lines 2, 4, 6 (you carry 1, 3, 5)'],['long','The long notes only'],['short','All but the long notes']];
+  ['odd','Lines 1, 3, 5 (you carry 2, 4, 6)'],['even','Lines 2, 4, 6 (you carry 1, 3, 5)'],['long','The long notes only'],['short','All but the long notes'],['pop','Popping in and out (set below)']];
 const ntR=(n,cue,tone,voice,shape,o)=>Object.assign({n,cue,tone,voice,shape:shape||'all',reps:1,speed:0,start:false,after:false,drone:false,ticks:false,on:true},o||{});
 const NT_SA={start:true,after:true};
 const NT_LADDERS={
+  pop:{n:'He pops in and out',d:'You sing the whole part. The singer and the tone join you for the first moment, drop out, pop back in for a moment here and there, and join you again at the very end. How long, how often and how they are spread are set under "Popping in and out".',set:{build:'whole',cold:false,fin:false,fadeT:0,fadeV:0},rows:[
+    ntR('He pops in and out','S',5,8,'pop')]},
   fade:{n:'Fade the tone away',d:'With everything, then the tone softer, then only the first note of each line, then on your own, then the singer to check.',rows:[
     ntR('With the singer and the tone','W',5,8),ntR('The tone alone, softer','W',3,0),ntR('Only the first note of every line','A',5,0,'starts'),ntR('On your own','A',0,0,'all',NT_SA),ntR('Check: the singer','C',0,10)]},
   test:{n:'Test yourself first',d:'On your own before hearing anything, then the singer to check, the tone to fix it, and on your own again.',rows:[
@@ -8071,14 +8088,14 @@ const NT_LADDERS={
     ntR('On your own over the ison','A',0,0,'all',{start:true,drone:true}),ntR('On your own, nothing under you','A',0,0,'all',NT_SA),ntR('Check: the singer','C',0,10)]},
   perf:{n:'Performance',d:'A starting note, then on your own three times, then the singer once.',rows:[
     ntR('On your own','A',0,0,'all',{start:true,after:true,reps:3}),ntR('Check: the singer','C',0,10)]}};
-const NT_DEF={song:null,rng:{},lad:'fade',ladder:null,build:'each',order:'song',chunk:1,step:1,speed:100,laps:1,
-  cold:true,coldN:1,fin:true,finN:1,finEvery:1,check:'singer',checkVoice:10,checkTone:5,wDrone:false,wTicks:false,
-  start:'first',after:'home',startLen:2,startTone:6,startGap:0.4,fadeT:1,fadeV:0,fadeFloor:0,room:10,gap:1.2,longAt:0.6,say:true,resume:true,goalH:30};
+const NT_DEF={song:null,rng:{},lad:'pop',ladder:null,build:'whole',order:'song',chunk:1,step:1,speed:100,laps:1,
+  cold:false,coldN:1,fin:false,finN:1,finEvery:1,check:'singer',checkVoice:10,checkTone:5,wDrone:false,wTicks:false,
+  start:'first',after:'home',startLen:2,startTone:6,startGap:0.4,popLen:1.5,popPct:20,popMode:'even',popStart:1.5,popEnd:1.5,popNew:'each',popFade:0,sayPiece:true,v:2,fadeT:0,fadeV:0,fadeFloor:0,room:10,gap:1.2,longAt:0.6,say:true,resume:true,goalH:30};
 const NT_NUM=[['ntChunk','chunk',1,30],['ntStep','step',1,30],['ntSpeed','speed',30,200],['ntLaps','laps',1,10],['ntColdN','coldN',1,10],['ntFinN','finN',1,10],['ntFinEvery','finEvery',1,10],
   ['ntCheckVoice','checkVoice',0,10],['ntCheckTone','checkTone',0,10],['ntStartLen','startLen',0.5,8],['ntStartTone','startTone',1,10],['ntStartGap','startGap',0,10],['ntFadeT','fadeT',0,10],['ntFadeV','fadeV',0,10],
-  ['ntFadeFloor','fadeFloor',0,10],['ntRoom','room',0,200],['ntGap','gap',0,20],['ntLongAt','longAt',0.2,5],['ntGoalH','goalH',1,500]];
-const NT_SEL=[['ntBuild','build'],['ntOrder','order'],['ntCheck','check'],['ntStart','start'],['ntAfter','after']];
-const NT_CHK=[['ntResume','resume'],['ntCold','cold'],['ntFin','fin'],['ntWDrone','wDrone'],['ntWTicks','wTicks'],['ntSay','say']];
+  ['ntFadeFloor','fadeFloor',0,10],['ntRoom','room',0,200],['ntGap','gap',0,20],['ntLongAt','longAt',0.2,5],['ntGoalH','goalH',1,500],['ntPopLen','popLen',0.2,30],['ntPopPct','popPct',0,100],['ntPopStart','popStart',0,30],['ntPopEnd','popEnd',0,30],['ntPopFade','popFade',0,50]];
+const NT_SEL=[['ntPopMode','popMode'],['ntPopNew','popNew'],['ntBuild','build'],['ntOrder','order'],['ntCheck','check'],['ntStart','start'],['ntAfter','after']];
+const NT_CHK=[['ntSayPiece','sayPiece'],['ntResume','resume'],['ntCold','cold'],['ntFin','fin'],['ntWDrone','wDrone'],['ntWTicks','wTicks'],['ntSay','say']];
 function ntSet(){const v=Object.assign({},NT_DEF,earSet().nt||{});v.rng=v.rng||{};return v}
 function ntSave(o){earSave({nt:Object.assign(ntSet(),o)})}
 function ntSongId(){return ntSet().song||lpSongId()}
@@ -8111,6 +8128,17 @@ function ntSeq(a,b,sp){const ns=[];for(let p=a;p<=b;p++)ns.push(...SM.phr[p].cor
 function ntMask(seq,shape,S){let li=0;const line=seq.map(n=>{const v=li;if(n.m==null)li++;return v}),idx=[],fo={},la={};seq.forEach((n,i)=>{if(n.m!=null){idx.push(i);if(fo[line[i]]==null)fo[line[i]]=i;la[line[i]]=i}});
   const len=n=>n.src?n.src[1]-n.src[0]:n.d,L=+S.longAt||0.6;
   return seq.map((n,i)=>n.m==null?null:shape==='first'?i===idx[0]:shape==='line1'?line[i]===0:shape==='starts'?fo[line[i]]===i:shape==='ends'?la[line[i]]===i:shape==='odd'?line[i]%2===0:shape==='even'?line[i]%2===1:shape==='long'?len(n)>=L:shape==='short'?len(n)<L:true)}
+/* popping in and out: the stretches of a pass (in seconds) where the singer and the tone are with you: the first
+   moment, the last moment, and windows of one length in between that add up to a share of the piece */
+function ntPops(D,S,seed,round){const len=Math.max(0.2,+S.popLen||1.5),a=Math.min(D,Math.max(0,+S.popStart||0)),z=Math.max(a,D-Math.max(0,+S.popEnd||0)),W=[],M=z-a,MG=0.4;if(a>0)W.push([0,a]);
+  const pct=Math.max(0,(+S.popPct||0)-(+S.popFade||0)*(round||0))/100;let n=Math.max(0,Math.min(Math.round(pct*D/len),Math.floor((M-MG)/(len+MG))));
+  if(n>0){const free=M-n*len-(n+1)*MG;let g;if(S.popMode==='rand'){let x=((seed||1)*2654435761)>>>0;const r=()=>{x=(x*1664525+1013904223)>>>0;return x/4294967296},c=[];for(let i=0;i<n;i++)c.push(r()*free);c.sort((p,q)=>p-q);g=c.map((v,i)=>v-(i?c[i-1]:0));g.push(free-(n?c[n-1]:0))}
+    else g=Array(n+1).fill(free/(n+1));let t=a;for(let i=0;i<n;i++){t+=MG+g[i];W.push([t,t+len]);t+=len}}
+  if(z<D)W.push([z,D]);return W}
+function ntCut(seq,W){const cuts=[];W.forEach(w=>cuts.push(w[0],w[1]));const out=[],on=[];let t=0;
+  seq.forEach(n=>{const e=t+n.d,cs=cuts.filter(c=>c>t+0.03&&c<e-0.03).sort((p,q)=>p-q);let a=t;cs.concat([e]).forEach((c,i)=>{const f0=(a-t)/n.d,f1=(c-t)/n.d,p=Object.assign({},n,{d:c-a});if(n.src)p.src=[n.src[0]+(n.src[1]-n.src[0])*f0,n.src[0]+(n.src[1]-n.src[0])*f1];if(i)p.att=0;
+      const mid=(a+c)/2;out.push(p);on.push(W.some(w=>mid>=w[0]&&mid<w[1]));a=c});t=e});
+  return{seq:out,mask:on}}
 function ntPlay(seq,mask,tg,vg,dr,tk,ph){const gs=[];let cur=null;seq.forEach((n,i)=>{const on=mask[i]==null?(cur?cur.on:false):mask[i];if(!cur||cur.on!==on){cur={on,seq:[]};gs.push(cur)}cur.seq.push(n)});
   return gs.map((g,i)=>({k:'play',ph:g.on?ph:(ph==='T'?'T':'A'),seq:g.seq,tg:g.on?tg:0,vg:g.on?vg:0,tk,drone:i===0?dr:null,droneD:i===0&&dr!=null?seqDur(seq):0}))}
 function ntNote(m,S,ph){return{k:'play',ph,seq:[{m,d:Math.max(0.3,+S.startLen||2)}],tg:Math.max(1,+S.startTone||6)/10,vg:0}}
@@ -8118,8 +8146,10 @@ function ntPass(seq,r,fade,S){const keep=r.cue==='L'||r.cue==='C',fl=Math.max(0,
   const T=lo(+r.tone||0,fade.t),V=lo(+r.voice||0,fade.v),alone=(T<=0&&V<=0)||r.cue==='T',st=[],f=seq.find(n=>n.m!=null),l=seq.slice().reverse().find(n=>n.m!=null),home=smIsonM();
   if(!f)return st;
   if(r.start&&S.start!=='off'){if(S.start!=='first'&&home!=null)st.push(ntNote(home,S,'L'));if(S.start!=='home'||home==null)st.push(ntNote(f.m,S,'L'));st.push({k:'gap',d:Math.max(0,+S.startGap||0)})}
-  if(r.cue&&S.say!==false)st.push({k:'cue',ph:r.cue,noAnn:true});
-  st.push(...ntPlay(seq,alone?seq.map(n=>n.m==null?null:false):ntMask(seq,r.shape,S),T/10,ntVg(V),r.drone?home:null,r.ticks?0.7:0,r.cue||'W'));
+  const cv=NT_CUE_VO[r.cue],ph=cv?cv[0]:(r.cue||'W');if(r.cue&&S.say!==false)st.push(cv?{k:'cue',ph,noAnn:true,vo:[cv[1]]}:{k:'cue',ph,noAnn:true});
+  let sq=seq,mk=alone?seq.map(n=>n.m==null?null:false):null;
+  if(!mk&&r.shape==='pop'){const c=ntCut(seq,ntPops(seqDur(seq),S,S.popNew==='same'?1:(fade.k||1),fade.round||0));sq=c.seq;mk=c.mask}
+  st.push(...ntPlay(sq,mk||ntMask(seq,r.shape,S),T/10,ntVg(V),r.drone?home:null,r.ticks?0.7:0,ph));
   if(alone&&r.cue!=='T'&&S.room>0)st.push({k:'gap',d:seqDur(seq)*S.room/100});
   if(r.after&&S.after!=='off'){const m=S.after==='home'?home:S.after==='last'?l.m:f.m;if(m!=null)st.push({k:'gap',d:0.5},ntNote(m,S,'C'))}
   st.push({k:'gap',d:Math.max(0,+S.gap||0)});return st}
@@ -8129,17 +8159,18 @@ function ntChunks(S,A,B){const c=Math.max(1,Math.round(+S.chunk||1)),s=Math.max(
   if(S.build==='back'){for(let a=B-c+1;;a-=c){out.push([Math.max(A,a),B]);if(a<=A)break}return out}
   for(let a=A;a<=B;a+=s){const e=Math.min(B,a+c-1);out.push([a,e]);if(e>=B)break}return out}
 function ntShuffle(a,seed){a=a.slice();let x=(seed*2654435761)>>>0;for(let i=a.length-1;i>0;i--){x=(x*1664525+1013904223)>>>0;const j=x%(i+1);[a[i],a[j]]=[a[j],a[i]]}return a}
-function ntFor(a,b,base,rows,fade,S,sp0,out,ci){rows.forEach(r=>{const sp=r.speed>0?Math.max(0.3,Math.min(2,r.speed/100)):sp0,seq=ntSeq(a,b,sp),R=Math.max(1,Math.min(20,Math.round(+r.reps||1)));
-  for(let i=0;i<R;i++)out.push({name:base+' · '+(r.n||'Pass')+(R>1?' ('+(i+1)+' of '+R+')':''),intro:'',vo:[],steps:ntPass(seq,r,fade,S),vsrc:'SM',nt:1,ci})})}
+function ntFor(a,b,base,rows,fade,S,sp0,out,ci,vo){rows.forEach(r=>{const sp=r.speed>0?Math.max(0.3,Math.min(2,r.speed/100)):sp0,seq=ntSeq(a,b,sp),R=Math.max(1,Math.min(20,Math.round(+r.reps||1)));
+  for(let i=0;i<R;i++){out.push({name:base+' · '+(r.n||'Pass')+(R>1?' ('+(i+1)+' of '+R+')':''),intro:'',vo:vo&&S.sayPiece!==false?vo:[],steps:ntPass(seq,r,Object.assign({},fade,{k:(fade.round||0)*977+out.length+1}),S),vsrc:'SM',nt:1,ci});vo=null}})}
+function ntVo(a,b,A,B){return a===A&&b===B&&B>A?['wholepart']:['sm_phrase'].concat(smNumVo(a+1))}
 function ntWholeRows(S,n){const rows=[ntR('On your own','A',0,0,'all',{start:true,after:true,drone:!!S.wDrone,ticks:!!S.wTicks,reps:n})];
   if(S.check==='singer')rows.push(ntR('Check: the singer','C',0,S.checkVoice));else if(S.check==='both')rows.push(ntR('Check: the singer and the tone','C',S.checkTone,S.checkVoice));else if(S.check==='tone')rows.push(ntR('Check: the tone','C',S.checkTone,0));return rows}
 /* one round: (the cold run, first round only), every piece through the passes, then the whole part on your own */
-function ntRound(S,A,B,rows,round){const out=[],sp=ntSpeed(),fade={t:(+S.fadeT||0)*round,v:(+S.fadeV||0)*round},tag=round?'Round '+(round+1)+' · ':'',laps=Math.max(1,Math.round(+S.laps||1)),none={t:0,v:0};
-  if(S.cold&&round===0)ntFor(A,B,'Cold · the whole part',ntWholeRows(S,S.coldN),none,S,sp,out);
+function ntRound(S,A,B,rows,round){const out=[],sp=ntSpeed(),fade={t:(+S.fadeT||0)*round,v:(+S.fadeV||0)*round,round},tag=round?'Round '+(round+1)+' · ':'',laps=Math.max(1,Math.round(+S.laps||1)),none={t:0,v:0,round};
+  if(S.cold&&round===0)ntFor(A,B,'Cold · the whole part',ntWholeRows(S,S.coldN),none,S,sp,out,null,['wholepart']);
   let cs=ntChunks(S,A,B).map((c,i)=>[c[0],c[1],i]);if(S.order==='back')cs.reverse().forEach((c,i)=>{c[2]=i});else if(S.order==='rand')cs=ntShuffle(cs,round+1);
   if(round===0&&ntPosOn(S)){const p=ntPos0()%cs.length;cs=cs.slice(p).concat(cs.slice(0,p))}
-  if(rows.length)cs.forEach(c=>{for(let i=0;i<laps;i++)ntFor(c[0],c[1],tag+ntName(c[0],c[1]),rows,fade,S,sp,out,ntPosOn(S)?c[2]:null)});
-  if(S.fin&&(round+1)%Math.max(1,Math.round(+S.finEvery||1))===0)ntFor(A,B,tag+'The whole part',ntWholeRows(S,S.finN),none,S,sp,out);
+  if(rows.length)cs.forEach(c=>{for(let i=0;i<laps;i++)ntFor(c[0],c[1],tag+ntName(c[0],c[1]),rows,fade,S,sp,out,ntPosOn(S)?c[2]:null,ntVo(c[0],c[1],A,B))});
+  if(S.fin&&(round+1)%Math.max(1,Math.round(+S.finEvery||1))===0)ntFor(A,B,tag+'The whole part',ntWholeRows(S,S.finN),none,S,sp,out,null,['wholepart']);
   return out}
 function ntDrills(goal){if(!SM.ok||!SM.phr.length)return[];const S=ntSet(),[A,B]=ntRange(),rows=ntRows().filter(r=>r.on!==false),out=[],lim=(goal||EARS.goal||1200)*1.3+120;let tot=0,empty=0;
   for(let round=0;tot<lim&&out.length<1500&&empty<12;round++){const r=ntRound(S,A,B,rows,round);if(!r.length){empty++;continue}r.forEach(d=>{out.push(d);tot+=earStepsSec(d.steps)+0.3})}
@@ -8162,6 +8193,7 @@ function ntRowsUI(){const box=$('ntRows');if(!box)return;const rows=ntRows(),opt
     '<p class="status" style="margin:2px 0 0">'+ntRowTxt(r)+'</p></div>').join('')}
 function ntRowTxt(r){const T=+r.tone||0,V=+r.voice||0,sh=(NT_SHAPES.find(x=>x[0]===r.shape)||NT_SHAPES[0])[1].toLowerCase();
   if(r.cue==='T')return'Silence the length of the piece: run it in your head, do not sing.';
+  if(r.shape==='pop'&&(T>0||V>0)){const S=ntSet();return(T>0&&V>0?'The singer and the tone join':T>0?'The tone joins':'The singer joins')+' you for the first '+S.popStart+' s and the last '+S.popEnd+' s, and in between for '+S.popLen+' s at a time, '+(S.popMode==='rand'?'at random moments':'evenly spread')+', about '+S.popPct+'% of the piece. The rest is yours alone.'}
   if(T<=0&&V<=0)return'You sing alone'+(r.drone?' over the ison':'')+'. Nothing else plays.';
   return(T>0&&V>0?'The tone and the singer play':T>0?'The tone plays':'The singer plays')+': '+sh+'.'+(r.shape!=='all'?' The rest is yours alone.':'')}
 function ntRowsEvt(e){const t=e.target,i=+t.dataset.i,k=t.dataset.k;if(!k||isNaN(i))return;const rows=ntRows(),r=rows[i];if(!r)return;
@@ -8182,6 +8214,7 @@ async function renderNt(){const box=$('ntBox');if(!box)return;const s=earSet(),o
   const list=await earSongList(),sel=$('ntSong');smOpts(sel,list.map(x=>[x.id,x.name+(x.audio?' · with recording':'')]));const want0=ntSongId(),want=list.some(x=>x.id===want0)?want0:'b:psalm23';sel.value=want;
   if(!(SM.ok&&SM.id===want))$('ntStatus').textContent='Preparing the song map...';
   const ok=await smEnsure(want,t=>{$('ntStatus').textContent=t});if(earSet().unit!==16)return;if(!ok){$('ntStatus').textContent='This song could not be opened.';return}
+  {const sp=ntSpeed(),D=seqDur(ntSeq(ntRange()[0],ntRange()[1],sp)),W=ntPops(D,S,1,0),on=W.reduce((q,w)=>q+w[1]-w[0],0);$('ntPopTxt').textContent='On the whole part ('+Math.round(D)+' seconds at this speed): they are with you '+W.length+' times, '+Math.round(on)+' seconds in all, and you carry the other '+Math.round(D-on)+' seconds alone. The longest stretch alone is about '+Math.round(W.reduce((q,w,i)=>Math.max(q,w[0]-(i?W[i-1][1]:0)),0))+' seconds.'}
   ntTimeUI();$('ntStatus').textContent=SM.pb?'':'This song has no recording here, so the singer passes are silent: use the tone to check instead.';
   const[a,b]=ntRange(),labs=SM.phr.map(p=>[p.i,'Phrase '+(p.i+1)+' · '+fmtT(p.t0)]);smOpts($('ntFrom'),labs,a);smOpts($('ntTo'),labs,b);
   const rows=ntRows().filter(r=>r.on!==false),ch=ntChunks(S,a,b),r0=ntSec(ntRound(S,a,b,rows,0)),r1=ntSec(ntRound(S,a,b,rows,1)),alone=rows.filter(r=>(+r.tone||0)<=0&&(+r.voice||0)<=0&&r.cue!=='T').length,mm=x=>x<90?Math.round(x)+' seconds':(Math.round(x/6)/10)+' minutes';
@@ -8192,13 +8225,15 @@ async function renderNt(){const box=$('ntBox');if(!box)return;const s=earSet(),o
     (r0>sess?' One round is about '+mm(r0)+', so '+s.min+' minutes gets through about '+Math.min(ch.length,got)+' of the '+ch.length+' pieces'+(ntPosOn(S)?'; the next session carries on from there.':'. Make the part shorter or the pieces bigger to cover it all.'):' The first round takes about '+mm(r0)+(r1>1?', later rounds about '+mm(r1):'')+', so '+s.min+' minutes is about '+(1+more)+(1+more===1?' round.':' rounds.'))+
     (ntPosOn(S)&&p0>0?' This session starts at piece '+(p0+1)+'.':'')+(S.fadeT>0||S.fadeV>0?' The help gets softer every round.':'')}
 function ntInit(){if(!$('ntBox'))return;
+  /* version 81: the pop-in plan became the way this lesson starts, once, for anyone who had opened it before */
+  if(earSet().nt&&earSet().nt.v!==2)ntSave(Object.assign({v:2,lad:'pop',ladder:null,popLen:1.5,popPct:20,popMode:'even',popStart:1.5,popEnd:1.5,popNew:'each',popFade:0,sayPiece:true},NT_LADDERS.pop.set));
   NT_NUM.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:ntClamp(k,$(id).value)});ntChanged('Changed')}});
   NT_SEL.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:$(id).value});ntChanged('Changed')}});
   NT_CHK.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:$(id).checked});ntChanged('Changed')}});
   $('ntBox').querySelectorAll('[data-nt-step]').forEach(b=>{const[k,d]=b.dataset.ntStep.split(',');b.onclick=()=>{ntSave({[k]:ntClamp(k,(+ntSet()[k]||0)+(+d))});ntChanged('Changed')}});
   $('ntSong').onchange=()=>{ntSave({song:$('ntSong').value});renderNt();renderKeyRows();try{earSumUI()}catch(e){}};
   const rg=()=>{if(!SM.ok)return;const S=ntSet(),rng=Object.assign({},S.rng),a=+$('ntFrom').value,b=Math.max(a,+$('ntTo').value);rng[SM.id]={from:a,to:b};ntSave({rng});ntChanged('Part changed')};$('ntFrom').onchange=rg;$('ntTo').onchange=rg;
-  $('ntLad').onchange=()=>{const k=$('ntLad').value;if(!k)return;ntSave({lad:k,ladder:null});ntChanged('Plan: '+NT_LADDERS[k].n)};
+  $('ntLad').onchange=()=>{const k=$('ntLad').value;if(!k)return;ntSave(Object.assign({lad:k,ladder:null},NT_LADDERS[k].set||{}));ntChanged('Plan: '+NT_LADDERS[k].n)};
   $('ntRows').addEventListener('change',ntRowsEvt);$('ntRows').addEventListener('click',ntRowsAct);
   $('ntAdd').onclick=()=>{const rows=ntRows();rows.push(ntR('With the tone','W',5,0));ntRowsSave(rows,'Pass added')};
   $('ntAddAlone').onclick=()=>{const rows=ntRows();rows.push(ntR('On your own','A',0,0,'all',{start:true,after:true}));ntRowsSave(rows,'Pass added')};
@@ -8206,7 +8241,7 @@ function ntInit(){if(!$('ntBox'))return;
   $('ntTimeFix').onchange=()=>{if(!SM.ok)return;const v=Math.max(0,Math.min(2000,+String($('ntTimeFix').value).replace(',','.')||0)),o=ntTimeAll(),e=ntTimeOf(SM.id);e.s=Math.round(v*3600);o[SM.id]=e;store.set('ison-nt-time',o);ntTimeUI()};
   $('ntReset').onclick=()=>{const S=ntSet();earSave({nt:{song:S.song,rng:S.rng,goalH:S.goalH}});ntChanged('Lesson put back')};
   if($('ntLive'))$('ntLive').onclick=()=>earSheetOpen(true);
-  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')window.__nt={set:ntSet,save:ntSave,rows:ntRows,drills:ntDrills,round:ntRound,chunks:ntChunks,mask:ntMask,seq:ntSeq,range:ntRange,sec:ntSec,steps:earStepsSec}}
+  if(location.hostname==='localhost'||location.hostname==='127.0.0.1')window.__nt={pops:ntPops,cut:ntCut,set:ntSet,save:ntSave,rows:ntRows,drills:ntDrills,round:ntRound,chunks:ntChunks,mask:ntMask,seq:ntSeq,range:ntRange,sec:ntSec,steps:earStepsSec}}
 const VO_SR=11025,BG={url:null,marks:[],starts:[],logPos:0,raf:null,u:0,goal:0,dur:0,worker:null,prep:false,lastSave:0};
 let VO=null;
 async function voLoad(){if(VO)return VO;const data=JSON.parse($('voData').textContent),OC=window.OfflineAudioContext||window.webkitOfflineAudioContext,oc=new OC(1,VO_SR,VO_SR),out={};
@@ -9585,7 +9620,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=80;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=81;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
