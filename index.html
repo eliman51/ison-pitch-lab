@@ -1063,7 +1063,14 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <div class="row voicerow" id="lpLEvRow"><span class="label" id="lpLEvLab">Mix in every</span><button id="lpLEvDn" aria-label="Fewer runs">−</button><b id="lpLEv" class="lpval">7</b><button id="lpLEvUp" aria-label="More runs">+</button><span class="status">runs</span></div>
         <div class="row voicerow"><label class="label" for="lpLTimbre">Tone sound</label><select id="lpLTimbre"><option value="warm">Warm hum</option><option value="organ">Organ</option><option value="pure">Pure</option><option value="reed">Hollow reed</option><option value="bright">Bright buzz</option></select></div>
       </div>
-      <button id="ntLive" hidden>Change this lesson (takes effect at the next pass)</button>
+      <div id="ntLiveBox" class="lplive" hidden>
+        <div class="row voicerow"><span class="label">He is with you</span><button data-nt-step="popPct,-5" aria-label="Less often">&minus;</button><b id="ntLvPct" class="lpval">20%</b><button data-nt-step="popPct,5" aria-label="More often">+</button></div>
+        <div class="row voicerow"><span class="label">Each time, for</span><button data-nt-step="popLen,-0.25" aria-label="Shorter">&minus;</button><b id="ntLvLen" class="lpval">1.5 s</b><button data-nt-step="popLen,0.25" aria-label="Longer">+</button></div>
+        <div class="row voicerow"><span class="label">Tone volume</span><button data-nt-row="tone,-1" aria-label="Quieter">&minus;</button><b id="ntLvTone" class="lpval">5</b><button data-nt-row="tone,1" aria-label="Louder">+</button></div>
+        <div class="row voicerow"><span class="label">Singer volume</span><button data-nt-row="voice,-1" aria-label="Quieter">&minus;</button><b id="ntLvVoice" class="lpval">8</b><button data-nt-row="voice,1" aria-label="Louder">+</button></div>
+        <p class="status" style="margin:0;text-align:center">Changes start at the next time through.</p>
+      </div>
+      <button id="ntLive" hidden>All the settings of this lesson</button>
       <div id="lnRunAt"></div>
       <p class="status" id="earPending" style="margin:0;text-align:center" hidden></p>
       <button class="big icobtn" id="earPocketBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg><span>Pocket mode (black screen)</span></button>
@@ -1378,6 +1385,23 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
         <p class="status" id="ntStatus" style="margin:4px 0"></p>
         <div class="grid2"><div class="field"><label class="label" for="ntFrom">From</label><select id="ntFrom"></select></div><div class="field"><label class="label" for="ntTo">To</label><select id="ntTo"></select></div></div>
         <p class="status" id="ntSum" style="margin:4px 0"></p>
+        <div id="ntPopBox"><h4 style="margin:10px 0 4px">How he helps you</h4>
+          <p class="status" style="margin:0 0 6px">You sing the part over and over. The singer and the tone are with you at the start, drop out, come back for a moment now and then, and are with you again at the end. It stays exactly like this for the whole session unless you change it. All of these can also be changed while it plays.</p>
+          <div class="grid2">
+            <div class="field" id="ntRowToneF"><span class="label">Tone volume (0 = no tone)</span><div class="row voicerow"><button data-nt-row="tone,-1">&minus;</button><input type="number" id="ntRowTone" inputmode="numeric" min="0" max="10"><button data-nt-row="tone,1">+</button></div></div>
+            <div class="field" id="ntRowVoiceF"><span class="label">Singer volume (0 = no singer)</span><div class="row voicerow"><button data-nt-row="voice,-1">&minus;</button><input type="number" id="ntRowVoice" inputmode="numeric" min="0" max="10"><button data-nt-row="voice,1">+</button></div></div>
+            <div class="field"><span class="label">Speed (percent of the singer)</span><div class="row voicerow"><button data-nt-step="speed,-5">&minus;</button><input type="number" id="ntSpeed" inputmode="numeric" min="30" max="200"><button data-nt-step="speed,5">+</button></div></div>
+            <div class="field"><span class="label">How much of the piece they sing with you (percent)</span><div class="row voicerow"><button data-nt-step="popPct,-5">&minus;</button><input type="number" id="ntPopPct" inputmode="numeric" min="0" max="100"><button data-nt-step="popPct,5">+</button></div><span class="status">Not counting the start and the end. 0 means only the start and the end.</span></div>
+            <div class="field"><span class="label">Each time they come in, for (seconds)</span><div class="row voicerow"><button data-nt-step="popLen,-0.25">&minus;</button><input type="number" id="ntPopLen" inputmode="decimal" min="0.2" max="30" step="0.25"><button data-nt-step="popLen,0.25">+</button></div></div>
+            <div class="field"><label class="label" for="ntPopMode">Where they come in</label><select id="ntPopMode"><option value="even">Spread evenly</option><option value="rand">At random moments</option></select></div>
+            <div class="field"><label class="label" for="ntPopNew">Each time through</label><select id="ntPopNew"><option value="each">New moments every time (random only)</option><option value="same">The same moments every time</option></select></div>
+            <div class="field"><span class="label">With you at the start for (seconds)</span><div class="row voicerow"><button data-nt-step="popStart,-0.5">&minus;</button><input type="number" id="ntPopStart" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popStart,0.5">+</button></div></div>
+            <div class="field"><span class="label">With you at the end for (seconds)</span><div class="row voicerow"><button data-nt-step="popEnd,-0.5">&minus;</button><input type="number" id="ntPopEnd" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popEnd,0.5">+</button></div></div>
+            <div class="field"><span class="label">Each round, this many percent less</span><div class="row voicerow"><button data-nt-step="popFade,-1">&minus;</button><input type="number" id="ntPopFade" inputmode="numeric" min="0" max="50"><button data-nt-step="popFade,1">+</button></div><span class="status">0 keeps it the same all session.</span></div>
+          </div>
+          <p class="status" id="ntPopTxt" style="margin:0"></p>
+        </div>
+        <p class="status" id="ntPopOff" style="margin:4px 0" hidden>The plan you picked does not use popping in and out. Pick "He pops in and out" under Advanced to get these controls back.</p>
         <div class="field" id="ntTimeBox"><span class="label">Your hours on this song, in this lesson</span>
           <b id="ntTime" style="display:block"></b>
           <div style="height:10px;border-radius:6px;background:rgba(128,128,128,.3);overflow:hidden;margin:4px 0"><i id="ntTimeBar" style="display:block;height:100%;width:0;background:var(--good)"></i></div>
@@ -1390,24 +1414,11 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <p class="status" style="margin:0">Only time the session is really playing counts. Pauses do not. Each song keeps its own count, on this phone.</p>
           </details>
         </div>
-        <details class="opts" open><summary>The passes each piece gets</summary>
+        <details class="opts"><summary>Advanced: other plans, and the passes each piece gets</summary>
           <p class="status" style="margin:0 0 6px">A piece of the song goes through these passes from top to bottom. Each pass is one time through the piece with its own help. Change any of them, switch one off, move it, or add your own.</p>
           <div class="field"><label class="label" for="ntLad">Start from a ready-made plan (this replaces the passes below)</label><select id="ntLad"></select><span class="status" id="ntLadTxt"></span></div>
           <div id="ntRows"></div>
           <div class="row" style="gap:8px;flex-wrap:wrap"><button id="ntAdd">+ Add a pass</button><button id="ntAddAlone">+ Add an "on your own" pass</button></div>
-        </details>
-        <details class="opts" open><summary>Popping in and out</summary>
-          <p class="status" style="margin:0 0 6px">For any pass set to "Popping in and out". You sing the whole piece. The singer and the tone are with you at the start, drop out, come back for a moment now and then, and are with you again at the end. Their volumes are set in the pass itself. Lower the numbers as you get surer.</p>
-          <div class="grid2">
-            <div class="field"><span class="label">How much of the piece they sing with you (percent)</span><div class="row voicerow"><button data-nt-step="popPct,-5">&minus;</button><input type="number" id="ntPopPct" inputmode="numeric" min="0" max="100"><button data-nt-step="popPct,5">+</button></div><span class="status">Not counting the start and the end. 0 means only the start and the end.</span></div>
-            <div class="field"><span class="label">Each time they come in, for (seconds)</span><div class="row voicerow"><button data-nt-step="popLen,-0.25">&minus;</button><input type="number" id="ntPopLen" inputmode="decimal" min="0.2" max="30" step="0.25"><button data-nt-step="popLen,0.25">+</button></div></div>
-            <div class="field"><label class="label" for="ntPopMode">Where they come in</label><select id="ntPopMode"><option value="even">Spread evenly</option><option value="rand">At random moments</option></select></div>
-            <div class="field"><label class="label" for="ntPopNew">Each time through</label><select id="ntPopNew"><option value="each">New moments every time (random only)</option><option value="same">The same moments every time</option></select></div>
-            <div class="field"><span class="label">With you at the start for (seconds)</span><div class="row voicerow"><button data-nt-step="popStart,-0.5">&minus;</button><input type="number" id="ntPopStart" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popStart,0.5">+</button></div></div>
-            <div class="field"><span class="label">With you at the end for (seconds)</span><div class="row voicerow"><button data-nt-step="popEnd,-0.5">&minus;</button><input type="number" id="ntPopEnd" inputmode="decimal" min="0" max="30" step="0.5"><button data-nt-step="popEnd,0.5">+</button></div></div>
-            <div class="field"><span class="label">Each round, this many percent less</span><div class="row voicerow"><button data-nt-step="popFade,-1">&minus;</button><input type="number" id="ntPopFade" inputmode="numeric" min="0" max="50"><button data-nt-step="popFade,1">+</button></div><span class="status">0 keeps it the same all session.</span></div>
-          </div>
-          <p class="status" id="ntPopTxt" style="margin:0"></p>
         </details>
         <details class="opts"><summary>How the part is cut into pieces</summary>
           <div class="grid2">
@@ -1415,7 +1426,6 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
             <div class="field"><label class="label" for="ntOrder">Order of the pieces</label><select id="ntOrder"><option value="song">As in the song</option><option value="back">From the end backwards</option><option value="rand">Shuffled, new every round</option></select></div>
             <div class="field"><span class="label">Phrases in one piece</span><div class="row voicerow"><button data-nt-step="chunk,-1">&minus;</button><input type="number" id="ntChunk" inputmode="numeric" min="1" max="30"><button data-nt-step="chunk,1">+</button></div></div>
             <div class="field"><span class="label">Move on by this many phrases</span><div class="row voicerow"><button data-nt-step="step,-1">&minus;</button><input type="number" id="ntStep" inputmode="numeric" min="1" max="30"><button data-nt-step="step,1">+</button></div><span class="status">Fewer than the piece size makes the pieces overlap, which drills the joins.</span></div>
-            <div class="field"><span class="label">Speed (percent of the singer)</span><div class="row voicerow"><button data-nt-step="speed,-5">&minus;</button><input type="number" id="ntSpeed" inputmode="numeric" min="30" max="200"><button data-nt-step="speed,5">+</button></div></div>
             <div class="field"><span class="label">Times through the whole list of passes, per piece</span><div class="row voicerow"><button data-nt-step="laps,-1">&minus;</button><input type="number" id="ntLaps" inputmode="numeric" min="1" max="10"><button data-nt-step="laps,1">+</button></div></div>
           </div>
           <p class="status" id="ntPieces" style="margin:0"></p>
@@ -7556,7 +7566,7 @@ function lpLiveShow(){const L0=lpG(),mp=lpU();if($('lpLSp'))$('lpLSp').textConte
   if($('lpLEvLab')){$('lpLEvLab').textContent=mp?'Runs of each':'Mix in every';$('lpLEvRow').hidden=mp&&L0.mode!=='all'}
   if($('lpLTimbre'))$('lpLTimbre').value=earSet().timbre;if(EARS.run&&(EARS.u===13||EARS.u===14))$('earPaceNow').textContent='Speed '+L0.speed+'% · the Slower and Faster buttons change it by 5%'}
 /* ---- the setup card ---- */
-async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.hidden=!on;{const pf=$('earPaceChips').closest('.field');if(pf)pf.hidden=on}if(!on)return;
+async function renderLoop(){const box=$('lpBox'),s=earSet(),on=s.unit===13;box.hidden=!on;{const pf=$('earPaceChips').closest('.field');if(pf)pf.hidden=on||[14,15,16].includes(s.unit)}if(!on)return;
   const list=await earSongList(),sel=$('lpSongSel');smOpts(sel,list.map(x=>[x.id,x.name+(x.audio?' · with recording':'')]));
   const want0=lpSongId(),want=list.some(x=>x.id===want0)?want0:'b:psalm23';sel.value=want;
   if(!(SM.ok&&SM.id===want))$('lpStatus').textContent='Preparing the song map...';
@@ -8068,7 +8078,7 @@ function vbInit(){const sel=(id,key,num)=>{const el=$(id);if(el)el.onchange=()=>
 const NT_CUES=[['A','On your own'],['W','With me'],['S','Sing with the singer'],['L','Listen'],['C','Check'],['O','Singer only'],['N','Tone only'],['T','Think it (no singing)'],['','No word']];
 const NT_CUE_VO={S:['W','withsinger'],O:['C','singeronly'],N:['W','toneonly']};
 const NT_SHAPES=[['all','Every note'],['first','The first note only'],['line1','The first line only'],['starts','The first note of every line'],['ends','The last note of every line'],
-  ['odd','Lines 1, 3, 5 (you carry 2, 4, 6)'],['even','Lines 2, 4, 6 (you carry 1, 3, 5)'],['long','The long notes only'],['short','All but the long notes'],['pop','Popping in and out (set below)']];
+  ['odd','Lines 1, 3, 5 (you carry 2, 4, 6)'],['even','Lines 2, 4, 6 (you carry 1, 3, 5)'],['long','The long notes only'],['short','All but the long notes'],['pop','Popping in and out (set at the top)']];
 const ntR=(n,cue,tone,voice,shape,o)=>Object.assign({n,cue,tone,voice,shape:shape||'all',reps:1,speed:0,start:false,after:false,drone:false,ticks:false,on:true},o||{});
 const NT_SA={start:true,after:true};
 const NT_LADDERS={
@@ -8181,6 +8191,9 @@ const NTQ={t:0,why:''};
 function ntChanged(why){renderNt();try{earSumUI()}catch(e){}if(!(EARS.run&&EARS.bg&&EARS.u===16))return;NTQ.why=why||'Changed';clearTimeout(NTQ.t);$('earPending').hidden=false;$('earPending').textContent=NTQ.why+' from the next pass...';NTQ.t=setTimeout(ntReplan,900)}
 function ntReplan(){NTQ.t=0;if(!(EARS.run&&EARS.bg))return;if(BG.prep||(BG.replan&&!BG.pending)){NTQ.t=setTimeout(ntReplan,800);return}
   if(BG.pending){try{URL.revokeObjectURL(BG.pending.url)}catch(e){}BG.pending=null;BG.replan=false}bgReplanFromNext(NTQ.why)}
+function ntPopI(){return ntRows().findIndex(r=>r.shape==='pop'&&r.on!==false)}
+function ntRowStep(k,d,abs){const rows=ntRows(),i=ntPopI();if(i<0)return;const v=Math.max(0,Math.min(10,Math.round(abs!=null?abs:(+rows[i][k]||0)+d)));if(v===(+rows[i][k]||0)&&abs==null)return;rows[i][k]=v;ntRowsSave(rows,(k==='tone'?'Tone volume ':'Singer volume ')+v)}
+function ntLiveShow(){const S=ntSet(),i=ntPopI(),r=i>=0?ntRows()[i]:null,t=(id,v)=>{const e=$(id);if(e&&e.textContent!==v)e.textContent=v};t('ntLvPct',S.popPct+'%');t('ntLvLen',S.popLen+' s');t('ntLvTone',r?String(r.tone):'-');t('ntLvVoice',r?String(r.voice):'-')}
 function ntRowsSave(rows,why){ntSave({ladder:rows});ntChanged(why)}
 function ntEsc(s){return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
 function ntRowsUI(){const box=$('ntRows');if(!box)return;const rows=ntRows(),opt=(L,v)=>L.map(([k,t])=>'<option value="'+k+'"'+(k===v?' selected':'')+'>'+t+'</option>').join('');
@@ -8210,6 +8223,7 @@ async function renderNt(){const box=$('ntBox');if(!box)return;const s=earSet(),o
   const custom=Array.isArray(S.ladder)&&S.ladder.length>0,ls=$('ntLad');smOpts(ls,(custom?[['','Your own passes (edited)']]:[]).concat(Object.keys(NT_LADDERS).map(k=>[k,NT_LADDERS[k].n])),custom?'':S.lad);
   $('ntLadTxt').textContent=custom?'These are your own passes. Picking a plan above replaces them.':(NT_LADDERS[S.lad]||NT_LADDERS.fade).d;
   if(!$('ntRows').contains(document.activeElement))ntRowsUI();
+  {const i=ntPopI(),r=i>=0?ntRows()[i]:null;$('ntPopBox').hidden=!r;$('ntPopOff').hidden=!!r;if(r){lpSetV('ntRowTone',r.tone);lpSetV('ntRowVoice',r.voice)}ntLiveShow()}
   $('ntStep').closest('.field').classList.toggle('dim',S.build!=='each');$('ntOrder').closest('.field').classList.toggle('dim',S.build!=='each');$('ntChunk').closest('.field').classList.toggle('dim',S.build==='whole');
   const list=await earSongList(),sel=$('ntSong');smOpts(sel,list.map(x=>[x.id,x.name+(x.audio?' · with recording':'')]));const want0=ntSongId(),want=list.some(x=>x.id===want0)?want0:'b:psalm23';sel.value=want;
   if(!(SM.ok&&SM.id===want))$('ntStatus').textContent='Preparing the song map...';
@@ -8230,7 +8244,10 @@ function ntInit(){if(!$('ntBox'))return;
   NT_NUM.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:ntClamp(k,$(id).value)});ntChanged('Changed')}});
   NT_SEL.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:$(id).value});ntChanged('Changed')}});
   NT_CHK.forEach(([id,k])=>{$(id).onchange=()=>{ntSave({[k]:$(id).checked});ntChanged('Changed')}});
-  $('ntBox').querySelectorAll('[data-nt-step]').forEach(b=>{const[k,d]=b.dataset.ntStep.split(',');b.onclick=()=>{ntSave({[k]:ntClamp(k,(+ntSet()[k]||0)+(+d))});ntChanged('Changed')}});
+  const NTW={popPct:v=>'With you '+v+'%',popLen:v=>'Each time '+v+' s',speed:v=>'Speed '+v+'%'};
+  document.querySelectorAll('[data-nt-step]').forEach(b=>{const[k,d]=b.dataset.ntStep.split(',');b.onclick=()=>{const v=ntClamp(k,(+ntSet()[k]||0)+(+d));ntSave({[k]:v});ntChanged(NTW[k]?NTW[k](v):'Changed')}});
+  document.querySelectorAll('[data-nt-row]').forEach(b=>{const[k,d]=b.dataset.ntRow.split(',');b.onclick=()=>ntRowStep(k,+d)});
+  $('ntRowTone').onchange=()=>ntRowStep('tone',0,+$('ntRowTone').value||0);$('ntRowVoice').onchange=()=>ntRowStep('voice',0,+$('ntRowVoice').value||0);
   $('ntSong').onchange=()=>{ntSave({song:$('ntSong').value});renderNt();renderKeyRows();try{earSumUI()}catch(e){}};
   const rg=()=>{if(!SM.ok)return;const S=ntSet(),rng=Object.assign({},S.rng),a=+$('ntFrom').value,b=Math.max(a,+$('ntTo').value);rng[SM.id]={from:a,to:b};ntSave({rng});ntChanged('Part changed')};$('ntFrom').onchange=rg;$('ntTo').onchange=rg;
   $('ntLad').onchange=()=>{const k=$('ntLad').value;if(!k)return;ntSave(Object.assign({lad:k,ladder:null},NT_LADDERS[k].set||{}));ntChanged('Plan: '+NT_LADDERS[k].n)};
@@ -8454,7 +8471,7 @@ function earMediaStop(){try{if(earAudio)earAudio.pause();if('mediaSession' in na
 function earPocket(on){$('earPocket').hidden=!on;document.documentElement.classList.toggle('pocket',!!on)}
 /* ---- UI ---- */
 const PH_COL={L:'var(--lapis)',W:'var(--accent)',A:'var(--good)',C:'#E7C26A',T:'var(--muted)',Q:'var(--lapis)'};
-function earUI(clockOnly){{const nb=$('ntLive');if(nb){const hide=!(EARS.run&&EARS.u===16);if(nb.hidden!==hide)nb.hidden=hide;if(!hide&&$('earPaceNow'))$('earPaceNow').textContent='Speed '+(+ntSet().speed||100)+'% · the Slower and Faster buttons change it by 5%'}}const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');const tt=fmt(EARS.el)+' / '+fmt(EARS.goal);
+function earUI(clockOnly){{const nb=$('ntLive');if(nb){const hide=!(EARS.run&&EARS.u===16);if(nb.hidden!==hide)nb.hidden=hide;{const lb=$('ntLiveBox'),h2=hide||ntPopI()<0;if(lb.hidden!==h2)lb.hidden=h2;if(!h2)ntLiveShow()}if(!hide&&$('earPaceNow'))$('earPaceNow').textContent='Speed '+(+ntSet().speed||100)+'% · the Slower and Faster buttons change it by 5%'}}const fmt=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');const tt=fmt(EARS.el)+' / '+fmt(EARS.goal);
   /* the four lights name the part of the drill you are in. When a lesson never asks you to sing alone, the last
      two never light, so they are taken off the screen instead of sitting there looking like buttons. */
   {const noA=earSet().unit===5&&(earSet().songAlone||'never')==='never';$('earDotA').hidden=noA;$('earDotC').hidden=noA}
@@ -9620,7 +9637,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=81;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=82;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

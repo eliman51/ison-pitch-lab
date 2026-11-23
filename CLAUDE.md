@@ -1030,3 +1030,11 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   and no long silence without a word before it.
 - Measured (8 phrases of Psalm 23, 40 s, 20%, 1 s, even): sound in exactly the planned windows, 1.5 s at each end and
   eight 1 s windows 3.2 s apart.
+- Version 82, after Eli's first look at the pop-in plan: the pop settings were in a section far below the pass, so the
+  pass's own line ("first 1.5 s...") read to him as hard coded. He uses this lesson as a modified Loop a part: one
+  way of helping, the same all session, changed only by him. So the card now opens with **"How he helps you"**
+  (`#ntPopBox`): tone volume and singer volume (they edit the pop pass, `ntRowStep`), speed, percent, seconds each
+  time, even or random, start and end seconds. Plans and the list of passes are folded under "Advanced". The running
+  screen has the same four as plus and minus buttons (`#ntLiveBox`: percent, seconds, tone, singer). The Easy to
+  Extra hard row had come back for this lesson because `renderLoop` un-hid it; fixed there. Nothing in the pop plan
+  changes by itself during a session (`popFade`, `fadeT`, `fadeV` are 0).
