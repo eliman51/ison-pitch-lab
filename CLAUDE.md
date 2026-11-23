@@ -27,6 +27,8 @@ written for him.
 - `psalm23.mp3`, `psalm23-tone4.mp3`, `chant-forever.mp3` recordings built into the app.
 - `p23.bin`, `bzm.bin` data the page loads (`PRIV` in index.html).
 - `sw.js` offline cache. `tools/check.py` must say OK before every push.
+- `guitar-steel.m4a`, `guitar-nylon.m4a` the two guitars of the Guitar lab (see that section); `guitar-steel.LICENSE.txt` must stay beside them.
+  `tools/guitar.mjs` renders the guitar parts on this Mac with the page's own code; `tools/guitarpack.py` rebuilds the two guitar files.
 - `tools/sing.py` sings a notes file from the app with a free voice on this Mac (see "The singer on this Mac").
 - `tools/lexicon.mjs` rebuilds the syllable word list inside index.html (not needed for normal changes).
 - `tools/scan.py` the deep scan of a recording (words, letters, notes, loud and soft); `tools/heart.py` turns a score
@@ -882,3 +884,84 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   he is probably a different man; the voice used is the Psalm 23 singer's.
 - `hisvoice.py` now keeps its first stage as `<name> soulx.wav` and takes `--protect`, `--index` and `--rvc-only`, so
   the second stage can be retried in half a minute.
+
+## Guitar lab (23 November 2026)
+
+- What Eli asked for: he plays guitar, knows Psalm 23 Tone 3 by heart, and wants to try it with guitar and maybe learn
+  to play it. Ten different guitar parts for that song ("different mindsets", not ten flavours of one idea), in a new
+  section where he picks the song and the part, sets the guitar volume, presses play, and the two stay exactly
+  together. Mid-task he added: a normal acoustic (steel string) guitar sound, not harsh, and "as much
+  customizability where it doesn't break": sliders instead of hard-coded numbers, one of them sliding from nylon to
+  steel, one for the room echo. He does not want a guitar sound coded from scratch; it must be real recorded guitars.
+- It is the **Guitar tab** (eighth tab; `v-guitar`, everything named `gt...`, settings in `ison-gt`). The tab bar is
+  now 8 across: at 375 wide each tab is 43 px and the longest labels are 42, so there is no room for a ninth.
+- **The chords** (worked out from the melody, since the recording is one unaccompanied voice). His ladder is
+  C# D# E F# G# A B with G# as home: G sharp Phrygian. Five chords only, each named by its job so any key can play it:
+  `i` G#m (home), `II` A (the half step above home), `iv` C#m, `VI` E, `vii` F#m. No B major: in the low close
+  his held E would sit a half step over the chord's D#. The same shape always takes the same chords:
+  opening A = C#m, then F#m on the last word or two; low close B = E, then C#m on the last syllable; middle C = G#m,
+  F#m, G#m; full close D and the recovery I = G#m, A, F#m, G#m (home arrives on the long last syllable);
+  second opening E = E throughout; the descent H = F#m, C#m; the climb F = E, then A on the top note; the height
+  G = E, A, G#m. Written per phrase in `GT_SONGS.psalm23.ch` (`syllable:role`, `0.1` = at the second note of
+  syllable 0, used once, in the last line).
+- Measured against the scan: 72% of the singing time is on a note of the chord, 17% on a soft neighbour (a seventh or
+  ninth), 7% a half step under a chord note, 4% a half step over one (the harsh kind). Longest harsh one 0.28 s
+  ("still", "name's", "with", "my"). Longest soft rub: G# held over the A chord for half a second ("staff", "dwell").
+  A chord fitter left to itself chose F#m almost everywhere (everything is a soft neighbour of it), so the plan was
+  written by hand, shape by shape, and then measured.
+- **Guitar shapes.** Capo = (4 + key) mod 12 with the E family (Em, F, Am, C, Dm) while that is 7 or less; otherwise
+  the A family (Am, Bb, Dm, F, Gm) with capo 5 lower. As sung: capo 4. Down 2: capo 2. Down 4: no capo. Down 5: A
+  family, capo 6. The guitar the app plays uses these very fingerings (`GT_FAM`, frets counted from the capo), so
+  what he hears is what his hands would play. The key is the app's own per-song key (`keyRowIds` entry `gt`).
+- **Following the singer.** There is no beat. Every pluck is tied to a syllable start, a note start inside a
+  syllable, or the end of a syllable (answers in his breaths), all from the scan (`GT_SONGS.psalm23.syl`: start,
+  length, how late the vowel begins, text, notes as ladder steps). 11 of the 175 syllables begin their vowel 50 to
+  120 ms after the aligner's mark (measured with pyin); the guitar follows the vowel.
+- **The ten parts** (`GT_PARTS`, one generator each, `gtp...`): the ison (one low note under each phrase); one slow
+  strum per chord; strum and walk (big strum, then bass notes stepping to the next root, skipping any that would
+  sit a half step from his note); rolling arpeggio; thumb and pinch; the melody with him (oud style, tremolo on notes
+  of 0.62 s or more, over the open low string); answers in his breaths (his own last notes an octave up, nothing
+  while he sings); open fifths (no thirds); bells over a bass; Spanish (hard strums, upstroke, a two-stroke roll
+  into the last chord of each low close and full close).
+- **The sound.** Two real guitars from the FreePats project, each note cut to its pluck, tuning measured to a cent,
+  packed into one file by `tools/guitarpack.py`: `guitar-nylon.m4a` (Spanish classical guitar, CC0, 19 notes) and
+  `guitar-steel.m4a` (FSS Steel-String Acoustic Guitar, a Seagull, samples by Gary Campion of FlameStudios, GNU GPL 3
+  or later with the FreePats exception that music made with it is not covered; 17 notes of the loud layer). The page
+  plays the nearest note a little faster or slower (never more than about one half step). A string sounds one note
+  at a time; a chord change stops every string whose fret the new shape does not hold (`gtSynth`).
+  **The GPL file matters if the app ever goes to the App Store** (GPL 3 and the App Store terms do not mix): swap
+  the steel guitar for another sample set first, or ask. The nylon one is free of any condition.
+- **The sound lab** (`GT_SND`, each 0 to 10, kept in `ison-gt` `snd`): Strings (nylon to steel, both blended in
+  between, default 5), Tone, Body, Pluck, Ring, Room (the Freeverb design), Strum (how spread a strum is), Looseness
+  (hand-like differences in time and strength), Timing (the whole guitar earlier or later, 15 ms a step). Plus guitar
+  and singer volume (3 dB a step) and Tuning: with the singer (guitar 18 cents flat, as he sings) or for a real
+  guitar (the singer resampled up 18 cents, about 1% quicker, every time divided by the same ratio).
+  Every part is first brought to the same loudness against the singer (8 dB under him at "6 of 10", `gtMix`,
+  `gtLoud`), so the balance does not jump when the part changes.
+- **Playing.** Voice and guitar are made into one WAV at 32 kHz and played through an audio element, so they cannot
+  drift and it plays with the phone locked. Four layers are remembered (`gtBuild`): the singer, the guitar as
+  played, the guitar after tone, body and room, the mix. A change redoes only what depends on it and the new sound
+  takes over at the same word about a second later (measured on this Mac: first Play 0.8 s, a change 0.5 to 0.9 s).
+  One build at a time (`GT.busy`): two at once made the first Play take 4 seconds.
+- `gtAlign`: browsers hand a decoded mp3 back a few hundredths of a second apart. `GT_SONGS.psalm23.fp` holds where
+  five loud moments of the recording fall; the page finds them and slides the voice onto the guitar. Chromium
+  here needs no shift (0 samples); Safari on the phone could not be tested from this Mac.
+- **The engine is one block** in index.html between `GT-ENGINE-START` and `GT-ENGINE-END`, free of page things.
+  `node tools/guitar.mjs <folder> [--part walk] [--key -2] [--concert] [--strings 5 --tone 5 ...] [--stems]` cuts
+  that block out and runs it, so the Mac renders what the app plays (the two decoders differ a little: guitar
+  loudness 0.15 dB apart). On the Mac `--key` moves only the guitar, not the singer. The ten recordings sent to Eli
+  are in `notes/guitar-lab/` (gitignored).
+- **Checked by measurement only, Claude cannot hear it.** Every guitar note within 1 cent of its target (45 notes,
+  both guitars, at the singer's tuning). Each pluck's sound begins a median 8 to 17 ms after its written time. In
+  the page: his home note measured 55.9 as sung and 53.9 two down, the guitar's low C# 48.84 against a target of
+  48.82. Guitar against voice 7 to 9 dB under by the loudness measure. Nobody has judged whether the chords or the
+  ten parts sound good: that is Eli's ear. Likely first complaints and where to turn: harsh = Tone, Pluck, Strings;
+  guitar early or late = Timing; a chord he dislikes = the `ch` string of the song.
+- What was tried and dropped: the FluidR3 General MIDI nylon guitar from gleitz/midi-js-soundfonts (CC BY 3.0) is
+  only 3.2 s a note at 38 kbps; a roll of strokes starting 0.2 s before a close put the home chord under his
+  neighbour note, so the roll starts 0.13 s before, softly, on the top strings.
+- To add a song: it needs the deep scan (`tools/scan.py`), its phrases, a chord for every stretch, and an entry in
+  `GT_SONGS`. The scripts that wrote the Psalm 23 entry and measured it are kept in `~/ison-singer/guitar/` (`chords.py`
+  the chord plan and its score, `onset.py` the vowel starts, `gen_data.py` the entry itself, `verify.py` and `pt.py`
+  the measurements); they are written for Psalm 23 and need editing for another song. Psalm 23 Tone 4 has a scan and 26 phrases already (`~/ison-singer/p23t4/scan/`).
+

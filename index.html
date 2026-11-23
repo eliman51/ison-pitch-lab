@@ -33,7 +33,7 @@ header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
 header h1{font-family:var(--f-display);font-weight:400;font-size:1.9rem;margin:0;letter-spacing:.03em}
 header h1 span{color:var(--accent)}
 header p{margin:0;color:var(--muted);font-size:.92rem}
-.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(7,1fr);gap:2px;padding:6px;margin-inline:-6px;
+.tabs{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:grid;grid-template-columns:repeat(8,1fr);gap:2px;padding:6px;margin-inline:-6px;
   background:rgba(11,10,16,.88);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
 .tabs{isolation:isolate}
 .tabs button{background:transparent;border:0;color:var(--muted);padding:9px 2px;border-radius:8px;font-size:.9rem;transition:color var(--t-med) var(--e-out)}
@@ -711,7 +711,7 @@ html.sketch .seg button[aria-pressed="true"]{background:var(--sk-hatch-on),var(-
 
 /* the bottom bar: see-through paper with an inked edge; the current tab gets a hand-drawn circle */
 html.sketch .tabs{position:fixed;top:auto;left:0;right:0;bottom:0;transform:none;z-index:40;width:auto;margin:0;padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px));
-  display:grid;grid-template-columns:repeat(7,1fr);gap:2px;border:0;border-radius:0;background:var(--sk-bar);-webkit-backdrop-filter:blur(var(--sk-blur));backdrop-filter:blur(var(--sk-blur));
+  display:grid;grid-template-columns:repeat(8,1fr);gap:2px;border:0;border-radius:0;background:var(--sk-bar);-webkit-backdrop-filter:blur(var(--sk-blur));backdrop-filter:blur(var(--sk-blur));
   box-shadow:0 calc(var(--skw)*-.9) 0 -0.5px var(--ink),0 -5px 0 -2px var(--ink-soft);transition:transform calc(.3s*var(--sk-t)) var(--sk-ease),box-shadow calc(.25s*var(--sk-t)) var(--sk-ease)}
 html.sketch.sk-m-lift.sk-under .tabs{box-shadow:0 calc(var(--skw)*-.9) 0 -0.5px var(--ink),0 -7px 0 -3px var(--ink-soft),0 -12px 18px -10px var(--sk-shade)}
 html.sketch .tabs::before,html.sketch .tabs .tabink{display:none}
@@ -992,6 +992,7 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <button role="tab" id="tab-songs" aria-selected="false" aria-controls="v-songs">Songs</button>
     <button role="tab" id="tab-chant" aria-selected="false" aria-controls="v-chant">Chant</button>
     <button role="tab" id="tab-bible" aria-selected="false" aria-controls="v-bible">Bible</button>
+    <button role="tab" id="tab-guitar" aria-selected="false" aria-controls="v-guitar">Guitar</button>
     <button role="tab" id="tab-tuner" aria-selected="false" aria-controls="v-tuner">Tuner</button>
     <button role="tab" id="tab-stats" aria-selected="false" aria-controls="v-stats">Stats</button>
     <button role="tab" id="tab-settings" aria-selected="false" aria-controls="v-settings">Settings</button>
@@ -1893,6 +1894,77 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
     <div class="field"><label class="label" for="bbIsoN">Tone under the reading</label><select id="bbIsoN"></select></div>
     <p class="status" style="margin:4px 0 0">Change the voice, the speed and the tone any time, even while it reads; it carries on from the same word. The lock screen buttons pause it and skip between stanzas. Tap a verse below to read from there.</p>
     <div class="bbtxt" id="bbTxt"></div>
+  </section>
+  </div>
+
+  <div class="view" id="v-guitar" hidden>
+  <style>
+  .gtcapo{font-size:1rem;font-weight:600;margin:0;line-height:1.45}
+  .gtcapo small{display:block;font-weight:500;font-size:.84rem;color:var(--muted);margin-top:2px}
+  .gtnow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .gtnow div{border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:center;min-width:0}
+  .gtnow span{display:block;font-size:.72rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+  .gtnow b{display:block;font-size:1.7rem;line-height:1.15}
+  .gtnow small{display:block;font-size:.76rem;color:var(--muted);min-height:1.1em}
+  .gtbar{display:grid;grid-template-columns:1fr 1.5fr 1fr;gap:8px;align-items:center}
+  .gtbar .lpplay{white-space:normal;padding:8px 6px}
+  .gttime{text-align:center;margin:0;font-variant-numeric:tabular-nums}
+  .gtvol{display:grid;grid-template-columns:4.2em 1fr 5.6em;gap:8px;align-items:center}
+  .gtvol label{font-weight:600;font-size:.92rem}
+  .gtvol output{text-align:right;font-size:.86rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .gtsl{display:flex;flex-direction:column;gap:1px;padding:8px 0;border-top:1px dashed var(--line)}
+  .gtsl:first-of-type{border-top:0}
+  .gtslh{display:flex;justify-content:space-between;align-items:baseline}
+  .gtslh label{font-weight:700}
+  .gtslh output{font-size:.86rem;color:var(--muted);font-variant-numeric:tabular-nums}
+  .gtends{display:flex;justify-content:space-between;font-size:.76rem;color:var(--muted)}
+  .gtsl .status{margin:2px 0 0;font-size:.82rem}
+  .gtgrp{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:6px 0 0}
+  .gtsheet h3{margin:14px 0 4px;font-size:.95rem}
+  .gtln{margin:0 0 2px;padding:5px 8px 7px;border-radius:9px;cursor:pointer;transition:background .2s;line-height:1.2}
+  .gtln.on{background:var(--surface2)}
+  .gtln>small{display:block;font-size:.66rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-bottom:1px}
+  .gts{display:inline-flex;flex-direction:column;align-items:flex-start;vertical-align:bottom;font-size:1.02rem}
+  .gts.w{margin-left:.34em}
+  .gts i{font-style:normal;font-weight:700;font-size:.86rem;color:var(--accent);min-height:1.25em;white-space:nowrap;padding-right:.3em}
+  .gts.cur>span{text-decoration:underline;text-underline-offset:3px}
+  .gtln.on .gts.cur i{color:var(--lapis)}
+  html.sketch .gts i{color:var(--ink);background:var(--accent);border-radius:4px;padding:0 .25em;margin:0 .2em 2px 0;min-height:0;line-height:1.3}
+  html.sketch .gts i:empty{background:none;padding:0;min-height:1.3em;display:block}
+  .gtshapes{font-family:var(--f-mono,monospace);font-size:.84rem;line-height:1.7;margin:0}
+  .gtshapes b{display:inline-block;min-width:2.6em}
+  </style>
+  <section class="panel" aria-labelledby="t-guitar">
+    <h2 id="t-guitar">Guitar lab</h2>
+    <p class="status" style="margin:0">A guitar played under a song you already know, so you can hear what fits and learn to play it yourself. There is no beat to count: the guitar follows the singer word by word.</p>
+    <div class="field"><label class="label" for="gtSong">Song</label><select id="gtSong"></select></div>
+    <div class="field"><label class="label" for="gtPart">Guitar part</label><select id="gtPart"></select></div>
+    <p class="status" id="gtIdea" style="margin:0"></p>
+    <div class="keyrow"><span class="label">Key</span><b data-key-for="gt">As sung</b><button data-key-open="gt" aria-label="Change the key of this song"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4v13M4.5 13.5 8 17l3.5-3.5M16 20V7M12.5 10.5 16 7l3.5 3.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg> Change</button></div>
+    <p class="gtcapo" id="gtCapo"></p>
+    <div class="gtnow" aria-live="off"><div><span>Now</span><b id="gtNow">&nbsp;</b><small id="gtNowS"></small></div><div><span>Next</span><b id="gtNext">&nbsp;</b><small id="gtNextS"></small></div></div>
+    <div class="gtbar"><button id="gtBack" class="lpplay">Start over</button><button id="gtGo" class="primary big">Play</button><button id="gtLoop" class="lpplay" aria-pressed="false">Repeat</button></div>
+    <input type="range" id="gtSeek" min="0" max="1000" step="1" value="0" aria-label="Place in the song">
+    <p class="status gttime" id="gtTime">0:00</p>
+    <div class="gtvol"><label for="gtGv">Guitar</label><input type="range" id="gtGv" min="0" max="10" step="1"><output id="gtGvO"></output></div>
+    <div class="gtvol"><label for="gtVv">Singer</label><input type="range" id="gtVv" min="0" max="10" step="1"><output id="gtVvO"></output></div>
+    <p class="status" id="gtMsg" style="margin:0" aria-live="polite"></p>
+    <p class="status" style="margin:0">Change anything while it plays: about a second later the new sound takes over at the same word.</p>
+  </section>
+  <section class="panel" aria-labelledby="t-gtsound">
+    <h2 id="t-gtsound">Guitar sound</h2>
+    <p class="status" style="margin:0">Every slider goes from 0 to 10. If the guitar sounds harsh, turn Tone down first, then Pluck, then slide Strings toward nylon.</p>
+    <div id="gtSnd"></div>
+    <div class="field"><label class="label" for="gtTune">Tuning</label><select id="gtTune"><option value="0">With the singer, as he sings it (a little under concert pitch)</option><option value="1">For playing along on a real guitar (the singer is raised to concert pitch)</option></select></div>
+    <div class="row"><button id="gtReset" class="lpplay">Back to the starting sound</button></div>
+    <p class="status" style="margin:0;font-size:.8rem">Both guitars are real instruments recorded one note at a time, from the FreePats project. Steel strings: FSS Steel-String Acoustic Guitar, samples by Gary Campion of FlameStudios (GNU GPL 3 or later, with the FreePats exception for music made with it). Nylon strings: Spanish classical guitar (public domain, CC0).</p>
+  </section>
+  <section class="panel" aria-labelledby="t-gtsheet">
+    <h2 id="t-gtsheet">Words and chords</h2>
+    <p class="status" style="margin:0">The chord sits over the syllable where you change to it. The line being sung lights up; tap a line to play from there. The same turn of the melody always takes the same chords, so once you know a line you know every line with that name.</p>
+    <p class="gtshapes" id="gtShapes"></p>
+    <p class="status" style="margin:0">Each row is the six strings from the thickest to the thinnest. The numbers are frets counted from the capo, and x is a string you leave out.</p>
+    <div class="gtsheet" id="gtSheet"></div>
   </section>
   </div>
 
@@ -4068,7 +4140,7 @@ window.addEventListener('scroll',()=>{const t=$('statTip');if(t&&!t.hidden)t.hid
 {let rz=0,lw=innerWidth;window.addEventListener('resize',()=>{clearTimeout(rz);rz=setTimeout(()=>{if(innerWidth!==lw&&!$('v-stats').hidden){lw=innerWidth;renderStats()}},300)})}
 
 /* ================= Tabs ================= */
-const TABS=['practice','songs','chant','bible','tuner','stats','settings'];
+const TABS=['practice','songs','chant','bible','guitar','tuner','stats','settings'];
 const SONG_UI={cv:'sing',tgt:'tgt',you:'you',h:260},LESSON_UI={cv:'lsCanvas',tgt:'lsTgt',you:'lsYou',h:280};
 function placeTabInk(){if(typeof placeTabLiquid==='function'){placeTabLiquid();return}const b=TABS.map(t=>$('tab-'+t)).find(x=>x.getAttribute('aria-selected')==='true');if(!b)return;const nav=b.parentElement,ink=$('tabInk');
   nav.style.setProperty('--tx',b.offsetLeft+'px');nav.style.setProperty('--tw',b.offsetWidth+'px');ink.style.left=(b.offsetLeft+b.offsetWidth*0.2)+'px';ink.style.width=(b.offsetWidth*0.6)+'px'}
@@ -4076,7 +4148,7 @@ window.addEventListener('resize',()=>placeTabInk());
 function showTab(k){
   if(L.active&&k!=='practice'&&G.lesson&&G.playing)lessonPause();
   const was=TABS.find(t=>!$('v-'+t).hidden);
-  TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});if(k==='chant')chOpen();else if(CHM.inited)chStop();if(k==='bible')bbOpen();
+  TABS.forEach(t=>{$('tab-'+t).setAttribute('aria-selected',String(t===k));$('v-'+t).hidden=t!==k});if(k==='chant')chOpen();else if(CHM.inited)chStop();if(k==='bible')bbOpen();if(k==='guitar')gtOpen();else gtLeave();
   placeTabInk();if(was&&was!==k&&uiMotion()){const v=$('v-'+k);v.classList.remove('enter');void v.offsetWidth;v.classList.add('enter')}
   try{localStorage.setItem('ison-tab',k)}catch(e){}
   if(k==='songs'&&G.lesson){G.lesson=false;G.onFinish=null;G.ui=SONG_UI;loadSource()}
@@ -6246,7 +6318,7 @@ function keyFit(R,U){const fits=k=>R.a+k>=U.lo-0.5&&R.b+k<=U.hi+0.5;for(let d=0;
 /* ---- the Key sheet ---- */
 const KS={id:null,k0:0,k:0,rec:null,an:null,aud:null,which:'B',url:{},busy:false,tok:0};
 const KEY_ICON={play:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M8 5.5v13l11-6.5z" fill="currentColor"/></svg>',pause:'<svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true"><path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z" fill="currentColor"/></svg>'};
-function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23',lp:lpSongId(),mp:mpSongId(),vb:vbSongId()}}
+function keyRowIds(){const s=earSet();return{es:s.song||'b:psalm23',sm:s.smSong||'b:psalm23',dy:s.smSong||'b:psalm23',ss:s.smSong||'b:psalm23',lp:lpSongId(),mp:mpSongId(),vb:vbSongId(),gt:(()=>{try{return gtSongNow().id}catch(e){return'b:psalm23'}})()}}
 function renderKeyRows(){const ids=keyRowIds();document.querySelectorAll('[data-key-for]').forEach(el=>{const k=songKey(ids[el.dataset.keyFor]);el.textContent=keyWords(k);el.classList.toggle('moved',k!==0)})}
 async function keySheetOpen(id){KS.id=id;KS.k0=KS.k=songKey(id);KS.which='B';KS.tok++;KS.rec=await songRecFor(id);KS.an=KS.rec?analyzeSong4Course(KS.rec):null;KS.span=KS.rec?songSpan(KS.an?[].concat(...KS.an.phrases.map(p=>p.notes)):KS.rec.notes):null;
   keyStopAudio();Object.values(KS.url).forEach(u=>URL.revokeObjectURL(u));KS.url={};$('kSong').textContent=KS.rec?KS.rec.name||'This song':'Choose a song first.';
@@ -6279,7 +6351,7 @@ async function keyPlay(keepPos){const tok=++KS.tok;if(!KS.aud){KS.aud=new Audio(
   try{if(at>0)KS.aud.currentTime=Math.min(at,(KS.aud.duration||at)-0.2)}catch(e){}KS.aud.play().catch(()=>{});keySheetRender()}
 function keySheetClose(){keyStopAudio();KS.tok++;$('keySheet').hidden=true;const changed=KS.k!==KS.k0,id=KS.id;if(!changed)return;
   const sid=songKeyId(id);if(ES.id&&songKeyId(ES.id)===sid)ES.id=null;if(SM.id&&songKeyId(SM.id)===sid)SM.id=null;
-  renderKeyRows();renderEars();
+  renderKeyRows();renderEars();try{gtKeyChanged(id)}catch(e){}
   /* prepare the recording in the new key now, so the next session starts right away */
   $('earsMsg').textContent=KS.k?'The song is now '+keyWords(KS.k).toLowerCase()+'.':'The song is back in its original key.';
   if(KS.rec&&KS.rec.audio&&KS.k){const k=KS.k;keyedAudio(id,KS.rec.audio,k,t=>{$('earsMsg').textContent=t}).then(()=>{if(/Moving the singer/.test($('earsMsg').textContent))$('earsMsg').textContent='Ready: the song is now '+keyWords(k).toLowerCase()+'.'}).catch(()=>{})}
@@ -6622,6 +6694,7 @@ document.addEventListener('pointerdown',()=>{if(tiltState==='off')tiltStart()},{
 /* ---- tab bar: icons, liquid highlight, compact while scrolling down ---- */
 const TAB_ICONS={practice:'<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>',songs:'<path d="M9 18V5l11-2v13"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="17.5" cy="16" r="2.5"/>',
   chant:'<path d="M5 5.5h14v13H5z"/><path d="M8.5 9.5h7M8.5 13h4.5"/><path d="M16.5 12v4.2"/><circle cx="15.2" cy="16.3" r="1.3"/>',bible:'<path d="M12 6.5C10 5 7 4.5 3.5 5v13c3.5-.5 6.5 0 8.5 1.5 2-1.5 5-2 8.5-1.5V5C17 4.5 14 5 12 6.5z"/><path d="M12 6.5v13"/>',tuner:'<path d="M3.5 17a8.5 8.5 0 1 1 17 0"/><path d="M12 17l4.2-5.2"/><circle cx="12" cy="17" r="1.4"/>',stats:'<path d="M4 20h16M6.5 20v-6M11.5 20V6M16.5 20v-9"/>',
+  guitar:'<circle cx="8.6" cy="15.4" r="5.1"/><circle cx="8.6" cy="15.4" r="1.2"/><path d="M12.3 11.7 19 5M17.2 3.6l3.2 3.2"/>',
   settings:'<path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/>'};
 const ICO=(p,fill)=>'<svg viewBox="0 0 24 24" fill="'+(fill?'currentColor':'none')+'" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+p+'</svg>';
 function tabIcons(){TABS.forEach(t=>{const b=$('tab-'+t);if(b.querySelector('svg'))return;const s=document.createElement('span');s.textContent=b.textContent;b.textContent='';b.insertAdjacentHTML('afterbegin',ICO(TAB_ICONS[t]));b.appendChild(s)})}
@@ -9261,7 +9334,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=77;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=78;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};
@@ -9348,7 +9421,7 @@ const bbLeft=()=>bbSet().mins*60-BB.played;
 function bbSwap(blob,t,play){const a=bbEl(),old=BB.url;BB.swapping=true;BB.url=URL.createObjectURL(blob);BB.pendT=t>0?t:null;a.src=BB.url;a.defaultPlaybackRate=a.playbackRate=bbSet().rate;setPitchKeep(a);
   if(play){const p=a.play();if(p&&p.catch)p.catch(()=>{BB.swapping=false;if(BB.st==='idle')return;BB.st='paused';BB.wall=0;bbUI();bbMsg('Tap Play to go on.')})}else{BB.swapping=false;try{a.load()}catch(e){}}
   if(old)setTimeout(()=>URL.revokeObjectURL(old),4000)}
-function bbQuietOthers(){try{if(EARS.run&&!EARS.paused)earPause()}catch(e){}try{pvStop()}catch(e){}try{lpPvStop()}catch(e){}try{if(CHM.inited)chStop()}catch(e){}}
+function bbQuietOthers(){try{gtLeave()}catch(e){}try{if(EARS.run&&!EARS.paused)earPause()}catch(e){}try{pvStop()}catch(e){}try{lpPvStop()}catch(e){}try{if(CHM.inited)chStop()}catch(e){}}
 /* the Play button: start, pause, go on */
 function bbGo(){const a=bbEl();if(BB.st==='playing'||BB.st==='loading'){if(BB.st==='loading'){BB.tok++;BB.st='paused';bbUI()}a.pause();return}
   if(BB.st==='paused'){bbQuietOthers();try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}if(bbLeft()<=0){BB.played=0;BB.ending=false;BB.endAt=null}
@@ -9678,6 +9751,367 @@ try{const was=sessionStorage.getItem('ison-was-ver');if(was){sessionStorage.remo
   if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonDbg={sgFitLines,chText,sgSylList,sgFollow,sgMelById,CHM,ES,earSongFit,earSongLevel,SM,smPlan,smDrill,smDx,smDur,earSave,earSet,renderMaster,earStepsSec,bgTimeline,esStageOn,SG_STAGES};if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonSongRec=()=>{if(!CHM.P)return null;const y=CHM.y;CHM.y=null;const r=chSongRec('x');CHM.y=y;return r};/* for tools/pack118.py on the Mac only */
   chMineRender();
   chLoad(s.src==='my'&&!store.get('ison-chant-mine',0)?'tone':s.src)}
+
+/*GT-ENGINE-START  Guitar lab, the part that makes the sound. tools/guitar.mjs runs this same block on the Mac
+  (it cuts it out of this file between the two GT-ENGINE marks), so keep it free of anything from the page:
+  no $, no store, no document. Everything here is plain numbers in, numbers out.
+
+  A song is its sung syllables (when each begins, how long, its notes as steps of the singer's own ladder), its
+  phrases, and one chord for every stretch, written as the chord's job in the scale (i = home, II = the half step
+  above home, iv, VI, vii) so that any key and either family of guitar shapes can play it. The guitar never
+  follows a beat: every pluck and strum is tied to the moment a syllable (or one of its notes) begins. */
+const GT_SR=32000,GT_OPEN=[40,45,50,55,59,64],GT_PCN=['C','C#','D','Eb','E','F','F#','G','G#','A','Bb','B'];
+const GT_ROLE={i:[0,'m'],II:[1,''],iv:[5,'m'],VI:[8,''],vii:[10,'m']};
+/* the shapes a player fingers, frets counted from the capo (-1 = string not played); r = the string with the root,
+   a = [string, fret] of the other bass note (the fifth) for a thumb that alternates */
+const GT_FAM={E:{i:{n:'Em',f:[0,2,2,0,0,0],r:0,a:[1,2]},II:{n:'F',f:[1,3,3,2,1,1],r:0,a:[1,3]},iv:{n:'Am',f:[-1,0,2,2,1,0],r:1,a:[0,0]},VI:{n:'C',f:[-1,3,2,0,1,0],r:1,a:[0,3]},vii:{n:'Dm',f:[-1,-1,0,2,3,1],r:2,a:[1,0]}},
+  A:{i:{n:'Am',f:[-1,0,2,2,1,0],r:1,a:[0,0]},II:{n:'Bb',f:[-1,1,3,3,3,1],r:1,a:[2,3]},iv:{n:'Dm',f:[-1,-1,0,2,3,1],r:2,a:[1,0]},VI:{n:'F',f:[1,3,3,2,1,1],r:0,a:[1,3]},vii:{n:'Gm',f:[3,5,5,3,3,3],r:0,a:[1,5]}}};
+/* the two guitars. Both are real guitars recorded one note at a time, from the FreePats project, cut and packed
+   into one small file each by tools/guitarpack.py; a row is [piano note, cents sharp, where it starts in the file,
+   how long]. steel: "FSS Steel-String Acoustic Guitar" (a Seagull, samples by Gary Campion of FlameStudios; GNU GPL 3
+   or later with the FreePats exception for music made with it, see guitar-steel.LICENSE.txt). nylon: "Spanish
+   classical guitar" (public domain, CC0). */
+const GT_BANKS={steel:{name:'Acoustic guitar, steel strings',file:'guitar-steel.m4a',key:'gtr-steel1',z:[[40,13.7,0.3,4.2],[43,9.9,4.75,4.2],[45,6.4,9.2,4.2],[48,9.2,13.65,4.2],[50,7.9,18.1,4.2],[52,9.7,22.55,4.2],[55,2.7,27.0,4.2],[58,8.0,31.45,4.2],[61,15.0,35.9,4.2],[64,1.7,40.35,4.2],[66,6.7,44.8,4.1644],[68,6.6,49.2144,4.2],[71,6.6,53.6644,3.0668],[74,6.1,56.9812,2.5654],[76,9.9,59.7967,2.1622],[79,5.3,62.2088,2.7211],[82,21.2,65.18,2.8586]]},
+  nylon:{name:'Classical guitar, nylon strings',file:'guitar-nylon.m4a',key:'gtr-nylon1',z:[[40,0.6,0.3,4.2],[43,9.0,4.75,4.2],[45,1.8,9.2,4.2],[48,1.1,13.65,4.2],[50,4.7,18.1,4.2],[52,4.3,22.55,4.2],[55,2.9,27.0,4.2],[57,9.1,31.45,2.3495],[59,13.2,34.0495,2.188],[62,7.6,36.4876,2.9112],[64,0.2,39.6488,3.6178],[67,3.2,43.5165,2.2989],[69,3.2,46.0654,3.7104],[72,10.2,50.0258,1.5252],[74,10.3,51.801,1.2625],[77,-1.6,53.3135,1.4339],[79,-1.4,54.9975,1.371],[81,8.4,56.6185,1.4442],[83,3.3,58.3127,0.9529]]}};
+/* the sound lab: everything about the guitar's sound and touch that would otherwise be a fixed number is a control
+   here, each 0 to 10; d is where it starts. The first six are the instrument, the last three are the playing */
+const GT_SND=[{k:'strings',d:5,name:'Strings',lo:'nylon, soft',hi:'steel, bright',say:'Slides from a nylon-string classical guitar to a steel-string acoustic. In between you hear both blended.'},
+  {k:'tone',d:5,name:'Tone',lo:'dark, mellow',hi:'bright, crisp',say:'Takes the edge off, or adds it. Turn this down first if the guitar sounds harsh.'},
+  {k:'body',d:5,name:'Body',lo:'thin',hi:'big and warm',say:'How much of the low, woody boom of the guitar\'s box comes through.'},
+  {k:'pluck',d:5,name:'Pluck',lo:'soft fingers',hi:'hard pick',say:'How sharp the very start of each note is.'},
+  {k:'ring',d:10,name:'Ring',lo:'short, muted',hi:'rings out',say:'How long each note keeps sounding before it dies away.'},
+  {k:'room',d:3,name:'Room',lo:'dry, close',hi:'echoing hall',say:'How much of the room you hear around the guitar: the slight echo after each note.'},
+  {k:'strum',d:5,name:'Strum',lo:'all at once',hi:'slow roll',say:'How spread out the strings are in a strum, from one quick stroke to a slow harp-like roll.'},
+  {k:'human',d:5,name:'Looseness',lo:'exact, like a machine',hi:'loose, like a hand',say:'Small differences in timing and strength from note to note, as a real hand has.'},
+  {k:'lead',d:5,name:'Timing',lo:'guitar a little early',hi:'guitar a little late',say:'Slides the whole guitar earlier or later against the singer, 15 thousandths of a second a step. The middle is exactly on his syllables.'}];
+function gtSnd(o){const s={};GT_SND.forEach(c=>{const v=o&&o[c.k]!=null?+o[c.k]:NaN;s[c.k]=isFinite(v)?Math.max(0,Math.min(10,v)):c.d});return s}
+const GT_SONGS={psalm23:{id:'b:psalm23',name:'Psalm 23 (Tone 3)',home:55.82,pc:8,flat:18,dur:121.81,pass:[0,13],fp:[336207,996028,1953753,2899796,3793546],
+  lad:[-7.10,-5.12,-4.04,-1.98,0,0.96,2.98,5.22],deg:[-7,-5,-4,-2,0,1,3,5],
+  ph:'A8 B6 A9 B5 C9 D7 E7 H7 I6 D6 F5 G8 D5 A9 B5 A9 B5 C8 D7 E7 H7 I7 D5 F5 G8 D5',
+  ch:'0:iv 7:vii|0:VI 5:iv|0:iv 7:vii|0:VI 4:iv|0:i 2:vii 5:i|0:i 3:II 4:vii 6:i|0:VI|0:vii 2:iv|0:i 1:II 2:vii 4:i|0:i 2:II 3:vii 5:i|0:VI 4:II|0:VI 2:II 5:i|0:i 1:II 2:vii 4:i|0:iv 8:vii|0:VI 4:iv|0:iv 8:vii|0:VI 4:iv|0:i 2:vii 6:i|0:i 3:II 4:vii 6:i|0:VI|0:vii 2:iv|0:i 1:II 2:vii 4:i|0:i 1:II 2:vii 4:i|0:VI 4:II|0:VI 2:II 5:i|0.1:II 2:vii 4:i',
+  syl:[[3.122,.718,0,"The",1,[-4,.718]],[3.84,.617,0,"Lord",3,[-4,.617]],[4.457,.493,0,"is",3,[0,.493]],[4.95,.414,0,"my",3,[0,.414]],
+   [5.364,.58,3,"ho",3,[-1,.412,0,.168]],[5.944,.502,35,"ly",0,[-2,.348,-1,.155]],[6.557,.645,0,"shep",3,[0,.645]],[7.567,1.294,0,"herd",0,[1,.24,0,.275,-1,.545,-2,.234]],
+   [8.861,.131,0,"I",3,[-2,.131]],[9.107,.525,0,"shall",3,[-1,.438,-3,.088]],[9.632,.46,0,"not",3,[-2,.255,-1,.205]],[10.157,.71,0,"be",3,[0,.215,1,.095,0,.155,-1,.245]],
+   [11.182,.975,48,"in",1,[-2,.275,-3,.29,-2,.25,-1,.16]],[12.157,.66,0,"want",3,[-4,.66]],[13.357,.564,0,"He",3,[-4,.564]],[13.921,.601,0,"lets",3,[-4,.246,1,.125]],
+   [14.522,.63,0,"me",3,[0,.54,1,.09]],[15.152,.24,0,"lie",3,[0,.24]],[15.392,.589,0,"down",3,[-1,.3,0,.19,-2,.099]],[15.981,.481,0,"in",1,[-2,.186,-1,.295]],
+   [16.462,.61,0,"green",3,[0,.61]],[17.472,.535,0,"pas",3,[1,.22,0,.315]],[18.007,.715,9,"tures",0,[-1,.46,-2,.255]],[18.997,.435,122,"And",1,[-1,.435]],
+   [19.432,.53,0,"leads",3,[-2,.345,-1,.185]],[20.062,.987,0,"me",3,[0,.21,1,.095,0,.115,-1,.567]],[21.049,.883,0,"be",1,[-2,.228,-3,.26,-2,.245,-1,.15]],[22.062,.34,0,"side",2,[-4,.34]],
+   [22.667,.4,0,"the",1,[0,.4]],[23.147,.48,0,"still",3,[1,.285,0,.195]],[23.627,.64,20,"wa",3,[-1,.64]],[24.287,.85,0,"ters",0,[0,.55,1,.3]],
+   [25.337,.8,0,"And",1,[1,.165,2,.2,1,.435]],[26.137,.155,0,"res",1,[0,.155]],[26.457,.355,0,"tores",2,[0,.355]],[27.042,.41,0,"my",3,[-1,.2,0,.21]],
+   [27.582,.54,0,"soul",3,[0,.54]],[28.122,.56,0,"And",1,[0,.56]],[28.682,.48,0,"leads",3,[0,.285,0,.165]],[29.162,.48,0,"me",3,[0,.48]],
+   [29.642,.65,0,"in",1,[1,.16,2,.095,1,.395]],[30.587,.8,92,"the",1,[-1,.645,2,.155]],[31.387,.245,0,"right",3,[1,.245]],[31.632,1.455,11,"paths",3,[0,.565,1,.175,-1,.275,0,.44]],
+   [33.607,.455,0,"All",3,[-2,.455]],[34.147,.645,0,"for",3,[-1,.645]],[34.792,.245,0,"His",3,[0,.245]],[35.122,.591,0,"ho",3,[0,.591]],
+   [35.713,.404,0,"ly",0,[0,.239,2,.165]],[36.117,.465,0,"name's",3,[1,.275,0,.19]],[36.657,.465,0,"sake",3,[-1,.185,-2,.28]],[37.122,.925,4,"Though",3,[-1,.5,0,.21,-1,.215]],
+   [38.047,.08,19,"I",3,[-3,.08]],[38.127,.43,0,"walk",3,[-2,.185,-3,.245]],[38.612,1.165,0,"through",3,[-2,.54,-1,.19,-3,.095]],[39.777,.555,0,"the",1,[-2,.175,-1,.204,-2,.176]],
+   [40.332,.401,0,"val",3,[-3,.11,-4,.291]],[40.733,1.004,0,"ley",0,[-4,.419,-2,.07]],[41.737,1.01,0,"of",3,[-1,.15,0,.86]],[42.747,.73,0,"the",1,[1,.46,0,.27]],
+   [43.752,.618,0,"sha",3,[-1,.618]],[44.369,.414,0,"dow",0,[2,.082,1,.215,0,.116]],[44.783,.344,0,"of",3,[0,.344]],[45.312,.851,0,"death",3,[-1,.165,0,.295,0,.341]],
+   [46.163,.23,0,"I",3,[0,.23]],[46.393,.409,0,"will",3,[0,.409]],[46.917,1.12,0,"fear",3,[1,.445,0,.245,-4,.165]],[48.037,.503,0,"no",3,[-1,.503]],
+   [48.539,.362,0,"e",3,[2,.087,1,.275]],[48.902,1.415,0,"vil",0,[0,.515,1,.185,-1,.295,0,.42]],[50.892,.48,0,"For",3,[-2,.48]],[51.372,.5,0,"You",3,[-1,.15,-2,.085,-1,.245]],
+   [51.872,.44,0,"are",3,[0,.275,1,.165]],[52.312,.605,0,"with",3,[0,.34,1,.265]],[52.917,.44,0,"me",3,[2,.255,3,.185]],[53.357,.597,0,"Your",3,[2,.235,1,.21,0,.152]],
+   [53.954,.288,0,"rod",3,[0,.288]],[54.462,1.04,21,"and",1,[1,.205,2,.475,1,.36]],[55.502,.51,14,"staff",3,[0,.51]],[56.012,.535,6,"they",3,[1,.535]],
+   [56.557,.405,0,"com",3,[2,.405]],[57.137,.547,0,"fort",0,[2,.17,0,.377]],[57.684,.44,0,"me",3,[0,.44]],[58.124,.458,0,"O",3,[0,.458]],
+   [58.582,1.1,0,"Lord",3,[1,.435,0,.2,-2,.075]],[59.682,.365,0,"pro",1,[-1,.365]],[60.107,.505,0,"tect",2,[-1,.183,2,.092,1,.23]],[60.612,1.595,9,"me",3,[0,.61,1,.185,-1,.26,0,.54]],
+   [62.737,.568,0,"O",3,[-4,.568]],[63.305,.592,0,"Lord",3,[-4,.592]],[63.897,.428,0,"God",3,[0,.428]],[64.325,.527,0,"You",3,[0,.527]],
+   [64.852,.5,0,"pre",1,[-1,.24,0,.26]],[65.352,.613,0,"pare",2,[-2,.265,-1,.26,0,.088]],[65.965,.527,0,"a",1,[0,.527]],[66.897,.536,61,"ho",3,[0,.536]],
+   [67.433,.754,1,"ly",0,[-1,.504,-2,.25]],[68.497,.497,86,"tab",3,[-1,.497]],[68.994,.503,0,"le",0,[-2,.248,-1,.255]],[69.497,.825,0,"be",1,[0,.19,1,.09,0,.15,-1,.395]],
+   [70.407,.983,48,"fore",2,[-2,.305,-3,.265,-2,.22,-1,.192]],[71.389,.632,9,"me",3,[-4,.632]],[72.482,.623,0,"In",1,[-4,.623]],[73.105,.347,0,"the",1,[-4,.347]],
+   [73.582,.623,0,"pre",3,[0,.623]],[74.205,.322,0,"sence",0,[0,.322]],[74.632,.45,0,"of",3,[-1,.27,0,.18]],[75.082,.585,0,"my",3,[-2,.305,-1,.28]],
+   [75.667,.55,0,"e",3,[0,.55]],[76.562,.59,0,"ne",0,[0,.513,-2,.077]],[77.152,.595,0,"mies",0,[-1,.46,-2,.135]],[78.127,.556,0,"Lord",3,[-1,.556]],
+   [78.683,.489,0,"You",3,[-2,.239,-1,.25]],[79.172,.845,0,"a",1,[0,.18,1,.075,0,.165,-1,.425]],[80.017,1.035,0,"noint",2,[-2,.34,-3,.26,-2,.215,-1,.22]],[81.107,.665,0,"me",3,[-4,.325,-4,.06]],
+   [81.797,.435,7,"and",1,[0,.435]],[82.232,.412,0,"my",3,[1,.23,0,.182]],[82.644,.578,2,"head",3,[-1,.578]],[83.222,.78,0,"with",3,[0,.505,1,.275]],
+   [84.222,.595,0,"Your",3,[0,.085,1,.1,2,.19,1,.14,0,.08]],[84.817,.499,0,"ho",3,[1,.165,0,.334]],[85.316,.231,0,"ly",0,[0,.231]],[85.797,1.045,67,"oil",3,[-2,.11,-1,.115,0,.725,-1,.095]],
+   [86.842,.454,0,"And",1,[0,.454]],[87.296,.401,0,"my",3,[0,.401]],[87.797,.35,0,"cup",3,[0,.35]],[88.297,.65,0,"shall",3,[1,.455,0,.195]],
+   [89.287,.56,90,"o",3,[-1,.56]],[89.847,.505,0,"verf",0,[-1,.13,2,.08,1,.295]],[90.352,1.45,0,"low",0,[0,.565,1,.18,-1,.265,0,.44]],[92.332,.44,0,"Pre",3,[-2,.44]],
+   [92.852,.51,0,"fi",2,[-1,.51]],[93.362,.415,0,"gu",2,[0,.415]],[93.777,.17,0,"red",2,[0,.17]],[93.947,.29,0,"are",3,[0,.29]],
+   [94.417,.53,4,"bap",3,[0,.32,2,.21]],[94.947,.95,0,"tism",0,[1,.225,0,.195,-1,.23,-2,.23]],[95.947,.475,0,"chris",3,[-1,.475]],[96.422,.375,0,"ma",2,[0,.22,-1,.155]],
+   [96.927,.58,0,"tion",2,[-2,.22,-3,.28,-2,.08]],[97.507,.625,0,"and",1,[-2,.42,-1,.205]],[98.442,.46,0,"li",3,[-2,.285,-1,.175]],[98.967,.55,0,"tur",0,[-2,.13,-3,.115,-4,.305]],
+   [99.517,.45,0,"gy",0,[-4,.45]],[100.462,1.125,80,"Sure",3,[-1,.295,0,.83]],[101.587,.65,0,"ly",0,[1,.145,2,.095,1,.21,0,.2]],[102.492,.705,82,"good",3,[-1,.705]],
+   [103.197,.235,0,"ness",0,[2,.08,1,.155]],[103.542,.34,0,"and",1,[0,.34]],[104.077,.42,0,"mer",3,[-1,.23,0,.19]],[104.637,.34,0,"cy",0,[0,.34]],
+   [105.132,.52,0,"shall",3,[0,.52]],[105.652,.84,0,"fol",3,[1,.175,2,.075,1,.31,0,.28]],[106.692,.67,108,"low",0,[-1,.67]],[107.362,.426,0,"me",3,[2,.075,1,.24,0,.111]],
+   [107.788,1.389,0,"all",3,[0,.444,1,.195,-1,.29,0,.46]],[109.577,.57,36,"the",1,[-2,.57]],[110.147,.601,0,"days",3,[-1,.19,-2,.09,-1,.235,0,.086]],[110.748,.47,0,"of",3,[0,.159,1,.15,0,.161]],
+   [111.218,.694,0,"my",3,[0,.179,1,.265,2,.25]],[111.912,.27,0,"life",3,[3,.27]],[112.182,.666,0,"And",1,[2,.185,1,.135,0,.346]],[112.848,.604,0,"I",3,[0,.179,1,.19]],
+   [113.452,.845,0,"will",3,[2,.49,1,.355]],[114.297,.525,0,"dwell",3,[0,.525]],[114.822,.5,0,"in",1,[1,.5]],[115.322,.375,0,"the",1,[2,.375]],
+   [115.897,.445,0,"Lord's",3,[2,.22,0,.225]],[116.402,.587,0,"home",3,[0,.587]],[116.989,.908,0,"His",3,[0,.293,1,.55]],[117.897,.235,0,"bri",3,[0,.235]],
+   [118.467,.622,0,"dal",0,[-2,.105,-1,.517]],[119.089,.423,0,"cham",3,[-1,.138,2,.09,1,.195]],[119.512,1.985,0,"ber",0,[0,.745,1,.19,-1,.34,0,.71]]]}};
+const GT_SHAPE_WORDS={A:'opening',B:'low close',C:'middle',D:'full close',E:'second opening',H:'the descent',I:'the recovery',F:'the climb',G:'the height'};
+
+function gtRand(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+/* which capo and which family of shapes puts the home chord on this key's home note */
+function gtSetup(song,key){const pc=((song.pc+key)%12+12)%12,e=((pc-4)%12+12)%12,fam=e<=7?'E':'A',capo=e<=7?e:e-5,F=GT_FAM[fam],sh={};
+  Object.keys(F).forEach(k=>{const R=GT_ROLE[k];sh[k]=Object.assign({role:k,snd:GT_PCN[(pc+R[0])%12]+R[1]},F[k])});
+  return{pc,fam,capo,sh,key,scale:[0,1,3,5,7,8,10].map(x=>(pc+x)%12)}}
+/* the song laid out in time. conc = the singer brought up to concert pitch (he is song.flat cents under it), which
+   makes everything that much quicker, so every time is divided by the same ratio */
+function gtLine(song,conc){const R=conc?Math.pow(2,song.flat/1200):1,T=x=>x/R,syl=[],ph=[],ch=[],end=T(song.dur);let i=0;
+  song.ph.split(' ').forEach(p=>{const k=+p.slice(1);ph.push({n:p[0],a:i,b:i+k});i+=k});
+  song.syl.forEach(r=>{const t0=r[0],raw=[];let t=t0;for(let k=0;k<r[5].length;k+=2){raw.push({t:T(t),d:r[5][k+1]/R,st:r[5][k]});t+=r[5][k+1]}
+    syl.push({t:T(t0+r[2]/1000),t0:T(t0),e:T(t0+r[1]),d:r[1]/R,tx:r[3],w:!!(r[4]&1),acc:!!(r[4]&2),raw})});
+  ph.forEach((P,j)=>{for(let q=P.a;q<P.b;q++)syl[q].ph=j;P.t0=syl[P.a].t;P.t1=syl[P.b-1].e});
+  syl.forEach((s,q)=>{const nx=syl[q+1];s.nx=nx?nx.t:Math.min(end,s.e+1.5);s.gap=nx?Math.max(0,nx.t0-s.e):0;
+    /* the notes a player would copy: a flick of under a tenth of a second belongs to the note after it, and a blip
+       as the syllable lets go is not a note */
+    const m=s.raw.map(n=>({t:n.t,d:n.d,st:n.st}));m[0].d-=s.t-m[0].t;m[0].t=s.t;
+    for(let k=0;k<m.length-1;){if(m[k].d<.1){m[k+1].t=m[k].t;m[k+1].d+=m[k].d;m.splice(k,1)}else k++}
+    while(m.length>1&&(m[m.length-1].d<.13||(m[m.length-1].d<=.2&&Math.abs(m[m.length-1].st-m[m.length-2].st)>=4))){m[m.length-2].d+=m[m.length-1].d;m.pop()}
+    for(let k=0;k<m.length-1;){if(m[k].st===m[k+1].st){m[k].d+=m[k+1].d;m.splice(k+1,1)}else k++}
+    s.notes=m});
+  let prev=null;song.ch.split('|').forEach((p,j)=>{const P=ph[j];p.split(' ').forEach((x,q)=>{const w=x.split(':'),a=w[0].split('.'),s=syl[P.a+(+a[0])],t=a[1]?s.raw[+a[1]].t:s.t;
+    ch.push({t,role:w[1],ph:j,si:P.a+(+a[0]),same:w[1]===prev,top:!q&&!a[1]});prev=w[1]})});
+  ch.forEach((c,k)=>{c.nx=ch[k+1]||null;c.e=c.nx?c.nx.t:end});
+  /* the step he is singing at a moment, or null in a silence */
+  let mi=0;const mel=t=>{if(mi>=syl.length||t<syl[mi].t0)mi=0;while(mi<syl.length-1&&t>=syl[mi+1].t0)mi++;const s=syl[mi];if(t<s.t0||t>=s.e)return null;
+    let st=s.raw[0].st;for(const n of s.raw){if(t>=n.t)st=n.st}return st};
+  return{syl,ph,ch,end,mel,R}}
+/* the words with the chord shapes over them, one line for each phrase of the melody */
+function gtSheet(L,G){const at={};L.ch.forEach(c=>{at[c.si]=G.sh[c.role].n});return L.ph.map((P,j)=>{const parts=[];for(let q=P.a;q<P.b;q++){const s=L.syl[q];parts.push({tx:s.tx,w:s.w,ch:at[q]||'',t:s.t})}
+  return{n:P.n,t0:P.t0,t1:P.t1,parts}})}
+
+/* ---- the ten parts. Each one reads the same chords and syllables and writes plucks: {t, s (string 0 = low E),
+   f (fret above the capo), v (how hard, 0 to 1)}. A change of chord is {k:'c', f:the new shape}: the player's
+   left hand lets go, so every string still ringing a fret the new shape does not have is stopped. ---- */
+function gtCtx(song,L,G,seed,snd){const ev=[],rnd=gtRand(seed),spread=Math.pow(2,((snd?snd.strum:5)-5)/3.3),hu=(snd?snd.human:5)/5;
+  const C={ev,L,G,song,rnd,
+    note(t,s,f,v,o){ev.push(Object.assign({t:t+(rnd()-.5)*.006*hu,s,f,v:Math.max(.05,Math.min(1,v*(1+(rnd()-.5)*.14*hu)))},o||{}))},
+    change(t,S){ev.push({t,k:'c',f:S.f})},
+    strum(t,S,o){o=o||{};const ss=[];for(let s=0;s<6;s++)if(S.f[s]>=0&&(!o.str||o.str.includes(s)))ss.push(s);if(o.up)ss.reverse();const gap=(o.gap||.02)*spread,v=o.v||.7;
+      ss.forEach((s,i)=>C.note(t+i*gap,s,S.f[s],v*(1-.05*i)*(o.up?.9:1),o.o))},
+    midi(s,f){return GT_OPEN[s]+G.capo+f},
+    pos(m,lo,hi){for(let s=hi;s>=lo;s--){const f=m-GT_OPEN[s]-G.capo;if(f>=0)return[s,f]}return null},
+    pcAt(t){const st=L.mel(t);return st==null?-1:((G.pc+song.deg[st+4])%12+12)%12},
+    clash(m,t){const p=C.pcAt(t);if(p<0)return false;const d=((m-p)%12+12)%12;return d===1||d===11},
+    power(S){const r=S.r,f=S.f[r],a=[-1,-1,-1,-1,-1,-1];a[r]=f;a[r+1]=f+2;a[r+2]=f+2+(r+2===4?1:0);return{f:a,r,a:[r+1,f+2]}},
+    /* the moments something may be played: every syllable, and a chord that changes inside one */
+    marks(){const M=L.syl.map(s=>({t:s.t,s})).concat(L.ch.filter(c=>!L.syl.some(s=>Math.abs(s.t-c.t)<.01)).map(c=>({t:c.t,c:1}))).sort((a,b)=>a.t-b.t),ct=L.ch.map(c=>c.t),out=[];
+      M.forEach(m=>{const isC=ct.some(t=>Math.abs(t-m.t)<.006);if(!isC&&ct.some(t=>t>m.t&&t-m.t<.12))return;if(!isC&&out.length&&m.t-out[out.length-1].t<.1)return;out.push(m)});
+      out.forEach((m,q)=>{m.nx=out[q+1]?out[q+1].t:Math.min(L.end,m.t+1.6)});return out}};
+  return C}
+
+/* 1. the ison: one low note under each phrase, as a cantor's helper would hum it */
+function gtpIson(C){const L=C.L,G=C.G,dr={A:'iv',B:'iv',H:'iv',E:'VI',F:'VI'};let last=-9,tog=0;
+  L.ph.forEach(P=>{const W=C.power(G.sh[dr[P.n]||'i']),T=[0,1,2].map(k=>[W.r+k,W.f[W.r+k]]);C.change(P.t0-.02,W);
+    C.note(P.t0,T[0][0],T[0][1],.74);C.note(P.t0+.012,T[2][0],T[2][1],.4);last=P.t0;
+    for(let q=P.a;q<P.b;q++){const s=L.syl[q];
+      if(s.gap>=.2&&q<P.b-1){const k=1+(tog++%2);C.note(s.e+.03,T[k][0],T[k][1],.42);last=s.e}
+      else if(q>P.a&&s.t-last>=2.1&&s.d>=.4){C.note(s.t,T[0][0],T[0][1],.5);last=s.t}}})}
+/* 2. one slow strum for each chord, left to ring */
+function gtpStrum(C){C.L.ch.forEach(c=>{const S=C.G.sh[c.role];C.change(c.t-.02,S);C.strum(c.t,S,{gap:.042,v:c.same?.5:.74})})}
+/* 3. a full strum, then a few small notes that walk to the next chord */
+function gtpWalk(C){const L=C.L,G=C.G,lo=GT_OPEN[0]+G.capo;L.ch.forEach(c=>{const S=G.sh[c.role];C.change(c.t-.02,S);C.strum(c.t,S,{gap:.017,v:c.same?.58:.8});
+    const slots=[];L.syl.forEach(s=>{if(s.t>c.t+.3&&s.t<c.e-.14&&(!slots.length||s.t-slots[slots.length-1]>=.3))slots.push(s.t)});if(!slots.length)return;
+    const N2=c.nx&&c.nx.role!==c.role?G.sh[c.nx.role]:null,r1=C.midi(S.r,S.f[S.r]);let walk=[];
+    if(N2){let r2=C.midi(N2.r,N2.f[N2.r]);if(Math.abs(r2-r1)>7){const o=r2>r1?r2-12:r2+12;if(o>=lo&&o<=lo+17)r2=o}
+      const dir=r2>r1?1:-1;for(let m=r2-dir;m!==r1&&walk.length<3;m-=dir){if(G.scale.includes((m%12+12)%12))walk.unshift(m)}}
+    else walk=[C.midi(S.a[0],S.a[1])];
+    walk=walk.slice(-Math.min(3,slots.length));const first=slots.length-walk.length;
+    slots.forEach((t,q)=>{if(q<first){if(q<2){const s=q%2?4:3;C.note(t,s,S.f[s],.4)}return}
+      const m=walk[q-first],p=C.clash(m,t+.04)?null:C.pos(m,0,3);if(p)C.note(t,p[0],p[1],.52+.06*(q-first));else C.note(t,S.a[0],S.a[1],.5)})})}
+/* 4. a rolling fingerpicked arpeggio: thumb on the bass, then three fingers up and back */
+function gtpArp(C){const L=C.L,G=C.G,cyc=['R',3,4,5,4,3,'A',3,4,5,4,3];let ci=0,k=0,S=null;
+  C.marks().forEach(m=>{while(ci<L.ch.length&&L.ch[ci].t<=m.t+.005){S=G.sh[L.ch[ci].role];C.change(L.ch[ci].t-.02,S);k=0;ci++}if(!S)return;
+    const iv=m.nx-m.t,n=Math.max(1,Math.min(5,Math.round(iv/.3))),step=Math.min(iv/n,.36);
+    for(let j=0;j<n;j++){const w=cyc[k++%cyc.length],t=m.t+j*step;
+      if(w==='R')C.note(t,S.r,S.f[S.r],.7);else if(w==='A')C.note(t,S.a[0],S.a[1],.58);else C.note(t,w,S.f[w],(j?.42:.5)+(w===5?.04:0))}})}
+/* 5. thumb and pinch: the thumb goes back and forth between two bass notes, the fingers answer on top */
+function gtpThumb(C){const L=C.L,G=C.G,TR=[4,3,5,3];let ci=0,S=null,alt=0,last=-9,tr=0;
+  C.marks().forEach(m=>{let ch=false;while(ci<L.ch.length&&L.ch[ci].t<=m.t+.005){S=G.sh[L.ch[ci].role];C.change(L.ch[ci].t-.02,S);ch=true;ci++}if(!S)return;
+    if(ch){C.note(m.t,S.r,S.f[S.r],.72);C.note(m.t+.004,5,S.f[5],.52);alt=1;last=m.t}
+    else if(m.t-last>=.26){if(alt)C.note(m.t,S.a[0],S.a[1],.58);else C.note(m.t,S.r,S.f[S.r],.62);alt^=1;last=m.t}
+    const iv=m.nx-m.t,n=iv>=1.1?2:iv>=.5?1:0;for(let j=1;j<=n;j++){const s=TR[tr++%4];C.note(m.t+iv*j/(n+1),s,S.f[s],.4)}})}
+/* 6. his melody on one string at a time over the open low string, as an oud would shadow a singer;
+      long notes are kept alive with a quick tremolo */
+function gtpMelody(C){const L=C.L,G=C.G,song=C.song,D=G.sh.i,ds=D.r,low=GT_OPEN[ds+1]+G.capo;let mn=9;L.syl.forEach(s=>s.notes.forEach(n=>{if(n.st<mn)mn=n.st}));
+  let base=Math.round(song.home)+G.key;while(base+song.deg[mn+4]<low)base+=12;while(base+song.deg[mn+4]>=low+12)base-=12;
+  L.ph.forEach(P=>C.note(P.t0-.004,ds,D.f[ds],.5,{free:1}));
+  L.syl.forEach(s=>{s.notes.forEach((n,q)=>{const p=C.pos(base+song.deg[n.st+4],ds+1,5);if(!p)return;
+      if(n.d>=.62){const cnt=Math.max(3,Math.round((n.d-.06)/.115)),stp=(n.d-.06)/cnt;for(let j=0;j<cnt;j++)C.note(n.t+j*stp,p[0],p[1],j?.34+.2*Math.sin(Math.PI*j/(cnt-1)):.66,{free:1})}
+      else C.note(n.t,p[0],p[1],q?.52:.66,{free:1})});
+    if(s.gap>=.25&&L.syl[L.syl.indexOf(s)+1]&&L.syl[L.syl.indexOf(s)+1].ph===s.ph)C.note(s.e+.03,ds,D.f[ds],.36,{free:1})})}
+/* 7. the guitar keeps quiet while he sings and answers in his breaths with his own last notes, an octave up */
+function gtpAnswer(C){const L=C.L,G=C.G,song=C.song,N=L.syl.length;let base=Math.round(song.home)+G.key+12;while(base+song.deg[0]<GT_OPEN[2]+G.capo)base+=12;
+  L.syl.forEach((s,q)=>{const g=q===N-1?1.5:s.gap;if(g<.18)return;let c=L.ch[0];for(const x of L.ch){if(x.t<=s.e)c=x}const S=G.sh[c.role],hist=[];
+    for(let k=q;k>=0&&hist.length<3&&L.syl[k].ph===s.ph;k--){const ns=L.syl[k].notes;for(let j=ns.length-1;j>=0&&hist.length<3;j--){if(!hist.length||hist[0]!==ns[j].st)hist.unshift(ns[j].st)}}
+    const use=hist.slice(-(g>=.45?3:g>=.27?2:1)),sp=Math.min(.15,(g-.04)/use.length);
+    use.forEach((st,j)=>{const p=C.pos(base+song.deg[st+4],2,5);if(p)C.note(s.e+.03+j*sp,p[0],p[1],.5+.07*j,{free:1,len:2.4})});
+    if(g>=.45)C.note(s.e+.03+(use.length-1)*sp,S.r,S.f[S.r],.5,{free:1,len:3})})}
+/* 8. open fifths: root, fifth and octave struck together, no third, so it is neither major nor minor */
+function gtpFifths(C){const L=C.L,G=C.G;L.ch.forEach(c=>{const W=C.power(G.sh[c.role]);C.change(c.t-.02,W);C.strum(c.t,W,{gap:.006,v:c.same?.55:.8});let last=c.t;
+    L.syl.forEach(s=>{if(s.t>c.t+.7&&s.t<c.e-.25&&s.acc&&s.d>=.42&&s.t-last>=.9){C.strum(s.t,W,{gap:.006,v:.45,str:[W.r,W.r+1]});last=s.t}})})}
+/* 9. bells: a bass note for each chord and a few high notes of the chord far above him */
+function gtpBells(C){const L=C.L,G=C.G,lo=GT_OPEN[5]+G.capo+3;let last=-9,prev=lo+5;
+  L.ch.forEach(c=>{const S=G.sh[c.role],R=GT_ROLE[c.role],pcs=[0,R[1]==='m'?3:4,7].map(x=>(G.pc+R[0]+x)%12);C.change(c.t-.02,S);C.note(c.t,S.r,S.f[S.r],c.same?.5:.68);
+    L.syl.forEach(s=>{if(s.t<c.t-.005||s.t>=c.e-.005||s.d<.42||s.t-last<.85)return;let best=null,bc=99;
+      for(let m=lo;m<=lo+10;m++){if(!pcs.includes(m%12)||C.clash(m,s.t+.05))continue;const cost=(m===prev?3:0)+Math.abs(m-prev)*.3;if(cost<bc){bc=cost;best=m}}
+      if(best==null)return;C.note(s.t,5,best-GT_OPEN[5]-G.capo,.5,{free:1,b:1});prev=best;last=s.t})})}
+/* 10. Spanish: hard bright strums, an upstroke after, and a quick roll of strokes into each close */
+function gtpSpanish(C){const L=C.L,G=C.G;L.ch.forEach(c=>{const S=G.sh[c.role],P=L.ph[c.ph],cad=(!c.nx||c.nx.ph!==c.ph)&&'BD'.includes(P.n)&&!c.same;
+    if(cad){C.change(c.t-.15,S);C.strum(c.t-.13,S,{gap:.004,v:.3,str:[3,4,5],o:{b:.9}});C.strum(c.t-.065,S,{gap:.004,v:.42,str:[2,3,4,5],o:{b:.9}});C.strum(c.t,S,{gap:.005,v:.95,o:{b:1}});
+      if(c.e-c.t>1)C.strum(c.t+.5,S,{up:1,gap:.012,v:.34,str:[3,4,5]});return}
+    C.change(c.t-.02,S);C.strum(c.t,S,{gap:.009,v:c.same?.6:.8,o:{b:.95}});
+    const up=L.syl.find(s=>s.t>c.t+.3&&s.t<c.e-.32);if(up)C.strum(up.t,S,{up:1,gap:.012,v:.36,str:[3,4,5]});
+    if(c.e-c.t>2.6){const mid=(c.t+c.e)/2;let b=null;L.syl.forEach(s=>{if(s.t>c.t+1.1&&s.t<c.e-.5&&(!up||s!==up)&&(!b||Math.abs(s.t-mid)<Math.abs(b.t-mid)))b=s});if(b)C.strum(b.t,S,{gap:.012,v:.5})}})}
+const GT_PARTS=[
+  {id:'ison',name:'1. The ison',lv:-1,gen:gtpIson,idea:'One low note held under each phrase, the way a second cantor hums the ison. It changes only when the melody moves to a new resting place.',how:'Thumb only. Play the root on a low string as he starts a phrase, touch the string above it when he breathes.'},
+  {id:'strum',name:'2. One slow strum',lv:0,gen:gtpStrum,idea:'One slow strum for each chord, from the low string to the high one, and then it is left to ring.',how:'Drag your thumb slowly across the strings as he reaches the word with the chord over it. Nothing else.'},
+  {id:'walk',name:'3. Strum and walk',lv:0,gen:gtpWalk,idea:'One big strum, then a few small single notes that walk along the low strings to the next chord.',how:'Strum, then pick two or three bass notes that step toward the root of the chord that is coming, one for each syllable.'},
+  {id:'arp',name:'4. Rolling arpeggio',lv:0,gen:gtpArp,idea:'A fingerpicked roll that never stops: thumb on the bass, then three fingers up and back, breathing with his syllables.',how:'Thumb on the root, then index, middle, ring, middle, index on the top three strings. Start a new note on each syllable.'},
+  {id:'thumb',name:'5. Thumb and pinch',lv:0,gen:gtpThumb,idea:'The thumb swings between two bass notes, one on each syllable, and the fingers pinch a high note on top when the chord changes.',how:'Thumb alternates root and fifth. Pinch the first string with the bass on each new chord, add one inside note between syllables.'},
+  {id:'melody',name:'6. The melody with him',lv:-1,gen:gtpMelody,idea:'The guitar plays his melody note for note over the open low string, as an oud shadows a singer. Long notes shimmer with a quick tremolo.',how:'One note at a time on the middle strings, the open sixth string ringing under it. Good for learning the tune itself on the guitar.'},
+  {id:'answer',name:'7. Answers in his breaths',lv:1,gen:gtpAnswer,idea:'The guitar is silent while he sings. Each time he breathes it answers with his own last two or three notes, an octave higher.',how:'Wait. When he stops, echo the end of what he just sang high on the top strings, with the root under the last note.'},
+  {id:'fifths',name:'8. Open fifths',lv:0,gen:gtpFifths,idea:'Root, fifth and octave struck together with no third in the chord, so it is neither happy nor sad. An old, hollow, church sound.',how:'Play only the three lowest strings of each shape as a power chord, struck together, again softly on a strong word.'},
+  {id:'bells',name:'9. Bells over a bass',lv:1,gen:gtpBells,idea:'A single deep bass note for each chord and, far above him, a few high notes like small bells.',how:'Thumb plays the root. Now and then pick one note of the chord high up on the first string and let it ring.'},
+  {id:'spanish',name:'10. Spanish',lv:1,gen:gtpSpanish,idea:'Hard bright strums with an upstroke after them, and a quick roll of strokes into the last chord of each closing line.',how:'Strike down with the nails, flick back up on the next syllable. Into the final chord of a line, roll two fast strokes ahead of the beat.'}];
+function gtEvents(song,L,G,part,snd){const P=GT_PARTS.find(p=>p.id===part)||GT_PARTS[1],C=gtCtx(song,L,G,7+GT_PARTS.indexOf(P),snd);P.gen(C);return C.ev}
+
+/* ---- the sound ---- */
+/* the decoded sample file cut into notes. A compressed file comes back a few hundredths of a second early or late
+   depending on the browser, so each note's start is found again by looking for where the silence ends */
+function gtBank(x,sr,tab){let pk=0;for(let i=0;i<x.length;i+=5){const a=Math.abs(x[i]);if(a>pk)pk=a}
+  return{x,z:tab.map(r=>{const a=Math.round(r[2]*sr),lo=Math.max(0,a-Math.round(.12*sr)),hi=Math.min(x.length-1,a+Math.round(.12*sr));let on=a;for(let i=lo;i<hi;i++){if(Math.abs(x[i])>.02*pk){on=i;break}}
+    return{m:r[0],c:r[1],a:Math.max(0,on-Math.round(.0015*sr)),n:Math.round(r[3]*sr)}})}}
+/* one plucked note: the nearest recorded note played a little faster or slower to reach the pitch; a soft pluck is
+   also a darker one; it is faded out from `stop` over `fade` seconds. pluck softens or sharpens the start of the
+   note, ring lets it die away sooner than the recorded string did */
+function gtVoice(out,sr,bank,t,midi,v,stop,fade,b,snd){let z=bank.z[0],bd=99;for(const q of bank.z){const d=Math.abs(midi-q.m-q.c/100);if(d<bd){bd=d;z=q}}
+  const ratio=Math.pow(2,(midi-z.m-z.c/100)/12),x=bank.x,i0=Math.round(t*sr),fs=stop===Infinity?1e12:Math.round((stop-t)*sr),fn=Math.max(1,Math.round(fade*sr)),n=Math.min(Math.floor((z.n-2)/ratio),fs+fn);
+  const pl=snd?snd.pluck:5,rg=snd?snd.ring:10,br=Math.max(.05,Math.min(1,(b!=null?b:v)*(.55+.09*pl))),f0=440*Math.pow(2,(midi-69)/12),fc=Math.min(sr*.45,Math.max(1400,f0*(2.5+15*Math.pow(br,1.4)))),a=1-Math.exp(-2*Math.PI*fc/sr);
+  const at=Math.round(Math.max(0,5-pl)*.0025*sr),dk=rg>=10?1:Math.exp(-1/(.25*Math.pow(2,rg*.45)*sr));
+  let p=z.a,l1=0,l2=0,g=Math.pow(v,1.5);for(let k=0;k<n;k++){const j=i0+k;if(j>=out.length)break;const q=p|0,y=x[q]+(x[q+1]-x[q])*(p-q);p+=ratio;l1+=a*(y-l1);l2+=a*(l1-l2);g*=dk;if(j<0)continue;
+    let e=g;if(k<at)e*=k/at;if(k>=fs){const u=1-(k-fs)/fn;if(u<=0)break;e*=u*u}out[j]+=l2*e}}
+/* every pluck of a part into one line of sound. A string sounds one note at a time: a new pluck stops the old one,
+   and so does a change to a chord that does not hold that fret. tune = half steps away from concert pitch */
+function gtSynth(ev,G,bank,N,sr,tune,snd){const off=((snd?snd.lead:5)-5)*.015,out=new Float32Array(N),by=[[],[],[],[],[],[]],cs=ev.filter(e=>e.k==='c').sort((a,b)=>a.t-b.t);
+  ev.forEach(e=>{if(e.k!=='c')by[e.s].push(e)});
+  by.forEach((A,s)=>{A.sort((a,b)=>a.t-b.t);A.forEach((e,i)=>{let stop=Infinity,fade=.012;const nx=A[i+1];if(nx){stop=nx.t-.004;fade=.012}
+      if(!e.free)for(const c of cs){if(c.t<=e.t+.03)continue;if(c.t>=stop)break;if(c.f[s]!==e.f){stop=c.t;fade=.07;break}}
+      if(e.len&&e.t+e.len<stop){stop=e.t+e.len;fade=.15}
+      gtVoice(out,sr,bank,e.t+off,GT_OPEN[s]+G.capo+e.f+tune,e.v,stop+off,fade,e.b,snd)})});return out}
+/* the Strings control: the same plucks played on the steel guitar, the nylon one, or both blended (each brought to
+   the same loudness first, then shared out so the total stays even). banks = {steel, nylon} from gtBank */
+function gtGuitar(ev,G,banks,N,sr,tune,snd){const x=snd.strings/10,ws=Math.sin(Math.PI/2*x),wn=Math.cos(Math.PI/2*x);
+  if(wn<.03||!banks.nylon)return gtSynth(ev,G,banks.steel,N,sr,tune,snd);if(ws<.03||!banks.steel)return gtSynth(ev,G,banks.nylon,N,sr,tune,snd);
+  const a=gtSynth(ev,G,banks.steel,N,sr,tune,snd),b=gtSynth(ev,G,banks.nylon,N,sr,tune,snd),gb=wn*Math.pow(10,(gtLoud(a,sr)-gtLoud(b,sr))/20);for(let i=0;i<N;i++)a[i]=a[i]*ws+b[i]*gb;return a}
+/* the guitar line shaped after it is played: body (the low boom of the box, more or less of it), tone (duller or
+   brighter) and room. The room is the well-known Freeverb design (Jezar, public domain): eight echoes that feed
+   themselves, then four that smear them; its level is set against the dry guitar, from 22 dB under it to 4 */
+function gtFx(x,sr,snd){const N=x.length,y=new Float32Array(N),bd=snd.body,tn=snd.tone,rm=snd.room;
+  const gb=Math.pow(10,(bd-5)*1.6/20)-1,ab=1-Math.exp(-2*Math.PI*180/sr),gt=tn>5?(tn-5)*.35:0,at=1-Math.exp(-2*Math.PI*(tn<5?12000*Math.pow(2,-(5-tn)*.7):2500)/sr);let lb=0,lt=0,lt2=0;
+  for(let i=0;i<N;i++){let s=x[i];lb+=ab*(s-lb);s+=gb*lb;lt+=at*(s-lt);if(tn<5){lt2+=at*(lt-lt2);s=lt2}else if(gt)s+=gt*(s-lt);y[i]=s}
+  if(rm<=0)return y;
+  const k=sr/44100,fb=.7+.022*rm,damp=.35,w=new Float32Array(N),CB=[1116,1188,1277,1356,1422,1491,1557,1617].map(d=>({b:new Float32Array(Math.round(d*k)),i:0,f:0})),AP=[556,441,341,225].map(d=>({b:new Float32Array(Math.round(d*k)),i:0}));
+  for(let i=0;i<N;i++){const s=y[i]*.015;let o=0;for(let c=0;c<8;c++){const C=CB[c],v=C.b[C.i];o+=v;C.f=v*(1-damp)+C.f*damp;C.b[C.i]=s+C.f*fb;if(++C.i>=C.b.length)C.i=0}
+    for(let c=0;c<4;c++){const A=AP[c],v=A.b[A.i],u=-o+v;A.b[A.i]=o+v*.5;if(++A.i>=A.b.length)A.i=0;o=u}w[i]=o}
+  let ed=0,ew=0;for(let i=0;i<N;i+=3){ed+=y[i]*y[i];ew+=w[i]*w[i]}if(ew<=0)return y;const gw=Math.sqrt(ed/ew)*Math.pow(10,(-24+2*rm)/20);for(let i=0;i<N;i++)y[i]+=w[i]*gw;return y}
+/* how loud a line of sound is where it is sounding: the level that 9 in 10 of its 0.4 second stretches stay under */
+function gtLoud(x,sr){const w=Math.round(.4*sr),h=w>>1,v=[];let mx=0;for(let i=0;i+w<=x.length;i+=h){let s=0;for(let k=i;k<i+w;k+=2)s+=x[k]*x[k];s/=w/2;v.push(s);if(s>mx)mx=s}
+  const act=v.filter(a=>a>mx*1e-4).sort((a,b)=>a-b);return act.length?10*Math.log10(act[Math.floor(act.length*.9)]+1e-12):-99}
+/* different browsers hand a compressed recording back a few hundredths of a second apart. song.fp is where five of
+   the recording's loudest moments fall (in samples at GT_SR) as the scan measured them; this finds how far this
+   browser's copy is from that, so the page can slide the voice back onto the guitar */
+function gtAlign(song,x){if(!song.fp)return 0;const d=[];song.fp.forEach(e=>{let b=0,bi=-1;for(let i=Math.max(0,e-3000);i<Math.min(x.length,e+3000);i++){const a=x[i]<0?-x[i]:x[i];if(a>b){b=a;bi=i}}if(bi>=0)d.push(bi-e)});
+  d.sort((a,b)=>a-b);const m=d[d.length>>1];return d.length>=3&&d.filter(v=>Math.abs(v-m)<=3).length>=3?m:0}
+function gtShift(x,off){if(!off)return x;const y=new Float32Array(x.length);if(off>0)y.set(x.subarray(off));else y.set(x.subarray(0,x.length+off),-off);return y}
+function gtResample(x,R){const n=Math.floor((x.length-1)/R),y=new Float32Array(n);for(let i=0;i<n;i++){const p=i*R,q=p|0;y[i]=x[q]+(x[q+1]-x[q])*(p-q)}return y}
+/* voice and guitar together. Each part is first brought to the same loudness against the singer (8 dB under him,
+   give or take the part's own trim), so "6 of 10" means the same balance whichever part is playing; one step on
+   either control is 3 dB. Lv and Lg are the two loudnesses from gtLoud */
+function gtMix(voice,gtr,o){const gV=o.vv<=0?0:Math.pow(10,(o.vv-8)*3/20),gG=o.gv<=0?0:Math.pow(10,(o.Lv-8+(o.lv||0)+(o.gv-6)*3-o.Lg)/20),N=Math.max(voice.length,gtr.length),y=new Float32Array(N);let pk=0;
+  for(let i=0;i<N;i++){const s=(i<voice.length?voice[i]*gV:0)+(i<gtr.length?gtr[i]*gG:0);y[i]=s;const a=s<0?-s:s;if(a>pk)pk=a}
+  if(pk>.97){const g=.97/pk;for(let i=0;i<N;i++)y[i]*=g}return y}
+/*GT-ENGINE-END*/
+
+/* ================= Guitar lab, the screen =================
+   Voice and guitar are made into ONE recording and played through an ordinary audio player, so the two cannot drift
+   apart and it keeps playing with the phone locked. The work is kept in four layers, each remembered until
+   something it depends on changes: the singer (song, key, tuning), the guitar as played (part, strings, pluck, ring,
+   strum, looseness, timing), the guitar after tone, body and room, and the mix of the two volumes. A volume change
+   only redoes the last layer. */
+const GT={inited:false,off:{},busy:null,a:null,url:null,silent:null,st:'idle',tok:0,V:null,banks:{},R:null,F:null,blob:null,mixK:'',sig:'',Rcur:1,L:null,G:null,pend:null,line:-1,cur:-1,chi:-2,tmr:0,raf:0,swap:false,seeking:false,sheetK:''};
+function gtSet(){const s=Object.assign({song:'psalm23',part:'strum',gv:6,vv:8,conc:0,loop:0},store.get('ison-gt',{})||{});if(!GT_SONGS[s.song])s.song='psalm23';if(!GT_PARTS.some(p=>p.id===s.part))s.part='strum';s.snd=gtSnd(s.snd);return s}
+function gtSave(o){store.set('ison-gt',Object.assign(store.get('ison-gt',{})||{},o))}
+const gtSongNow=()=>GT_SONGS[gtSet().song],gtSig=()=>{const s=gtSet();return JSON.stringify([s.song,s.part,s.gv,s.vv,s.conc,s.snd,songKey(GT_SONGS[s.song].id)])};
+const gtEsc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function gtMsg(t){$('gtMsg').textContent=t||''}
+async function gtDecode(blob){const ab=await blob.arrayBuffer(),OC=window.OfflineAudioContext||window.webkitOfflineAudioContext;let oc;try{oc=new OC(1,GT_SR,GT_SR)}catch(e){oc=new OC(1,44100,44100)}
+  const buf=await new Promise((res,rej)=>{const p=oc.decodeAudioData(ab,res,rej);if(p&&p.then)p.then(res,rej)});const x=buf.getChannelData(0).slice();return buf.sampleRate===GT_SR?x:gtResample(x,buf.sampleRate/GT_SR)}
+const gtYield=()=>new Promise(r=>setTimeout(r,30));
+async function gtBuild(){const s=gtSet(),song=GT_SONGS[s.song],key=songKey(song.id),snd=s.snd,P=GT_PARTS.find(p=>p.id===s.part),vk=[s.song,key,s.conc].join('|');
+  if(!GT.V||GT.V.k!==vk){gtMsg('Getting the singer ready...');await privReady;const rec=builtinRec(song.id);if(!rec||!rec.audio)throw new Error('voice');
+    const blob=key?await keyedAudio(song.id,rec.audio,key,gtMsg):rec.audio;let x0=await gtDecode(blob),pk=0;if(GT.off[s.song]==null)GT.off[s.song]=gtAlign(song,key?await gtDecode(rec.audio):x0);x0=gtShift(x0,GT.off[s.song]);for(let i=0;i<x0.length;i++){const a=Math.abs(x0[i]);if(a>pk)pk=a}if(pk>0){const g=.6/pk;for(let i=0;i<x0.length;i++)x0[i]*=g}
+    const x=s.conc?gtResample(x0,Math.pow(2,song.flat/1200)):x0;GT.V={k:vk,x,L:gtLoud(x,GT_SR)};GT.R=null}
+  for(const b of Object.keys(GT_BANKS)){if(GT.banks[b]||(b==='steel'?snd.strings<.4:snd.strings>9.6))continue;gtMsg('Getting the guitar...');const B=GT_BANKS[b],bl=await pubAudio(B.key,B.file);if(!bl)throw new Error('guitar');GT.banks[b]=gtBank(await gtDecode(bl),GT_SR,B.z)}
+  const L=gtLine(song,!!s.conc),G=gtSetup(song,key),rk=[vk,s.part].concat(['strings','pluck','ring','strum','human','lead'].map(k=>snd[k])).join('|');
+  if(!GT.R||GT.R.k!==rk){gtMsg('Playing the guitar part...');await gtYield();GT.R={k:rk,x:gtGuitar(gtEvents(song,L,G,s.part,snd),G,GT.banks,GT.V.x.length+Math.round(2.5*GT_SR),GT_SR,s.conc?0:-song.flat/100,snd)};GT.F=null}
+  const fk=[rk,snd.tone,snd.body,snd.room].join('|');
+  if(!GT.F||GT.F.k!==fk){await gtYield();const x=gtFx(GT.R.x,GT_SR,snd);GT.F={k:fk,x,L:gtLoud(x,GT_SR)}}
+  const mk=[fk,s.gv,s.vv].join('|');
+  if(GT.mixK!==mk||!GT.blob){await gtYield();GT.blob=new Blob([keyWav(gtMix(GT.V.x,GT.F.x,{gv:s.gv,vv:s.vv,lv:P.lv,Lv:GT.V.L,Lg:GT.F.L}),GT_SR)],{type:'audio/wav'});GT.mixK=mk}
+  return{blob:GT.blob,L,G}}
+function gtEl(){if(GT.a)return GT.a;const a=GT.a=new Audio();a.setAttribute('playsinline','');a.preload='auto';const real=()=>!GT.silent||a.src!==GT.silent;
+  a.onended=()=>{if(!real())return;if(gtSet().loop){try{a.currentTime=0}catch(e){}a.play().catch(()=>{})}else{GT.st='paused';gtUI();gtTick()}};
+  a.onloadedmetadata=()=>{if(GT.pend!=null&&real()){try{a.currentTime=GT.pend}catch(e){}GT.pend=null}gtTick()};a.ontimeupdate=()=>{if(real())gtTick()};
+  a.onplay=()=>{if(!real()||GT.st==='idle')return;GT.swap=false;GT.st='playing';gtUI();gtMediaState();cancelAnimationFrame(GT.raf);const loop=()=>{if(GT.st!=='playing')return;gtTick();GT.raf=requestAnimationFrame(loop)};loop()};
+  a.onpause=()=>{if(!real()||GT.swap||a.ended||GT.st!=='playing')return;GT.st='paused';gtUI();gtMediaState()};return a}
+function gtSwap(blob,t,play){const a=gtEl(),old=GT.url;GT.swap=true;GT.url=URL.createObjectURL(blob);GT.pend=t>0?t:null;a.src=GT.url;
+  if(play){const p=a.play();if(p&&p.catch)p.catch(()=>{GT.swap=false;GT.st='paused';gtUI();gtMsg('Tap Play to go on.')})}else{GT.swap=false;try{a.load()}catch(e){}}
+  if(old)setTimeout(()=>URL.revokeObjectURL(old),4000)}
+/* where the song is now, in the singer's own seconds (the concert-pitch version runs a shade quicker) */
+function gtPos(){const a=GT.a;return a&&GT.url&&a.src===GT.url?(GT.pend!=null?GT.pend:a.currentTime||0)*GT.Rcur:0}
+async function gtLoad(play,pos){const tok=++GT.tok,sig=gtSig();try{while(GT.busy)await GT.busy.catch(()=>{});if(tok!==GT.tok)return;GT.busy=gtBuild();let r;try{r=await GT.busy}finally{GT.busy=null}if(tok!==GT.tok)return;if(sig!==gtSig()){gtLoad(play,pos);return}
+    const p=pos==null?gtPos():pos,on=play==null?GT.st==='playing'||GT.st==='loading':play;GT.L=r.L;GT.G=r.G;GT.Rcur=r.L.R;GT.sig=sig;gtMsg('');gtDraw();gtSwap(r.blob,p/r.L.R,on);if(!on)GT.st='paused';gtUI();gtTick()}
+  catch(e){if(tok!==GT.tok)return;if(GT.st==='loading'){GT.st=GT.url?'paused':'idle';try{GT.a.pause()}catch(x){}}gtUI();gtMsg(navigator.onLine===false?'The guitar sounds are not on this phone yet. Open this screen once with internet, and after that it works anywhere.':'The guitar could not be made ready. Check the internet and tap Play again.')}}
+function gtQuiet(){try{bbQuietOthers()}catch(e){}try{if(BB.st==='playing'||BB.st==='loading')bbGo()}catch(e){}}
+function gtGo(){const a=gtEl();if(GT.st==='playing'){a.pause();return}if(GT.st==='loading'){GT.tok++;GT.st=GT.url?'paused':'idle';try{a.pause()}catch(e){}gtUI();gtMsg('');return}
+  gtQuiet();try{if(navigator.audioSession)navigator.audioSession.type='playback'}catch(e){}gtMediaStart();
+  if(GT.url&&a.src===GT.url&&GT.sig===gtSig()){if(a.ended){try{a.currentTime=0}catch(e){}}a.play().catch(()=>gtMsg('Tap Play again.'));return}
+  const pos=gtPos();clearTimeout(GT.tmr);/* the phone allows sound only from a tap: a second of silence starts now, the song follows in a moment */
+  if(GT.silent)URL.revokeObjectURL(GT.silent);GT.silent=earSilentWav();GT.swap=true;a.src=GT.silent;const p=a.play();if(p&&p.catch)p.catch(()=>{});GT.st='loading';gtUI();gtLoad(true,pos)}
+/* a setting changed: say so on the screen at once, and play the guitar again a moment after the last change */
+function gtChanged(){gtStatic();clearTimeout(GT.tmr);GT.tmr=setTimeout(()=>{if(!GT.inited||$('v-guitar').hidden&&GT.st!=='playing')return;if(GT.st!=='loading')gtLoad(null,null)},350)}
+function gtKeyChanged(id){if(!GT.inited||songKeyId(id)!==songKeyId(gtSongNow().id))return;gtChanged()}
+function gtLeave(){if(GT.inited&&(GT.st==='playing'||GT.st==='loading')){if(GT.st==='loading'){GT.tok++;GT.st=GT.url?'paused':'idle'}try{GT.a.pause()}catch(e){}gtUI()}}
+function gtUI(){$('gtGo').textContent=GT.st==='playing'?'Pause':GT.st==='loading'?'Getting ready...':'Play';const lp=!!gtSet().loop;$('gtLoop').setAttribute('aria-pressed',String(lp));$('gtLoop').textContent=lp?'Repeat: on':'Repeat: off'}
+const gtVolWords=v=>v<=0?'off':v+' of 10';
+/* the words on the screen that depend on the settings but not on the sound: part, capo, shapes, sliders */
+function gtStatic(){const s=gtSet(),song=GT_SONGS[s.song],key=songKey(song.id),G=gtSetup(song,key),P=GT_PARTS.find(p=>p.id===s.part),sh=Object.values(G.sh);
+  $('gtSong').value=s.song;$('gtPart').value=s.part;$('gtIdea').innerHTML=gtEsc(P.idea)+'<br><b>To play it:</b> '+gtEsc(P.how);
+  $('gtGv').value=s.gv;$('gtGvO').textContent=gtVolWords(s.gv);$('gtVv').value=s.vv;$('gtVvO').textContent=gtVolWords(s.vv);$('gtTune').value=String(s.conc?1:0);
+  GT_SND.forEach(c=>{$('gt_'+c.k).value=s.snd[c.k];$('gto_'+c.k).textContent=s.snd[c.k]});
+  $('gtCapo').innerHTML=(G.capo?'Capo on fret '+G.capo+'.':'No capo.')+' You play '+sh.map(x=>x.n).join(', ')+'.<small>With the capo there they sound as '+sh.map(x=>x.snd).join(', ')+'. '+(s.conc?'The singer is raised to concert pitch, so a guitar tuned the usual way matches him.':'He sings about a fifth of a half step under concert pitch, so to play along on a real guitar pick the second Tuning choice under Guitar sound.')+'</small>';
+  $('gtShapes').innerHTML=sh.map(x=>'<b>'+x.n+'</b> '+x.f.map(f=>f<0?'x':f).join(' ')).join('<br>');
+  renderKeyRows();gtUI();if(!GT.L||GT.sheetK!==s.song+'|'+key){GT.sheetK=s.song+'|'+key;gtSheetDraw(gtLine(song,!!s.conc),G)}}
+function gtSheetDraw(L,G){const song=gtSongNow(),SH=gtSheet(L,G);let h='';SH.forEach((ln,j)=>{const pi=(song.pass||[0]).indexOf(j);if(pi>=0&&song.pass.length>1)h+='<h3>'+(['First','Second','Third','Fourth'][pi]||'Next')+' time through</h3>';
+    h+='<p class="gtln" data-j="'+j+'"><small>'+gtEsc(GT_SHAPE_WORDS[ln.n]||'')+'</small>'+ln.parts.map((p,k)=>{const nx=ln.parts[k+1];return'<span class="gts'+(p.w&&k?' w':'')+'" data-t="'+p.t.toFixed(3)+'"><i>'+gtEsc(p.ch)+'</i><span>'+gtEsc(p.tx)+(nx&&!nx.w?'-':'')+'</span></span>'}).join('')+'</p>'});
+  $('gtSheet').innerHTML=h;GT.line=-1;GT.cur=-1;GT.chi=-2;$('gtSheet').querySelectorAll('.gtln').forEach(p=>p.onclick=()=>gtJump(+p.dataset.j))}
+function gtDraw(){const s=gtSet(),key=songKey(gtSongNow().id);GT.sheetK=s.song+'|'+key;gtSheetDraw(GT.L,GT.G)}
+function gtJump(j){if(!GT.L||!GT.url)return;const a=gtEl(),t=Math.max(0,GT.L.ph[j].t0-.3);if(a.src!==GT.url)return;try{a.currentTime=t}catch(e){}gtTick();if(GT.st==='paused'&&GT.sig===gtSig()){gtQuiet();a.play().catch(()=>{})}}
+function gtTick(){const a=GT.a,L=GT.L;if(!a||!L||a.src!==GT.url)return;const t=a.currentTime||0,d=a.duration||L.end;
+  if(!GT.seeking)$('gtSeek').value=Math.round(1000*t/d);$('gtTime').textContent=fmtT(t)+' / '+fmtT(d);
+  let j=-1;for(let k=0;k<L.ph.length;k++){if(t>=L.ph[k].t0-.2)j=k}if(j>=0&&t>L.ph[j].t1+1.2&&(!L.ph[j+1]))j=-1;
+  if(j!==GT.line){const box=$('gtSheet'),old=box.querySelector('.gtln.on');let vis=false;if(old){const r=old.getBoundingClientRect();vis=r.bottom>60&&r.top<innerHeight-60;old.classList.remove('on')}
+    const el=j>=0?box.querySelector('.gtln[data-j="'+j+'"]'):null;if(el){el.classList.add('on');if(vis&&GT.st==='playing'){try{el.scrollIntoView({block:'nearest',behavior:'smooth'})}catch(e){}}}GT.line=j}
+  let q=-1;for(let k=(GT.cur>=0&&L.syl[GT.cur].t<=t?GT.cur:0);k<L.syl.length&&L.syl[k].t<=t+.03;k++)q=k;
+  if(q!==GT.cur){const old=$('gtSheet').querySelector('.gts.cur');if(old)old.classList.remove('cur');const el=q>=0?$('gtSheet').querySelectorAll('.gts')[q]:null;if(el)el.classList.add('cur');GT.cur=q}
+  let c=-1;for(let k=0;k<L.ch.length&&L.ch[k].t<=t+.05;k++)c=k;
+  if(c!==GT.chi){GT.chi=c;const now=c>=0?GT.G.sh[L.ch[c].role]:null;let n=c+1;while(L.ch[n]&&now&&L.ch[n].role===L.ch[c].role)n++;const nx=L.ch[n]?GT.G.sh[L.ch[n].role]:null;
+    $('gtNow').textContent=now?now.n:'\u00a0';$('gtNowS').textContent=now?'sounds as '+now.snd:'';$('gtNext').textContent=nx?nx.n:'end';$('gtNextS').textContent=nx?'sounds as '+nx.snd:''}}
+function gtMediaStart(){try{if(!('mediaSession' in navigator))return;const ms=navigator.mediaSession;ms.metadata=new MediaMetadata({title:gtSongNow().name,artist:'Ison Pitch Lab · Guitar lab',album:(GT_PARTS.find(p=>p.id===gtSet().part)||{}).name||'Guitar'});
+  ms.setActionHandler('play',()=>{if(GT.st==='paused')gtGo()});ms.setActionHandler('pause',()=>{if(GT.st==='playing')gtGo()});['nexttrack','previoustrack'].forEach(k=>{try{ms.setActionHandler(k,null)}catch(e){}})}catch(e){}}
+function gtMediaState(){try{if('mediaSession' in navigator)navigator.mediaSession.playbackState=GT.st==='playing'?'playing':'paused'}catch(e){}}
+function gtOpen(){if(!GT.inited){GT.inited=true;
+    $('gtSong').innerHTML=Object.keys(GT_SONGS).map(k=>'<option value="'+k+'">'+gtEsc(GT_SONGS[k].name)+'</option>').join('');
+    $('gtPart').innerHTML=GT_PARTS.map(p=>'<option value="'+p.id+'">'+gtEsc(p.name)+'</option>').join('');
+    $('gtSnd').innerHTML=GT_SND.map((c,i)=>(i===0?'<p class="gtgrp">The instrument</p>':i===6?'<p class="gtgrp">The playing</p>':'')+'<div class="gtsl"><div class="gtslh"><label for="gt_'+c.k+'">'+c.name+'</label><output id="gto_'+c.k+'"></output></div><input type="range" id="gt_'+c.k+'" min="0" max="10" step="1"><div class="gtends"><span>'+gtEsc(c.lo)+'</span><span>'+gtEsc(c.hi)+'</span></div><p class="status">'+gtEsc(c.say)+'</p></div>').join('');
+    $('gtSong').onchange=()=>{gtSave({song:$('gtSong').value});renderKeyRows();gtChanged()};$('gtPart').onchange=()=>{gtSave({part:$('gtPart').value});gtChanged()};
+    [['gtGv','gv','gtGvO'],['gtVv','vv','gtVvO']].forEach(([id,k,o])=>{$(id).oninput=()=>{$(o).textContent=gtVolWords(+$(id).value)};$(id).onchange=()=>{gtSave({[k]:+$(id).value});gtChanged()}});
+    GT_SND.forEach(c=>{const el=$('gt_'+c.k);el.oninput=()=>{$('gto_'+c.k).textContent=el.value};el.onchange=()=>{const snd=Object.assign({},gtSet().snd,{[c.k]:+el.value});gtSave({snd});gtChanged()}});
+    $('gtTune').onchange=()=>{gtSave({conc:+$('gtTune').value});gtChanged()};$('gtReset').onclick=()=>{gtSave({snd:{}});gtChanged()};
+    $('gtGo').onclick=gtGo;$('gtBack').onclick=()=>{const a=GT.a;if(a&&GT.url&&a.src===GT.url){try{a.currentTime=0}catch(e){}gtTick()}};$('gtLoop').onclick=()=>{gtSave({loop:gtSet().loop?0:1});gtUI()};
+    const sk=$('gtSeek');sk.addEventListener('pointerdown',()=>{GT.seeking=true});sk.addEventListener('input',()=>{const a=GT.a;if(a&&a.duration)$('gtTime').textContent=fmtT(+sk.value/1000*a.duration)+' / '+fmtT(a.duration)});
+    sk.addEventListener('change',()=>{GT.seeking=false;const a=GT.a;if(a&&GT.url&&a.src===GT.url&&a.duration){try{a.currentTime=+sk.value/1000*a.duration}catch(e){}gtTick()}});
+  }
+  gtStatic();/* make the first mix now, quietly, so that Play starts at once */
+  if(GT.sig!==gtSig()&&GT.st!=='loading')gtChanged()}
+if(/^(127\.0\.0\.1|localhost)$/.test(location.hostname))window.isonGt={GT,GT_SONGS,GT_PARTS,GT_SND,gtSet,gtSave,gtBuild,gtLoad,gtLine,gtSetup,gtEvents,gtDecode,gtSig,gtChanged,gtGo,gtAlign,gtLoud};
 
 drawLive(0);loadSource();exampleTake();
 showTab((()=>{try{const t=localStorage.getItem('ison-tab');return TABS.includes(t)?t:'practice'}catch(e){return 'practice'}})());

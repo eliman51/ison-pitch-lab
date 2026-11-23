@@ -1,0 +1,43 @@
+guitar-steel.m4a
+----------------
+
+The steel-string guitar notes the Guitar lab plays. 17 notes of the "FSS Steel-String Acoustic Guitar" sound bank
+(release 2020-05-21) of the FreePats project, which was assembled by roberto@zenvoid.org from the "FS Seagull Steel
+String Acoustic Guitar" samples by Gary Campion of FlameStudios.
+
+    https://freepats.zenvoid.org/Guitar/steel-acoustic-guitar.html
+
+Changed for this app on 23 November 2026 by tools/guitarpack.py: 17 of the loud-layer notes (HV_40, 43, 45, 48, 50,
+52, 55, 58, 61, 64, 66, 68, 71, 74, 76, 79, 82) were cut to start at the pluck, shortened to at most 4.2 seconds,
+set to the same loudness, joined into one file and compressed to AAC. The uncompressed originals are at the address
+above; tools/guitarpack.py rebuilds this file from them.
+
+Copyright 2008 Gary Campion
+Modified 2016-2020 by roberto@zenvoid.org for the FreePats project.
+
+This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public
+License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied
+warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more
+details: https://www.gnu.org/licenses/gpl-3.0.html
+
+As a special exception, if you create a composition which uses these sounds, and mix these sounds or unaltered
+portions of these sounds into the composition, these sounds do not by themselves cause the entire composition as a
+whole to be covered by the GNU General Public License. This exception does not however invalidate any other reasons
+why the composition might be covered by the GNU General Public License.
+
+If you modify these sounds, you may extend this exception to your version of the sounds, but you are not obligated
+to do so. If you do not wish to do so, delete this exception statement from your version.
+
+This licence covers guitar-steel.m4a only. The rest of this repository is a separate work that loads the file when
+it runs.
+
+
+guitar-nylon.m4a
+----------------
+
+19 notes of the FreePats "Spanish classical guitar" (version 2019-06-18, created by roberto@zenvoid.org), cut and
+packed the same way. Published under the Creative Commons CC0 1.0 public domain dedication:
+https://freepats.zenvoid.org/Guitar/acoustic-guitar.html
