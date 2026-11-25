@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Shop Level">
+<meta name="theme-color" content="#E4E8EC" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0E161E" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<title>Shop Level</title>
+<style>
+:root{
+  /* Layout: a one-screen instrument. The vial fills the top, the readout and
+     controls sit below it; the two halves go side by side when the phone is on its long edge. */
+  --bg:#E4E8EC;      /* brushed aluminium */
+  --panel:#F5F7F9;
+  --ink:#13202C;
+  --muted:#586876;
+  --line:#BCC5CE;
+  --accent:#2148C0;  /* layout-fluid blue */
+  --vial:#C7DA3C;    /* spirit-level fluid */
+  --good:#1B8A4B;
+  --num:"IBM Plex Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --ui:"Barlow Semi Condensed","Avenir Next Condensed","Helvetica Neue",Arial,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E161E; --panel:#17222D; --ink:#E7EDF2; --muted:#8C9DAC; --line:#2B3947;
+    --accent:#7C9BFF; --vial:#C7DA3C; --good:#4FC985; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E161E; --panel:#17222D; --ink:#E7EDF2; --muted:#8C9DAC; --line:#2B3947;
+  --accent:#7C9BFF; --vial:#C7DA3C; --good:#4FC985; color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:var(--ui);-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;
+  touch-action:manipulation;overscroll-behavior:none;-webkit-text-size-adjust:100%}
+button{font:inherit;color:inherit;-webkit-tap-highlight-color:transparent}
+button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+#app{position:fixed;left:50%;top:50%;width:100vw;height:100%;transform:translate(-50%,-50%);
+  container-type:size;display:grid;gap:10px;padding:12px 16px 22px;
+  grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;
+  grid-template-areas:"head" "vial" "read" "ctrl"}
+#app.wide{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);column-gap:18px;row-gap:8px;padding:10px 18px 14px;
+  grid-template-rows:auto minmax(0,1fr) auto;grid-template-areas:"head head" "vial read" "vial ctrl"}
+
+header{grid-area:head;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.16em;text-transform:uppercase}
+.brand{display:flex;align-items:center}
+.back{display:inline-block;font-size:26px;line-height:1;font-weight:500;letter-spacing:0;color:var(--muted);text-decoration:none;padding:4px 12px 8px 0}
+.card .back2{display:inline-block;margin-top:14px;font-size:15px;font-weight:600;color:var(--muted)}
+.chips{display:flex;gap:6px}
+.chip{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;
+  border:1px solid var(--line);border-radius:4px;color:var(--muted);background:var(--panel)}
+.chip.on{color:var(--bg);background:var(--accent);border-color:var(--accent)}
+.chip[hidden]{display:none}
+
+#vial{grid-area:vial;position:relative;min-height:0;min-width:0;border:1px solid var(--line);
+  border-radius:10px;background:var(--panel);overflow:hidden}
+#vial canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+
+#read{grid-area:read;display:flex;flex-direction:column;gap:6px;min-width:0}
+#app.wide #read{justify-content:center}
+.big{font-family:var(--num);font-weight:500;font-variant-numeric:tabular-nums;line-height:1;
+  font-size:clamp(44px,18.5cqmin,92px);letter-spacing:-.02em;white-space:nowrap}
+.big .dim{color:var(--muted);opacity:.55}
+.big .deg{font-weight:400;color:var(--muted);margin-left:.04em}
+.big.good{color:var(--good)}
+.status{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:16px;font-weight:600}
+#state{min-width:0}
+#jit{font-family:var(--num);font-size:13px;font-weight:400;color:var(--muted);white-space:nowrap}
+.cells{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 0}
+.cells div{border-top:2px solid var(--ink);padding-top:5px;min-width:0}
+.cells dt{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.cells dd{margin:1px 0 0;font-family:var(--num);font-variant-numeric:tabular-nums;font-size:clamp(17px,5.2cqmin,24px);white-space:nowrap}
+
+#ctrl{grid-area:ctrl;display:flex;flex-direction:column;gap:8px;min-width:0}
+.seg{display:grid;grid-template-columns:auto repeat(3,1fr);align-items:center;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--panel)}
+.seg span{font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 10px}
+.seg button{border:0;border-left:1px solid var(--line);background:none;padding:8px 4px;font-size:15px;font-weight:600;color:var(--muted)}
+.seg button[aria-checked="true"]{background:var(--ink);color:var(--bg)}
+.btns{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.btns button{min-height:46px;border-radius:8px;border:1px solid var(--ink);background:var(--panel);font-size:15px;font-weight:700;padding:4px 2px;line-height:1.1}
+.btns button:active{background:var(--ink);color:var(--bg)}
+.btns button.on{background:var(--accent);border-color:var(--accent);color:var(--bg)}
+.btns button:disabled{opacity:.7}
+
+.sheet{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding:18px;
+  background:color-mix(in srgb,var(--bg) 86%,transparent)}
+.sheet[hidden]{display:none}
+.card{width:min(100%,430px);max-height:100%;overflow:auto;background:var(--panel);border:1px solid var(--ink);border-radius:12px;padding:20px}
+.card h1,.card h2{margin:0 0 8px;font-size:24px;font-weight:700;letter-spacing:.02em;text-wrap:balance}
+.card p{margin:0 0 12px;font-size:17px;line-height:1.35;font-weight:500}
+.card .msg{color:var(--accent);font-weight:600;min-height:1.35em}
+.card .row{display:flex;flex-wrap:wrap;gap:8px}
+.card button{min-height:48px;border-radius:8px;border:1px solid var(--ink);background:none;font-size:17px;font-weight:700;padding:6px 16px}
+.card button.primary{background:var(--ink);color:var(--bg);flex:1 1 auto}
+.card button:disabled{opacity:.6}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="brand"><a class="back" href="../" aria-label="Back to Ison Pitch Lab">&lsaquo;</a>Shop Level</div>
+    <div class="chips">
+      <span class="chip on" id="chipMode">Flat</span>
+      <span class="chip" id="chipRel" hidden>Zeroed</span>
+      <span class="chip" id="chipCal">Uncal</span>
+    </div>
+  </header>
+
+  <div id="vial"><canvas id="cv" aria-hidden="true"></canvas></div>
+
+  <section id="read" aria-label="Reading">
+    <div class="big" id="big"><span id="sgn"></span><span id="int">0</span>.<span id="d1">0</span><span id="d2">0</span><span id="d3">0</span><span class="deg">&deg;</span></div>
+    <div class="status"><span id="state">Waiting for sensors</span><span id="jit"></span></div>
+    <dl class="cells">
+      <div><dt id="c1l">Side to side</dt><dd id="c1v">+0.000&deg;</dd></div>
+      <div><dt id="c2l">Front to back</dt><dd id="c2v">+0.000&deg;</dd></div>
+    </dl>
+  </section>
+
+  <section id="ctrl" aria-label="Controls">
+    <div class="seg" role="radiogroup" aria-label="Smoothing">
+      <span>Smoothing</span>
+      <button type="button" role="radio" data-tau="fast" id="tauFast">Fast</button>
+      <button type="button" role="radio" data-tau="steady" id="tauSteady">Steady</button>
+      <button type="button" role="radio" data-tau="fine" id="tauFine">Fine</button>
+    </div>
+    <div class="btns">
+      <button type="button" id="bZero">Zero</button>
+      <button type="button" id="bHold">Hold</button>
+      <button type="button" id="bAvg">5 s read</button>
+      <button type="button" id="bCal">Calibrate</button>
+    </div>
+  </section>
+
+  <div class="sheet" id="startDlg">
+    <div class="card">
+      <h1>Shop Level</h1>
+      <p>Reads your phone's motion sensors and shows tilt to a thousandth of a degree. Lay the phone flat for a two-way bubble, or stand it on an edge for a single angle.</p>
+      <p class="msg" id="startMsg"></p>
+      <div class="row"><button type="button" class="primary" id="bStart">Turn on sensors</button></div>
+      <a class="back2" href="../">Back to Ison Pitch Lab</a>
+    </div>
+  </div>
+
+  <div class="sheet" id="calDlg" hidden>
+    <div class="card">
+      <h2>Calibrate this position</h2>
+      <p id="calText"></p>
+      <p class="msg" id="calMsg"></p>
+      <div class="row">
+        <button type="button" class="primary" id="calGo">Capture 1 of 2</button>
+        <button type="button" id="calClear">Clear</button>
+        <button type="button" id="calClose">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const $ = id => document.getElementById(id);
+const rad = d => d * Math.PI / 180, deg = r => r * 180 / Math.PI;
+const wrap = a => ((a + 180) % 360 + 360) % 360 - 180;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+const store = {
+  get(k, d) { try { const v = localStorage.getItem('shoplevel.' + k); return v ? JSON.parse(v) : d; } catch (e) { return d; } },
+  set(k, v) { try { localStorage.setItem('shoplevel.' + k, JSON.stringify(v)); } catch (e) {} }
+};
+
+const TAU = { fast: 0.25, steady: 1.0, fine: 4.0 };   // averaging window, seconds
+const RANGES = [0.1, 0.5, 2, 10, 45];                 // vial full-scale steps, degrees
+const TOL = 0.05;                                     // "level" band, degrees
+
+// iPhones report gravity with the opposite sign to the web standard. Start from
+// that, then confirm against the orientation sensor once the phone is tilted.
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+let sign = isIOS ? -1 : 1, votes = 0;
+
+let f = null, lastRaw = null, lastT = 0, gotData = false, running = false;
+let mode = 'flat', base = 0, rot = 0, ri = 2;
+let tau = store.get('tau', 'steady'); if (!TAU[tau]) tau = 'steady';
+let cal = store.get('cal', {});
+let tare = { edge: 0, flat: null };
+let held = null, heldNote = '', heldSe = null;
+let hist = [], sampler = null, cur = null, lastText = 0, flash = null;
+let win = [], settled = false;
+
+const app = $('app'), vialEl = $('vial'), cv = $('cv'), ctx = cv.getContext('2d');
+let cw = 300, ch = 300;
+const C = {};
+
+/* ---------- sensors ---------- */
+function onMotion(e) {
+  const a = e.accelerationIncludingGravity;
+  if (!a || a.x == null || a.y == null || a.z == null) return;
+  const m = Math.hypot(a.x, a.y, a.z);
+  if (m < 1) return;
+  gotData = true;
+  const t = performance.now();
+  const dt = lastT ? (t - lastT) / 1000 : 0; lastT = t;
+  lastRaw = [a.x, a.y, a.z];
+  const x = a.x * sign, y = a.y * sign, z = a.z * sign;
+  // Plain moving average over the chosen window: once the window has passed, the
+  // reading has fully settled. A real move (over 1.2 degrees) restarts the average.
+  if (!f || dt <= 0 || dt > 0.5) win = [];
+  else {
+    const dot = (x * f[0] + y * f[1] + z * f[2]) / (m * Math.hypot(f[0], f[1], f[2]));
+    if (deg(Math.acos(clamp(dot, -1, 1))) > 1.2) win = [];
+  }
+  win.push([t, x, y, z]);
+  const span = TAU[tau] * 1000;
+  while (win.length > 1 && t - win[0][0] > span) win.shift();
+  let sx = 0, sy = 0, sz = 0;
+  for (const w of win) { sx += w[1]; sy += w[2]; sz += w[3]; }
+  f = [sx / win.length, sy / win.length, sz / win.length];
+  settled = t - win[0][0] > span * 0.85;
+  if (sampler) {
+    sampler.buf.push([x, y, z]);
+    const el = t - sampler.t0;
+    if (sampler.tick) sampler.tick(el);
+    if (el >= sampler.ms) { const s = sampler; sampler = null; s.done(s.buf); }
+  }
+}
+function onOrient(e) {
+  if (e.beta == null || !lastRaw) return;
+  const sb = Math.sin(rad(e.beta));
+  if (Math.abs(sb) < 0.2 || Math.abs(lastRaw[1]) < 2) return;
+  const agree = Math.sign(lastRaw[1] * sign) === Math.sign(sb);
+  votes = clamp(votes + (agree ? 1 : -1), -40, 40);
+  if (votes <= -20) { sign = -sign; votes = 0; win = []; f = null; }
+}
+function collect(ms, tick) {
+  return new Promise(done => { sampler = { buf: [], t0: performance.now(), ms, tick, done }; });
+}
+function screenAngle() {
+  if (typeof window.orientation === 'number') return window.orientation;
+  if (screen.orientation && typeof screen.orientation.angle === 'number') {
+    const a = screen.orientation.angle; return a > 180 ? a - 360 : a;
+  }
+  return 0;
+}
+
+/* ---------- geometry ---------- */
+function updateMode(v) {
+  const n = Math.hypot(v[0], v[1], v[2]) || 1, az = Math.abs(v[2] / n);
+  let m = mode, b = base;
+  if (m === 'flat' && az < 0.70) m = 'edge';
+  else if (m === 'edge' && az > 0.82) m = 'flat';
+  if (m === 'edge') {
+    const alpha = deg(Math.atan2(-v[0], v[1]));
+    if (m !== mode || Math.abs(wrap(alpha - b)) > 52) b = ((Math.round(alpha / 90) * 90) % 360 + 360) % 360;
+  }
+  if (m !== mode || b !== base) { mode = m; base = b; hist = []; layout(); }
+}
+// Uncorrected angles in the phone's own frame.
+function rawAngles(v) {
+  const n = Math.hypot(v[0], v[1], v[2]) || 1, ux = v[0] / n, uy = v[1] / n, az = Math.abs(v[2] / n);
+  if (mode === 'edge') return { mode, key: 'e' + base, d: wrap(deg(Math.atan2(-ux, uy)) - base), lean: deg(Math.asin(Math.min(1, az))) };
+  return { mode, key: 'flat', r: deg(Math.atan2(ux, az)), p: deg(Math.atan2(uy, az)) };
+}
+// Corrected reading. Positive means the right side (or the far side) is high.
+function readFrom(v) {
+  const a = rawAngles(v);
+  if (a.mode === 'edge') {
+    const pre = -(a.d - (cal[a.key] || 0));
+    return { mode: 'edge', key: a.key, pre, shown: pre - tare.edge, lean: a.lean };
+  }
+  const c = cal.flat || { r: 0, p: 0 }, t = tare.flat || { r: 0, p: 0 };
+  const r0 = a.r - c.r, p0 = a.p - c.p, r = r0 - t.r, p = p0 - t.p;
+  const w = rad(screenAngle()), cs = Math.cos(w), sn = Math.sin(w);
+  const side = r * cs - p * sn, front = r * sn + p * cs;
+  const total = deg(Math.atan(Math.hypot(Math.tan(rad(side)), Math.tan(rad(front)))));
+  return { mode: 'flat', key: 'flat', r0, p0, side, front, total };
+}
+function stdOf(arr) {
+  const n = arr.length; if (n < 2) return 0;
+  let s = 0; for (const v of arr) s += v; const mu = s / n;
+  let q = 0; for (const v of arr) q += (v - mu) * (v - mu);
+  return Math.sqrt(q / (n - 1));
+}
+function jitter() {
+  const t = performance.now();
+  while (hist.length && t - hist[0].t > 1500) hist.shift();
+  if (!settled || hist.length < 12 || t - hist[0].t < Math.min(700, TAU[tau] * 1000)) return null;
+  return Math.max(stdOf(hist.map(h => h.a)), stdOf(hist.map(h => h.b)));
+}
+function pickRange(a) {
+  a = Math.abs(a);
+  while (ri < RANGES.length - 1 && a > RANGES[ri] * 0.95) ri++;
+  while (ri > 0 && a < RANGES[ri - 1] * 0.6) ri--;
+  return RANGES[ri];
+}
+
+/* ---------- layout: keep the screen upright whichever edge is down ---------- */
+function layout() {
+  rot = mode === 'edge' ? wrap(-(base + screenAngle())) : 0;
+  if (rot === -180) rot = 180;
+  const W = window.innerWidth, H = window.innerHeight, odd = Math.abs(rot) === 90;
+  const aw = odd ? H : W, ah = odd ? W : H;
+  app.style.width = aw + 'px'; app.style.height = ah + 'px';
+  app.style.transform = 'translate(-50%,-50%) rotate(' + rot + 'deg)';
+  app.classList.toggle('wide', aw > ah * 1.15);
+  sizeCanvas();
+}
+function sizeCanvas() {
+  cw = vialEl.clientWidth || 300; ch = vialEl.clientHeight || 300;
+  const d = Math.min(3, window.devicePixelRatio || 1);
+  cv.width = Math.round(cw * d); cv.height = Math.round(ch * d);
+  ctx.setTransform(d, 0, 0, d, 0, 0);
+}
+function readColors() {
+  const cs = getComputedStyle(document.documentElement);
+  ['bg', 'panel', 'ink', 'muted', 'line', 'accent', 'vial', 'good'].forEach(k => { C[k] = cs.getPropertyValue('--' + k).trim(); });
+  C.ui = cs.getPropertyValue('--ui').trim();
+}
+
+/* ---------- drawing ---------- */
+function rr(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function label(txt, x, y, align) {
+  ctx.font = '600 12px ' + C.ui; ctx.fillStyle = C.muted; ctx.textAlign = align || 'left'; ctx.textBaseline = 'alphabetic';
+  ctx.fillText(txt, x, y);
+}
+function drawEdge(rd) {
+  const W = cw, H = ch, cx = W / 2, cy = H / 2;
+  const fs = pickRange(rd.shown), level = Math.abs(rd.shown) < TOL;
+  ctx.clearRect(0, 0, W, H);
+  // Phone's own reference line, and the true horizon drawn at real angle.
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.setLineDash([4, 6]);
+  ctx.beginPath(); ctx.moveTo(-W, 0); ctx.lineTo(W, 0); ctx.stroke(); ctx.setLineDash([]);
+  ctx.rotate(rad(clamp(rd.shown, -45, 45)));
+  ctx.strokeStyle = level ? C.good : C.accent; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-W * 2, 0); ctx.lineTo(W * 2, 0); ctx.stroke();
+  ctx.restore();
+  // Tube vial.
+  const tw = Math.min(W - 28, 560), th = clamp(H * 0.24, 46, 92), x0 = cx - tw / 2, y0 = cy - th / 2;
+  rr(x0, y0, tw, th, th / 2); ctx.fillStyle = C.panel; ctx.fill();
+  ctx.globalAlpha = 0.55; ctx.fillStyle = C.vial; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke();
+  const bw = tw * 0.2, bh = th * 0.62, travel = (tw - bw) / 2 - 8;
+  const bx = cx + clamp(rd.shown / fs, -1, 1) * travel;
+  rr(bx - bw / 2, cy - bh / 2, bw, bh, bh / 2);
+  ctx.fillStyle = C.panel; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = level ? C.good : C.ink; ctx.stroke();
+  ctx.strokeStyle = level ? C.good : C.ink; ctx.lineWidth = 2;
+  for (const s of [-1, 1]) { const x = cx + s * (bw / 2 + 4); ctx.beginPath(); ctx.moveTo(x, y0 + 2); ctx.lineTo(x, y0 + th - 2); ctx.stroke(); }
+  // Scale under the tube.
+  ctx.strokeStyle = C.muted; ctx.lineWidth = 1;
+  for (let i = -5; i <= 5; i++) {
+    const x = cx + i / 5 * travel, len = i % 5 === 0 ? 10 : 6;
+    ctx.beginPath(); ctx.moveTo(x, y0 + th + 6); ctx.lineTo(x, y0 + th + 6 + len); ctx.stroke();
+  }
+  const ty = y0 + th + 32;
+  label('−' + fs + '°', cx - travel, ty, 'center'); label('0', cx, ty, 'center'); label('+' + fs + '°', cx + travel, ty, 'center');
+  label('VIAL RANGE ±' + fs + '°', 12, 20);
+}
+function drawFlat(rd) {
+  const W = cw, H = ch, cx = W / 2, cy = H / 2;
+  const fs = pickRange(rd.total), level = rd.total < TOL;
+  const R = Math.max(40, Math.min(W, H) / 2 - 24);
+  ctx.clearRect(0, 0, W, H);
+  ctx.beginPath(); ctx.arc(cx, cy, R, 0, 7); ctx.fillStyle = C.panel; ctx.fill();
+  ctx.globalAlpha = 0.55; ctx.fillStyle = C.vial; ctx.fill(); ctx.globalAlpha = 1;
+  ctx.lineWidth = 2; ctx.strokeStyle = C.ink; ctx.stroke();
+  const rb = R * 0.17, travel = R - rb - 5;
+  ctx.strokeStyle = C.ink; ctx.globalAlpha = 0.28; ctx.lineWidth = 1;
+  for (const k of [0.25, 0.5, 0.75]) { ctx.beginPath(); ctx.arc(cx, cy, rb + travel * k, 0, 7); ctx.stroke(); }
+  ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+  ctx.globalAlpha = 1;
+  ctx.beginPath(); ctx.arc(cx, cy, rb + 4, 0, 7); ctx.lineWidth = 2; ctx.strokeStyle = level ? C.good : C.ink; ctx.stroke();
+  let vx = rd.side / fs, vy = -rd.front / fs; const vm = Math.hypot(vx, vy); if (vm > 1) { vx /= vm; vy /= vm; }
+  ctx.beginPath(); ctx.arc(cx + vx * travel, cy + vy * travel, rb, 0, 7);
+  ctx.fillStyle = C.panel; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = level ? C.good : C.ink; ctx.stroke();
+  label('OUTER RING ' + fs + '°', 12, 20);
+}
+
+/* ---------- readout ---------- */
+const fmt = (v, n) => (v < 0 && Math.abs(v) >= 0.5 * Math.pow(10, -n) ? '−' : '+') + Math.abs(v).toFixed(n);
+function highSide(rd) {
+  const parts = [];
+  if (Math.abs(rd.front) > 0.4 * rd.total) parts.push(rd.front > 0 ? 'far' : 'near');
+  if (Math.abs(rd.side) > 0.4 * rd.total) parts.push(rd.side > 0 ? 'right' : 'left');
+  return 'High at the ' + parts.join(' ') + (parts.length === 2 ? ' corner' : ' side');
+}
+function writeText(rd, j) {
+  const edge = rd.mode === 'edge', val = edge ? rd.shown : rd.total;
+  const s = Math.abs(val).toFixed(3).split('.');
+  $('sgn').textContent = edge ? (val < 0 && Math.abs(val) >= 0.0005 ? '−' : '+') : '';
+  $('int').textContent = s[0];
+  const spread = held ? (heldSe == null ? 0 : heldSe) : j;
+  [['d1', 0.3], ['d2', 0.03], ['d3', 0.003]].forEach(([id, lim], i) => {
+    const el = $(id); el.textContent = s[1][i];
+    el.classList.toggle('dim', spread == null || spread > lim);
+  });
+  const level = Math.abs(val) < TOL;
+  $('big').classList.toggle('good', level);
+
+  let state;
+  if (flash && performance.now() < flash.until) state = flash.text;
+  else if (held) state = heldNote;
+  else if (edge && rd.lean > 25) state = 'Stand the phone more upright';
+  else if (level) state = 'Level';
+  else state = edge ? (rd.shown > 0 ? 'Right side high' : 'Left side high') : highSide(rd);
+  $('state').textContent = state;
+  $('jit').textContent = held ? (heldSe == null ? '' : '±' + (2 * heldSe).toFixed(4) + '°')
+    : (j == null ? 'settling' : 'steady ±' + (2 * j).toFixed(3) + '°');
+
+  if (edge) {
+    const tn = Math.tan(rad(rd.shown));
+    $('c1l').textContent = 'Grade'; $('c1v').textContent = fmt(tn * 100, 3) + ' %';
+    $('c2l').textContent = 'Rise per foot'; $('c2v').textContent = fmt(tn * 12, 4) + ' in';
+  } else {
+    $('c1l').textContent = 'Side to side'; $('c1v').textContent = fmt(rd.side, 3) + '°';
+    $('c2l').textContent = 'Front to back'; $('c2v').textContent = fmt(rd.front, 3) + '°';
+  }
+  const cm = $('chipMode'); cm.textContent = mode === 'edge' ? 'Edge' : 'Flat';
+  $('chipRel').hidden = !(mode === 'edge' ? tare.edge !== 0 : !!tare.flat);
+  const has = cal[mode === 'edge' ? 'e' + base : 'flat'] != null;
+  const cc = $('chipCal'); cc.textContent = has ? 'Cal' : 'Uncal'; cc.classList.toggle('on', has);
+  $('bZero').textContent = $('chipRel').hidden ? 'Zero' : 'Clear zero';
+  $('bZero').classList.toggle('on', !$('chipRel').hidden);
+  $('bHold').textContent = held ? 'Resume' : 'Hold';
+  $('bHold').classList.toggle('on', !!held);
+}
+function frame() {
+  requestAnimationFrame(frame);
+  const v = f || [0, 0, 9.81];
+  if (f) updateMode(f);
+  cur = readFrom(v);
+  const rd = held || cur;
+  if (f && !held) hist.push({ t: performance.now(), a: cur.mode === 'edge' ? cur.shown : cur.side, b: cur.mode === 'edge' ? 0 : cur.front });
+  if (rd.mode === 'edge') drawEdge(rd); else drawFlat(rd);
+  const now = performance.now();
+  if (now - lastText > 110) { lastText = now; writeText(rd, f ? jitter() : null); if (!f) $('state').textContent = 'Waiting for sensors'; }
+}
+function say(text, ms) { flash = { text, until: performance.now() + (ms || 2500) }; }
+
+/* ---------- controls ---------- */
+function setTau(t) {
+  tau = t; store.set('tau', t);
+  document.querySelectorAll('.seg button').forEach(b => b.setAttribute('aria-checked', String(b.dataset.tau === t)));
+}
+document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => setTau(b.dataset.tau)));
+
+$('bZero').addEventListener('click', () => {
+  if (!cur) return;
+  held = null;
+  if (mode === 'edge') tare.edge = tare.edge !== 0 ? 0 : cur.pre;
+  else tare.flat = tare.flat ? null : { r: cur.r0, p: cur.p0 };
+  hist = [];
+});
+$('bHold').addEventListener('click', () => {
+  if (held) { held = null; hist = []; }
+  else if (cur) { held = cur; heldNote = 'Held'; heldSe = null; }
+});
+$('bAvg').addEventListener('click', async () => {
+  if (sampler || !f) return;
+  held = null;
+  const b = $('bAvg'); b.disabled = true; b.classList.add('on');
+  const m0 = mode, b0 = base;
+  const buf = await collect(5000, el => { b.textContent = 'Still ' + Math.max(1, Math.ceil((5000 - el) / 1000)); });
+  b.disabled = false; b.classList.remove('on'); b.textContent = '5 s read';
+  if (mode !== m0 || base !== b0 || buf.length < 20) { say('Phone moved. Try again.'); return; }
+  const per = buf.map(readFrom);
+  const sd = mode === 'edge' ? stdOf(per.map(p => p.shown)) : Math.max(stdOf(per.map(p => p.side)), stdOf(per.map(p => p.front)));
+  if (sd > 0.5) { say('Phone moved. Try again.'); return; }
+  const mean = [0, 0, 0]; buf.forEach(s => { mean[0] += s[0]; mean[1] += s[1]; mean[2] += s[2]; });
+  held = readFrom(mean.map(v => v / buf.length));
+  heldSe = sd / Math.sqrt(buf.length);
+  heldNote = '5 s average, ' + buf.length + ' samples';
+});
+
+/* two-position calibration: read, turn the phone end for end, read again */
+let calStep = 0, calA = null;
+function calPrompt() {
+  const edge = mode === 'edge';
+  $('calText').textContent = calStep === 0
+    ? (edge ? 'Stand the phone on this edge on a firm, flat surface and hold it still. Tap Capture.'
+            : 'Lay the phone flat on a firm surface. Mark where it sits. Tap Capture.')
+    : (edge ? 'Now turn the phone around so the screen faces the other way. Same edge down, same spot. Tap Capture.'
+            : 'Now spin the phone half a turn on the same spot, so the top points the opposite way. Tap Capture.');
+  $('calGo').textContent = calStep === 2 ? 'Done' : 'Capture ' + (calStep + 1) + ' of 2';
+}
+$('bCal').addEventListener('click', () => { held = null; calStep = 0; calA = null; $('calMsg').textContent = ''; calPrompt(); $('calDlg').hidden = false; });
+$('calClose').addEventListener('click', () => { $('calDlg').hidden = true; });
+$('calClear').addEventListener('click', () => {
+  delete cal[mode === 'edge' ? 'e' + base : 'flat']; store.set('cal', cal);
+  calStep = 0; calPrompt(); $('calMsg').textContent = 'Calibration cleared for this position.';
+});
+$('calGo').addEventListener('click', async () => {
+  if (calStep === 2) { $('calDlg').hidden = true; return; }
+  if (sampler) return;
+  if (!f) { $('calMsg').textContent = 'No sensor data yet.'; return; }
+  const go = $('calGo'); go.disabled = true; $('calMsg').textContent = 'Reading. Hold still.';
+  const buf = await collect(2500);
+  go.disabled = false;
+  const per = buf.map(rawAngles);
+  const sd = mode === 'edge' ? stdOf(per.map(p => p.d)) : Math.max(stdOf(per.map(p => p.r)), stdOf(per.map(p => p.p)));
+  if (buf.length < 10 || sd > 0.4) { $('calMsg').textContent = 'The phone moved. Hold it still and capture again.'; return; }
+  const mean = [0, 0, 0]; buf.forEach(s => { mean[0] += s[0]; mean[1] += s[1]; mean[2] += s[2]; });
+  const a = rawAngles(mean.map(v => v / buf.length));
+  if (calStep === 0) { calA = a; calStep = 1; $('calMsg').textContent = 'First reading saved.'; calPrompt(); return; }
+  if (a.key !== calA.key) { calStep = 0; calA = null; $('calMsg').textContent = 'The phone ended up in a different position. Start again.'; calPrompt(); return; }
+  let note;
+  if (a.mode === 'edge') { cal[a.key] = (a.d + calA.d) / 2; note = fmt(cal[a.key], 3) + '°'; }
+  else { cal.flat = { r: (a.r + calA.r) / 2, p: (a.p + calA.p) / 2 }; note = fmt(cal.flat.r, 3) + '° side, ' + fmt(cal.flat.p, 3) + '° front'; }
+  store.set('cal', cal);
+  if (a.mode === 'edge') tare.edge = 0; else tare.flat = null;
+  calStep = 2; hist = [];
+  $('calText').textContent = 'Saved on this phone for this position. Each edge and the flat position keep their own calibration.';
+  $('calMsg').textContent = 'Sensor offset removed: ' + note;
+  $('calGo').textContent = 'Done';
+});
+
+/* ---------- start ---------- */
+let wake = null;
+let inFrame = false; try { inFrame = window.self !== window.top; } catch (e) { inFrame = true; }
+const BLOCKED = 'Motion sensors are blocked here. Inside the Claude app that is expected, because Claude does not pass phone sensors through to pages. Opened in Safari from its own web address, this level works.';
+async function keepAwake() { try { if ('wakeLock' in navigator) wake = await navigator.wakeLock.request('screen'); } catch (e) {} }
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && running) { lastT = 0; keepAwake(); } });
+
+$('bStart').addEventListener('click', async () => {
+  const msg = $('startMsg');
+  try {
+    if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+      const r = await DeviceMotionEvent.requestPermission();
+      if (r !== 'granted') { msg.textContent = inFrame ? BLOCKED : 'Motion access was declined. Close this page fully, open it again, and tap Allow.'; return; }
+      try { if (typeof DeviceOrientationEvent !== 'undefined' && DeviceOrientationEvent.requestPermission) await DeviceOrientationEvent.requestPermission(); } catch (e) {}
+    }
+  } catch (e) {
+    msg.textContent = BLOCKED; return;
+  }
+  window.addEventListener('devicemotion', onMotion);
+  window.addEventListener('deviceorientation', onOrient);
+  running = true; keepAwake();
+  msg.textContent = 'Starting.';
+  const t0 = performance.now();
+  (function wait() {
+    if (gotData) { $('startDlg').hidden = true; return; }
+    if (performance.now() - t0 > 2500) {
+      msg.textContent = inFrame ? BLOCKED : 'No motion data is arriving. This needs a phone or tablet, with the page opened in the browser from an https address.';
+      return;
+    }
+    setTimeout(wait, 100);
+  })();
+});
+
+readColors(); setTau(tau); layout();
+if (window.matchMedia) {
+  const mq = matchMedia('(prefers-color-scheme: dark)');
+  (mq.addEventListener ? mq.addEventListener.bind(mq, 'change') : mq.addListener.bind(mq))(readColors);
+}
+window.addEventListener('resize', layout);
+window.addEventListener('orientationchange', () => setTimeout(layout, 60));
+if (window.ResizeObserver) new ResizeObserver(sizeCanvas).observe(vialEl);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(readColors);
+requestAnimationFrame(frame);
+if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('sw.js').catch(() => {});
+})();
+</script>
+</body>
+</html>

@@ -2219,6 +2219,11 @@ html.sketch .addsong{border:calc(var(--skw)*.9) dashed var(--ink);border-radius:
       <div class="field"><label class="label" for="gate">Noise filter</label><input type="range" id="gate" min="1.3" max="6" step="0.1" value="2"><span class="status">Adjusts to the room on its own. Slide right only if background noise shows up as notes</span></div>
     </div>
   </section>
+  <section class="panel" aria-labelledby="t-tools">
+    <h2 id="t-tools">Other tools</h2>
+    <p class="status" style="margin:0">Shop Level: a precision level for the shop. It reads the phone's tilt to a thousandth of a degree, lying flat or standing on an edge. It opens as its own page; the arrow at its top left brings you back here.</p>
+    <div class="row"><button id="lvlOpen">Open Shop Level</button></div>
+  </section>
   </div>
 </div>
 
@@ -8961,6 +8966,8 @@ $('findHome').onclick=async()=>{
     if(n>=40){clearInterval(iv);$('findHome').disabled=false;if(got.length<8){$('findStatus').textContent='I couldn\'t hear a steady note. Try again a little louder.';return}
       S.home=Math.round(med(got));save();$('homeNote').value=String(S.home);$('findStatus').textContent='Your home note is '+nameOf(S.home)+'. Lessons are now built around it.';renderPractice()}},100)};
 window.__tracks=()=>({foundTrack,songT,buildSession});window.__smSeq=(a,b,c)=>smSeq(a,b,c);window.__synth=(D)=>bgSynth(D,()=>{});window.__stepsSec=earStepsSec;window.__tl=(u,lv,g)=>bgTimeline(u,lv,g);window.__voLoad=voLoad;window.__les={lesList,lesDrills,ssDegs,LES:()=>LES_PLAN,reset:()=>{LES_PLAN=null}};window.__sm={SM,smPlan,smDrill,smPractice,smRate,smCur,smStats,smIt,smPut,smSong,smEnsure,smDur};window.__ears={replan:w=>bgReplanFromNext(w),aud:()=>earAudio,ES,wsola,BG,EARS,earDrills,earStart,earFinish,earSkip,earLevel,earRender};window.__pl={computePlacement,buildPlacement,placeTrack,show:r=>{placeRes=r;placeView='result';renderPractice()}};window.__st={ATT,packTrace,unpackTrace,scoreItem,getS:()=>S};window.__h={analyzeHabits,mkItem,habitList,HAB,recordHabits,renderPractice};
+/* Settings, Other tools: Shop Level lives in the level/ folder of the GitHub Pages site (it needs a real https page for the motion sensors) */
+{const lv=$('lvlOpen');if(lv)lv.onclick=()=>{location.href=/github\.io$/.test(location.hostname)||location.hostname==='localhost'?'level/':'https://eliman51.github.io/ison-pitch-lab/level/'}}
 if('serviceWorker' in navigator&&location.protocol==='https:'&&/github\.io$/.test(location.hostname)){navigator.serviceWorker.register('sw.js').then(()=>renderSafety()).catch(()=>{})}
 protectStorage();$('bkAudio').onchange=()=>{prepBackup().catch(()=>{})};
 if(!store.get('ison-welcomed',0)&&!history().length&&TIME.raw<1)setTimeout(()=>openWelcome(true),700);
@@ -9637,7 +9644,7 @@ async function privOpen(file,pw){const r=await fetch(file,{cache:'no-cache'});if
   const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw.trim()),'PBKDF2',false,['deriveKey']),key=await crypto.subtle.deriveKey({name:'PBKDF2',salt:b.slice(4,20),iterations:150000,hash:'SHA-256'},base,{name:'AES-GCM',length:256},false,['decrypt']);
   try{return await crypto.subtle.decrypt({name:'AES-GCM',iv:b.slice(20,32)},key,b.slice(32))}catch(e){return null}}
 /* Psalm 118 as 22 finished songs made on the Mac (tools/pack118.py): each file holds the words, the settings and the singer's recording */
-const APP_VER=82;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
+const APP_VER=83;/* shown on the Chant tab so Eli can tell which version a device has; raise it together with CACHE in sw.js on every push */
 const S118_REV={3:'b',10:'b',15:'b',17:'b',18:'b',22:'b'},R118_REV=3;const R118M_REV={10:'b',11:'b',12:'b',14:'b',16:'b',19:'b',20:'b',22:'b'};/* Monastery stanzas sung again (17 November 2026): every stanza now ends on the closing phrase (sgFitLines), and 20 says "persecute" */
 const R118_HAVE={r118w:[4],r118t4:[4]};/* sets that do not have all 22 stanzas yet: a number (stanzas 1 to that) or the list of stanzas */
 const rvHas=(m,n)=>{const h=R118_HAVE[m];return !h||(Array.isArray(h)?h.includes(n):n<=h)},rvHaveTxt=m=>{const h=R118_HAVE[m];return Array.isArray(h)?(h.length===1?'stanza '+h[0]+' is':'stanzas '+h.slice(0,-1).join(', ')+' and '+h[h.length-1]+' are'):'stanzas 1 to '+h+' are'};

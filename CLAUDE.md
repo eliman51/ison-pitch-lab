@@ -1038,3 +1038,23 @@ non-commercial use, no re-hosting, no religious clause), and `out/` for results.
   screen has the same four as plus and minus buttons (`#ntLiveBox`: percent, seconds, tone, singer). The Easy to
   Extra hard row had come back for this lesson because `renderLoop` un-hid it; fixed there. Nothing in the pop plan
   changes by itself during a session (`popFade`, `fadeT`, `fadeV` are 0).
+
+## Shop Level, in the `level/` folder (24 November 2026)
+
+- Not part of the singing app. Eli asked for a precision level for the shop that shows hundredths and thousandths of a
+  degree (Apple's level only shows whole degrees). A Claude artifact cannot read the phone's motion sensors, so it
+  lives here because this is his one public https site. He asked for it tucked away in Settings: the last panel,
+  "Other tools", button `lvlOpen`. Address: https://eliman51.github.io/ison-pitch-lab/level/ . The arrow at its top
+  left comes back to the app.
+- It is one page, `level/index.html`, with its own `level/sw.js` (cache `shop-level-v1`), manifest and icons, so it
+  can also be added to the home screen by itself. It keeps its calibration in localStorage under `shoplevel.`.
+- The two apps share one web address, so two rules keep their offline copies apart. This app's `sw.js` ignores any
+  request under `/level` (otherwise it would store the level page as this app's page) and only deletes caches named
+  `ison-pitch-lab...`. The level's worker only deletes caches named `shop-level-...`. Keep both rules.
+- A change to the level does not need `APP_VER` raised; raise `CACHE` in `level/sw.js` instead.
+- How it reads: gravity from `devicemotion` (iPhones report it with the sign flipped; the page corrects that and
+  double-checks against `deviceorientation`), a plain moving average (Fast 0.25 s, Steady 1 s, Fine 4 s), digits
+  greyed out while they are still jittering, a 5 second averaged read, Zero, Hold, and a two-position calibration
+  (read, turn the phone end for end, read again) kept per edge and for lying flat.
+- Checked with made-up sensor data in a desktop browser only: the angles, the bubble direction, the screen turning
+  with the phone and both offline copies. Nobody has checked it on a real iPhone yet; Eli's first try is the test.
